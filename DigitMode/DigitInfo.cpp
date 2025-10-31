@@ -178,7 +178,7 @@ void CDigitInfo::CreateBufLineApertureSimple()
       for(int i=0; i < naP; i++){
           y = (int)(BoundR.top - cent.y + i);
           x = (int)((1. - y*y/b/b)*a*a);
-         if(!i) x = 0.;
+         if(!i) x = 0;
         else {
 			float ix = x;
 			ix = (fabs(ix));
@@ -402,7 +402,7 @@ void CDigitInfo::CreateRedCenters()
   XYPoint P;
   for(int iy=begY; iy < endY; iy++){
     int n=-1;
-    for (int iCol=0; iCol < pI->m_pDIB->m_dwWidth; iCol++){
+    for (auto iCol=0; iCol < pI->m_pDIB->m_dwWidth; iCol++){
        idx = ((yDIB-iy)*pI->m_pDIB->m_dwWidth + iCol);
        Pixel = pI->m_pDIB->m_lpSrcBits[idx];
        rgbPix.rgbRed = Pixel;

@@ -4,8 +4,8 @@
 #include "..\stdafx.h"
 #include "..\MGTools\Include\Utils\BaseDataType.h"
 
-#define VM_NORMAL   0
-#define VM_SHIFTROT 1
+constexpr int DIGIT_VM_NORMAL = 0; // VM_NORMAL was a redefinition of MFC's #define in Richedit.h 
+constexpr int VM_SHIFTROT = 1; // chenged to comply the common pattern
 
 class CMTraker
 {

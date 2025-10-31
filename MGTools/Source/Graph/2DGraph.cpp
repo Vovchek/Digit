@@ -131,10 +131,10 @@ BOOL WriteEnhMetaFileAsPlaceable(HENHMETAFILE hMeta, LPCTSTR szFileName)
     // Fill in the Aldus Placeable Header
     APMHeader.dwKey = 0x9ac6cdd7l;
     APMHeader.hmf = 0;
-    APMHeader.bbox.Top = 1000 * emh.rclFrame.top/2540;
-    APMHeader.bbox.Left = 1000 * emh.rclFrame.left/2540;
-    APMHeader.bbox.Right = 1000 * emh.rclFrame.right/2540;
-    APMHeader.bbox.Bottom = 1000 * emh.rclFrame.bottom/2540;
+    APMHeader.bbox.Top = static_cast<SHORT>(1000 * emh.rclFrame.top/2540);
+    APMHeader.bbox.Left = static_cast<SHORT>(1000 * emh.rclFrame.left/2540);
+    APMHeader.bbox.Right = static_cast<SHORT>(1000 * emh.rclFrame.right/2540);
+    APMHeader.bbox.Bottom = static_cast<SHORT>(1000 * emh.rclFrame.bottom/2540);
     APMHeader.wInch = 1000;
     APMHeader.dwReserved = 0;
     APMHeader.wCheckSum = CalculateAPMCheckSum( APMHeader );

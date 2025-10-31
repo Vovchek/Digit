@@ -264,10 +264,10 @@ SECTiff::TIFFPrintDirectory(TIFF* tif, FILE* fd, long flags)
 				_ftprintf(fd, _T("%sunspecified"), sep);
 				break;
 			case EXTRASAMPLE_ASSOCALPHA:
-				_ftprintf(fd, _T("assoc-alpha"), sep);
+				_ftprintf(fd, _T("%sassoc-alpha"), sep);
 				break;
 			case EXTRASAMPLE_UNASSALPHA:
-				_ftprintf(fd, _T("unassoc-alpha"), sep);
+				_ftprintf(fd, _T("%sunassoc-alpha"), sep);
 				break;
 			default:
 				_ftprintf(fd, _T("%s%u (0x%x)"), sep,

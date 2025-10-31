@@ -1135,9 +1135,8 @@ int SECImage::StretchDIBits(CDC *pDC, int XDest, int YDest, int cxDest, int cyDe
 BOOL SECImage::CreatePalette()
 {
 
-	int dw;
     // DWORD dwColors = m_wColors;
-    DWORD dwColors;
+    DWORD dwColors, dw;
     if ( m_lpBMI->bmiHeader.biClrUsed)
 		dwColors = m_lpBMI->bmiHeader.biClrUsed;
 	else

@@ -150,10 +150,10 @@ BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
 		if(TypeLimits == EXTERNAL){
 			if(Type == BOUND_ROUND || Type == BOUND_ELLIPSE || Type == BOUND_RECT){
 				ArrContour[i].GetBounds(Bnd);
-				Bound.left = Bnd.XLeft+0.5;
-				Bound.right = Bnd.XRight+0.5;
-				Bound.top = Bnd.YTop+0.5;
-				Bound.bottom = Bnd.YBottom+0.5;
+				Bound.left = std::lround(Bnd.XLeft);
+				Bound.right = std::lround(Bnd.XRight);
+				Bound.top = std::lround(Bnd.YTop);
+				Bound.bottom = std::lround(Bnd.YBottom);
 		        if(Type == BOUND_RECT){
 			      if(Bound.left < 0) Bound.left = 0;
 			      if(Bound.right > xDIB) Bound.right = xDIB;
@@ -176,10 +176,10 @@ BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
 				}
 				XYBounds Bnd;
 				ArrContour[i].GetBounds(Bnd);
-				Bound.left = Bnd.XLeft+0.5;
-				Bound.right = Bnd.XRight+0.5;
-				Bound.top = Bnd.YTop+0.5;
-				Bound.bottom = Bnd.YBottom+0.5;
+				Bound.left = std::lround(Bnd.XLeft);
+				Bound.right = std::lround(Bnd.XRight);
+				Bound.top = std::lround(Bnd.YTop);
+				Bound.bottom = std::lround(Bnd.YBottom);
 				ExtBoundRect = Bound;
 		     	return TRUE;
 			}
@@ -215,10 +215,10 @@ BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB,int& idx, CRect& 
 		if(TypeLimits == INTERNAL){
 			if(Type == BOUND_ROUND || Type == BOUND_ELLIPSE || Type == BOUND_RECT){
 				ArrContour[i].GetBounds(Bnd);
-				Bound.left = Bnd.XLeft+0.5;
-				Bound.right = Bnd.XRight+0.5;
-				Bound.top = Bnd.YTop+0.5;
-				Bound.bottom = Bnd.YBottom+0.5;
+				Bound.left = std::lround(Bnd.XLeft);
+				Bound.right = std::lround(Bnd.XRight);
+				Bound.top = std::lround(Bnd.YTop);
+				Bound.bottom = std::lround(Bnd.YBottom);
 				idx = i;
 		        if(Type == BOUND_RECT){
 			      if(Bound.left < 0) Bound.left = 0;
@@ -243,10 +243,10 @@ BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB,int& idx, CRect& 
 				idx = i;
 				XYBounds Bnd;
 				ArrContour[i].GetBounds(Bnd);
-				Bound.left = Bnd.XLeft+0.5;
-				Bound.right = Bnd.XRight+0.5;
-				Bound.top = Bnd.YTop+0.5;
-				Bound.bottom = Bnd.YBottom+0.5;
+				Bound.left = std::lround(Bnd.XLeft);
+				Bound.right = std::lround(Bnd.XRight);
+				Bound.top = std::lround(Bnd.YTop);
+				Bound.bottom = std::lround(Bnd.YBottom);
 				InsBoundRect = Bound;
 		     	return TRUE;
 			}
@@ -325,10 +325,10 @@ bool CBoundCtrls::SetCurBound(int _Type)
    else if(_Type == BOUND_POLYGON){
      res = CalcPolygonLimits(BLine, TypeLimits, Plg);
    }
-   Bound.left = Bnd.XLeft;
-   Bound.right = Bnd.XRight;
-   Bound.top = Bnd.YTop;
-   Bound.bottom = Bnd.YBottom;
+   Bound.left = static_cast<LONG>(Bnd.XLeft);
+   Bound.right = static_cast<LONG>(Bnd.XRight);
+   Bound.top = static_cast<LONG>(Bnd.YTop);
+   Bound.bottom = static_cast<LONG>(Bnd.YBottom);
    CurBound = Bound;
 
    pCtrls->CurTypeBound = _Type;

@@ -633,8 +633,7 @@ IDC_ZOOMIN              CURSOR  DISCARDABLE     "RES\\ZOOMIN.CUR"
 IDC_ZOOMOUT             CURSOR  DISCARDABLE     "RES\\ZOOMOUT.CUR"
 IDC_ZOOMRECT            CURSOR  DISCARDABLE     "res\\cursor1.cur"
 IDC_ZOOMRECTDRAG        CURSOR  DISCARDABLE     "res\\ZOOMRECT.CUR"
-IDC_SEL_
-_SEC         CURSOR  DISCARDABLE     "res\\sel_zap_.cur"
+IDC_SEL_SEC             CURSOR  DISCARDABLE     "res\\sel_zap_.cur"
 IDC_SEL_DOT             CURSOR  DISCARDABLE     "res\\sel_dot.cur"
 
 /////////////////////////////////////////////////////////////////////////////

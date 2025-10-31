@@ -296,5 +296,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="RusLangD.vcxproj.filters" />
+    <None Include="glut32.dll" />
   </ItemGroup>
 </Project>

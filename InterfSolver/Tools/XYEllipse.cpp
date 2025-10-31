@@ -141,8 +141,11 @@ bool XYEllipse :: GetContour(XYBrokenLine &BLine, int NFi) const
 //=========================================================================
 bool XYEllipse :: GetContour(XYBrokenLine &BLine, double Step) const
   {
+    if (Step <= 0.)
+        return false;
+
   double Perim = Perimeter();
-  int NFi = Perim / Step;
+  int NFi = static_cast<int>(Perim / Step);
   bool isSuccess = GetContour(BLine, NFi);
   return isSuccess;
   }
@@ -160,7 +163,7 @@ bool XYEllipse :: GetContour(XYPolygon &Plg, int NFi) const
 bool XYEllipse :: GetContour(XYPolygon &Plg, double Step) const
   {
   double Perim = Perimeter();
-  int NFi = Perim / Step;
+  int NFi = static_cast<int>(Perim / Step);
   bool isSuccess = GetContour(Plg, NFi);
   return isSuccess;
   }

@@ -295,7 +295,7 @@ void XYPolynom :: Derivation(double X, double Y, double &Fx, double &Fy)
   Fy = 0.;
   if (NPow == -1)
     return;
-  iY = 0.;
+  iY = 0;
   iX = NPow;
   X1 = 1.;
   for (i = 0; i < NPow; i++)

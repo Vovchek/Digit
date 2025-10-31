@@ -243,12 +243,12 @@ void CImageView::OnInitialUpdate()
    int scr_W = pDC->GetDeviceCaps(HORZRES);
    int scr_H = pDC->GetDeviceCaps(VERTRES);
    BOOL needFit=FALSE;
-   if(W > scr_W*0.65){
-      W = scr_W*0.65;
+   if(W > std::lround(scr_W*0.65)){
+      W = std::lround(scr_W*0.65);
 	  needFit=TRUE;
    }
-   if(H > scr_H*0.65){
-      H = scr_H*0.65;
+   if(H > std::lround(scr_H*0.65)){
+      H = std::lround(scr_H*0.65);
 	  needFit=TRUE;
    }
    pFr->MoveWindow(wp.rcNormalPosition.left , wp.rcNormalPosition.top, W, H);
@@ -659,14 +659,14 @@ void CImageView::DrawMeasureLine(CDC* pDC)
 
     CPoint cP1;
     CDPoint dP(pMCtrls->L.P1);
-	cP1.x = dP.x;
-	cP1.y = dP.y;
+	cP1.x = std::lround(dP.x);
+	cP1.y = std::lround(dP.y);
     DrawMarker(pDC, cP1);
     
     CPoint cP2;
     dP = pMCtrls->L.P2;
-	cP2.x = dP.x;
-	cP2.y = dP.y;
+	cP2.x = std::lround(dP.x);
+	cP2.y = std::lround(dP.y);
     DrawMarker(pDC, cP2);
 
     CPen pen2;

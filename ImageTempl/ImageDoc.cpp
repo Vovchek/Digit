@@ -1026,7 +1026,7 @@ void CImageDoc::OnFileSaveAs()
     CString str;
     int nFilters=0;
 	
-	if(!pCtrls->GetCorrectFilterForSave(str, nFilters))
+	if(!pCtrls->GetCorrectFilterForSave(str, nFilters)) // modifies str, nFilters
 		return;
 
     CMainFrame* pMFr = GetMainFrame();
@@ -1048,7 +1048,7 @@ void CImageDoc::OnFileSaveAs()
     else
        fileDlg.m_ofn.nFilterIndex = 1;
 
-    if(fileDlg.m_ofn.nFilterIndex > nFilters)
+    if(fileDlg.m_ofn.nFilterIndex > static_cast<unsigned>(nFilters))
        fileDlg.m_ofn.nFilterIndex = 1;
 
     if(fileDlg.m_ofn.nFilterIndex)

@@ -26,7 +26,7 @@ void CMTraker::Init()
 	StaticColor = RGB(0,0,0);
 	DynamicColor = RGB(255,255,255);
 	Dots.SetSize(4);
-	ViewMode = VM_NORMAL;
+	ViewMode = DIGIT_VM_NORMAL;
 }
 
 BOOL CMTraker::IsPointInside(CDC* pDC, CPoint l_point)
@@ -65,7 +65,7 @@ void CMTraker::SetEnableState(BOOL _Enable)
 		CRect R(0,0,0,0);
 		SetBoundRect(R);
 	}
-    ViewMode = VM_NORMAL;
+    ViewMode = DIGIT_VM_NORMAL;
 }
 
 
@@ -181,14 +181,14 @@ void CMTraker::Track(CWnd* pW, CDC* pDC, CPoint P, bool Init, bool newRect/*fals
 //	    	 Dots[0].y = Dots[1].y = BR.y;
 //		   }
 	   }
-	   if(iPad == 1 && ViewMode == VM_NORMAL){
+	   if(iPad == 1 && ViewMode == DIGIT_VM_NORMAL){
 		Dots[0].x = Dots[3].x = BR.x;
 		Dots[0].y = Dots[1].y = BR.y;
 	   }
 	   else if(iPad == 1 && ViewMode == VM_SHIFTROT){
 		   ;
 	   }
-	   if(iPad == 2 && ViewMode == VM_NORMAL){
+	   if(iPad == 2 && ViewMode == DIGIT_VM_NORMAL){
          int H12 = Dots[1].y-Dots[0].y;
 		 if(H12>0){
 			 Dots[0].y = BR.y; Dots[1].y = BR.y+H12;
@@ -202,14 +202,14 @@ void CMTraker::Track(CWnd* pW, CDC* pDC, CPoint P, bool Init, bool newRect/*fals
 		 Dots[0].x = BR.x - W12;
 		 Dots[1].x = BR.x + W12;
 	   }
-	   if(iPad == 3 && ViewMode == VM_NORMAL){
+	   if(iPad == 3 && ViewMode == DIGIT_VM_NORMAL){
 		 Dots[1].x = Dots[2].x = BR.x;
 		 Dots[0].y = Dots[1].y = BR.y;
 	   }
 	   else if(iPad == 3 && ViewMode == VM_SHIFTROT){
 		   ;
 	   }
-	   if(iPad == 4 && ViewMode == VM_NORMAL){
+	   if(iPad == 4 && ViewMode == DIGIT_VM_NORMAL){
          int W12 = Dots[1].x-Dots[2].x;
 		 if(W12>0){
 			 Dots[1].x = BR.x; Dots[2].x = BR.x-W12;
@@ -223,14 +223,14 @@ void CMTraker::Track(CWnd* pW, CDC* pDC, CPoint P, bool Init, bool newRect/*fals
 		 Dots[1].y = BR.y - H12;
 		 Dots[2].y = BR.y + H12;
 	   }
-	   if(iPad == 5 && ViewMode == VM_NORMAL){
+	   if(iPad == 5 && ViewMode == DIGIT_VM_NORMAL){
    		 Dots[1].x = Dots[2].x = BR.x;
     	 Dots[2].y = Dots[3].y = BR.y;
 	   }
 	   else if(iPad == 5 && ViewMode == VM_SHIFTROT){
 		   ;
 	   }
-	   if(iPad == 6 && ViewMode == VM_NORMAL){
+	   if(iPad == 6 && ViewMode == DIGIT_VM_NORMAL){
          int H12 = Dots[2].y-Dots[3].y;
 		 if(H12>0){
 			 Dots[2].y = BR.y; Dots[3].y = BR.y-H12;
@@ -244,14 +244,14 @@ void CMTraker::Track(CWnd* pW, CDC* pDC, CPoint P, bool Init, bool newRect/*fals
 		 Dots[2].x = BR.x + W12;
 		 Dots[3].x = BR.x - W12;
 	   }
-	   if(iPad == 7 && ViewMode == VM_NORMAL){
+	   if(iPad == 7 && ViewMode == DIGIT_VM_NORMAL){
 		 Dots[0].x = Dots[3].x = BR.x;
 		 Dots[2].y = Dots[3].y = BR.y;
 	   }
 	   else if(iPad == 7 && ViewMode == VM_SHIFTROT){
 		   ;
 	   }
-	   if(iPad == 8 && ViewMode == VM_NORMAL){
+	   if(iPad == 8 && ViewMode == DIGIT_VM_NORMAL){
          int W12 = Dots[0].x-Dots[3].x;
 		 if(W12>0){
 			 Dots[3].x = BR.x; Dots[0].x = BR.x-W12;
@@ -362,28 +362,28 @@ BOOL CMTraker::SetCursor(CWnd* pW, CDC* pDC, UINT nHitTest)
                 ::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
 		       break;
 		  case 2:
-                if(ViewMode == VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+                if(ViewMode == DIGIT_VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
                 if(ViewMode == VM_SHIFTROT)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
 		       break;
 		  case 3:
                 ::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
 		       break;
 		  case 4:
-                if(ViewMode == VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+                if(ViewMode == DIGIT_VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
                 if(ViewMode == VM_SHIFTROT)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
 		       break;
 		  case 5:
                 ::SetCursor(::LoadCursor(NULL, IDC_SIZENWSE));
 		       break;
 		  case 6:
-                if(ViewMode == VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
+                if(ViewMode == DIGIT_VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
                 if(ViewMode == VM_SHIFTROT)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
 		       break;
 		  case 7:
                 ::SetCursor(::LoadCursor(NULL, IDC_SIZENESW));
 		       break;
 		  case 8:
-                if(ViewMode == VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
+                if(ViewMode == DIGIT_VM_NORMAL)::SetCursor(::LoadCursor(NULL, IDC_SIZEWE));
 				if(ViewMode == VM_SHIFTROT)::SetCursor(::LoadCursor(NULL, IDC_SIZENS));
 		       break;
 		}
@@ -484,7 +484,7 @@ void CMTraker::DrawTracker(CDC* pDC)
         int nHandleCount = 8;
         for (int nHandle = 1; nHandle <= nHandleCount; nHandle++){
             CPoint handle = GetHandle(nHandle);
-			if(ViewMode == VM_NORMAL){
+			if(ViewMode == DIGIT_VM_NORMAL){
 				if(nHandle==1) pDC->PatBlt(handle.x - ts, handle.y - ts, ts, ts, DSTINVERT);
 				else if(nHandle==2) pDC->PatBlt(handle.x - ts/2, handle.y - ts, ts, ts, DSTINVERT);
 				else if(nHandle==3) pDC->PatBlt(handle.x, handle.y - ts, ts, ts, DSTINVERT);
@@ -541,7 +541,7 @@ void CMTraker::DrawMovedTracker(CDC* pDC)
         int nHandleCount = 8;
         for (int nHandle = 1; nHandle <= nHandleCount; nHandle++){
             CPoint handle = GetHandle(nHandle);
-			if(ViewMode == VM_NORMAL){
+			if(ViewMode == DIGIT_VM_NORMAL){
 				if(nHandle==1) pDC->PatBlt(handle.x - ts, handle.y - ts, ts, ts, DSTINVERT);
 				else if(nHandle==2) pDC->PatBlt(handle.x - ts/2, handle.y - ts, ts, ts, DSTINVERT);
 				else if(nHandle==3) pDC->PatBlt(handle.x, handle.y - ts, ts, ts, DSTINVERT);
