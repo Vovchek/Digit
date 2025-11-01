@@ -47,7 +47,7 @@ void GetImageFileName(CString& PathName, CSize& cs)
      TCHAR text[MAX_PATH];
      if(ReadSection("IMAGE", "Size", text, LPCTSTR(PathName))){
 		int Arcs[2]; 
-		int n = StringToArray(text, Arcs);
+		int n = StringToArray(text, Arcs); // SUGGEST: StringToIntArray(text, Arcs) 
 		if(n==2){
 		  cs.cx = Arcs[0]; cs.cy = Arcs[1];
 		}

@@ -91,6 +91,7 @@ CRect CImageCtrls::GetDIBRect()
 
 BOOL CImageCtrls::ConvertToDIB(CString& name)
 {
+// TODO: employ c++ v17 std::Filesystem to manipulate filenames
   char path[_MAX_PATH];
   GetTempPath(_MAX_PATH, path);
 

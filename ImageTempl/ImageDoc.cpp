@@ -604,7 +604,7 @@ void CImageDoc::SetZoomToTitle()
 BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName) 
 {
 	if(!IsFileExist(lpszPathName, FALSE))return FALSE;
-
+	// TODO: Add int FileType(LPCTSTR lpszPathName) to check file type by file name
     CString ImageFileName;
 	CString PathName = ImageFileName = lpszPathName;
 	CString ext = PathName.Right(3);
@@ -624,7 +624,19 @@ BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	{
        NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	   CString s = lpszPathName;
-       if(ReadZAPData(s, IntInfo))
+	   auto res{ FALSE };
+	   switch (LoadedFileType) {
+	   case T_ZAP:
+		   res = ReadZAPData(s, IntInfo);
+		   break;
+	   case T_FRN:
+		   res = ReadFRNData(s, IntInfo);
+		   break;
+	   default:
+		   res = FALSE;
+		   break;
+	   }
+       if(res)
 	   {
 			 cs.cx = IntInfo.ImageSize[0];
 			 cs.cy = IntInfo.ImageSize[1];

@@ -1,0 +1,2 @@
+- [ ] Refactor parser for efficiency
+- [x] Fix memory leak in DataLoader
