@@ -284,8 +284,13 @@ bool CImageCtrls::LoadImage(CString& fname)
 {
     //Note, could have done new SECDIB(filename) too?
 
-    if(m_pDIB)
+	if (m_pDIB) {
 		delete m_pDIB;
+		m_pDIB = NULL;
+	}
+	if (!fname.GetLength())
+		return FALSE;
+
     m_pDIB = new SECDib;
 
     if(!ConvertToDIB(fname))
