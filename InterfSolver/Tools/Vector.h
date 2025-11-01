@@ -5,8 +5,8 @@
 #include <math.h>
 #include <stdarg.h>
 #include <process.h>
-#include "..\stdafx.h"
-#include "..\include\CArrDef.h"
+#include "stdafx.h"
+#include "include\CArrDef.h"
 
 //===============================================================================
 class Vector

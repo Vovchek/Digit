@@ -1,7 +1,7 @@
 #ifndef __CTIOFILE_H
 #define __CTIOFILE_H
-#include "..\stdafx.h"
-#include "..\Include\CArrDef.h"
+#include "stdafx.h"
+#include "Include\CArrDef.h"
 // OpenMode:
 // CFile::modeRead  - only read;
 // CFile::modeCreate | CFile::modeWrite  - only write;

@@ -1,8 +1,8 @@
 #ifndef __MATRIX_H
 #define __MATRIX_H
 
-#include "..\stdafx.h"
-#include "..\include\CArrDef.h"
+#include "stdafx.h"
+#include "include\CArrDef.h"
 #include "Vector.h"
 
 //===============================================================================

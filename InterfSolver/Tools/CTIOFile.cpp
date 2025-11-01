@@ -310,6 +310,8 @@ void ReplaceInString(CString &Str, char COld, char CNew, int NNew)
     }
   }
 //==============================================================
+// TODO: replace with standard formated reading, 
+// add validity check and default values assignment
 void FormArrFromString (const CString &Str, CArrayDouble &Arr)
   {
   int in, ik, NStr;

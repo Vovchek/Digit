@@ -6,14 +6,14 @@
          Ѕазовый документ архитектуры документ-представлени€      
 ************************************************************************************/
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include "BaseImageDoc.h"
 #include "BaseImageView.h"
 #include "ImageChildFrm.h"
 
-#include "..\Controls\ImageCtrls.h"
-#include "..\Utils\mutils.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "Controls\ImageCtrls.h"
+#include "Utils\mutils.h"
+#include "MGTools\Include\Utils\Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -115,9 +115,10 @@ BOOL CBaseImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	return TRUE;
 }
 // »нициализаци€ и загрузка изображени€
-BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszPathName)
+BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszImagePathName)
 {
-  CString fname = lpszPathName;
+// TODO: check filename validity and decide what to return - TRUE or FALSE?
+  CString fname = lpszImagePathName;
   if(fname.IsEmpty())
       return FALSE;
 

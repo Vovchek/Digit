@@ -1,5 +1,5 @@
 #include <math.h>
-#include "..\Include\Int_Cons.h"
+#include "Include\Int_Cons.h"
 #include "GetTimeDate.h"
 #include "CalcLimits.h"
 #include "ReadWriteData.h"
@@ -166,7 +166,7 @@ BOOL ReadDosZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntIn
     IntInfo.FiScan = atof(Str);
   if (Fl.GetStringAfter("IMAGE", Str))
       IntInfo.ImageFileName = Str;
-
+ 
   XYBounds Bnd;
   Fl.GetStringAfter("FIDS", Str);
   CutStringToBreak(Str, 'E');

@@ -41,7 +41,7 @@ public:
 public:
     CBaseImageView* GetView();
 	void InitData();
-    BOOL ReloadDocument(LPCTSTR lpszPathName);
+    BOOL ReloadDocument(LPCTSTR lpszImagePathName); /** @brief Reloads the document with the specified image file. */
 	LPCTSTR GetTmpPath();
     LPCTSTR GetUndoTmpPath();
 	LPCTSTR GetRealPath();

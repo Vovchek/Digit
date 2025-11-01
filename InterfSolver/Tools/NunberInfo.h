@@ -1,8 +1,8 @@
 #ifndef __NUMBERINFO_H
 #define __NUMBERINFO_H
 
-#include "..\include\CArrDef.h"
-#include "..\include\Int_Cons.h"
+#include "include\CArrDef.h"
+#include "include\Int_Cons.h"
 #include "XYEllipse.h"
 #include "XYPolygon.h"
 #include "XYBounds.h"

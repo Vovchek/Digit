@@ -1,6 +1,6 @@
 #ifndef __SAMPLDAT_H
 #define __SAMPLDAT_H
-#include "..\include\CArrDef.h"
+#include "include\CArrDef.h"
 struct SAMPLE_DATA
   {
   public:

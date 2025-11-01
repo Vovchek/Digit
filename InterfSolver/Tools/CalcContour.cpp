@@ -1,5 +1,5 @@
 #include <math.h>
-#include "..\Include\Int_Cons.h"
+#include "Include\Int_Cons.h"
 #include "CalcContour.h"
 
 //  void GetContour(const EMem<ELL_LIMITS> &Ell, EMem<XY_CURVE> &ArrCont);

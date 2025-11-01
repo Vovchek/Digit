@@ -1,7 +1,7 @@
 #ifndef _XYBROKENLINE_H_
 #define _XYBROKENLINE_H_
 
-#include "..\include\CArrDef.h"
+#include "include\CArrDef.h"
 #include "XYPoint.h"
 
 class XYBrokenLine

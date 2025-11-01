@@ -1,7 +1,7 @@
 #ifndef __CARRDEF_H
 #define __CARRDEF_H
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include "complex.h"
 #include <afxtempl.h>
 

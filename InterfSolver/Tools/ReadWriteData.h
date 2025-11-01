@@ -4,7 +4,7 @@
 #include "NunberInfo.h"
 #include "CTIOFile.h"
 
-#include "..\InterfSolver.h"
+#include "InterfSolver.h"
 
 INTERF_API BOOL ReadZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntInfo);
 INTERF_API BOOL ReadWinZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntInfo);

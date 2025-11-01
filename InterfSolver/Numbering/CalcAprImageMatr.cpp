@@ -1,8 +1,8 @@
 #include <math.h>
-#include "..\Include\Int_Cons.h"
-#include "..\Tools\XYPoint.h"
-#include "..\Tools\isPupil.h"
-#include "..\Tools\CalcLimits.h"
+#include "Include\Int_Cons.h"
+#include "Tools\XYPoint.h"
+#include "Tools\isPupil.h"
+#include "Tools\CalcLimits.h"
 #include "CalcAprImageMatr.h"
 
 //=========================================================================

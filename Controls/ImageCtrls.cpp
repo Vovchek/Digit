@@ -1,15 +1,17 @@
 #include <malloc.h>
-#include "..\stdafx.h"
-#include "..\AppDef.h"
-#include "..\Utils\mutils.h"
+#include <memory>
+
+#include "stdafx.h"
+#include "AppDef.h"
+#include "FileUtils.h"
+#include "Utils\mutils.h"
 #include "ImageCtrls.h"
-#include "..\MGTools\Include\Utils\Utils.h"
-#include "..\MGTools\Include\Image\SecPcx.h"
-#include "..\MGTools\Include\Image\SecJpeg.h"
-#include "..\MGTools\Include\Image\SecGif.h"
-#include "..\MGTools\Include\Image\SecTarga.h"
-#include "..\MGTools\Include\Image\SecTiff.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "MGTools\Include\Utils\Utils.h"
+#include "MGTools\Include\Image\SecPcx.h"
+#include "MGTools\Include\Image\SecJpeg.h"
+#include "MGTools\Include\Image\SecGif.h"
+#include "MGTools\Include\Image\SecTarga.h"
+#include "MGTools\Include\Image\SecTiff.h"
 //====================================================================
 CImageCtrls::CImageCtrls()
 {
@@ -91,101 +93,89 @@ CRect CImageCtrls::GetDIBRect()
 
 BOOL CImageCtrls::ConvertToDIB(CString& name)
 {
-// TODO: employ c++ v17 std::Filesystem to manipulate filenames
-  char path[_MAX_PATH];
-  GetTempPath(_MAX_PATH, path);
+    fs::path inputPath((LPCTSTR)name);
 
-  CString nameOTH = name;
-  CString ext = name.Right(3);
-  ext.MakeUpper();
+    int type = FileType(inputPath.string());
+    if (type < 0)
+        return FALSE;
 
-  name = name.Left(name.GetLength()-3);
-  int iPos = name.ReverseFind('\\');
-  name = name.Mid(iPos+1);
-  CString nameDIB = path + name + CString("bmp");
+    // Allow only known image types
+    if (type < T_BMP || type > T_TIF)
+        return FALSE;
 
-  SECDib* pDib = new SECDib;
-  SECPcx* pPCX = NULL;
-  SECJpeg* pJPG = NULL;
-  SECGif* pGIF = NULL;
-  SECTarga* pTGA = NULL;
-  SECTiff* pTIF = NULL;
-  BOOL res;
-  if(ext == "BMP"){
-     res = pDib->LoadImage(LPCTSTR(nameOTH));
-	 if(!res){
-		 delete pDib;
-		 return FALSE;
-	 }
-  }
-  else if(ext == "PCX"){
-	  pPCX = new SECPcx;
-	  res = pPCX->LoadImage(LPCTSTR(nameOTH));
-	  if(!res || !pDib->ConvertImage(pPCX)){
-		  if(pPCX) delete pPCX;
-		  if(pDib) delete pDib;
-		  return FALSE;
-	  }
-  }
-  else if(ext == "JPG"){
-	  pJPG = new SECJpeg;
-	  res = pJPG->LoadImage(LPCTSTR(nameOTH));
-	  if(!res || !pDib->ConvertImage(pJPG)){
-		  if(pJPG) delete pJPG;
-		  if(pDib) delete pDib;
-		  return FALSE;
-	  }
-  }
-   else if(ext == "GIF"){
-	  pGIF = new SECGif;
-	  res = pGIF->LoadImage(LPCTSTR(nameOTH));
-	  if(!res ||!pDib->ConvertImage(pGIF)){
-		  if(pGIF) delete pGIF;
-		  if(pDib) delete pDib;
-		  return FALSE;
-	  }
-   }
-   else if(ext == "TGA"){
-	  pTGA = new SECTarga;
-	  res = pTGA->LoadImage(LPCTSTR(nameOTH));
-	  if(!res || !pDib->ConvertImage(pTGA)){
-		  if(pTGA) delete pTGA;
-		  if(pDib) delete pDib;
-		  return FALSE;
-	  }
-   }
-   else if(ext == "TIF"){
-	  pTIF = new SECTiff;
-	  res = pTIF->LoadImage(LPCTSTR(nameOTH));
-	  if(!res ||!pDib->ConvertImage(pTIF)){
-		  if(pTIF) delete pTIF;
-		  if(pDib) delete pDib;
-		  return FALSE;
-	  }
-   }
+    // If already BMP, no conversion needed — just verify it loads
+    if (type == T_BMP) {
+        SECDib dib;
+        if (!dib.LoadImage(name))
+            return FALSE;
+        return TRUE;
+    }
 
-  CFile fl;
-  if(fl.Open(LPCTSTR(nameDIB), CFile::modeCreate|CFile::modeWrite)==NULL){
-    if(pPCX) delete pPCX;
-    if(pDib) delete pDib;
-    return FALSE;
-  }
+    // Build temporary .bmp output path
+    char tmpPath[_MAX_PATH];
+    GetTempPath(_MAX_PATH, tmpPath);
+    fs::path outPath = fs::path(tmpPath) / inputPath.stem();
+    outPath.replace_extension(".bmp");
 
-  pDib->SaveImage(&fl);
-  fl.Close();
+    // Prepare DIB target
+    // auto dib = std::make_unique<SECDib>();
+    auto dib = std::unique_ptr<SECDib, void(*)(SECDib*)>(
+        new SECDib(), [](SECDib* p) { delete p; });
+    BOOL res = FALSE;
 
+    switch (type)
+    {
+    case T_PCX: {
+        SECPcx* src{ new SECPcx };
+        if (src->LoadImage(name) && dib->ConvertImage(src))
+            res = TRUE;
+        delete src;
+        break;
+    }
+    case T_JPG: {
+        SECJpeg* src{ new SECJpeg };
+        if (src->LoadImage(name) && dib->ConvertImage(src))
+            res = TRUE;
+        delete src;
+        break;
+    }
+    case T_GIF: {
+        SECGif* src{ new SECGif };
+        if (src->LoadImage(name) && dib->ConvertImage(src))
+            res = TRUE;
+        delete src;
+        break;
+    }
+    case T_TGA: {
+        SECTarga* src{ new SECTarga };
+        if (src->LoadImage(name) && dib->ConvertImage(src))
+            res = TRUE;
+        delete src;
+        break;
+    }
+    case T_TIF: {
+        SECTiff* src{ new SECTiff };
+        if (src->LoadImage(name) && dib->ConvertImage(src))
+            res = TRUE;
+        delete src;
+        break;
+    }
+    default:
+        return FALSE;
+    }
 
-   name = nameDIB;
+    if (!res)
+        return FALSE;
 
-   if(pPCX) delete pPCX;
-   if(pDib) delete pDib;
-   if(pJPG) delete pJPG;
-   if(pGIF) delete pGIF;
-   if(pTGA) delete pTGA;
-   if(pTIF) delete pTIF;
+    CFile file;
+    if (!file.Open((LPCTSTR)outPath.string().c_str(), CFile::modeCreate | CFile::modeWrite))
+        return FALSE;
 
-//  pCtrls->needConvertImage = FALSE;
-   return TRUE;
+    dib->SaveImage(&file);
+    file.Close();
+
+    name = outPath.c_str();
+    return TRUE;
 }
 
 BOOL CImageCtrls::ConvertToGrayScale(CDC* pDC, LPCTSTR fname)
@@ -284,20 +274,14 @@ BOOL CImageCtrls::ConvertToGrayScale(CDC* pDC, LPCTSTR fname)
 bool CImageCtrls::LoadImage(CString& fname)
 {
     //Note, could have done new SECDIB(filename) too?
-
-	if (m_pDIB) {
-		delete m_pDIB;
-		m_pDIB = NULL;
-	}
-	if (!fname.GetLength())
-		return FALSE;
-
-    m_pDIB = new SECDib;
+	delete m_pDIB;
 
     if(!ConvertToDIB(fname))
           return false;
 	
+    m_pDIB = new SECDib;
     if (m_pDIB->LoadImage(LPCTSTR(fname)) == FALSE){
+        delete m_pDIB;
 		TCHAR buffer[256];
 		_stprintf(buffer,_T("Imagetst could not load DIB/BMP file: %s!"), LPCTSTR(fname));
 		AfxMessageBox(buffer,MB_ICONEXCLAMATION|MB_OK);

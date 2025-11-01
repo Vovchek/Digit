@@ -41,29 +41,72 @@ CDocument* GetWIActiveDocument()
 
 void GetImageFileName(CString& PathName, CSize& cs)
 {
-	CString ext = PathName.Right(3);
-	ext.MakeLower();
-	if(ext == "frn" || ext == "zap"){
-     TCHAR text[MAX_PATH];
-     if(ReadSection("IMAGE", "Size", text, LPCTSTR(PathName))){
-		int Arcs[2]; 
-		int n = StringToArray(text, Arcs); // SUGGEST: StringToIntArray(text, Arcs) 
-		if(n==2){
-		  cs.cx = Arcs[0]; cs.cy = Arcs[1];
-		}
-	 }
-     if(ReadSection("IMAGE", "FileName", text, LPCTSTR(PathName))){
-		PathName = text;
-		if(!IsFileExist(LPCTSTR(PathName), FALSE))
-           PathName.Empty();
-     }
-	 else{
-		PathName.Empty();
-	 }
-	}
-	else{
-		PathName.Empty();
-	}
+    CString ext = PathName.Right(3);
+    ext.MakeLower();
+
+    if (ext == "frn" || ext == "zap") {
+        // Use the same approach as ReadZAPData/ReadFRNData
+        NUMBERING_INTERFEROGRAM_INFO IntInfo;
+        BOOL success = FALSE;
+
+        if (ext == "zap") {
+            success = ReadZAPData(PathName, IntInfo);
+        }
+        else if (ext == "frn") {
+            success = ReadFRNData(PathName, IntInfo);
+        }
+
+        if (success && !IntInfo.ImageFileName.IsEmpty()) {
+            // Get the directory of the ZAP/FRN file
+            CString zapDir = PathName;
+            int lastSlash = zapDir.ReverseFind('\\');
+            if (lastSlash != -1) {
+                zapDir = zapDir.Left(lastSlash + 1);
+
+                // Build full path to image file
+                CString fullImagePath = zapDir + IntInfo.ImageFileName;
+
+                // Check if file exists with full path
+                if (IsFileExist(LPCTSTR(fullImagePath), FALSE)) {
+                    PathName = fullImagePath;
+                }
+                else {
+                    // Try just the image name in case it's in current directory
+                    if (IsFileExist(LPCTSTR(IntInfo.ImageFileName), FALSE)) {
+                        PathName = IntInfo.ImageFileName;
+                    }
+                    else {
+                        PathName.Empty();
+                    }
+                }
+            }
+            else {
+                // No directory in PathName, try current directory
+                if (IsFileExist(LPCTSTR(IntInfo.ImageFileName), FALSE)) {
+                    PathName = IntInfo.ImageFileName;
+                }
+                else {
+                    PathName.Empty();
+                }
+            }
+
+            // Always set the image size if available
+            cs.cx = IntInfo.ImageSize[0];
+            cs.cy = IntInfo.ImageSize[1];
+
+        }
+        else {
+            PathName.Empty();
+            // Still set the size if available
+            if (success) {
+                cs.cx = IntInfo.ImageSize[0];
+                cs.cy = IntInfo.ImageSize[1];
+            }
+        }
+    }
+    else {
+        PathName.Empty();
+    }
 }
 
 void UpdateAllImageViews()

@@ -1,9 +1,9 @@
 #ifndef _XYPOLYNOM_H_
 #define _XYPOLYNOM_H_
 
-#include "..\stdafx.h"
-#include "..\Include\Int_Cons.h"
-#include "..\include\CArrDef.h"
+#include "stdafx.h"
+#include "Include\Int_Cons.h"
+#include "include\CArrDef.h"
 
 //============================================================================
 class XYPolynom
