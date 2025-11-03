@@ -6,7 +6,7 @@
 #endif // _MSC_VER > 1000
 // BaseImageView.h : header file
 //
-#include "..\Utils\seczmvw.h"
+#include "Utils\seczmvw.h"
 typedef enum {NORMAL,ZOOMINPOINT,ZOOMOUTPOINT,ZOOMRECT} DigitViewMode;
 
 /////////////////////////////////////////////////////////////////////////////

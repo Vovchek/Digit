@@ -1,8 +1,8 @@
 // CCommentsFile.cpp : implementation file
 //
 
-#include "..\stdafx.h"
-#include "..\digit.h"
+#include "stdafx.h"
+#include "digit.h"
 #include "CommentsFileDlg.h"
 
 #ifdef _DEBUG

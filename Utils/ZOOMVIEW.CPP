@@ -14,7 +14,7 @@
 //
 
 // stdafx.h for SEC includes secall.h
-#include "..\stdafx.h"
+#include "stdafx.h"
 
 #ifdef _SECDLL
 #undef AFXAPI_DATA

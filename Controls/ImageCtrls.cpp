@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 #include "AppDef.h"
-#include "FileUtils.h"
+#include "Utils\FileUtils.h"
 #include "Utils\mutils.h"
 #include "ImageCtrls.h"
 #include "MGTools\Include\Utils\Utils.h"
@@ -103,14 +103,8 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
     if (type < T_BMP || type > T_TIF)
         return FALSE;
 
-    // If already BMP, no conversion needed — just verify it loads
-    if (type == T_BMP) {
-        SECDib dib;
-        if (!dib.LoadImage(name))
-            return FALSE;
-        return TRUE;
-    }
-
+    // NOTE: should always create temporary .bmp, even if an original file is .bmp already
+    // This temporary .bmp is used for undo logic and wil be erazed on file close
     // Build temporary .bmp output path
     char tmpPath[_MAX_PATH];
     GetTempPath(_MAX_PATH, tmpPath);
@@ -125,9 +119,13 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
 
     switch (type)
     {
+    case T_BMP:
+        // If already BMP, no conversion needed — just verify it loads
+        res = dib->LoadImage(name);
+        break;
     case T_PCX: {
         SECPcx* src{ new SECPcx };
-        if (src->LoadImage(name) && dib->ConvertImage(src))
+        if(src->LoadImage(name) && dib->ConvertImage(src))
             res = TRUE;
         delete src;
         break;

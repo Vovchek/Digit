@@ -1,17 +1,17 @@
 ﻿// SpecFileDlg.cpp : implementation file
 //
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include "SpecFileDlg.h"
-#include "..\MGTools\Include\Graph\GraphTools.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "MGTools\Include\Graph\GraphTools.h"
+#include "MGTools\Include\Utils\Utils.h"
 
-#include "..\MGTools\Include\Image\SecDib.h"
-#include "..\MGTools\Include\Image\SecPcx.h"
-#include "..\MGTools\Include\Image\SecJpeg.h"
-#include "..\MGTools\Include\Image\SecGif.h"
-#include "..\MGTools\Include\Image\SecTarga.h"
-#include "..\MGTools\Include\Image\SecTiff.h"
+#include "MGTools\Include\Image\SecDib.h"
+#include "MGTools\Include\Image\SecPcx.h"
+#include "MGTools\Include\Image\SecJpeg.h"
+#include "MGTools\Include\Image\SecGif.h"
+#include "MGTools\Include\Image\SecTarga.h"
+#include "MGTools\Include\Image\SecTiff.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

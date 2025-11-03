@@ -5,12 +5,12 @@
 #include <io.h>
 #include <time.h>
 
-#include "..\stdafx.h"
-#include "..\ImageTempl\ImageDoc.h"
-#include "..\ImageTempl\ImageView.h"
+#include "stdafx.h"
+#include "ImageTempl\ImageDoc.h"
+#include "ImageTempl\ImageView.h"
 #include "Edit\BaseTextDoc.h"
 #include "mutils.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "MGTools\Include\Utils\Utils.h"
 
 
 LPCTSTR GetIniFile()

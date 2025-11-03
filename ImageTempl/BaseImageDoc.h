@@ -6,11 +6,11 @@
 #endif // _MSC_VER > 1000
 // BaseImageDoc.h : header file
 //
-#include "..\Controls\ImageCtrls.h"
-#include "..\Controls\MeasureCtrls.h"
-#include "..\Controls\BoundCtrls.h"
-#include "..\DigitMode\DigitInfo.h"
-#include "..\Utils\Tracker.h"
+#include "Controls\ImageCtrls.h"
+#include "Controls\MeasureCtrls.h"
+#include "Controls\BoundCtrls.h"
+#include "DigitMode\DigitInfo.h"
+#include "Utils\Tracker.h"
 
 class CBaseImageView;
 class CImageCtrls;

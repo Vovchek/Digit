@@ -1,6 +1,6 @@
 #include "MeasureCtrls.h"
 
-#include "..\Utils\mutils.h"
+#include "Utils\mutils.h"
 
 CMeasureCtrls::CMeasureCtrls()
 {

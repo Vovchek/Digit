@@ -1,8 +1,8 @@
 // ApproxSetDlg.cpp : implementation file
 //
 
-#include "..\stdafx.h"
-#include "..\digit.h"
+#include "stdafx.h"
+#include "digit.h"
 #include "ApproxSetDlg.h"
 
 #ifdef _DEBUG

@@ -6,7 +6,7 @@
 #endif // _MSC_VER > 1000
 // ToolBarsDlg.h : header file
 //
-#include "..\Utils\StateListBox.h"
+#include "Utils\StateListBox.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CToolBarsDlg dialog

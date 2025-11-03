@@ -1,7 +1,7 @@
 // GraphDoc.cpp : implementation file
 //
 
-#include "..\..\StdAfx.h"
+#include "StdAfx.h"
 #include "GraphDoc.h"
 
 #ifdef _DEBUG

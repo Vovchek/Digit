@@ -9,7 +9,7 @@
 //C:\Ilya\Programming\cpp\Numbering\Utils\Graph\3DGraphDoc.h
 /////////////////////////////////////////////////////////////////////////////
 // C3DGraphDoc document
-#include "..\..\MGTools\Include\Graph\3dGraph.h"
+#include "MGTools\Include\Graph\3dGraph.h"
 
 class C3DGraphDoc : public CDocument
 {

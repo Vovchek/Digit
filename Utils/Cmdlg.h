@@ -1,7 +1,7 @@
 #if !defined(_CM_DIALOG_)
 #define _CM_DIALOG_
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 
 //========================= Control ==============================
 void EnableItem(CDialog *pDialog, int IdBtn, BOOL State);

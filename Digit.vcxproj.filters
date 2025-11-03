@@ -293,15 +293,16 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="FileUtils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="AppDef.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FileUtils.h">
+      <Filter>Header Files\Utils_H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="RusLangD.vcxproj.filters" />
     <None Include="glut32.dll" />
+    <None Include="Doc\ToDo.md" />
   </ItemGroup>
 </Project>

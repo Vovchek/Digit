@@ -1,12 +1,12 @@
 // ZoomDlg.cpp : implementation file
 //
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include "ZoomDlg.h"
 
-#include "..\Utils\mutils.h"
-#include "..\ImageTempl\ImageDoc.h"
-#include "..\ImageTempl\ImageView.h"
+#include "Utils\mutils.h"
+#include "ImageTempl\ImageDoc.h"
+#include "ImageTempl\ImageView.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

@@ -1,8 +1,8 @@
 #include "ZapLineInfo.h"
 
-#include "..\Utils\mutils.h"
-#include "..\Utils\middle.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "Utils\mutils.h"
+#include "Utils\middle.h"
+#include "MGTools\Include\Utils\Utils.h"
 
 CZapLineInfo::CZapLineInfo()
 {

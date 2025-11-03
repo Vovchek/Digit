@@ -6,14 +6,14 @@
          Фрейм основного окна приложения       
 ************************************************************************************/
 
-#include "..\stdafx.h"
-#include "..\Digit.h"
+#include "stdafx.h"
+#include "Digit.h"
 
 #include "MainFrm.h"
-#include "..\Utils\mutils.h"
-#include "..\ImageTempl\ImageDoc.h"
-#include "..\ImageTempl\ImageView.h"
-#include "..\Options\ToolBarsDlg.h"
+#include "Utils\mutils.h"
+#include "ImageTempl\ImageDoc.h"
+#include "ImageTempl\ImageView.h"
+#include "Options\ToolBarsDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

@@ -1,9 +1,9 @@
 #if !defined(_MIDDLESTRIP_H_)
 #define _MIDDLESTRIP_H_
 //C:\Ilya\Programming\cpp\Numbering\Utils\middle.h
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include <math.h>
-#include "..\MGTools\Include\Utils\BaseDataType.h"
+#include "MGTools\Include\Utils\BaseDataType.h"
 
 void middle(unsigned char* line, int nx, int ny, int y, int **buf_line, 
 			CArray<double, double>& CenterFrg, int& nnpolos);

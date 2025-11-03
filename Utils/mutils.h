@@ -2,14 +2,14 @@
 #define AFX_M_UTILS_H__7A162971_1875_11D4_8A51_A0D170A2AAD8__INCLUDED_
 
 #include <io.h>
-#include "..\MGTools\StdAfx.h"
-#include "..\Digit.h"
-#include "..\MainFrame\MainFrm.h"
-#include "..\Controls\ImageCtrls.h"
-#include "..\Controls\MeasureCtrls.h"
-#include "..\Controls\BoundCtrls.h"
-#include "..\DigitMode\DigitInfo.h"
-#include "..\MGTools\Include\Utils\BaseDataType.h"
+#include "MGTools\StdAfx.h"
+#include "Digit.h"
+#include "MainFrame\MainFrm.h"
+#include "Controls\ImageCtrls.h"
+#include "Controls\MeasureCtrls.h"
+#include "Controls\BoundCtrls.h"
+#include "DigitMode\DigitInfo.h"
+#include "MGTools\Include\Utils\BaseDataType.h"
 //C:\Ilya\Programming\cpp\Numbering\Utils\mutils.h
 LPCTSTR GetIniFile();
 LPCTSTR GetWorkPath();

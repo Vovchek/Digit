@@ -1,8 +1,8 @@
 // ToolBarsDlg.cpp : implementation file
 //
 
-#include "..\stdafx.h"
-#include "..\resource.h"
+#include "stdafx.h"
+#include "resource.h"
 #include "ToolBarsDlg.h"
 
 #ifdef _DEBUG

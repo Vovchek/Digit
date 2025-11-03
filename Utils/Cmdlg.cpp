@@ -1,6 +1,6 @@
 #include "cmdlg.h"
 
-#include "..\MGTools\Include\Utils\utils.h"
+#include "MGTools\Include\Utils\utils.h"
 
 //=========================================================================
 void EnableItem(CDialog *pDialog, int Id, BOOL State)

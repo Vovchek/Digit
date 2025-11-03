@@ -7,7 +7,7 @@
 // ImageView.h : header file
 //
 #include "BaseImageView.h"
-#include "..\Utils\contour.h"
+#include "Utils\contour.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////

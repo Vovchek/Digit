@@ -5,9 +5,9 @@
 //#include "D:\Numbering\Appdef.h"
 //#include "D:\Numbering\MGTools\Include\Utils\BaseDataType.h"
 //C:\Ilya\Programming\cpp\Numbering\Controls\MeasureCtrls.h
-#include "..\InterfSolver\StdAfx.h"
-#include "..\Appdef.h"
-#include "..\MGTools\Include\Utils\BaseDataType.h"
+#include "InterfSolver\StdAfx.h"
+#include "Appdef.h"
+#include "MGTools\Include\Utils\BaseDataType.h"
 
 
 class CMeasureCtrls

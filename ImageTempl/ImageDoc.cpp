@@ -6,7 +6,7 @@
 #include "ImageDoc.h"
 #include "ImageView.h"
 
-#include "FileUtils.h"
+#include "Utils\FileUtils.h"
 #include "Utils\mutils.h"
 #include "ImageFeatures\SectionFrame.h"
 #include "Utils\Edit\BaseTextDoc.h"

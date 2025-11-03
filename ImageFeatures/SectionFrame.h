@@ -6,7 +6,7 @@
 #endif // _MSC_VER > 1000
 // SectionFrame.h : header file
 //C:\Ilya\Programming\cpp\Numbering\ImageFeatures\SectionFrame.h
-#include "..\MGTools\Include\Graph\2DGraph.h"
+#include "MGTools\Include\Graph\2DGraph.h"
 /////////////////////////////////////////////////////////////////////////////
 // CSectionFrame frame
 

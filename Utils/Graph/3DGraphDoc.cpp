@@ -1,10 +1,10 @@
 // 3DGraphDoc.cpp : implementation file
 //
 
-#include "..\..\stdafx.h"
-#include "..\..\digit.h"
-#include "..\..\ImageTempl\ImageDoc.h"
-#include "..\mutils.h"
+#include "stdafx.h"
+#include "digit.h"
+#include "ImageTempl\ImageDoc.h"
+#include "Utils\mutils.h"
 #include "3DGraphDoc.h"
 
 #ifdef _DEBUG

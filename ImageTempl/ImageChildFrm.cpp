@@ -6,12 +6,12 @@
          Фрейм архитектуры документ-представления      
 ************************************************************************************/
 
-#include "..\stdafx.h"
+#include "stdafx.h"
 #include "ImageChildFrm.h"
 #include "ImageDoc.h"
 #include "ImageView.h"
-#include "..\Utils\mutils.h"
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "Utils\mutils.h"
+#include "MGTools\Include\Utils\Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

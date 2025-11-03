@@ -1,7 +1,7 @@
 // BaseTextView.cpp : implementation file
 //
 
-#include "..\..\StdAfx.h"
+#include "StdAfx.h"
 #include "BaseTextView.h"
 #include "BaseTextDoc.h"
 

@@ -1,5 +1,5 @@
 #include "BoundCtrls.h"
-#include "..\Utils\mutils.h"
+#include "Utils\mutils.h"
 
 CBoundCtrls::CBoundCtrls()
 {

@@ -6,9 +6,9 @@
 #endif // _MSC_VER > 1000
 // ImageDoc.h : header file
 //
-#include "..\ImageTempl\BaseImageDoc.h" 
-#include "..\ImageTempl\BaseImageView.h" 
-#include "..\InterfSolver\Numbering\CalcAprImageMatr.h" 
+#include "ImageTempl\BaseImageDoc.h" 
+#include "ImageTempl\BaseImageView.h" 
+#include "InterfSolver\Numbering\CalcAprImageMatr.h" 
 
 
 class CSectionFrame;

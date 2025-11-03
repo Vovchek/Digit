@@ -1,8 +1,8 @@
 #include "controls.h"
-#include "..\Utils\mutils.h"
-#include "..\MGTools\Include\Utils\Utils.h"
-#include "..\ImageTempl\ImageDoc.h"
-#include "..\ImageTempl\ImageView.h"
+#include "Utils\mutils.h"
+#include "MGTools\Include\Utils\Utils.h"
+#include "ImageTempl\ImageDoc.h"
+#include "ImageTempl\ImageView.h"
 
 CControls::CControls()
 {

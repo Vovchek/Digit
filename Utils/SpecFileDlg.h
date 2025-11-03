@@ -3,7 +3,7 @@
 
 // SpecFileDlg.h : header file
 //
-#include "..\resource.h"
+#include "resource.h"
 /////////////////////////////////////////////////////////////////////////////
 // CSpecialFileDialog dialog
 #define WM_LOAD_PICTURE (WM_USER + 100)

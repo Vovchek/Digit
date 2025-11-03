@@ -1,9 +1,9 @@
 #if !defined(AFX_SECTION_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_SECTION_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 
-#include "..\MGTools\StdAfx.h"
-#include "..\Appdef.h"
-#include "..\MGTools\Include\Utils\BaseDataType.h"
+#include "MGTools\StdAfx.h"
+#include "Appdef.h"
+#include "MGTools\Include\Utils\BaseDataType.h"
 
 class CNumLine : public CObject
 {

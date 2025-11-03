@@ -7,8 +7,8 @@
 // ZoomDlg.h : header file
 //
 
-#include "..\resource.h"
-#include "..\Utils\cmdlg.h"
+#include "resource.h"
+#include "Utils\cmdlg.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CZoomDlg dialog

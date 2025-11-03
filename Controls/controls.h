@@ -1,8 +1,8 @@
 #if !defined(AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 
-#include "..\stdafx.h"
-#include "..\Appdef.h"
+#include "stdafx.h"
+#include "Appdef.h"
 
 class CImageDoc;
 class CControls

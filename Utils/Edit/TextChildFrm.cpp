@@ -1,10 +1,10 @@
 // TextChildFrm.cpp : implementation file
 //
 
-#include "..\..\stdafx.h"
+#include "stdafx.h"
 #include "TextChildFrm.h"
-#include "..\mutils.h"
-#include "..\..\MGTools\Include\Utils\Utils.h"
+#include "Utils\mutils.h"
+#include "MGTools\Include\Utils\Utils.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

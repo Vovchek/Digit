@@ -1,18 +1,18 @@
 // ImageView.cpp : implementation file
 //
 
-#include "..\stdafx.h"
-#include "..\resource.h"
-#include "..\AppDef.h"
-#include "..\Utils\mutils.h"
+#include "stdafx.h"
+#include "resource.h"
+#include "AppDef.h"
+#include "Utils\mutils.h"
 #include "BaseImageView.h"
 #include "ImageDoc.h"
 #include "ImageView.h"
-#include "..\ImageFeatures\SectionFrame.h"
+#include "ImageFeatures\SectionFrame.h"
 
-#include "..\MGTools\Include\Utils\Utils.h"
+#include "MGTools\Include\Utils\Utils.h"
 
-#include "..\ImageFeatures\ZoomDlg.h"
+#include "ImageFeatures\ZoomDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW

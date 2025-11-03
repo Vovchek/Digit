@@ -1,8 +1,8 @@
 // SectionFrame.cpp : implementation file
 //
 
-#include "..\stdafx.h"
-#include "..\resource.h"
+#include "stdafx.h"
+#include "resource.h"
 #include "SectionFrame.h"
 
 #ifdef _DEBUG
