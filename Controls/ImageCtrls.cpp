@@ -91,13 +91,6 @@ CRect CImageCtrls::GetDIBRect()
     return rcDIB;
 }
 
-// Helper to make unique_ptr for an inclomplete type T
-// TODO: move make_unique_manual() to utils or to an appropriate header file
-template<typename T>
-auto inline make_unique_manual() {
-    return std::unique_ptr<T, void(*)(T*)>(new T(), [](T* p) { delete p; });
-}
-
 BOOL CImageCtrls::ConvertToDIB(CString& name)
 {
     fs::path inputPath((LPCTSTR)name);
@@ -129,31 +122,31 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
         res = dib->LoadImage(name);
         break;
     case T_PCX: {
-        auto src = make_unique_manual<SECPcx>();
+        auto src = std::make_unique<SECPcx>();
         if(src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
         break;
     }
     case T_JPG: {
-        auto src = make_unique_manual<SECJpeg>();
+        auto src = std::make_unique<SECJpeg>();
         if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
         break;
     }
     case T_GIF: {
-        auto src = make_unique_manual<SECGif>();
+        auto src = std::make_unique<SECGif>();
         if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
         break;
     }
     case T_TGA: {
-        auto src = make_unique_manual<SECTarga>();
+        auto src = std::make_unique<SECTarga>();
         if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
         break;
     }
     case T_TIF: {
-        auto src = make_unique_manual<SECTiff>();
+        auto src = std::make_unique<SECTiff>();
         if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
         break;

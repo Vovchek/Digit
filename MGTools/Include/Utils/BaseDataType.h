@@ -144,6 +144,6 @@ class MGTOOLS_API CDPolygon
     BOOL operator==(const CDPolygon& rhs) const;
 };
 
-double DtoD(double _d, int iDigit, bool needTol=true);
+double MGTOOLS_API DtoD(double _d, int iDigit, bool needTol=true);
 
 #endif // !defined(AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_)

@@ -26,6 +26,7 @@
 #include "tabctrlb.h"
 #endif
 
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -95,7 +96,7 @@
 // The TABDEMO sample in the \OT\SAMPLES\STANDARD\TABS\TABDEMO directory demonstrates the SECTabWndBase class.
 //@xref<c SECTabControlBase> <c SECTabWnd> <c SEC3DTabWnd> <c SECWorkbook> 
 //@BASE public | CWnd
-class SECTabWndBase : public CWnd
+class MGTOOLS_API SECTabWndBase : public CWnd
 {
     DECLARE_DYNAMIC(SECTabWndBase)
     

@@ -1,10 +1,10 @@
 // OXCoolToolBar.cpp : implementation file
 //
 
-#include "..\..\stdafx.h"
+#include "stdafx.h"
 #include <stdlib.h>
 
-#include "..\..\Include\Utils\OXCoolToolBar.h"
+#include "Include\Utils\OXCoolToolBar.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -1517,7 +1517,8 @@ void COXCoolToolBar::SetHeight(int cyHeight)
 
 BOOL COXCoolToolBar::IsWindowsNTRunning()
 {
-	BOOL bResult=FALSE;
+#if _WIN32_WINNT <= 0x0603
+	BOOL bResult = FALSE;
 
 	OSVERSIONINFO verInfo;
 	verInfo.dwOSVersionInfoSize=sizeof(OSVERSIONINFO);
@@ -1529,8 +1530,10 @@ BOOL COXCoolToolBar::IsWindowsNTRunning()
 			bResult=TRUE;
 		}
 	}
-
 	return bResult;
+#else
+	return ::IsWindowsVersionOrGreater(4, 0, 0);
+#endif
 }
 
 int COXCoolToolBar::GetDropDownArrowWidth() const

@@ -119,6 +119,7 @@
 #endif // _MSC_VER >= 1000
 
 #include "OXDllExt.h"
+#include "MGToolsExport.h"
 
 
 // OXCoolToolBar.h : header file
@@ -587,7 +588,7 @@ static const TCHAR szCustomizable[]=_T("Customizable");
 /////////////////////////////////////////////////////////////////////////////
 // COXCoolToolBar window
 
-class OX_CLASS_DECL COXCoolToolBar : public CToolBar
+class MGTOOLS_API OX_CLASS_DECL COXCoolToolBar : public CToolBar
 {
 	DECLARE_DYNAMIC(COXCoolToolBar)
 // Construction

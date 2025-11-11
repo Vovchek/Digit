@@ -13,6 +13,7 @@
 #endif
 
 //#include "resource.h"		// main symbols
+#include "MGToolsExport.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CMGToolsApp
@@ -43,8 +44,8 @@ public:
 extern "C" {
 #endif  /* __cplusplus */
 
-extern "C" BOOL FAR PASCAL EXPORT FilterDllMsg(LPMSG lpMsg);
-extern "C" void FAR PASCAL EXPORT ProcessDllIdle();
+extern "C" BOOL MGTOOLS_API PASCAL FilterDllMsg(LPMSG lpMsg);
+extern "C" void MGTOOLS_API PASCAL ProcessDllIdle();
 
 #ifdef __cplusplus
 }

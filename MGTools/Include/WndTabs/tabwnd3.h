@@ -38,7 +38,7 @@
 #include "tabwnd.h"
 #endif
 
-
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -86,7 +86,7 @@
 // demonstration of the SEC3DTabWnd class.
 //@xref <c SECTabWndBase> <c SEC3DTabControl> <c SECWorkbook>
 //@BASE public | SECTabWndBase
-class SEC3DTabWnd : public SECTabWndBase
+class MGTOOLS_API SEC3DTabWnd : public SECTabWndBase
 {
     DECLARE_DYNCREATE(SEC3DTabWnd)
     

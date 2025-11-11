@@ -5,8 +5,8 @@
 // Copyright © Dundas Software Ltd. 1997 - 1998, All Rights Reserved 
 //////////////////////////////////////////////////////////////////////////////
 
-#include "..\..\stdafx.h"
-#include "..\..\Include\Sysinfo\OXSysInfo.h"
+#include "stdafx.h"
+#include "Include\Sysinfo\OXSysInfo.h"
 
 #include <winsock.h>
 #include <afxdisp.h>        // MFC OLE automation classes
@@ -328,8 +328,31 @@ BOOL COXSysInfo::GetListIPAddresses(CStringArray* psIPAddressList,
 	return FALSE;
 }
 
-BOOL COXSysInfo::GetWindowsVersion(DWORD *pdwPlatform, DWORD *pdwMajor, 
-								   DWORD *pdwMinor) const
+static BOOL GetRealWindowsVersion(DWORD& major, DWORD& minor, DWORD& build)
+{
+	typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+	HMODULE ntdll = ::GetModuleHandleW(L"ntdll.dll");
+	if (!ntdll)
+		return FALSE;
+
+	RtlGetVersionPtr pRtlGetVersion =
+		(RtlGetVersionPtr)::GetProcAddress(ntdll, "RtlGetVersion");
+	if (!pRtlGetVersion)
+		return FALSE;
+
+	RTL_OSVERSIONINFOW ver = { sizeof(ver) };
+	if (pRtlGetVersion(&ver) != 0)
+		return FALSE;
+
+	major = ver.dwMajorVersion;
+	minor = ver.dwMinorVersion;
+	build = ver.dwBuildNumber;
+	return TRUE;
+}
+
+BOOL COXSysInfo::GetWindowsVersion(DWORD * pdwPlatform,
+		DWORD * pdwMajor,
+		DWORD * pdwMinor) const
 {
 	//	--- In:			
 	//	--- Out:		DWORD *pdwPlatform: Current Windows platform
@@ -338,32 +361,15 @@ BOOL COXSysInfo::GetWindowsVersion(DWORD *pdwPlatform, DWORD *pdwMajor,
 	//	--- Returns:	BOOL - TRUE if success
 	//	---	Effect:		Retrieves the current Windows OS version
 
-	ASSERT(pdwPlatform!=NULL && pdwMajor!=NULL && pdwMinor!=NULL);
+	ASSERT(pdwPlatform && pdwMajor && pdwMinor);
 
-	OSVERSIONINFO	osvi;
+		DWORD build = 0;
+		if (!GetRealWindowsVersion(*pdwMajor, *pdwMinor, build))
+			return FALSE;
 
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	BOOL bReturn = GetVersionEx(&osvi);
-
-	if (!bReturn)
-	{
-		TRACE(_T("COXSysInfo::GetWindowsVersion - ::GetVersionEx() failed\n"));
-		return (FALSE);
+		*pdwPlatform = VER_PLATFORM_WIN32_NT;   // every supported OS is NT-based
+		return TRUE;
 	}
-
-	// Possible platform IDs:
-	// VER_PLATFORM_WIN32s	Win32s on Windows 3.1. 
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 0) Windows 95.
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 1) Windows 98.
-	// VER_PLATFORM_WIN32_NT	Windows NT.
-
-	*pdwPlatform = osvi.dwPlatformId;
-	*pdwMajor = osvi.dwMajorVersion;
-	*pdwMinor = osvi.dwMinorVersion;
-
-	return (TRUE);
-}
 
 BOOL COXSysInfo::GetWindowsBuildNumber(DWORD *pdwBuildNumber) const
 {
@@ -372,32 +378,9 @@ BOOL COXSysInfo::GetWindowsBuildNumber(DWORD *pdwBuildNumber) const
 	//	--- Returns:	BOOL - TRUE if success
 	//	---	Effect:		Retrieves the current Windows OS version build number
 
-	ASSERT(pdwBuildNumber!=NULL);
-
-	OSVERSIONINFO	osvi;
-
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	BOOL bReturn = GetVersionEx(&osvi);
-
-	if (!bReturn)
-	{
-		TRACE(_T("COXSysInfo::GetWindowsBuildNumber - ::GetVersionEx() failed\n"));
-		return (FALSE);
-	}
-
-	// Possible platform IDs:
-	// VER_PLATFORM_WIN32s	Win32s on Windows 3.1. 
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 0) Windows 95.
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 1) Windows 98.
-	// VER_PLATFORM_WIN32_NT	Windows NT.
-
-	if(osvi.dwPlatformId==VER_PLATFORM_WIN32_NT)
-		*pdwBuildNumber = osvi.dwBuildNumber;
-	else
-		*pdwBuildNumber = LOWORD(osvi.dwBuildNumber);
-
-	return (TRUE);
+	ASSERT(pdwBuildNumber);
+	DWORD maj = 0, min = 0;
+	return GetRealWindowsVersion(maj, min, *pdwBuildNumber);
 }
 
 BOOL COXSysInfo::GetWindowsPlatformInfo(CString& sPlatformInfo) const
@@ -408,30 +391,15 @@ BOOL COXSysInfo::GetWindowsPlatformInfo(CString& sPlatformInfo) const
 	//	---	Effect:		Retrieves additional information for current 
 	//					Windows OS version
 
-	OSVERSIONINFO	osvi;
+	DWORD maj = 0, min = 0, build = 0;
+	if (!GetRealWindowsVersion(maj, min, build))
+		return FALSE;
 
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-
-	BOOL bReturn = GetVersionEx(&osvi);
-
-	if (!bReturn)
-	{
-		TRACE(_T("COXSysInfo::GetWindowsBuildNumber - ::GetVersionEx() failed\n"));
-		return (FALSE);
-	}
-
-	// Possible platform IDs:
-	// VER_PLATFORM_WIN32s	Win32s on Windows 3.1. 
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 0) Windows 95.
-	// VER_PLATFORM_WIN32_WINDOWS (dwMinorVersion is 1) Windows 98.
-	// VER_PLATFORM_WIN32_NT	Windows NT.
-
-	sPlatformInfo=osvi.szCSDVersion;
-
-	return (TRUE);
+	sPlatformInfo.Format(_T("Windows NT %u.%u (build %u)"), maj, min, build);
+	return TRUE;
 }
 
-BOOL COXSysInfo::IsNT(BOOL *pbResult) const
+BOOL COXSysInfo::IsNT(BOOL* pbResult) const
 {
 	//	--- In:			
 	//	--- Out:		DWORD *pbResult: TRUE if Windows NT running
@@ -439,22 +407,9 @@ BOOL COXSysInfo::IsNT(BOOL *pbResult) const
 	//	---	Effect:		Determines if the current Windows OS 
 	//					version is NT 
 
-	ASSERT(pbResult!=NULL);
-
-	OSVERSIONINFO	osvi;
-	osvi.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
-	if (!GetVersionEx(&osvi))
-	{
-		TRACE(_T("COXSysInf::IsNT: GetVersionEx() has failed\n"));
-		return (FALSE);
-	}
-	if (osvi.dwPlatformId == VER_PLATFORM_WIN32_NT)
-		// We're running on NT.
-		*pbResult=TRUE;
-	else
-		*pbResult=FALSE;
-
-	return (TRUE);
+	ASSERT(pbResult);
+	*pbResult = TRUE;     // all current Windows versions are NT family
+	return TRUE;
 }
 
 BOOL COXSysInfo::IsNTServer(BOOL *pbResult) const
@@ -507,7 +462,7 @@ BOOL COXSysInfo::IsNTServer(BOOL *pbResult) const
 	return (TRUE);
 }
 
-BOOL COXSysInfo::IsOSR2(BOOL *pbResult) const
+BOOL COXSysInfo::IsOSR2(BOOL* pbResult) const
 {
 	//	--- In:			
 	//	--- Out:		DWORD *pbResult: TRUE if Windows 95 OSR 2 
@@ -516,23 +471,9 @@ BOOL COXSysInfo::IsOSR2(BOOL *pbResult) const
 	//	---	Effect:		Determines if the current Windows OS 
 	//					version is Windows 95 OSR 2 or not
 
-	ASSERT(pbResult!=NULL);
-
-	OSVERSIONINFO osvi = { sizeof(OSVERSIONINFO) };
-	BOOL bReturn = GetVersionEx(&osvi);
-	if (!bReturn)
-	{
-		TRACE(_T("COXSysInfo::IsOSR2 - ::GetVersionEx() failed\n"));
-		return (FALSE);
-	}
-	
-	WORD wVersion = LOWORD(osvi.dwBuildNumber);
-	*pbResult=FALSE;
-	if ((osvi.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS) && (wVersion > 1000))
-		// OSR2 (or greater) of Windows 95...
-		*pbResult=TRUE;
-
-	return (TRUE);
+	ASSERT(pbResult);
+	*pbResult = FALSE;
+	return TRUE;
 }
 
 BOOL COXSysInfo::GetWindowsDir(CString *psWinDir) const

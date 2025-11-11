@@ -10,7 +10,6 @@
 #pragma once
 #endif // _MSC_VER > 1000
 
-
 // Insert your headers here
 #define WIN32_LEAN_AND_MEAN		// Exclude rarely-used stuff from Windows headers
 // TODO: reference additional headers your program requires here
@@ -31,6 +30,11 @@
 #ifndef _AFX_NO_AFXCMN_SUPPORT
 #include <afxcmn.h>			// MFC support for Windows Common Controls
 #endif // _AFX_NO_AFXCMN_SUPPORT
+
+#if _WIN32_WINNT > 0x0603
+#include <VersionHelpers.h>
+#include <winternl.h>
+#endif
 
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.

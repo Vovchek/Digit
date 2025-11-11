@@ -495,7 +495,7 @@ long TIFFInitCCITTRLEW(TIFF*);
     
 //tif_read.cpp
     int TIFFSeek(TIFF*, DWORD, tsample_t);
-    void TIFFInitOrder(register TIFF*, long, long);
+    void TIFFInitOrder( TIFF*, long, long);
     int TIFFFillStrip(TIFF*, tstrip_t);
     int TIFFFillTile(TIFF*, ttile_t);
     int TIFFStartTile(TIFF*, ttile_t);

@@ -615,9 +615,4 @@
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="MGTools.def">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-  </ItemGroup>
 </Project>
