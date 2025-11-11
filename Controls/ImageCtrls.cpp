@@ -91,6 +91,13 @@ CRect CImageCtrls::GetDIBRect()
     return rcDIB;
 }
 
+// Helper to make unique_ptr for an inclomplete type T
+// TODO: move make_unique_manual() to utils or to an appropriate header file
+template<typename T>
+auto inline make_unique_manual() {
+    return std::unique_ptr<T, void(*)(T*)>(new T(), [](T* p) { delete p; });
+}
+
 BOOL CImageCtrls::ConvertToDIB(CString& name)
 {
     fs::path inputPath((LPCTSTR)name);
@@ -112,9 +119,7 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
     outPath.replace_extension(".bmp");
 
     // Prepare DIB target
-    // auto dib = std::make_unique<SECDib>();
-    auto dib = std::unique_ptr<SECDib, void(*)(SECDib*)>(
-        new SECDib(), [](SECDib* p) { delete p; });
+    auto dib = std::make_unique<SECDib>();
     BOOL res = FALSE;
 
     switch (type)
@@ -124,38 +129,33 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
         res = dib->LoadImage(name);
         break;
     case T_PCX: {
-        SECPcx* src{ new SECPcx };
-        if(src->LoadImage(name) && dib->ConvertImage(src))
+        auto src = make_unique_manual<SECPcx>();
+        if(src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
-        delete src;
         break;
     }
     case T_JPG: {
-        SECJpeg* src{ new SECJpeg };
-        if (src->LoadImage(name) && dib->ConvertImage(src))
+        auto src = make_unique_manual<SECJpeg>();
+        if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
-        delete src;
         break;
     }
     case T_GIF: {
-        SECGif* src{ new SECGif };
-        if (src->LoadImage(name) && dib->ConvertImage(src))
+        auto src = make_unique_manual<SECGif>();
+        if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
-        delete src;
         break;
     }
     case T_TGA: {
-        SECTarga* src{ new SECTarga };
-        if (src->LoadImage(name) && dib->ConvertImage(src))
+        auto src = make_unique_manual<SECTarga>();
+        if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
-        delete src;
         break;
     }
     case T_TIF: {
-        SECTiff* src{ new SECTiff };
-        if (src->LoadImage(name) && dib->ConvertImage(src))
+        auto src = make_unique_manual<SECTiff>();
+        if (src->LoadImage(name) && dib->ConvertImage(src.get()))
             res = TRUE;
-        delete src;
         break;
     }
     default:
@@ -296,28 +296,7 @@ void CImageCtrls::SaveImage(LPCTSTR fname)
 {
 	if(!m_pDIB)
 		return;
-	 int Type;
-     CString FileExt = fname;
-	 FileExt = FileExt.Right(3);
-     FileExt.MakeUpper();
-     if(FileExt == "BMP"){
-      Type = T_BMP;
-     }
-     else if(FileExt == "PCX"){
-         Type = T_PCX;
-     }
-     else if(FileExt == "JPG"){
-         Type = T_JPG;
-     }
-     else if(FileExt == "GIF"){
-        Type = T_GIF;
-     }
-     else if(FileExt == "TGA"){
-         Type = T_TGA;
-     }
-     else if(FileExt == "TIF"){
-         Type = T_TIF;
-     }
+	auto Type = FileType(fname);
 	switch(Type){
 	  case T_BMP: OnFileSaveAsDib(fname); break;
 	  case T_PCX: OnFileSaveAsPcx(fname); break;

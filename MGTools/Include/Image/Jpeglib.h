@@ -81,7 +81,6 @@
  * Note that the arglist parameter must be parenthesized!
  */
 
-
 #ifndef __SC__
 class __single_inheritance SECJpeg;
 #else

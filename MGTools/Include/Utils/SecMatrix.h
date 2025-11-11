@@ -1,7 +1,9 @@
 #if !defined(AFX_SEC_MATRIX_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_)
 #define AFX_SEC_MATRIX_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_
 
-class CMatrixSection
+#include "MGToolsExport.h"
+
+class MGTOOLS_API CMatrixSection
 {
  public:
     CMatrixSection();

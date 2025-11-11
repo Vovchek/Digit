@@ -60,6 +60,7 @@
 
 #endif
 
+#include "MGToolsExport.h"
 
 //***************************************************************************
 // Definitions
@@ -79,7 +80,7 @@
 // See the FILEDEMO sample in the \OT\SAMPLES\STANDARD\UTILITY\FILEDEMO directory for a 
 // demonstration of this class.
 //@base public | CObject
-class SECFileSystem : public CObject
+class MGTOOLS_API SECFileSystem : public CObject
 {
 
 // Constructors

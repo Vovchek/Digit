@@ -6,13 +6,14 @@
 #endif // _MSC_VER > 1000
 // IsolineGraph.h : header file
 //
+#include "MGToolsExport.h"
 #include "2DGraph.h"
 #include "contour.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CIsolineGraph view
 
-class CIsolineGraph : public C2DGraph
+class MGTOOLS_API CIsolineGraph : public C2DGraph
 {
 protected:
 	DECLARE_DYNCREATE(CIsolineGraph)

@@ -27,6 +27,7 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+#include "MGToolsExport.h"
 //
 // CMN Extension DLL
 // Initialize declaration context
@@ -282,7 +283,7 @@ typedef sec_box * boxptr;
 // demonstration of this class.
 //@xref <c SECImage>
 //@base public | SECImage
-class SECJpeg : public SECImage
+class MGTOOLS_API SECJpeg : public SECImage
 {
 
 private:

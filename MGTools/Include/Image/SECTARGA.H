@@ -31,6 +31,7 @@
 #include "secimage.h"
 #endif
 
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -192,7 +193,7 @@ typedef struct _TgaFormat
 // demonstration of this class.
 //@xref <c SECImage>
 //@base public | SECImage
-class SECTarga : public SECImage
+class MGTOOLS_API SECTarga : public SECImage
 {
     DECLARE_SERIAL(SECTarga);
 

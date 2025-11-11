@@ -26,6 +26,8 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -219,7 +221,7 @@ typedef struct _GifCommentExtension
 //	pGif->LoadImage("myimage.gif");
 //@xref <c SECImage>
 //@base public | SECImage
-class SECGif : public SECImage
+class MGTOOLS_API SECGif : public SECImage
 {
     
     DECLARE_SERIAL(SECGif);

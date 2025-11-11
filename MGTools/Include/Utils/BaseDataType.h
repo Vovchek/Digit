@@ -1,13 +1,15 @@
 #if !defined(AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_)
 #define AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_
 
+#include "MGToolsExport.h"
+
 const double pi=3.1415926535897932;
 const int DIGIT_PRECISION = 3;
 #define INCLINE_NONE -1
 #define INCLINE_PLUS 0
 #define INCLINE_MINUS 1
 
-class CDPoint
+class MGTOOLS_API CDPoint
 {
  public:
     double x;
@@ -27,7 +29,7 @@ class CDPoint
     BOOL operator!=(const CDPoint& rhs) const;
 };
 
-class CDLine
+class MGTOOLS_API CDLine
 {
  public:
     CDPoint P1;
@@ -52,7 +54,7 @@ class CDLine
     BOOL operator==(const CDLine& rhs) const;
 };
 
-class CDPolyLine
+class MGTOOLS_API CDPolyLine
 {
  public:
     CArray<CDPoint, CDPoint> Line;
@@ -68,7 +70,7 @@ class CDPolyLine
     CDPolyLine& operator=(const CDPolyLine& rhs);
 };
 
-class CDRect
+class  MGTOOLS_API CDRect
 {
 public:
     double left;
@@ -103,7 +105,7 @@ public:
 
 };
 
-class CDPolygon
+class MGTOOLS_API CDPolygon
 {
  public:
 	 CArray<CDPoint, CDPoint> Dots;

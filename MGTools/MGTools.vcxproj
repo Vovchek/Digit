@@ -70,6 +70,7 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)MGTools.pdb</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -114,6 +115,7 @@
       <ObjectFileName>$(IntDir)</ObjectFileName>
       <ProgramDataBaseFileName>$(IntDir)MGTools.pdb</ProgramDataBaseFileName>
       <MinimalRebuild />
+      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -267,11 +269,11 @@
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="MGTools.def" />
-    <CustomBuild Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Include\Graph\Palette.h" />
     <ClInclude Include="Include\Utils\BookMark.h" />
+    <ClInclude Include="MGToolsExport.h" />
     <ClInclude Include="Source\Utils\BookMark.h" />
     <ClInclude Include="Include\Utils\DataType.h" />
     <ClInclude Include="Include\Utils\DibApi.h" />

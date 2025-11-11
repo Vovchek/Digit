@@ -30,6 +30,7 @@
 #include "secimage.h"
 #endif
 
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -87,7 +88,7 @@ typedef struct _PcxHeader
 // demonstration of this class.
 //@xref <c SECImage>
 //@base public | SECImage
-class SECPcx : public SECImage
+class MGTOOLS_API SECPcx : public SECImage
 {
     DECLARE_SERIAL(SECPcx);
 

@@ -27,6 +27,8 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -120,7 +122,7 @@ typedef void (SECTiff::*geti_tileContigRoutine)
 // this class.
 //@xref <c SECImage> <c SECGif>
 //@base public | SECImage
-class SECTiff : public SECImage
+class MGTOOLS_API SECTiff : public SECImage
 {
     DECLARE_SERIAL(SECTiff);
 
