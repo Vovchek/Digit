@@ -38,8 +38,8 @@
 ***************************************************************/
 
 #include <windows.h> 
-#include "..\..\Include\Sysinfo\cpuid.h"
-#include "..\..\Include\Sysinfo\speed.h"
+#include "Include\Sysinfo\cpuid.h"
+#include "Include\Sysinfo\speed.h"
 
 
 // Global Variable /////////////////////////////////////////////

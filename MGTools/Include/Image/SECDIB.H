@@ -30,6 +30,7 @@
 #include "secimage.h"
 #endif
 
+#include "MGToolsExport.h"
 //
 // CMN Extension DLL
 // Initialize declaration context
@@ -56,7 +57,7 @@
 // See the IMAGETST sample in the \OT\SAMPLES\STANDARD\IMAGES\IMAGETST directory for a 
 // demonstration of this class.
 //@base public | SECImage
-class SECDib : public SECImage
+class MGTOOLS_API SECDib : public SECImage
 {
     DECLARE_SERIAL(SECDib)
 	

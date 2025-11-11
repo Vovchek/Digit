@@ -8,6 +8,7 @@
 //
 
 #include "fixmem.h"
+#include "MGToolsExport.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CBookMarkFolder window
@@ -24,7 +25,7 @@ struct CBookMarkInfo
 	void operator=(CBookMarkInfo &B) { pDlg=B.pDlg; Title=B.Title;}
 };
 
-class CBookMarkControl : public CTabCtrl
+class MGTOOLS_API CBookMarkControl : public CTabCtrl
 {
 // Construction
 public:
@@ -97,7 +98,7 @@ protected:
 	DECLARE_MESSAGE_MAP();
 };
 
-class CBookMarkDlg : public CDialog
+class MGTOOLS_API CBookMarkDlg : public CDialog
 {
 // Construction
 public:

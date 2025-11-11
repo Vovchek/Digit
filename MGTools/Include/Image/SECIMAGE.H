@@ -37,6 +37,7 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+#include "MGToolsExport.h"
 //
 // CMN Extension DLL
 // Initialize declaration context
@@ -149,7 +150,7 @@
 //demonstration of this class.
 //@xref <c SECDib> <c SECGif> <c SECJpeg> <c SECPcx> <c SECTarga> <c SECTiff>
 //@base public | CObject
-class  SECImage : public CObject
+class  MGTOOLS_API SECImage : public CObject
 {
 
 	//@access Creation/Initialization

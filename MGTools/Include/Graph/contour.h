@@ -8,7 +8,8 @@
 #include    <memory.h>
 #include    <string.h>
 #include    <time.h>
-#include    "..\..\stdafx.h"
+#include    "stdafx.h"
+#include    "MGToolsExport.h"
 
 #define MINCELLS 30
 
@@ -82,7 +83,7 @@ static void lastPoint(GRID *grid, int ilevel);
 static uchar savePoint(GRID *grid, IS_POINT *point, int ilevel);
 static double getDataPoint(GRID *grid, IS_POINT *point, uchar corner);
 
-void Contour(double *data, int dim_x, int dim_y, double *px, double *py, int n_levels, double *levels,
+void MGTOOLS_API Contour(double *data, int dim_x, int dim_y, double *px, double *py, int n_levels, double *levels,
              void (*polyCB)(int, ISO_POINT *, double , int ));
 
 #endif

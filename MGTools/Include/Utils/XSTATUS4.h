@@ -39,6 +39,7 @@
 #endif // _MSC_VER >= 1000
 
 #include "OXDllExt.h"
+#include "MGToolsExport.h"
 
 #ifndef __AFXWIN_H__
 	#error include 'stdafx.h' before including this file for PCH
@@ -70,7 +71,7 @@ enum EOrientation
 const EOrientation EO_FIRST = EO_Stretch;	
 const EOrientation EO_LAST =  EO_RightClip;
 
-class OX_CLASS_DECL COXStatusBar : public CStatusBar
+class OX_CLASS_DECL MGTOOLS_API COXStatusBar : public CStatusBar
 {
 	DECLARE_DYNCREATE(COXStatusBar)
 // Data members -------------------------------------------------------------

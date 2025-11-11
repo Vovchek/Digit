@@ -1,10 +1,11 @@
 #ifndef _PALETTE_H_
 #define _PALETTE_H_
 
+#include "stdafx.h"
 #include <math.h>
-#include "..\..\stdafx.h"
+#include "MGToolsExport.h"
 
-class CColorPalette   
+class MGTOOLS_API CColorPalette   
   {
   public:
   protected:

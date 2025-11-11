@@ -6,12 +6,13 @@
 #endif // _MSC_VER > 1000
 // MapGraph.h : header file
 //
+#include "MGToolsExport.h"
 #include "2DGraph.h"
 
 /////////////////////////////////////////////////////////////////////////////
 // CMapGraph view
 
-class CMapGraph : public C2DGraph
+class MGTOOLS_API CMapGraph : public C2DGraph
 {
 protected:
 	DECLARE_DYNCREATE(CMapGraph)

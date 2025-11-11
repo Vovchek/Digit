@@ -8,6 +8,7 @@
 //
 #include "glut.h"
 #include "2DGraph.h"
+#include "MGToolsExport.h"
 
 #define NURBS_SOLID   0x01
 #define NURBS_WIRE    0x02
@@ -24,7 +25,7 @@ void normalizedcross(GLfloat* u, GLfloat* v, GLfloat* n);
 /////////////////////////////////////////////////////////////////////////////
 // C3DGraph view
 
-class C3DGraph : public C2DGraph
+class MGTOOLS_API C3DGraph : public C2DGraph
 {
 protected:
 	DECLARE_DYNCREATE(C3DGraph)

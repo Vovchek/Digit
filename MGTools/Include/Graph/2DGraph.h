@@ -33,15 +33,16 @@ const double D_EXCLUDE_VAL = 0.00005;
 #define IDMR_Play             (WM_USER+1017)
 #define IDMR_Coordinates      (WM_USER+1018)
 
-#include "..\..\Include\Utils\DibApi.h"
+#include "Include\Utils\DibApi.h"
 #include "DataType.h"
+#include "MGToolsExport.h"
 #include <math.h>
 
 class CMPreviewView;
 /////////////////////////////////////////////////////////////////////////////
 // C2DGraph view
 
-class C2DGraph : public CScrollView
+class MGTOOLS_API C2DGraph : public CScrollView
 {
 protected:
 	DECLARE_DYNCREATE(C2DGraph)

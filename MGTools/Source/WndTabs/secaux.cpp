@@ -32,9 +32,12 @@ SEC_AUX_DATA secData;
 SEC_AUX_DATA::SEC_AUX_DATA()
 {
 	// Cache various target platform version information
+#if _WIN32_WINNT < 0x0603
 	DWORD dwVersion = ::GetVersion();
 	bWin4 = (BYTE)dwVersion >= 4;
-
+#else
+    bWin4 = (BYTE)::IsWindowsVersionOrGreater(4, 0, 0);
+#endif
 	// Cached system values (updated in CWnd::OnSysColorChange)
 	UpdateSysColors();
 

@@ -108,13 +108,40 @@ BOOL DeleteFile(CString FileName)
 {
 	return remove(FileName)==0;
 }
+static BOOL GetRealWindowsVersion(DWORD& major, DWORD& minor, DWORD& build)
+{
+	typedef LONG(WINAPI* RtlGetVersionPtr)(PRTL_OSVERSIONINFOW);
+	HMODULE ntdll = ::GetModuleHandleW(L"ntdll.dll");
+	if (!ntdll)
+		return FALSE;
+
+	RtlGetVersionPtr pRtlGetVersion =
+		(RtlGetVersionPtr)::GetProcAddress(ntdll, "RtlGetVersion");
+	if (!pRtlGetVersion)
+		return FALSE;
+
+	RTL_OSVERSIONINFOW ver = { sizeof(ver) };
+	if (pRtlGetVersion(&ver) != 0)
+		return FALSE;
+
+	major = ver.dwMajorVersion;
+	minor = ver.dwMinorVersion;
+	build = ver.dwBuildNumber;
+	return TRUE;
+}
 double GetWindowsVersion()
 {
 	char szBuf[10];
+#if _WIN32_WINNT < 0x0601
 	DWORD dwVersion = GetVersion();
 
 	sprintf(szBuf, "%d.%d", LOBYTE(LOWORD(dwVersion)),
 									HIBYTE(LOWORD(dwVersion)));
+#else
+	DWORD major = 0, minor = 0, build = 0;
+	GetRealWindowsVersion(major, minor, build);
+	sprintf(szBuf, "%d.%d", major, minor);
+#endif
 	return atof(szBuf);
 }
 

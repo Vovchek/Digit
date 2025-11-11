@@ -10,6 +10,7 @@
 // tell linker to link with version.lib for VerQueryValue, etc.
 #pragma comment(linker, "/defaultlib:version.lib")
 #include <SHLWAPI.H>
+#include "MGToolsExport.h"
 /*
 #ifndef DLLVERSIONINFO
 // following is from shlwapi.h, in November 1997 release of the Windows SDK
@@ -43,7 +44,7 @@ typedef struct _DllVersionInfo
 //
 // You can also call the static fn DllGetVersion to get DLLVERSIONINFO.
 //
-class CModuleVersion : public VS_FIXEDFILEINFO {
+class MGTOOLS_API CModuleVersion : public VS_FIXEDFILEINFO {
 protected:
 	BYTE* m_pVersionInfo;	// all version info
 

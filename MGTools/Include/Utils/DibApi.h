@@ -14,7 +14,8 @@
 #ifndef _INC_DIBAPI
 #define _INC_DIBAPI
 
-#include "..\..\stdafx.h"
+#include "stdafx.h"
+#include "MGToolsExport.h"
 
 #define COLOR_SCALE_RED   0
 #define COLOR_SCALE_GREEN 1
@@ -57,20 +58,20 @@ DWORD     WINAPI  DIBWidth (LPSTR lpDIB);
 DWORD     WINAPI  DIBHeight (LPSTR lpDIB);
 WORD      WINAPI  PaletteSize (LPSTR lpbi);
 WORD      WINAPI  DIBNumColors (LPSTR lpbi);
-HGLOBAL   WINAPI  CopyHandle (HGLOBAL h);
-HGLOBAL CopyHandle32 (LPCVOID lpMem, DWORD Size);
+HGLOBAL   MGTOOLS_API WINAPI  CopyHandle (HGLOBAL h);
+HGLOBAL	  MGTOOLS_API CopyHandle32 (LPCVOID lpMem, DWORD Size);
 
 BOOL      WINAPI  TransformDIBits(HDIB hDib);
-BOOL      WINAPI  SaveDIB (HDIB hDib, CFile& file);
-HDIB      WINAPI  ReadDIBFile(CFile& file);
+BOOL      MGTOOLS_API WINAPI  SaveDIB (HDIB hDib, CFile& file);
+HDIB      MGTOOLS_API WINAPI  ReadDIBFile(CFile& file);
 
-HDIB BitmapToDIB(HBITMAP hBitmap, HPALETTE hPal);
-HDIB CopyScreenToDIB(LPRECT lpRect);
-HBITMAP CopyWindowToBitmap(HWND hWnd, WORD fPrintArea);
-HBITMAP CopyScreenToBitmap(LPRECT lpRect);
-HPALETTE GetSystemPalette(void);
+HDIB MGTOOLS_API BitmapToDIB(HBITMAP hBitmap, HPALETTE hPal);
+HDIB MGTOOLS_API CopyScreenToDIB(LPRECT lpRect);
+HBITMAP MGTOOLS_API CopyWindowToBitmap(HWND hWnd, WORD fPrintArea);
+HBITMAP MGTOOLS_API CopyScreenToBitmap(LPRECT lpRect);
+HPALETTE MGTOOLS_API GetSystemPalette(void);
 int PalEntriesOnDevice(HDC hDC);
-HPALETTE CreateColorScalePalette(HDC hDC, int nColor);
-void GetPaletteColor(HPALETTE hP, int ind, float* pCol, int* pICol=0);
+HPALETTE MGTOOLS_API CreateColorScalePalette(HDC hDC, int nColor);
+void MGTOOLS_API GetPaletteColor(HPALETTE hP, int ind, float* pCol, int* pICol=0);
 
 #endif //!_INC_DIBAPI

@@ -146,9 +146,7 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)Digit.exe</OutputFile>
-      <AdditionalLibraryDirectories>
-        Build\Debug;
-        Build\Debug;
+      <AdditionalLibraryDirectories>       Build\Debug;
         %(AdditionalLibraryDirectories)
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>

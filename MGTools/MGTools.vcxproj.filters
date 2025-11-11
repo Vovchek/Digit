@@ -611,11 +611,8 @@
     <ClInclude Include="Include\Graph\Palette.h">
       <Filter>Header Files\Graph_H</Filter>
     </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="MGTools.def">
-      <Filter>Source Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="ReadMe.txt" />
+    <ClInclude Include="MGToolsExport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

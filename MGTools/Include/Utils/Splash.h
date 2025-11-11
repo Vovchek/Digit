@@ -4,6 +4,7 @@
 #ifndef _SPLASH_H
 #define _SPLASH_H
 
+#include "MGToolsExport.h"
 ////////////////
 // Handy class to lock a critical section.
 // ctor/dtor ==> lock/unlock
@@ -36,7 +37,7 @@ class CLockData {
 // NOTE: pSplash MUST be a static/global variable, not a local variable that
 // can go out of scope, since CSplash will set it to NULL when the splash dies.
 //
-class CSplash : public CWinThread 
+class MGTOOLS_API CSplash : public CWinThread 
   {
   public:
     CSplash(UINT nIDRes,				// resource ID of bitmap

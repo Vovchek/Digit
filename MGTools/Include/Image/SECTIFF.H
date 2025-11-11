@@ -27,6 +27,8 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+
+#include "MGToolsExport.h"
 //
 // SEC Extension DLL
 // Initialize declaration context
@@ -120,7 +122,7 @@ typedef void (SECTiff::*geti_tileContigRoutine)
 // this class.
 //@xref <c SECImage> <c SECGif>
 //@base public | SECImage
-class SECTiff : public SECImage
+class MGTOOLS_API SECTiff : public SECImage
 {
     DECLARE_SERIAL(SECTiff);
 
@@ -493,7 +495,7 @@ long TIFFInitCCITTRLEW(TIFF*);
     
 //tif_read.cpp
     int TIFFSeek(TIFF*, DWORD, tsample_t);
-    void TIFFInitOrder(register TIFF*, long, long);
+    void TIFFInitOrder( TIFF*, long, long);
     int TIFFFillStrip(TIFF*, tstrip_t);
     int TIFFFillTile(TIFF*, ttile_t);
     int TIFFStartTile(TIFF*, ttile_t);

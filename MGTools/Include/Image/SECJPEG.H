@@ -27,6 +27,7 @@
 	#pragma message ( __TIME__ ":  include " __FILE__ )
 #endif
 
+#include "MGToolsExport.h"
 //
 // CMN Extension DLL
 // Initialize declaration context
@@ -282,7 +283,7 @@ typedef sec_box * boxptr;
 // demonstration of this class.
 //@xref <c SECImage>
 //@base public | SECImage
-class SECJpeg : public SECImage
+class MGTOOLS_API SECJpeg : public SECImage
 {
 
 private:
@@ -428,10 +429,10 @@ void start_pass_huff_decoder (j_decompress_ptr cinfo);
 void jpeg_make_d_derived_tbl (j_decompress_ptr cinfo, JHUFF_TBL * htbl,
 	d_derived_tbl **pdtbl);
 boolean jpeg_fill_bit_buffer (bitread_working_state * state,
-	register bit_buf_type get_buffer, register int bits_left,
+	 bit_buf_type get_buffer,  int bits_left,
 	int nbits);
 int jpeg_huff_decode (bitread_working_state * state,
-	register bit_buf_type get_buffer, register int bits_left,
+	 bit_buf_type get_buffer,  int bits_left,
 	d_derived_tbl * htbl, int min_bits);
 boolean process_restart (j_decompress_ptr cinfo);
 boolean decode_mcu (j_decompress_ptr cinfo, JBLOCKROW *MCU_data);

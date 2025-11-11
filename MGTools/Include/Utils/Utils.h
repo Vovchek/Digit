@@ -8,13 +8,14 @@
 #include <stdio.h>
 #include <math.h>
 #include "fixmem.h"
+#include "MGToolsExport.h"
 
 BOOL ReadWindowPlacement(LPWINDOWPLACEMENT pwp);
 void WriteWindowPlacement(LPWINDOWPLACEMENT pwp);
 
-BOOL ReadWndPlacement(LPWINDOWPLACEMENT pwp,
+BOOL MGTOOLS_API ReadWndPlacement(LPWINDOWPLACEMENT pwp,
                       LPCTSTR Section, LPCTSTR Key, LPCTSTR File);
-BOOL WriteWndPlacement(LPWINDOWPLACEMENT pwp,
+BOOL MGTOOLS_API WriteWndPlacement(LPWINDOWPLACEMENT pwp,
                        LPCTSTR Section, LPCTSTR Key,
                        LPCTSTR File);
 
@@ -154,26 +155,26 @@ void RestoreObjects(CDC& dc);
 int    GetInt(CString FileName, CString SectionName, CString ParamName);
 double GetDouble(CString FileName, CString SectionName, CString ParamName);
 
-BOOL IsFileExist(LPCTSTR fName, BOOL needMessage/*true*/);
+BOOL MGTOOLS_API IsFileExist(LPCTSTR fName, BOOL needMessage/*true*/);
 
 //-------------------- File Path ----------------------------------
-BOOL SavePath(LPCTSTR Key, LPCTSTR Str, LPCTSTR File);
-BOOL ReadPath(LPCTSTR Key, LPTSTR Str, LPCTSTR File);
+BOOL MGTOOLS_API SavePath(LPCTSTR Key, LPCTSTR Str, LPCTSTR File);
+BOOL MGTOOLS_API ReadPath(LPCTSTR Key, LPTSTR Str, LPCTSTR File);
 
 //-------------------- File Section ----------------------------------
-BOOL SaveSection(LPCTSTR Section, LPCTSTR Key, LPCTSTR Str, LPCTSTR File);
-BOOL ReadSection(LPCTSTR Section, LPCTSTR Key, LPTSTR Str, LPCTSTR File);
+BOOL MGTOOLS_API SaveSection(LPCTSTR Section, LPCTSTR Key, LPCTSTR Str, LPCTSTR File);
+BOOL MGTOOLS_API ReadSection(LPCTSTR Section, LPCTSTR Key, LPTSTR Str, LPCTSTR File);
 
-void GetAvaibleDrives(int& nDr, LPTSTR drives);
+void MGTOOLS_API GetAvaibleDrives(int& nDr, LPTSTR drives);
 
 template <class T>
 inline void Swap(T& a, T& b){T t= a; a = b; b = t;}
 
-void CheckLastError();
-void MakeLoopMessage();
+void MGTOOLS_API CheckLastError();
+void MGTOOLS_API MakeLoopMessage();
 
-BOOL CreateTMPUniqueFile(CString& name, LPCTSTR prefix);
-BOOL WriteStringToFile(LPCTSTR str, LPCTSTR filepath, UINT nOpenFlags=CFile::modeCreate|CFile::modeWrite);
+BOOL MGTOOLS_API CreateTMPUniqueFile(CString& name, LPCTSTR prefix);
+BOOL MGTOOLS_API WriteStringToFile(LPCTSTR str, LPCTSTR filepath, UINT nOpenFlags=CFile::modeCreate|CFile::modeWrite);
 
 void CreateEllipseArray(CRect* pR, CPoint* aP, int naP);
 void InflateContour(CPoint* pwLine, int nP, int val);
