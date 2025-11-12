@@ -1,5 +1,5 @@
 ﻿It's global issues ToDo - specific code issues ar being marked 
-'TODO: ...' withing code files, in VS one can view them in a 'Task List' () 
+'TODO: ...' withing code files, in VS one can view them in a 'Task List' (Ctrl+\,T) 
 
 * fixed (CImageCtrls::ConvertToDIB() creates temp for .bmp too) :
  loading .frn with ref to .bmp image causes the .bmp to be erazed on file close

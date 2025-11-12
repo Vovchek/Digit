@@ -280,6 +280,7 @@
     <ClInclude Include="Include\Graph\Palette.h" />
     <ClInclude Include="Include\Utils\BookMark.h" />
     <ClInclude Include="MGToolsExport.h" />
+    <ClInclude Include="Resource.h" />
     <ClInclude Include="Source\Utils\BookMark.h" />
     <ClInclude Include="Include\Utils\DataType.h" />
     <ClInclude Include="Include\Utils\DibApi.h" />
@@ -346,6 +347,12 @@
     <ClInclude Include="Include\SysInfo\Speed.h" />
     <ClInclude Include="MGTools.h" />
     <ClInclude Include="StdAfx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MGTools.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="GLUT32.LIB" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
