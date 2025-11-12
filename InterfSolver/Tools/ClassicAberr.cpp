@@ -500,7 +500,7 @@ void ZON_COEFF :: ConvToPower()
 //============================================================================
 void ZON_COEFF :: ConvToZernike()
   {
-// Не реализован
+// TODO: implement conversion ZON_COEFF to Zernike
   }
 //============================================================================
 ZON_COEFF operator+ (const ZON_COEFF &A, const ZON_COEFF &B)
