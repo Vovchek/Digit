@@ -2,8 +2,27 @@
 #include "Include\Int_Cons.h"
 #include "CalcContour.h"
 
-//  void GetContour(const EMem<ELL_LIMITS> &Ell, EMem<XY_CURVE> &ArrCont);
-//=========================================================================
+/**
+ * @brief Computes visible contours of geometric shapes accounting for occlusion
+ * 
+ * This function calculates the visible boundary segments of geometric objects (ellipses,
+ * rectangles, and polygons) by finding which parts of their boundaries are not hidden
+ * by other shapes, then assembles them into complete contour polygons.
+ * 
+ * @param ArrEll Array of ellipses to process
+ * @param ArrRect Array of rectangles to process  
+ * @param ArrPlg Array of polygons to process
+ * @param ArrCont Output array of resulting contour polygons
+ * @param NPntMax Maximum number of points for contour discretization
+ * 
+ * Algorithm steps:
+ * 1. Setup: Calculate step size based on maximum perimeter among all shapes
+ * 2. Contour extraction: For each shape type, extract visible boundary segments
+ *    using isPupil() to test visibility (not inside other shapes)
+ * 3. Segment connection: Connect broken line segments into continuous contours
+ *    using distance tolerance to match nearby endpoints
+ * 4. Polygon classification: Mark contours as EXTERNAL or INTERNAL (holes)
+ */
 void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
                    const CArrayXYPolygon &ArrPlg, CArrayXYPolygon &ArrCont, int NPntMax)
   {
@@ -14,10 +33,12 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
   XYBrokenLine CurBLn;
   XYPoint P;
  //------------------------------------------------------------------------
+  // Setup and step size calculation
   int NEll = ArrEll.GetSize();
   int NRect = ArrRect.GetSize();
   int NPlg = ArrPlg.GetSize();
  //------------------------------------------------------------------------
+  // Find maximum perimeter to determine point spacing
   double CurPerim, MaxPerim = 0., Step;
   for (iElm = 0; iElm < NEll; iElm++)
     {
@@ -31,6 +52,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     }
   Step = MaxPerim / NPntMax;
  //------------------------------------------------------------------------
+  // Extract visible contour segments from ellipses
   CurBLn.RemoveAll();
   for (iElm = 0; iElm < NEll; iElm++)
     {
@@ -54,6 +76,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     }
  //------------------------------------------------------------------------
+  // Extract visible contour segments from rectangles
   CurBLn.RemoveAll();
   for (iElm = 0; iElm < NRect; iElm++)
     {
@@ -77,6 +100,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     }
  //------------------------------------------------------------------------
+  // Extract visible contour segments from polygons
   CurBLn.RemoveAll();
   for (iElm = 0; iElm < NPlg; iElm++)
     {
@@ -102,6 +126,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     }
  //------------------------------------------------------------------------
+  // Connect broken line segments into continuous contours
   CurBLn.RemoveAll();
   CurCont.RemoveAll();
   XYPolygon Plg;
@@ -114,9 +139,10 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     return; 
     }
  //------------------------------------------------------------------------
+  // Connect segments by matching endpoints within tolerance
   int iBLn;
   int NCur;
-  double Eps = 2.5 * Step;
+  double Eps = 2.5 * Step;  // Distance tolerance for endpoint matching
   bool isFind = true;
   XYPoint Pn, Pk;
   while ((NBLn = ArrBLn.GetSize()) > 0)
@@ -182,12 +208,14 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     }
  //------------------------------------------------------------------------
+  // Classify contours as external or internal (holes)
   int NCont = ArrCont.GetSize();
   if (NCont == 1)
     {
     ArrCont[0].SetTypeLimits(EXTERNAL);
     return;
     }
+  // Determine which contour is external by testing containment
   int iExt, i;
   bool isIns;
   for (iElm = 0; iElm < NCont; iElm++)
@@ -206,6 +234,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       break;
       }
     }
+  // Set contour types: one external, others internal
   for (iElm = 0; iElm < NCont; iElm++)
     {
     if (iElm == iExt)
