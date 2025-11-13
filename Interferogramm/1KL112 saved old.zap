@@ -3,7 +3,7 @@ TIME 06:51:05
 DATE 13.11.2025
 NUMBER 1.000
 FISCAN 0.00
-IMAGE C:\Users\vovch\source\repos\Vovchek\Digit\Interferogramm\1KL112.pcx
+IMAGE 1KL112.pcx
 
 ELLIPS
  -0.002 0.000 0.998 0.998 -0.00 1  

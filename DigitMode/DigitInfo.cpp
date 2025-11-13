@@ -1720,17 +1720,33 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
    NUMBERING_INTERFEROGRAM_INFO IntInfo;
    if(!ReadZAPData(FileName, IntInfo))
 	   return FALSE;
-   if(!ExamineNumberingInterferogramInfo(IntInfo))
-	   return FALSE;
 
    CImageCtrls* pI = GetImageCtrls();
 
    //Вызов LoadImage для инициализации m_pDIB
-   if (!pI->LoadImage(IntInfo.ImageFileName))
+   if (IntInfo.ImageFileName.IsEmpty()) {
+	   AfxMessageBox(_T("Имя файла изображения в ZAP-файле отсутствует"));
+	   return FALSE;
+
+   }
+   else if (!pI->LoadImage(IntInfo.ImageFileName))
    {
 	   AfxMessageBox(_T("Не удалось загрузить изображение из ZAP-файла"));
 	   return FALSE;
    }
+   else if(IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
+   {
+	   double dY = (pI->ImageSize.cy - IntInfo.ImageSize[1]);
+	   IntInfo.DigitDat.ShiftY(dY);
+	   IntInfo.EBnd.ShiftY(dY);
+	   for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++)
+		   IntInfo.ArrEll[i].ShiftY(dY);
+	   IntInfo.ImageSize[0] = pI->ImageSize.cx;
+	   IntInfo.ImageSize[1] = pI->ImageSize.cy;
+   }
+
+   if (!ExamineNumberingInterferogramInfo(IntInfo))
+	   return FALSE;
 
    CreateBufLine();
    if(pI->m_pDIB){
