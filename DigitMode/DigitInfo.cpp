@@ -1233,12 +1233,12 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 		       dot.P.y = P.y = ZapLines[idx].L.P1.y;
            }
 		}
-		if(pCtrls->ViewState & V_EXTREMUMS){
+		/*if (pCtrls->ViewState & V_EXTREMUMS) {
 		   double x;	
            if(GetNearestXInSection(P, x)){
 		       dot.P.x = x;
            }
-		}
+		}*/
 		Dots.Add(dot);
 }
 
