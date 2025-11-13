@@ -222,7 +222,9 @@ BOOL ReadDosZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntIn
 
   Fl.Close();
 
+  // TODO: app crashes on inconsistent data, need to check it  
   int NEll = IntInfo.ArrEll.GetSize();
+  /*
   if (fabs(XMin) > PRECISION)
     {
     double dX = -XMin;
@@ -231,9 +233,10 @@ BOOL ReadDosZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntIn
     for (i = 0; i < NEll; i++)
       IntInfo.ArrEll[i].ShiftX(dX);
     }
+    */
   if (fabs(YMin) > PRECISION)
     {
-    double dY = -YMin;
+    double dY = -2*YMin;
     IntInfo.DigitDat.ShiftY(dY);
     IntInfo.EBnd.ShiftY(dY);
     for (i = 0; i < NEll; i++)
@@ -242,14 +245,15 @@ BOOL ReadDosZAPData(const CString &FileName, NUMBERING_INTERFEROGRAM_INFO &IntIn
 
   int Nx = int(fabs(IntInfo.EBnd.XRight - IntInfo.EBnd.XLeft) + 0.5);
   int Ny = int(fabs(IntInfo.EBnd.YTop - IntInfo.EBnd.YBottom) + 0.5);
-
+  
   for (i = 0; i < NEll; i++)
     IntInfo.ArrEll[i].InverseY(Ny);
   IntInfo.EBnd.InverseY(Ny);
   IntInfo.DigitDat.InverseY(Ny);
-
+  
   IntInfo.ImageSize[0] = Nx;
   IntInfo.ImageSize[1] = Ny;
+  
   return TRUE;
 
   }
