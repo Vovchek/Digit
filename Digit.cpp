@@ -21,7 +21,7 @@
 #include "Utils\Edit\TextChildFrm.h"
 #include "Utils\Edit\BaseTextDoc.h"
 #include "Utils\Edit\BaseTextView.h"
-//C:\Ilya\Programming\cpp\Numbering\Digit.cpp
+
 #include "MGTools\Include\Utils\Utils.h"
 #include "MGTools\Include\Graph\2DGraph.h"
 #include "MGTools\Include\Graph\3DGraph.h"
@@ -87,9 +87,7 @@ BOOL CDigitApp::FirstInstance(LPCTSTR CmdLine)
 		if (pWndPrev->IsIconic())
 			pWndPrev->ShowWindow(SW_RESTORE);
 
-		// Bring the main window or its popup to
-		// the foreground
-
+		// Bring the main window or its popup to the foreground
 		pWndChild->SetForegroundWindow();
 
 		// and we are done activating the previous one.
@@ -107,7 +105,7 @@ BOOL CDigitApp::InitInstance()
 	fINI = dir;
 	fINI += '\\';
 	fINI += m_pszProfileName;
-	//	  ::BroadcastSystemMessage(BSF_NOHANG, BSM_APPLICATIONS, WM_CAPTURE_PERIOD,0,0);
+
 	CWnd* pWndPrev;
 	pWndPrev = NULL;
 	CCommandLineInfo cmdInfo;
@@ -116,7 +114,6 @@ BOOL CDigitApp::InitInstance()
 	CString ss = m_lpCmdLine;
 	ss.MakeLower();
 	if (ss.Find(".scn") != -1) {
-		//		ScnBackgroundMode(m_lpCmdLine);
 		return false;
 	}
 
@@ -134,7 +131,7 @@ BOOL CDigitApp::InitInstance()
 		intrLang = ENG_LANG;
 
 	if (!ChangeIntrLang(intrLang)) {
-		LPCTSTR Str = "Fail load resource DLL";//CRS("RusLang.dll не найдена","EngLang.dll is not available");
+		LPCTSTR Str = CRS("RusLang.dll не найдена","EngLang.dll is not available");
 		AfxMessageBox(Str, MB_OK | MB_ICONSTOP);
 		return FALSE;
 	}
@@ -142,11 +139,11 @@ BOOL CDigitApp::InitInstance()
 	WNDCLASS wndcls;
 	memset(&wndcls, 0, sizeof(WNDCLASS));   // start with NULL defaults
 
-	wndcls.style = CS_DBLCLKS;// | CS_HREDRAW | CS_VREDRAW;
+	wndcls.style = CS_DBLCLKS;
 	wndcls.lpfnWndProc = ::DefWindowProc;
 	wndcls.hInstance = AfxGetInstanceHandle();
 	HANDLE han = LoadImage(rc_hInstance, MAKEINTRESOURCE(IDR_MAINFRAME), IMAGE_ICON, 32, 32, LR_SHARED);
-	wndcls.hIcon = HICON(han); // or load a different icon
+	wndcls.hIcon = HICON(han);
 	wndcls.hCursor = LoadCursor(IDC_ARROW);
 	wndcls.hbrBackground = (HBRUSH)(COLOR_WINDOW);
 	wndcls.lpszMenuName = NULL;
@@ -161,8 +158,7 @@ BOOL CDigitApp::InitInstance()
 		return FALSE;
 	}
 	bClassRegistered = TRUE;
-	// Change the registry key under which our settings are stored.
-	//SetRegistryKey(_T("Local AppWizard-Generated Applications"));
+
 	free((void*)m_pszProfileName);
 	m_pszProfileName = _tcsdup((LPCTSTR)fINI);
 
@@ -201,7 +197,7 @@ BOOL CDigitApp::InitInstance()
 	m_pMainWnd->DragAcceptFiles();
 
 	// The main window has been initialized, so show and update it.
-	pMainFrame->ShowWindow(/*m_nCmdShow*/SW_MAXIMIZE);
+	pMainFrame->ShowWindow(SW_MAXIMIZE);
 	pMainFrame->UpdateWindow();
 
 	MSG Msg;
@@ -238,13 +234,11 @@ bool CDigitApp::TreatCmdLine(LPCTSTR CmdLine)
 				ss.Empty();
 			}
 			iP1 = 0;
-			//          OpenDocumentFile(LPCTSTR(path+name)); ???
 			OpenDocumentFile(LPCTSTR(name));
 
-			//============== Load ZAP, FRN ==========================
+			// Load ZAP/FRN metadata
 			CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
 			if (pDoc) {
-				//		pDoc->Digit.Load(LPCTSTR(path+name)); ???
 				pDoc->Digit.Load(LPCTSTR(name));
 				CMainFrame* pMFr = GetMainFrame();
 				pMFr->SetImageInfo(pDoc->Digit.Comments, pDoc->Digit.ScaleFactor, pDoc->Digit.Rotation);
@@ -313,7 +307,7 @@ bool CDigitApp::ChangeIntrLang(int iLang/*-1*/)
 void CDigitApp::OnFileOpen()
 {
 	LPCTSTR title = CRS("Открыть файл", "Open file");
-	CSpecialFileDialog fileDlg(TRUE); // ?????? fileDlg = null
+	CSpecialFileDialog fileDlg(TRUE);
 	CString fIndex;
 
 	TCHAR strName[_MAX_PATH];
@@ -362,7 +356,7 @@ void CDigitApp::OnFileOpen()
 		sav.Format("%d", fileDlg.m_ofn.nFilterIndex);
 		SavePath("LOAD_INDEX_FILE", sav, GetIniFile());
 
-		//============== Load ZAP, FRN ==========================
+		// Load ZAP/FRN metadata
 		CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
 		if (pDoc) {
 			pDoc->Digit.Load(LPCTSTR(FileName));
@@ -448,8 +442,6 @@ void CDigitApp::OnAppAbout()
 /////////////////////////////////////////////////////////////////////////////
 // CDigitApp message handlers
 
-
-
 BOOL CDigitApp::PreTranslateMessage(MSG* pMsg)
 {
 	if (CWinApp::PreTranslateMessage(pMsg))
@@ -465,4 +457,48 @@ BOOL CDigitApp::OnIdle(LONG lCount)
 
 	ProcessDllIdle();
 	return FALSE;   // no more for me to do
+}
+
+CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
+{
+	if (!lpszFileName)
+		return CWinApp::OpenDocumentFile(lpszFileName);
+
+	// Save filename before calling base method (MFC modifies the buffer despite LPCTSTR!)
+	CString safeFileName = lpszFileName;
+	CString ext = safeFileName.Right(3);
+	ext.MakeLower();
+
+	// Call base method (may corrupt lpszFileName)
+	CDocument* pDoc = CWinApp::OpenDocumentFile(lpszFileName);
+	if (!pDoc)
+	{
+		TRACE("OpenDocumentFile: Failed to open %s\n", (LPCTSTR)safeFileName);
+		return NULL;
+	}
+
+	// Load .zap/.frn metadata if applicable
+	if (ext == _T("zap") || ext == _T("frn"))
+	{
+		if (pDoc->IsKindOf(RUNTIME_CLASS(CImageDoc)))
+		{
+			CImageDoc* pImgDoc = static_cast<CImageDoc*>(pDoc);
+			if (pImgDoc->Digit.Load(safeFileName))
+			{
+				CMainFrame* pMFr = GetMainFrame();
+				if (pMFr)
+				{
+					pMFr->SetImageInfo(pImgDoc->Digit.Comments,
+									   pImgDoc->Digit.ScaleFactor,
+									   pImgDoc->Digit.Rotation);
+				}
+			}
+			else
+			{
+				TRACE("OpenDocumentFile: Digit.Load failed for %s\n", (LPCTSTR)safeFileName);
+			}
+		}
+	}
+
+	return pDoc;
 }

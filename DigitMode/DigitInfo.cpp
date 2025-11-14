@@ -85,8 +85,8 @@ void CDigitInfo::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 	  }
 	  else if(nChar == VK_RIGHT){
 		if(GetNextDotInSection(Dots[idxMainDot].iZapSec, 1, idx, dP)){
-			idxMainDot = idx;
-			CurrentNumber = Dots[idx].Number;
+		 idxMainDot = idx;
+		 CurrentNumber = Dots[idx].Number;
 		}
 	  }
 	  else if(nChar == VK_UP){
@@ -1463,7 +1463,7 @@ bool CDigitInfo::GetFirstDotInFringe(double Number, int& idx, CDPoint& dP)
 	double minx = INT_MAX;
 	for(int iD=0; iD < Dots.GetSize(); iD++){
 		if(Dots[iD].Number == Number){
-			if(Dots[iD].P.y < minx){
+			if(Dots[iD].P.x < minx){
 				minx = Dots[iD].P.x;
 				minidx = iD;
 			}
@@ -1690,6 +1690,7 @@ BOOL CDigitInfo::Load(LPCTSTR fname)
 {
 	if(!IsFileExist(fname, FALSE))
 		return FALSE;
+
 	CString path = fname;
 	CString ext = path.Right(3);
 	ext.MakeLower();
@@ -1721,9 +1722,33 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
    if(!ReadZAPData(FileName, IntInfo))
 	   return FALSE;
 
-   CImageCtrls* pI = GetImageCtrls();
+   // --- Resolve image filename relative to ZAP file directory (fix MRU / shell opens) ---
+   if (!IntInfo.ImageFileName.IsEmpty()) {
+       CString img = IntInfo.ImageFileName;
+       bool isAbsolute = false;
+       if (img.GetLength() >= 2 && img[1] == ':') // "C:\..."
+           isAbsolute = true;
+       if (img.GetLength() >= 2 && img[0] == '\\' && img[1] == '\\') // UNC "\\server\..."
+           isAbsolute = true;
+       if (!isAbsolute) {
+           int pos = FileName.ReverseFind('\\');
+           if (pos != -1) {
+               CString dir = FileName.Left(pos + 1);
+               CString combined = dir + img;
+               // Если комбинированный путь существует — используем его
+               if (IsFileExist(combined, FALSE)) {
+                   IntInfo.ImageFileName = combined;
+				   TRACE("LoadZAP: Resolved image path to %s\n", combined);
+			   }
+               // иначе оставляем как есть — LoadImage попробует абсолютный/относительный путь
+           }
+       }
+	   TRACE("LoadZAP: Final image path: %s\n", IntInfo.ImageFileName);
+   }
+   // -------------------------------------------------------------------------------
 
    //Вызов LoadImage для инициализации m_pDIB
+   CImageCtrls* pI = GetImageCtrls();
    if (IntInfo.ImageFileName.IsEmpty()) {
 	   AfxMessageBox(_T("Имя файла изображения в ZAP-файле отсутствует"));
 	   return FALSE;
@@ -1734,7 +1759,10 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 	   AfxMessageBox(_T("Не удалось загрузить изображение из ZAP-файла"));
 	   return FALSE;
    }
-   else if(IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
+   
+   TRACE("LoadZAP: Image loaded successfully, m_pDIB=%p\n", pI->m_pDIB);
+
+   if(IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
    {
 	   double dY = (pI->ImageSize.cy - IntInfo.ImageSize[1]);
 	   IntInfo.DigitDat.ShiftY(dY);
@@ -1767,6 +1795,28 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
    NUMBERING_INTERFEROGRAM_INFO IntInfo;
    if(!ReadFRNData(FileName, IntInfo))
 	   return FALSE;
+
+   // --- Resolve image filename relative to FRN file directory (fix MRU / shell opens) ---
+   if (!IntInfo.ImageFileName.IsEmpty()) {
+       CString img = IntInfo.ImageFileName;
+       bool isAbsolute = false;
+       if (img.GetLength() >= 2 && img[1] == ':') // "C:\..."
+           isAbsolute = true;
+       if (img.GetLength() >= 2 && img[0] == '\\' && img[1] == '\\') // UNC "\\server\..."
+           isAbsolute = true;
+       if (!isAbsolute) {
+           int pos = FileName.ReverseFind('\\');
+           if (pos != -1) {
+               CString dir = FileName.Left(pos + 1);
+               CString combined = dir + img;
+               if (IsFileExist(combined, FALSE)) {
+                   IntInfo.ImageFileName = combined;
+               }
+           }
+       }
+   }
+   // -------------------------------------------------------------------------------
+
    if(!ExamineNumberingInterferogramInfo(IntInfo))
 	   return FALSE;
 

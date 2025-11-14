@@ -19,7 +19,7 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // CDigitApp:
-// See WinInterf.cpp for the implementation of this class
+// See Digit.cpp for the implementation of this class
 //
 
 class CDigitApp : public CWinApp
@@ -53,6 +53,7 @@ protected:
 	virtual int ExitInstance();
 	virtual BOOL PreTranslateMessage(MSG* pMsg);
 	virtual BOOL OnIdle(LONG lCount);
+    virtual CDocument* OpenDocumentFile(LPCTSTR lpszFileName);
 	//}}AFX_VIRTUAL
 
 // Implementation
@@ -61,6 +62,8 @@ protected:
     afx_msg void OnFileOpen();
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+
+protected:
 };
 
 
@@ -69,4 +72,4 @@ protected:
 //{{AFX_INSERT_LOCATION}}
 // Microsoft Visual C++ will insert additional declarations immediately before the previous line.
 
-#endif // !defined(AFX_DIGIT_H__67FE1E4F_CADD_4448_A196_0ACB1D7D5538__INCLUDED_)
+#endif // !defined(AFX_DIGIT_H__67FE1E4F_CADD_4448_A196_0ACB1D7D5538__INCLUDED__)
