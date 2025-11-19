@@ -53,6 +53,14 @@ void middle(unsigned char* line, int nx, int ny, int y, int** buf_line,
 	}
 }
 
+/**
+ * @brief Sort an array of doubles in ascending order.
+ *
+ * Uses std::sort on the contiguous memory returned by CArray::GetData().
+ * The function sorts in-place and preserves the original function signature.
+ *
+ * @param CenterFrg Array of doubles to sort (modified in place).
+ */
 void SortDouble(CArray<double, double>& CenterFrg)
 {
 	int n = CenterFrg.GetSize();
@@ -62,6 +70,19 @@ void SortDouble(CArray<double, double>& CenterFrg)
 	std::sort(data, data + n);
 }
 
+/**
+ * @brief Sub-pixel peak position estimation via polynomial approximation.
+ *
+ * Fits a quadratic-like model to the provided (x, y) samples and returns
+ * the estimated sub-pixel X-position of the peak (as double). The function
+ * may adjust the value pointed by @p n to indicate error codes (< 0).
+ *
+ * @param n Pointer to the number of sample points; may be modified on error.
+ * @param x Integer X-coordinates of samples.
+ * @param y Integer intensity values of samples.
+ * @return Estimated center position (as double). On success returns value ~ (x0 + 0.5).
+ *         On failure, n is set to a negative error code and returned value is 0.
+ */
 double approx(int* n, int* x, int* y)
 {
 	int   i, num_dot;
@@ -153,9 +174,18 @@ double approx(int* n, int* x, int* y)
 	return x0 + 0.5;
 }
 
-/*
-   Удаление фона строки перед определением центров полос
-*/
+/**
+ * @brief Remove background from a scanline segment before peak detection.
+ *
+ * For long segments (>70 px) the function divides the interval into five
+ * parts, estimates average background level in each part, fits linear
+ * segments and subtracts them (zeros pixels below the estimated background).
+ * For short segments the mean level is used.
+ *
+ * @param line Line buffer to modify in place (values below estimated background set to 0).
+ * @param x Left index of the segment (inclusive).
+ * @param x1 Right index of the segment (inclusive).
+ */
 void fon_del(unsigned char* line, int x, int x1)
 {
 	int     stop[5];
@@ -212,7 +242,19 @@ void fon_del(unsigned char* line, int x, int x1)
 		delet_u(line, x, x1, 0.0, (double)sred[0]);
 	}
 }
-//=============================================================
+
+/**
+ * @brief Apply linear background model and zero samples below the model.
+ *
+ * For each index j in [end1, end2) the background value fon = aa*j + bb is computed.
+ * If fon >= line[j] then the pixel is set to zero.
+ *
+ * @param line Line buffer to modify in place.
+ * @param end1 Start index (inclusive).
+ * @param end2 End index (exclusive).
+ * @param aa Slope of the linear background.
+ * @param bb Intercept of the linear background.
+ */
 void delet_u(unsigned char* line, int end1, int end2, double aa, double bb)
 {
 	double   fon;
@@ -226,7 +268,16 @@ void delet_u(unsigned char* line, int end1, int end2, double aa, double bb)
 		}
 	}
 }
-//=============================================================
+
+/**
+ * @brief Invert intensities on the given segment of the line.
+ *
+ * Replaces each pixel value v by (255 - v) and clamps result to [0,255].
+ *
+ * @param line Line buffer to modify in place.
+ * @param x Left index (inclusive).
+ * @param x1 Right index (exclusive).
+ */
 void invert_line(unsigned char* line, int x, int x1)
 {
 	for (long int i = x; i < x1; i++) {
