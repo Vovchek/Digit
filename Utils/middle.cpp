@@ -1,6 +1,7 @@
 #include "middle.h"
 #include "MGTools\Include\Utils\Utils.h"
 #include <cmath>
+#include <algorithm>
 
 void middle(unsigned char* line, int nx, int ny, int y, int** buf_line,
 	CArray<double, double>& CenterFrg, int& nnpolos)
@@ -54,21 +55,11 @@ void middle(unsigned char* line, int nx, int ny, int y, int** buf_line,
 
 void SortDouble(CArray<double, double>& CenterFrg)
 {
-	int swapAt;
-	int begIdx = 0;
-	int endIdx = CenterFrg.GetSize();
-	double d_swapAt;
-	double d_k;
-	for (int j = begIdx; j < endIdx - 1; j++) {
-		swapAt = j;
-		for (int k = j + 1; k < endIdx; k++) {
-			d_swapAt = CenterFrg[swapAt];
-			d_k = CenterFrg[k];
-			if (d_swapAt > d_k)
-				swapAt = k;
-		}
-		Swap(CenterFrg[j], CenterFrg[swapAt]);
-	}
+	int n = CenterFrg.GetSize();
+	if (n <= 1)
+		return;
+	double* data = CenterFrg.GetData();
+	std::sort(data, data + n);
 }
 
 double approx(int* n, int* x, int* y)

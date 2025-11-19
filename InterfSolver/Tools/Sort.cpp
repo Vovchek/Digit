@@ -1,32 +1,15 @@
 #include "Sort.h"
+#include <algorithm>
 
 //=========================================================================
-void SortIncrease (CArrayDouble &ArrX)
-  {
-  int i, j;
-  int NArr = ArrX.GetSize();
-  if (NArr == 0)
-    return;
-  double XMin, XTmp;
-  int jMin;
-  for (i = 0; i < NArr-1; i++)
-    {
-    XMin = ArrX[i];
-    jMin = i;
-    for (j = i + 1; j < NArr; j++)
-      {
-      if (ArrX[j] < XMin)
-        {
-        XMin = ArrX[j];
-        jMin = j;
-        }
-      }
-    if (jMin != i)
-      {
-      XTmp = ArrX[i];
-      ArrX[i] = ArrX[jMin];
-      ArrX[jMin] = XTmp;
-      }
-    }
-  }
+// Replace manual selection-sort with std::sort for clarity and performance.
+void SortIncrease(CArrayDouble& ArrX)
+{
+    int NArr = ArrX.GetSize();
+    if (NArr <= 1)
+        return;
+
+    double* data = ArrX.GetData();
+    std::sort(data, data + NArr);
+}
 //=========================================================================
