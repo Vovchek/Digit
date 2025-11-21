@@ -128,13 +128,13 @@ BOOL ReadWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 		IntInfo.DigitDat.Append(Sampl);
 	}
 
-	if (Fl.GetStringAfter("[IMAGE]", "Size", Str))
+	if (Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str))
 	{
 		FormArrFromString(Str, Buf);
 		IntInfo.ImageSize[0] = int(Buf[0]);
 		IntInfo.ImageSize[1] = int(Buf[1]);
 	}
-	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str))
+	if (Fl.GetStringAfter("[IMAGE_FILE]", "FileName", Str))
 		IntInfo.ImageFileName = Str;
 
 	Fl.Close();
@@ -357,13 +357,13 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		IntInfo.DigitDat.Append(Sampl);
 	}
 
-	if (Fl.GetStringAfter("[IMAGE]", "Size", Str))
+	if (Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str))
 	{
 		FormArrFromString(Str, Buf);
 		IntInfo.ImageSize[0] = int(Buf[0]);
 		IntInfo.ImageSize[1] = int(Buf[1]);
 	}
-	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str))
+	if (Fl.GetStringAfter("[IMAGE_FILE]", "Name", Str))
 		IntInfo.ImageFileName = Str;
 
 	Fl.Close();
@@ -510,11 +510,11 @@ void WriteWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 	}
 	Fl.WriteStringWithEnd("");
 
-	Fl.WriteStringWithEnd("[IMAGE]");
+	Fl.WriteStringWithEnd("[IMAGE_FILE]");
 	Str.Format("%-d %d", IntInfo.ImageSize[0], IntInfo.ImageSize[1]);
 	Fl.WriteStringAfter("Size", "=", Str);
 	Str = IntInfo.ImageFileName;
-	Fl.WriteStringAfter("FileName", "=", Str);
+	Fl.WriteStringAfter("Name", "=", Str);
 	Fl.Close();
 }
 //=========================================================================
@@ -678,10 +678,10 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		for (i = 0; i < NEll; i++)
 		{
 			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-				IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By,
-				IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc,
-				IntInfo.ArrEll[i].Fi, IntInfo.ArrEll[i].TypeLimits,
-				IntInfo.ArrEll[i].TypeSystCoor);
+				IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].Xc,
+				IntInfo.ArrEll[i].By, IntInfo.ArrEll[i].Yc,
+				IntInfo.ArrEll[i].Fi, IntInfo.ArrEll[i].TypeSystCoor,
+				IntInfo.ArrEll[i].TypeLimits);
 			Fl.WriteStringWithEnd(Str, "E\n");
 		}
 		Fl.WriteStringWithEnd("");
@@ -694,10 +694,10 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		for (i = 0; i < NRect; i++)
 		{
 			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-				IntInfo.ArrRect[i].Ax, IntInfo.ArrRect[i].By,
-				IntInfo.ArrRect[i].Xc, IntInfo.ArrRect[i].Yc,
-				IntInfo.ArrRect[i].Fi, IntInfo.ArrRect[i].TypeLimits,
-				IntInfo.ArrRect[i].TypeSystCoor);
+				IntInfo.ArrRect[i].Ax, IntInfo.ArrRect[i].Xc,
+				IntInfo.ArrRect[i].By, IntInfo.ArrRect[i].Yc,
+				IntInfo.ArrRect[i].Fi, IntInfo.ArrRect[i].TypeSystCoor,
+				IntInfo.ArrRect[i].TypeLimits);
 			Fl.WriteStringWithEnd(Str, "E\n");
 		}
 		Fl.WriteStringWithEnd("");
@@ -716,8 +716,8 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 
 	Fl.WriteStringWithEnd("[BOUNDS]");
 	CalcBounds(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, IntInfo.EBnd);
-	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf", IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop,
-		IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
+	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf", IntInfo.EBnd.XLeft, IntInfo.EBnd.XRight,
+		IntInfo.EBnd.YTop, IntInfo.EBnd.YBottom);
 	Fl.WriteStringWithEnd(Str, " E\n");
 	Fl.WriteStringWithEnd("");
 
@@ -791,11 +791,11 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	}
 	Fl.WriteStringWithEnd("");
 
-	Fl.WriteStringWithEnd("[IMAGE]");
+	Fl.WriteStringWithEnd("[IMAGE_FILE]");
 	Str.Format("%-d %d", IntInfo.ImageSize[0], IntInfo.ImageSize[1]);
 	Fl.WriteStringAfter("Size", "=", Str);
 	Str = IntInfo.ImageFileName;
-	Fl.WriteStringAfter("FileName", "=", Str);
+	Fl.WriteStringAfter("Name", "=", Str);
 	Fl.Close();
 }
 //=========================================================================
