@@ -1,4 +1,4 @@
-#include "pch.h"
+#include "stdafx.h"
 
 TEST(TestCaseName, TestName) {
   EXPECT_EQ(1, 1);
