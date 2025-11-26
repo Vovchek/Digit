@@ -99,6 +99,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="middle_test.cpp" />
     <ClCompile Include="test.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -111,6 +112,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Digit.vcxproj">
+      <Project>{73a10fad-863f-2b93-476f-eef060ab33c6}</Project>
+    </ProjectReference>
     <ProjectReference Include="..\InterfSolver\InterfSolver.vcxproj">
       <Project>{d427ee42-6d63-cc23-9451-aa82ff993d56}</Project>
     </ProjectReference>
