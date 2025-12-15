@@ -243,6 +243,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Doc\ToDo.md" />
+    <None Include="REFACTORING_PLAN.md" />
     <None Include="RusLangD.vcxproj.filters" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -304,5 +304,6 @@
     <None Include="RusLangD.vcxproj.filters" />
     <None Include="glut32.dll" />
     <None Include="Doc\ToDo.md" />
+    <None Include="REFACTORING_PLAN.md" />
   </ItemGroup>
 </Project>
