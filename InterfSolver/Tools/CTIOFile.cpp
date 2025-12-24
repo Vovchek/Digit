@@ -360,14 +360,16 @@ void FormArrFromString (const CString &Str, CArrayInt &Arr)
     }  
   }  
 //=========================================================================
- void CutStringToBreak(CString &Str, char ItemBreak)
-   {
-   int i, Ns;
-   Ns = Str.GetLength();
-   i = 0;
-   while (i < Ns && Str[i] != ItemBreak)i++;
-   Str = Str.Left(i);
-   }
+void CutStringToBreak(CString& Str, char ItemBreak)
+{
+    const auto Ns = Str.GetLength();
+    for (auto i = 0; i < Ns; ++i) {
+        if (Str[i] == ItemBreak) {
+            Str = Str.Left(i);
+            break;
+        }
+    }
+}
 //=========================================================================
 BOOL DeleteFilesInDirectory(const CString &DirPath, LPCTSTR Mask)
   {

@@ -4,10 +4,24 @@
 #include "CalcLimits.h"
 #include "ReadWriteData.h"
 
+
+static bool HasValidFIDS(CTextIOFile& Fl)
+{
+	CString Str;
+	Fl.GetStringAfter("FIDS", Str);
+	if (Fl.GetStringAfter("FIDS", Str)) {
+		CutStringToBreak(Str, 'E');
+		CArrayDouble Buf;
+		FormArrFromString(Str, Buf);
+		return (Buf.GetSize() == 8);
+	}
+
+	return false;
+}
+
 //=========================================================================
 BOOL ReadZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
-	CString Str;
 	CTextIOFile Fl;
 	if (!Fl.Open(FileName, CFile::modeRead))
 	{
@@ -15,20 +29,19 @@ BOOL ReadZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		AfxMessageBox(LPCTSTR(Mes), MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-	BOOL KeyDos, Key;
-	KeyDos = Fl.GetStringAfter("FIDS", Str);
-	Fl.Close();
+	
+	auto KeyDos = HasValidFIDS(Fl);
+
+	Fl.Close(); // though RAII, close to avoid shared access
 
 	if (!KeyDos) {
 		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_WIN;
-		Key = ReadWinZAPData(FileName, IntInfo);
+		return ReadWinZAPData(FileName, IntInfo);
 	}
 	else {
 		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS;
-		Key = ReadDosZAPData(FileName, IntInfo);
+		return ReadDosZAPData(FileName, IntInfo);
 	}
-
-	return Key;
 }
 //=========================================================================
 BOOL ReadWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
@@ -175,17 +188,20 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	Fl.GetStringAfter("FIDS", Str);
 	CutStringToBreak(Str, 'E');
 	FormArrFromString(Str, Buf);
+	if (Buf.GetSize() != 8) {
+		ASSERT(false);
+	}
 	double YMin = Buf[1];
 	double YMax = Buf[3];
 	double XMin = Buf[4];
 	double XMax = Buf[6];
 	Bnd = XYBounds(XMin, YMax, XMax, YMin);
 	IntInfo.EBnd = Bnd;
-
+	
 	double Xc, Yc, Rad;
 	CalcBoundCircle(Bnd, Xc, Yc, Rad);
-	XYEllipse BEll;
-	BEll = XYEllipse(Rad, Rad, Xc, Yc);
+	
+	auto BEll = XYEllipse(Rad, Rad, Xc, Yc);
 	IntInfo.ArrEll.Add(BEll);
 
 	XYEllipse Ell;
@@ -202,7 +218,7 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 		Fl.SetEndOfSection();
 	}
 
-
+	// Read sections
 	SAMPLE_DATA Sampl;
 	int NSampl, NBuf;
 
@@ -316,12 +332,43 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		}
 	}
 
+	if (Fl.GetStringAfter("[IMAGE]", "Size", Str) ||	// Digit format
+		Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str)) // WinFringe format)
+	{
+		FormArrFromString(Str, Buf);
+		IntInfo.ImageSize[0] = int(Buf[0]);
+		IntInfo.ImageSize[1] = int(Buf[1]);
+	}
+	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str) || // Digit format
+		Fl.GetStringAfter("[IMAGE_FILE]", "Name", Str))  // WinFringe format
+		IntInfo.ImageFileName = Str;
+
+	// !!! Place this after [IMAGE] - for WinFringe format we need to know image size 
+	// to flip the bounds correctly
 	if (Fl.SeekToSection("[BOUNDS]"))
 	{
 		while (Fl.ReadStringWithEnd("E", Str))
 		{
 			FormArrFromString(Str, Buf);
-			IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
+			if(Buf.GetSize() == 4) // Digit format: Xl, Yt, Xr, Yb 
+				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
+			else if (Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, feature ?
+				IntInfo.EBnd = XYBounds(Buf[0], Buf[2], Buf[1], Buf[3]);
+				auto ax = (Buf[1] - Buf[0]) / 2.0;
+				auto by = (Buf[3] - Buf[2]) / 2.0;
+				auto xc = (Buf[1] + Buf[0]) / 2.0;
+				auto yc = (Buf[3] + Buf[2]) / 2.0;
+				if (int(Buf[4]) == 0) { // circular or elliptic
+					auto Ell0 = XYEllipse(ax, by, xc, yc);
+					IntInfo.ArrEll.Add(Ell0);
+				}
+				else if (int(Buf[4]) == 1) { // ???
+				}
+				else if (int(Buf[4]) == 2) { // rectangular
+					auto Rect0 = XYRect(ax, by, xc, yc);
+					IntInfo.ArrRect.Add(Rect0);
+				}
+			}
 			if (IntInfo.EBnd.isEmpty())
 				CalcBounds(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, IntInfo.EBnd);
 		}
@@ -356,15 +403,6 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		}
 		IntInfo.DigitDat.Append(Sampl);
 	}
-
-	if (Fl.GetStringAfter("[IMAGE]", "Size", Str))
-	{
-		FormArrFromString(Str, Buf);
-		IntInfo.ImageSize[0] = int(Buf[0]);
-		IntInfo.ImageSize[1] = int(Buf[1]);
-	}
-	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str))
-		IntInfo.ImageFileName = Str;
 
 	Fl.Close();
 	return TRUE;

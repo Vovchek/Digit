@@ -539,7 +539,7 @@ void C2DGraph::OnDraw(CDC* pDC)
     pDC->FillRect(clientR, &BrushWnd);
     pDrawDC->FillRect(clientR, &BrushWnd);
     
-    int obkMode;
+    int obkMode{TRANSPARENT};
     GRID_VIEW grid;
 
   CFont* pFont=NULL;     
@@ -657,7 +657,7 @@ void C2DGraph::OnDraw(CDC* pDC)
           DrawLegend(pDrawDC);
     }
 
-    pDrawDC->SetBkMode(obkMode);
+    pDrawDC->SetBkMode(obkMode); // TODO: initialize obkMode
     retPen = pDrawDC->SelectObject(oldPen);
     if(retPen) retPen->DeleteObject();
     CFont* retFont = pDrawDC->SelectObject(oldFont);

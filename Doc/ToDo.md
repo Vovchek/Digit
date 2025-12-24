@@ -1,13 +1,13 @@
-﻿It's global issues ToDo - specific code issues ar being marked 
+﻿It's global issues ToDo - specific code issues are being marked 
 'TODO: ...' withing code files, in VS one can view them in a 'Task List' (Ctrl+\,T) 
 
-* fixed (CImageCtrls::ConvertToDIB() creates temp for .bmp too) :
+* **fixed:** (CImageCtrls::ConvertToDIB() creates temp for .bmp too) :
  loading .frn with ref to .bmp image causes the .bmp to be erazed on file close
-* loading .zap/.frn using Recent Files List doesn't load fringes, image only
+* **fixed:** loading .zap/.frn using Recent Files List doesn't load fringes, image only
 * design logic for placing the image relative to the sections in DOS .zap
 * fix switching to '+' (add dot) on window's header click/focus restore
 * file name must change after 'save as' otherwise it's 'save copy'
-* show fringe number when hover over dot or even fringe.
+* show fringe number when hover over a dot or a fringe.
 * undo for all the fringe manipulations
 * allow moving dots in all the modes
 * add line from the last dot to the cursor in '+' dot mode
