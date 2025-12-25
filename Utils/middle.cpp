@@ -257,11 +257,9 @@ void fon_del(unsigned char* line, int x, int x1)
  */
 void delet_u(unsigned char* line, int end1, int end2, double aa, double bb)
 {
-	double   fon;
-	int     j;
-	for (j = end1; j < end2; j++)
+	for (auto j = end1; j < end2; j++)
 	{
-		fon = (j * aa + bb);
+		double fon = (j * aa + bb);
 		if (fon >= (double)(*(line + j)))
 		{
 			*(line + j) = 0;
@@ -272,7 +270,7 @@ void delet_u(unsigned char* line, int end1, int end2, double aa, double bb)
 /**
  * @brief Invert intensities on the given segment of the line.
  *
- * Replaces each pixel value v by (255 - v) and clamps result to [0,255].
+ * Replaces each pixel value v by (255 - v).
  *
  * @param line Line buffer to modify in place.
  * @param x Left index (inclusive).
@@ -280,13 +278,8 @@ void delet_u(unsigned char* line, int end1, int end2, double aa, double bb)
  */
 void invert_line(unsigned char* line, int x, int x1)
 {
-	for (long int i = x; i < x1; i++) {
-		unsigned char cc1 = (unsigned char)line[i];
-		int sw = cc1;
-		sw = 255 - sw;
-		if (sw < 0)sw = 0;
-		else if (sw > 255) sw = 255;
-		line[i] = (char)sw;
+	for (auto i = x; i < x1; i++) {
+		line[i] = 255 - line[i];
 	}
 }
 

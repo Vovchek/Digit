@@ -115,7 +115,6 @@
     <ClCompile Include="UtilsTests\middle_integrated_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="DigitModeTests\DigitInfoTest.cpp (Line 225)" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

@@ -174,17 +174,13 @@ void CDigitInfo::Delete_buf_line() {
     ny_buf_line = 0;
 }
 
-// Add ONLY the CreateNumLines() implementation from production code
-// Copy the actual implementation here or link to DigitInfo.cpp
-
-// ============================================================================
-// END MOCK IMPLEMENTATIONS
-// ============================================================================
-
 // ============================================================================
 // Production Code to be tested Inclusion
 #include "DigitMode\SelectNumber.cxx"
 #include "DigitMode\CreateNumLines.cxx"
+
+// ============================================================================
+// END MOCK IMPLEMENTATIONS
 // ============================================================================
 
 /// <summary>

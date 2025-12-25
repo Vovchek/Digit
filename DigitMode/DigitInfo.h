@@ -67,8 +67,8 @@ class CDigitInfo
 	  void CreateBufLineApertureSimple();
 	  void CreateBufLineObstructionComplex();
 	  void CreateBufLineObstructionSimple();
-	  void CreateRedCenters();
-      void Draw(CDC* pDC, int DotSide);
+	  void CreateRedCenters(); // TODO: remove UI dependency
+	  void Draw(CDC* pDC, int DotSide); // TODO: remove UI dependency
 
 	  void CalcSectionAveSteps();
 	  void SelectFringeStep();
@@ -117,7 +117,7 @@ class CDigitInfo
       bool GetNearestZapSection(CPoint P, int& idx);
 	  bool GetNearestXInSection(CPoint P, double& x);
 
-	  void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	  void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags); // TODO: remove UI dependency
 
 	  void SetComments(LPCTSTR _Comments){Comments = _Comments;}
       void SetScaleFactor(double _ScaleFactor){ScaleFactor = _ScaleFactor;}
@@ -127,13 +127,16 @@ class CDigitInfo
       void GetRotation(double& _Rotation){_Rotation = Rotation;}
       BOOL CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO &IntInfo);
       BOOL ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO &IntInfo);
-	  BOOL Load(LPCTSTR fname);
-	  BOOL Save(LPCTSTR fname, int extIdx);
-	  BOOL LoadZAP(LPCTSTR fname);
-	  BOOL LoadFRN(LPCTSTR fname);
-	  BOOL SaveZAP(LPCTSTR fname, int extIdx);
-	  BOOL SaveFRN(LPCTSTR fname);
+	  BOOL Load(LPCTSTR fname); // TODO: remove file dependency
+	  BOOL Save(LPCTSTR fname, int extIdx); // TODO: remove file dependency
+	  BOOL LoadZAP(LPCTSTR fname); // TODO: remove file dependency
+	  BOOL LoadFRN(LPCTSTR fname); // TODO: remove file dependency
+	  BOOL SaveZAP(LPCTSTR fname, int extIdx); // TODO: remove file dependency
+	  BOOL SaveFRN(LPCTSTR fname); // TODO: remove file dependency
 
   protected:
+	  void ProcessSectionPropagation(int sectionIndex, int direction, 
+		  CArray<CNumLine>& refNumLines, int& maxSize, 
+		  double& minN, double& maxN, double& leftX, double& rightX);
 };
 #endif // !defined(AFX_DIGIT_INFO_DEFS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)

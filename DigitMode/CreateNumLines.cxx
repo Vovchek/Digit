@@ -2,6 +2,123 @@
 /// It was extracted to facilitate testing and debugging of CreateNumLines()
 
 // TODO: refNumLines array index goes out of bound when sections do not fit the window
+
+/// <summary>
+/// Processes fringe numbering propagation for a single section.
+/// This is a helper method extracted from CreateNumLines to eliminate code duplication.
+/// </summary>
+/// <param name="sectionIndex">Index of the section to process</param>
+/// <param name="direction">Direction of propagation: -1 for upward, +1 for downward</param>
+/// <param name="refNumLines">Reference array to build numbered fringes for current section</param>
+/// <param name="maxSize">Current maximum size tracking variable</param>
+/// <param name="minN">Current minimum number in range</param>
+/// <param name="maxN">Current maximum number in range</param>
+/// <param name="leftX">Current left spatial extent</param>
+/// <param name="rightX">Current right spatial extent</param>
+/// <remarks>
+/// This method processes a single section during the propagation phase.
+/// It matches fringes to numbered fringes in adjacent sections and assigns numbers.
+/// For unmatched fringes, it creates new numbers at the left or right edge.
+/// 
+/// Refactored to use lambdas for eliminating repetitive bound updates and fringe initialization.
+/// </remarks>
+void CDigitInfo::ProcessSectionPropagation(int sectionIndex, int direction, 
+	CArray<CNumLine>& refNumLines, int& maxSize, 
+	double& minN, double& maxN, double& leftX, double& rightX)
+{
+	refNumLines.RemoveAll();
+	// Calculate required array size (existing numbers + current section fringes)
+	maxSize = __max(maxSize, (maxN - minN) / numStep + 2);
+	maxSize = __max(maxSize, Sections[sectionIndex].NumLines.GetSize());
+	refNumLines.SetSize(maxSize);
+
+	// Use section-specific step if available
+	double SecSegm12 = SecSegm * CorrectionSecSegm;
+	if (Sections[sectionIndex].aveStep != -1)
+		SecSegm12 = CorrectionSecSegm * Sections[sectionIndex].aveStep;
+
+	// Lambda: Update spatial and number range bounds
+	auto updateBounds = [&](double x, double number) {
+		leftX = __min(leftX, x);
+		rightX = __max(rightX, x);
+		minN = __min(minN, number);
+		maxN = __max(maxN, number);
+	};
+
+	// Lambda: Initialize a fringe line with common properties
+	auto createFringeLine = [&](double x, double number) {
+		CNumLine nL;
+		nL.redX = x;
+		nL.Included = TRUE;
+		nL.segmL.P1.x = x - SecSegm12;
+		nL.segmL.P2.x = x + SecSegm12;
+		nL.Number = number;
+		return nL;
+	};
+
+	// Lambda: Populate a fringe entry in refNumLines at specified index
+	auto assignFringe = [&](int idx, double x, double number) {
+		refNumLines[idx].redX = x;
+		refNumLines[idx].segmL.P1.x = x - SecSegm12;
+		refNumLines[idx].segmL.P2.x = x + SecSegm12;
+		refNumLines[idx].Number = number;
+		refNumLines[idx].Included = TRUE;
+	};
+
+	int idxS, idxL; // Section and line indices from SelectNumber match
+
+	for (int iN = 0; iN < Sections[sectionIndex].NumLines.GetSize(); iN++) {
+		double currentX = Sections[sectionIndex].NumLines[iN].redX;
+		
+		// Try to match current fringe to a numbered fringe in adjacent section
+		if (SelectNumber(sectionIndex, direction, currentX, idxS, idxL)) {
+			ASSERT(idxL >= 0);
+			// Dynamic resize if needed
+			if (idxL >= refNumLines.GetSize())
+				refNumLines.SetSize(idxL + 1);
+			
+			int idxN = idxL;
+			// Collision resolution: if slot occupied, try next slot
+			if (idxN + 1 < refNumLines.GetSize() && refNumLines[idxN].Included)
+				idxN++;
+			
+			double matchedNumber = Sections[idxS].NumLines[idxL].Number;
+			assignFringe(idxN, currentX, matchedNumber);
+			updateBounds(currentX, matchedNumber);
+		}
+		else {
+			// No match found - create new number at edge
+			if (currentX < leftX) {
+				// New fringe at left edge
+				double newNumber = minN - numStep;
+				CNumLine nL = createFringeLine(currentX, newNumber);
+				refNumLines.InsertAt(0, nL);
+				updateBounds(currentX, newNumber);
+			}
+			else if (currentX > rightX) {
+				// New fringe at right edge
+				double newNumber = maxN + numStep;
+				CNumLine nL = createFringeLine(currentX, newNumber);
+				refNumLines.Add(nL);
+				updateBounds(currentX, newNumber);
+			}
+			else {
+				// Fringe between existing range but no match - orphan case
+				// TODO: Handle orphan fringes properly
+			}
+		}
+	}
+	
+	// Replace section's NumLines with the newly numbered array
+	// Only copy numbered fringes (Included = TRUE), not empty slots
+	Sections[sectionIndex].NumLines.RemoveAll();
+	for (int idx = 0; idx < refNumLines.GetSize(); idx++) {
+		if (refNumLines[idx].Included) {
+			Sections[sectionIndex].NumLines.Add(refNumLines[idx]);
+		}
+	}
+}
+
 /// <summary>
 /// Creates and assigns fringe numbers to all sections based on the main section.
 /// This function propagates numbering from the main section to adjacent sections
@@ -35,16 +152,14 @@
 /// </remarks>
 void CDigitInfo::CreateNumLines()
 {
-	int i = 0;
 	// Main section index determined by SelectMainSection()
 	int idxMain = idxMainSection;
 	// Fringe segment width tolerance based on detected step size
 	double SecSegm12 = SecSegm * CorrectionSecSegm;
 	double N = -numStep;
-	int maxNFringe = Sections[idxMain].NumLines.GetSize();
 
 	// Initialize main section with sequential numbers starting from 0
-	for (i = 0; i < Sections[idxMain].NumLines.GetSize(); i++) {
+	for (int i = 0; i < Sections[idxMain].NumLines.GetSize(); i++) {
 		Sections[idxMain].NumLines[i].segmL.P1.x = Sections[idxMain].NumLines[i].redX - SecSegm12;
 		Sections[idxMain].NumLines[i].segmL.P2.x = Sections[idxMain].NumLines[i].redX + SecSegm12;
 		N += numStep;
@@ -54,135 +169,19 @@ void CDigitInfo::CreateNumLines()
 
 	// Temporary array to build numbered fringes for current section
 	CArray<CNumLine> refNumLines;
-	int idxS, idxL; // Section and line indices from SelectNumber match
-	double minN, maxN; // Current numbering range
-	double leftX, rightX; // Spatial extent of numbered fringes
-	leftX = INT_MAX;
-	rightX = INT_MIN;
-	minN = Sections[idxMain].NumLines[0].Number;
-	maxN = Sections[idxMain].NumLines[Sections[idxMain].NumLines.GetSize() - 1].Number;
-	int maxSize = INT_MIN;
+	double leftX{ INT_MAX };  //  Spatial extent
+	double rightX{ INT_MIN }; //  of numbered fringes
+	auto minN = Sections[idxMain].NumLines[0].Number;
+	auto maxN = Sections[idxMain].NumLines[Sections[idxMain].NumLines.GetSize() - 1].Number;
+	int maxSize{ INT_MIN };
 
 	// Propagate numbering upward from main section
-	for (i = idxMain - 1; i > -1; i--) {
-		refNumLines.RemoveAll();
-		// Calculate required array size (existing numbers + current section fringes)
-		maxSize = __max(maxSize, (maxN - minN) / numStep + 2);
-		maxSize = __max(maxSize, Sections[i].NumLines.GetSize());
-		refNumLines.SetSize(maxSize); // WARNING: May be insufficient!
-
-		// Use section-specific step if available
-		if (Sections[i].aveStep != -1)
-			SecSegm12 = CorrectionSecSegm * Sections[i].aveStep;
-
-		for (int iN = 0; iN < Sections[i].NumLines.GetSize(); iN++) {
-			// Try to match current fringe to a numbered fringe in adjacent section
-			if (SelectNumber(i, 1, Sections[i].NumLines[iN].redX, idxS, idxL)) {
-				ASSERT(idxL < refNumLines.GetSize());
-				int idxN = idxL;
-				// Collision resolution: if slot occupied, try next slot
-				if (idxN + 1 < refNumLines.GetSize() && refNumLines[idxN].Included)
-					idxN++; // FIXED: BUG: idxN may still exceed bounds!
-				refNumLines[idxN].redX = Sections[i].NumLines[iN].redX;
-				leftX = __min(leftX, Sections[i].NumLines[iN].redX);
-				rightX = __max(rightX, Sections[i].NumLines[iN].redX);
-				refNumLines[idxN].segmL.P1.x = Sections[i].NumLines[iN].redX - SecSegm12;
-				refNumLines[idxN].segmL.P2.x = Sections[i].NumLines[iN].redX + SecSegm12;
-				refNumLines[idxN].Number = Sections[idxS].NumLines[idxL].Number;
-				minN = __min(minN, refNumLines[idxN].Number);
-				maxN = __max(maxN, refNumLines[idxN].Number);
-				refNumLines[idxN].Included = TRUE;
-			}
-			else {
-				// No match found - create new number at edge
-				CNumLine nL;
-				nL.redX = Sections[i].NumLines[iN].redX;
-				nL.Included = TRUE;
-				nL.segmL.P1.x = nL.redX - SecSegm12;
-				nL.segmL.P2.x = nL.redX + SecSegm12;
-				if (Sections[i].NumLines[iN].redX < leftX) {
-					// New fringe at left edge
-					nL.Number = minN - numStep;
-					refNumLines.InsertAt(0, nL); // Shifts array, may cause bounds issues
-					minN = __min(minN, nL.Number);
-					maxN = __max(maxN, nL.Number);
-					leftX = __min(leftX, nL.redX);
-					rightX = __max(rightX, nL.redX);
-				}
-				else if (Sections[i].NumLines[iN].redX > rightX) {
-					// New fringe at right edge
-					nL.Number = maxN + numStep;
-					refNumLines.Add(nL); // May exceed preallocated size
-					minN = __min(minN, nL.Number);
-					maxN = __max(maxN, nL.Number);
-					leftX = __min(leftX, nL.redX);
-					rightX = __max(rightX, nL.redX);
-				}
-				else {
-					// Fringe between existing range but no match - orphan case
-					int rr = 0; // TODO: Handle orphan fringes properly
-				}
-			}
-		}
-		// Replace section's NumLines with the newly numbered array
-		Sections[i].NumLines.RemoveAll();
-		Sections[i].NumLines.Append(refNumLines);
+	for (int i = idxMain - 1; i > -1; i--) {
+		ProcessSectionPropagation(i, 1, refNumLines, maxSize, minN, maxN, leftX, rightX);
 	}
 
-	// Propagate numbering downward from main section (same logic as upward)
-	for (i = idxMain + 1; i < Sections.GetSize(); i++) {
-		refNumLines.RemoveAll();
-		maxSize = __max(maxSize, (maxN - minN) / numStep + 2);
-		maxSize = __max(maxSize, Sections[i].NumLines.GetSize());
-		refNumLines.SetSize(maxSize); // WARNING: May be insufficient!
-
-		if (Sections[i].aveStep != -1)
-			SecSegm12 = CorrectionSecSegm * Sections[i].aveStep;
-
-		for (int iN = 0; iN < Sections[i].NumLines.GetSize(); iN++) {
-			if (SelectNumber(i, -1, Sections[i].NumLines[iN].redX, idxS, idxL)) {
-				ASSERT(idxL < refNumLines.GetSize());
-				int idxN = idxL;
-				if ((idxN + 1) < refNumLines.GetSize() && refNumLines[idxN].Included)
-					idxN++; // FIXED: BUG: idxN may exceed bounds!
-				refNumLines[idxN].redX = Sections[i].NumLines[iN].redX;
-				leftX = __min(leftX, Sections[i].NumLines[iN].redX);
-				rightX = __max(rightX, Sections[i].NumLines[iN].redX);
-				refNumLines[idxN].segmL.P1.x = Sections[i].NumLines[iN].redX - SecSegm12;
-				refNumLines[idxN].segmL.P2.x = Sections[i].NumLines[iN].redX + SecSegm12;
-				refNumLines[idxN].Number = Sections[idxS].NumLines[idxL].Number;
-				minN = __min(minN, refNumLines[idxN].Number);
-				maxN = __max(maxN, refNumLines[idxN].Number);
-				refNumLines[idxN].Included = TRUE;
-			}
-			else {
-				CNumLine nL;
-				nL.redX = Sections[i].NumLines[iN].redX;
-				nL.Included = TRUE;
-				nL.segmL.P1.x = nL.redX - SecSegm12;
-				nL.segmL.P2.x = nL.redX + SecSegm12;
-				if (Sections[i].NumLines[iN].redX < leftX) {
-					nL.Number = minN - numStep;
-					refNumLines.InsertAt(0, nL);
-					minN = __min(minN, nL.Number);
-					maxN = __max(maxN, nL.Number);
-					leftX = __min(leftX, nL.redX);
-					rightX = __max(rightX, nL.redX);
-				}
-				else if (Sections[i].NumLines[iN].redX > rightX) {
-					nL.Number = maxN + numStep;
-					refNumLines.Add(nL);
-					minN = __min(minN, nL.Number);
-					maxN = __max(maxN, nL.Number);
-					leftX = __min(leftX, nL.redX);
-					rightX = __max(rightX, nL.redX);
-				}
-				else {
-					int rr = 0; // TODO: Handle orphan fringes properly
-				}
-			}
-		}
-		Sections[i].NumLines.RemoveAll();
-		Sections[i].NumLines.Append(refNumLines);
+	// Propagate numbering downward from main section
+	for (int i = idxMain + 1; i < Sections.GetSize(); i++) {
+		ProcessSectionPropagation(i, -1, refNumLines, maxSize, minN, maxN, leftX, rightX);
 	}
 }

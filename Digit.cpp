@@ -234,14 +234,18 @@ bool CDigitApp::TreatCmdLine(LPCTSTR CmdLine)
 				ss.Empty();
 			}
 			iP1 = 0;
-			OpenDocumentFile(LPCTSTR(name));
+			CDocument* pDoc = OpenDocumentFile(LPCTSTR(name));
+			if (!pDoc) {
+				TRACE("TreatCmdLine: Failed to open %s\n", LPCTSTR(name));
+				continue;
+			}
 
 			// Load ZAP/FRN metadata
-			CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
-			if (pDoc) {
-				pDoc->Digit.Load(LPCTSTR(name));
+			CImageDoc* pImgDoc = (CImageDoc*)GetWIActiveDocument();
+			if (pImgDoc) {
+				pImgDoc->Digit.Load(LPCTSTR(name));
 				CMainFrame* pMFr = GetMainFrame();
-				pMFr->SetImageInfo(pDoc->Digit.Comments, pDoc->Digit.ScaleFactor, pDoc->Digit.Rotation);
+				pMFr->SetImageInfo(pImgDoc->Digit.Comments, pImgDoc->Digit.ScaleFactor, pImgDoc->Digit.Rotation);
 			}
 		}
 	}
@@ -347,7 +351,11 @@ void CDigitApp::OnFileOpen()
 		CString s;
 		while (pos) {
 			s = fileDlg.GetNextPathName(pos);
-			AfxGetApp()->OpenDocumentFile(s);
+			CDocument* pDoc = AfxGetApp()->OpenDocumentFile(s);
+			if (!pDoc) {
+				TRACE("OnFileOpen: Failed to open %s\n", LPCTSTR(s));
+				continue;
+			}
 		}
 		CString FileName = s;
 		int iP = FileName.ReverseFind('\\');
