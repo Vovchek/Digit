@@ -489,7 +489,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 
 	if(pCtrls->ViewState & V_DOTLINES){
 	  CList<double, double> Numbers;
-	  CArray<CDPoint, CDPoint> adP;
+	  CArray<CDPoint> adP;
       GetDotNumbers(Numbers);
       POSITION pos = Numbers.GetHeadPosition();
 	  double Num;
@@ -612,137 +612,7 @@ void CDigitInfo::SelectMainSection()
 	}
 }
 
-void CDigitInfo::CreateNumLines()
-{
-	int i=0;
-    int idxMain = idxMainSection; 
-	double SecSegm12 = SecSegm*CorrectionSecSegm;
-	double N = -numStep;
-    int maxNFringe = Sections[idxMain].NumLines.GetSize();	
-	
-	for(i=0; i < Sections[idxMain].NumLines.GetSize(); i++){
-		Sections[idxMain].NumLines[i].segmL.P1.x = Sections[idxMain].NumLines[i].redX-SecSegm12;
-		Sections[idxMain].NumLines[i].segmL.P2.x = Sections[idxMain].NumLines[i].redX+SecSegm12;
-		N += numStep;
-		Sections[idxMain].NumLines[i].Number = N;
-		Sections[idxMain].NumLines[i].Included = TRUE;
-	}
-
-	CArray<CNumLine, CNumLine> refNumLines;
-	int idxS, idxL;
-	double minN, maxN;
-	double leftX, rightX;
-	leftX = INT_MAX;
-	rightX = INT_MIN;
-	minN = Sections[idxMain].NumLines[0].Number;
-	maxN = Sections[idxMain].NumLines[Sections[idxMain].NumLines.GetSize()-1].Number;
-	int maxSize = INT_MIN;
-	for(i=idxMain-1; i > -1; i--){
-		refNumLines.RemoveAll();
- 	    maxSize = __max(maxSize, (maxN - minN)/numStep+2);
-		maxSize = __max(maxSize, Sections[i].NumLines.GetSize());
-		refNumLines.SetSize(maxSize);
-		if(Sections[i].aveStep != -1)
-			SecSegm12 = CorrectionSecSegm * Sections[i].aveStep;
-		for(int iN=0; iN < Sections[i].NumLines.GetSize(); iN++){
-		  if(SelectNumber(i, 1, Sections[i].NumLines[iN].redX, idxS, idxL)){
-			  int idxN = idxL;
-			  if(refNumLines[idxN].Included && idxN+1 < refNumLines.GetSize())
-                 idxN++;
-			  refNumLines[idxN].redX = Sections[i].NumLines[iN].redX;
-			  leftX = __min(leftX, Sections[i].NumLines[iN].redX);
-			  rightX = __max(rightX, Sections[i].NumLines[iN].redX);
-              refNumLines[idxN].segmL.P1.x = Sections[i].NumLines[iN].redX-SecSegm12;
-              refNumLines[idxN].segmL.P2.x = Sections[i].NumLines[iN].redX+SecSegm12;
-			  refNumLines[idxN].Number = Sections[idxS].NumLines[idxL].Number;
-			  minN = __min(minN, refNumLines[idxN].Number);
-			  maxN = __max(maxN, refNumLines[idxN].Number);
-			  refNumLines[idxN].Included = TRUE;
-		  }
-		  else{
-		    CNumLine nL;
-		    nL.redX = Sections[i].NumLines[iN].redX;
-		    nL.Included = TRUE;
-            nL.segmL.P1.x = nL.redX-SecSegm12;
-            nL.segmL.P2.x = nL.redX+SecSegm12;
-			if(Sections[i].NumLines[iN].redX < leftX){
-			  nL.Number = minN - numStep;
-			  refNumLines.InsertAt(0, nL);
-			  minN = __min(minN, nL.Number);
-			  maxN = __max(maxN, nL.Number);
-			  leftX = __min(leftX, nL.redX);
-			  rightX = __max(rightX, nL.redX);
-			}
-			else if(Sections[i].NumLines[iN].redX > rightX){
-			  nL.Number = maxN + numStep;
-			  refNumLines.Add(nL);
-			  minN = __min(minN, nL.Number);
-			  maxN = __max(maxN, nL.Number);
-			  leftX = __min(leftX, nL.redX);
-			  rightX = __max(rightX, nL.redX);
-			}
-			else{
-				int rr=0;
-			}
-		  }
-		}
-		Sections[i].NumLines.RemoveAll();
-		Sections[i].NumLines.Append(refNumLines);
-	}
-	
-	for(i=idxMain+1; i < Sections.GetSize(); i++){
-		refNumLines.RemoveAll();
- 	    maxSize = __max(maxSize, (maxN - minN)/numStep+2);
-		maxSize = __max(maxSize, Sections[i].NumLines.GetSize());
-		refNumLines.SetSize(maxSize);
-		if(Sections[i].aveStep != -1)
-			SecSegm12 = CorrectionSecSegm * Sections[i].aveStep;
-		for(int iN=0; iN < Sections[i].NumLines.GetSize(); iN++){
-		  if(SelectNumber(i, -1, Sections[i].NumLines[iN].redX, idxS, idxL)){
-			  int idxN = idxL;
-			  if(refNumLines[idxN].Included && idxN+1 < refNumLines.GetSize())
-                 idxN++;
-			  refNumLines[idxN].redX = Sections[i].NumLines[iN].redX;
-			  leftX = __min(leftX, Sections[i].NumLines[iN].redX);
-			  rightX = __max(rightX, Sections[i].NumLines[iN].redX);
-              refNumLines[idxN].segmL.P1.x = Sections[i].NumLines[iN].redX-SecSegm12;
-              refNumLines[idxN].segmL.P2.x = Sections[i].NumLines[iN].redX+SecSegm12;
-			  refNumLines[idxN].Number = Sections[idxS].NumLines[idxL].Number;
-			  minN = __min(minN, refNumLines[idxN].Number);
-			  maxN = __max(maxN, refNumLines[idxN].Number);
-			  refNumLines[idxN].Included = TRUE;
-		  }
-		  else{
-		    CNumLine nL;
-		    nL.redX = Sections[i].NumLines[iN].redX;
-		    nL.Included = TRUE;
-            nL.segmL.P1.x = nL.redX-SecSegm12;
-            nL.segmL.P2.x = nL.redX+SecSegm12;
-			if(Sections[i].NumLines[iN].redX < leftX){
-			  nL.Number = minN - numStep;
-			  refNumLines.InsertAt(0, nL);
-			  minN = __min(minN, nL.Number);
-			  maxN = __max(maxN, nL.Number);
-			  leftX = __min(leftX, nL.redX);
-			  rightX = __max(rightX, nL.redX);
-			}
-			else if(Sections[i].NumLines[iN].redX > rightX){
-			  nL.Number = maxN + numStep;
-			  refNumLines.Add(nL);
-			  minN = __min(minN, nL.Number);
-			  maxN = __max(maxN, nL.Number);
-			  leftX = __min(leftX, nL.redX);
-			  rightX = __max(rightX, nL.redX);
-			}
-			else{
-				int rr=0;
-			}
-		  }
-		}
-		Sections[i].NumLines.RemoveAll();
-		Sections[i].NumLines.Append(refNumLines);
-	}
-}
+#include "DigitMode\CreateNumLines.cxx"
 
 void CDigitInfo::SelectMainFringe()
 {
@@ -795,60 +665,7 @@ void CDigitInfo::SelectMainFringe()
 	MainFringeNumber = mainNum;
 }
 
-bool CDigitInfo::SelectNumber(int iSec, int Sign, double redX, int& idxS, int& idxL)
-{
-	double Dist;
-	double wL;
-	double _SecSegm;
-	
-	if(Sections[iSec].aveStep == -1)
-  	  _SecSegm = SecSegm*CorrectionSecSegm;
-	else
-	 _SecSegm = CorrectionSecSegm * Sections[iSec].aveStep;
-	if(Sign < 0){
-  	    for(int iS=iSec-1; iS > -1; iS--){
-       	  double minDist = INT_MAX;
-      	  int miniL = -1;
-		  for(int iL=0; iL < Sections[iS].NumLines.GetSize(); iL++){
-            wL = Sections[iS].NumLines[iL].segmL.GetW()/2;
-            if(wL == 0.)
-		      continue;
-            Dist = fabs(redX - (Sections[iS].NumLines[iL].segmL.P1.x+wL));
-			if(Dist < minDist){
-			   minDist = Dist;
-			   miniL = iL;
-			}
-		  }
-          if(miniL != -1 && minDist < _SecSegm){
-			  idxS = iS;
-			  idxL = miniL;
-		      return true;
-			}
-		  }
-	}
-	else{
-  	    for(int iS=iSec+1; iS < Sections.GetSize(); iS++){
- 	      double minDist = INT_MAX;
- 	      int miniL = -1;
-		  for(int iL=0; iL < Sections[iS].NumLines.GetSize(); iL++){
-            wL = Sections[iS].NumLines[iL].segmL.GetW()/2;
-            if(wL == 0.)
-		      continue;
-            Dist = fabs(redX - (Sections[iS].NumLines[iL].segmL.P1.x+wL));
-			if(Dist < minDist){
-			   minDist = Dist;
-			   miniL = iL;
-			}
-		  }
-          if(miniL != -1 && minDist < _SecSegm){
-			  idxS = iS;
-			  idxL = miniL;
-		      return true;
-			}
-		  }
-	}
-  return false;
-}
+#include "DigitMode\SelectNumber.cxx"
 
 void CDigitInfo::CorrectNumbers()
 {
@@ -997,7 +814,7 @@ void CDigitInfo::SortZapLines()
     }
 }
 
-void CDigitInfo::SortDots(CArray<CDPoint, CDPoint>& adP, int XY)
+void CDigitInfo::SortDots(CArray<CDPoint>& adP, int XY)
 {
     int swapAt;
 	int begIdx = 0;
@@ -1445,7 +1262,7 @@ bool CDigitInfo::GetFringeDots(double Number, CUIntArray& idxDots)
 	return true;
 }
 
-bool CDigitInfo::GetFringeDots(double Number, CArray<CDPoint, CDPoint>& adP)
+bool CDigitInfo::GetFringeDots(double Number, CArray<CDPoint>& adP)
 {
 	adP.RemoveAll();
 	for(int iD=0; iD < Dots.GetSize(); iD++){

@@ -1,4 +1,4 @@
-#include "stdafx.h" // или "stdafx.h", как у вашего тест-проекта
+#include "stdafx.h" // или "pch.h", как у вашего тест-проекта
 #include <gtest/gtest.h>
 #include <cmath>
 

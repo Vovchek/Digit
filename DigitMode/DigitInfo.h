@@ -17,9 +17,9 @@ class CDigitInfo
   public:
    int **buf_line;
    int ny_buf_line;
-   CArray<CSectionInfo, CSectionInfo> Sections;
-   CArray<CZapLineInfo, CZapLineInfo> ZapLines;
-   CArray<CDotInfo, CDotInfo> Dots;
+   CArray<CSectionInfo> Sections;
+   CArray<CZapLineInfo> ZapLines;
+   CArray<CDotInfo> Dots;
    BOOL HandSetZapLines;
    int idxDragZapLine;
    int idxDragDot;
@@ -32,7 +32,7 @@ class CDigitInfo
    double numStep;
    BOOL isInsideScreen;
 
-   CArray<CDPoint, CDPoint> HidenDots;
+   CArray<CDPoint> HidenDots;
 
    CString Comments;
    double ScaleFactor;
@@ -40,7 +40,7 @@ class CDigitInfo
 	  
   public:
 	  CDigitInfo();
-	  ~CDigitInfo();
+	  virtual ~CDigitInfo();
 	  void Init();
 
 	  void Init_buf_line(int ny, int n);
@@ -84,7 +84,7 @@ class CDigitInfo
 	  void CreateZAPSections();
 	  void CreateZAPSectionsOnLoadZAPFile();
  	  void SortZapLines();  
-      void SortDots(CArray<CDPoint, CDPoint>& adP, int XY);
+      void SortDots(CArray<CDPoint>& adP, int XY);
       void PutDotsOnZAPSections(int iZAPSec);
 
 	  void SelectMainDot(CPoint P, int dotSide);
@@ -111,7 +111,7 @@ class CDigitInfo
       void GetLockedZapSectionXYPos(CPoint& P1, CPoint& P2);
 
       bool GetFringeDots(double Number, CUIntArray& idxDots);
-      bool GetFringeDots(double Number, CArray<CDPoint, CDPoint>& adP);
+      bool GetFringeDots(double Number, CArray<CDPoint>& adP);
 	  bool GetFirstDotInFringe(double Number, int& idx, CDPoint& dP);
       bool GetNextDotInFringe(double Number, int direct, int& idx, CDPoint& dP);
       bool GetNearestZapSection(CPoint P, int& idx);

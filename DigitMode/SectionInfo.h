@@ -29,7 +29,7 @@ class CSectionInfo : public CObject
 {
    public: 
      CDLine L;
-	 CArray<CNumLine, CNumLine> NumLines;
+	 CArray<CNumLine> NumLines;
 	 double aveStep;
 	 COLORREF Color;
 	 BOOL MainLine;

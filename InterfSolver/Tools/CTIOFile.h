@@ -1,7 +1,7 @@
 #ifndef __CTIOFILE_H
 #define __CTIOFILE_H
 #include "stdafx.h"
-#include "Include\CArrDef.h"
+#include "InterfSolver\Include\CArrDef.h"
 // OpenMode:
 // CFile::modeRead  - only read;
 // CFile::modeCreate | CFile::modeWrite  - only write;
@@ -21,7 +21,7 @@ class CTextIOFile : public CStdioFile
     CTextIOFile();
     ~CTextIOFile();
     CTextIOFile(LPCTSTR FileName, UINT OpenMode);
-    void SetEndOfSection(LPCTSTR SEndSec = "[");
+    void SetEndOfSection(LPCTSTR SEndSec = _T("["));
     void GetEndOfSection(CString &SEndSec);
     void SetItemBreak(char _ItemBreak = ';') {isBreakControl = TRUE; ItemBreak = _ItemBreak;}
     char GetItemBreak() {return ItemBreak;}
@@ -34,7 +34,7 @@ class CTextIOFile : public CStdioFile
     BOOL SeekToString(LPCTSTR SectionName, LPCTSTR IdentName, CString &Str);
     BOOL ReadStringInSection(CString &Str);
     BOOL ReadStringWithEnd(LPCTSTR SEndStr, CString &Str);
-    void WriteStringWithEnd(LPCTSTR Str, LPCTSTR SEndStr = "\n");
+    void WriteStringWithEnd(LPCTSTR Str, LPCTSTR SEndStr = _T("\n"));
     void WriteStringAfter(LPCTSTR IdentName, LPCTSTR Separator, const CString &Str);
   protected:
     void CutStringToBreak(CString &Str);

@@ -1,7 +1,7 @@
 #ifndef _XYPOINT_H_
 #define _XYPOINT_H_
 
-#include "Include\Int_Cons.h"
+#include "InterfSolver\Include\Int_Cons.h"
 #include <math.h>
 
 struct XYPoint

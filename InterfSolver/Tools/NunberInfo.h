@@ -1,12 +1,12 @@
 #ifndef __NUMBERINFO_H
 #define __NUMBERINFO_H
 
-#include "include\CArrDef.h"
-#include "include\Int_Cons.h"
+#include "InterfSolver\include\CArrDef.h"
+#include "InterfSolver\include\Int_Cons.h"
 #include "XYEllipse.h"
 #include "XYPolygon.h"
-#include "XYBounds.h"
 #include "XYRect.h"
+#include "XYBounds.h"
 #include "SamplDat.h"
 
 struct NUMBERING_INTERFEROGRAM_INFO

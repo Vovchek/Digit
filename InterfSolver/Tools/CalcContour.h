@@ -1,8 +1,8 @@
 #ifndef _CALCCONTOUR_H_
 #define _CALCCONTOUR_H_
 
-#include "include\CArrDef.h"
-#include "Include\Int_Cons.h"
+#include "InterfSolver\include\CArrDef.h"
+#include "InterfSolver\Include\Int_Cons.h"
 #include "isPupil.h"
 
   void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,

@@ -1,6 +1,6 @@
 #ifndef _CALCLIMITS_H_
 #define _CALCLIMITS_H_
-#include "include\CArrDef.h"
+#include "InterfSolver\include\CArrDef.h"
 #include "XYBrokenLine.h"
 #include "XYEllipse.h"
 #include "XYPolygon.h"
