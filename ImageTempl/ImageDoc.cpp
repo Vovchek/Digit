@@ -604,11 +604,14 @@ void CImageDoc::SetZoomToTitle()
 //
 BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
+	TRACE("CImageDoc::OnOpenDocument(%s)\n", lpszPathName ? lpszPathName : "NULL");
+
 	LoadedFileType = FileType(lpszPathName);
 	if (LoadedFileType >= T_BMP && LoadedFileType <= T_TIF) {
 		LoadedFileType = T_PIC;
 	}
 	else if (LoadedFileType != T_ZAP && LoadedFileType != T_FRN) {
+		TRACE("CImageDoc::OnOpenDocument - returning FALSE (invalid file type)\n");
 		return FALSE;
 	}
 
@@ -642,39 +645,55 @@ BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			cs.cx = IntInfo.ImageSize[0];
 			cs.cy = IntInfo.ImageSize[1];
 			imageCtrls.ImageSize = cs;
-			//OnNewDocument();
+			TRACE("CImageDoc::OnOpenDocument - returning TRUE (metadata only)\n");
 			return TRUE;
 		}
-		else return FALSE;
+		else {
+			TRACE("CImageDoc::OnOpenDocument - returning FALSE (failed to read metadata)\n");
+			return FALSE;
+		}
 	}
 	else
 	{
-		if (!CBaseImageDoc::OnOpenDocument(LPCTSTR(ImageFileName)))	return FALSE;
+		if (!CBaseImageDoc::OnOpenDocument(LPCTSTR(ImageFileName))) {
+			TRACE("CImageDoc::OnOpenDocument - returning FALSE (base OnOpenDocument failed)\n");
+			return FALSE;
+		}
 	}
 
 	CControls* pCtrls = GetControls();
 	pCtrls->OnOpenImageDocument();
 
-	if (!ReloadDocument(LPCTSTR(ImageFileName))) return FALSE;
+	if (!ReloadDocument(LPCTSTR(ImageFileName))) {
+		TRACE("CImageDoc::OnOpenDocument - returning FALSE (ReloadDocument failed)\n");
+		return FALSE;
+	}
 
 	if (!(pCtrls->ViewState & V_INTERFEROGRAM))
 		pCtrls->ViewState |= V_INTERFEROGRAM;
+
+	TRACE("CImageDoc::OnOpenDocument - returning TRUE\n");
 	return TRUE;
 }
 //
 BOOL CImageDoc::ReloadDocument(LPCTSTR lpszImagePathName/*NULL*/)
 {
+	TRACE("CImageDoc::ReloadDocument(%s)\n", lpszImagePathName ? lpszImagePathName : "NULL");
+
 	if (lpszImagePathName == NULL) {
 		lpszImagePathName = LPCTSTR(TmpPath);
 	}
-	if (!CBaseImageDoc::ReloadDocument(lpszImagePathName))
+	if (!CBaseImageDoc::ReloadDocument(lpszImagePathName)) {
+		TRACE("CImageDoc::ReloadDocument - returning FALSE (base ReloadDocument failed)\n");
 		return FALSE;
-
+	}
 
 	CControls* pCtrls = GetControls();
 	pCtrls->ActiveEditMode = -1;
 	CImageView* pV = GetView();
 	pV->Invalidate(FALSE);
+
+	TRACE("CImageDoc::ReloadDocument - returning TRUE\n");
 	return TRUE;
 }
 

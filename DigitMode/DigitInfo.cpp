@@ -1568,13 +1568,13 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
    CImageCtrls* pI = GetImageCtrls();
    if (IntInfo.ImageFileName.IsEmpty()) {
 	   AfxMessageBox(_T("Имя файла изображения в ZAP-файле отсутствует"));
-	   return FALSE;
+	   return TRUE;
 
    }
    else if (!pI->LoadImage(IntInfo.ImageFileName))
    {
 	   AfxMessageBox(_T("Не удалось загрузить изображение из ZAP-файла"));
-	   return FALSE;
+	   return TRUE;
    }
    
    TRACE("LoadZAP: Image loaded successfully, m_pDIB=%p\n", pI->m_pDIB);

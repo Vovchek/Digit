@@ -108,54 +108,70 @@ void CBaseImageDoc::Serialize(CArchive& ar)
 // Смотри Microsoft Visual C++ документацию
 BOOL CBaseImageDoc::OnOpenDocument(LPCTSTR lpszPathName) 
 {
-  if (!CDocument::OnOpenDocument(lpszPathName))
-		return FALSE;
+	TRACE("CBaseImageDoc::OnOpenDocument(%s)\n", lpszPathName ? lpszPathName : "NULL");
 
-    InitData();
+	if (!CDocument::OnOpenDocument(lpszPathName))
+	{
+		TRACE("CBaseImageDoc::OnOpenDocument - returning FALSE (base class failed)\n");
+		return FALSE;
+	}
+
+	InitData();
+	TRACE("CBaseImageDoc::OnOpenDocument - returning TRUE\n");
 	return TRUE;
 }
+
 // Инициализация и загрузка изображения
 BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszImagePathName)
 {
-// TODO: check filename validity and decide what to return - TRUE or FALSE?
-  CString fname = lpszImagePathName;
-  if(fname.IsEmpty())
-      return FALSE;
+	TRACE("CBaseImageDoc::ReloadDocument(%s)\n", lpszImagePathName ? lpszImagePathName : "NULL");
 
-  int iP = fname.ReverseFind('\\');
-  RealPath = fname.Left(iP+1);
-  RealName = fname.Mid(iP+1);
+	CString fname = lpszImagePathName;
+	if(fname.IsEmpty())
+	{
+		TRACE("CBaseImageDoc::ReloadDocument - returning FALSE (empty filename)\n");
+		return FALSE;
+	}
 
-  if(fname.IsEmpty())
-    return TRUE;
+	int iP = fname.ReverseFind('\\');
+	RealPath = fname.Left(iP+1);
+	RealName = fname.Mid(iP+1);
 
-  imageCtrls.OriginalPath = fname;
-  if(!imageCtrls.LoadImage(fname)){
-	  CString mes;
-	  mes = CRS("Невозможно открыть файл\r\n", "Fail to load file\r\n");
-	  mes += fname;
-	  imageCtrls.OriginalPath.Empty();
-	  AfxMessageBox(LPCTSTR(mes));
-      return FALSE;
-  }
+	if(fname.IsEmpty())
+	{
+		TRACE("CBaseImageDoc::ReloadDocument - returning TRUE (fname empty after parsing)\n");
+		return TRUE;
+	}
 
-  if(imageCtrls.m_pDIB->m_nSrcBitsPerPixel != 8){
-      CWindowDC* pDC = new CWindowDC(GetView());
-      imageCtrls.ConvertToGrayScale(pDC, LPCTSTR(fname));
-      delete pDC;
-  }
+	imageCtrls.OriginalPath = fname;
+	if(!imageCtrls.LoadImage(fname)){
+		CString mes;
+		mes = CRS("Невозможно открыть файл\r\n", "Fail to load file\r\n");
+		mes += fname;
+		imageCtrls.OriginalPath.Empty();
+		AfxMessageBox(LPCTSTR(mes));
+		TRACE("CBaseImageDoc::ReloadDocument - returning FALSE (LoadImage failed)\n");
+		return FALSE;
+	}
+
+	if(imageCtrls.m_pDIB->m_nSrcBitsPerPixel != 8){
+		CWindowDC* pDC = new CWindowDC(GetView());
+		imageCtrls.ConvertToGrayScale(pDC, LPCTSTR(fname));
+		delete pDC;
+	}
  
-  CString s = fname;
-  if(s.Find("_u.bmp") !=-1){
-	 s = s.Left(s.GetLength()-6);
-  }
-  else{
-     s = s.Left(s.GetLength()-4);
-  }
-  TmpPath = s + ".bmp";
-  UndoTmpPath = s + "_u.bmp";
+	CString s = fname;
+	if(s.Find("_u.bmp") !=-1){
+		s = s.Left(s.GetLength()-6);
+	}
+	else{
+		s = s.Left(s.GetLength()-4);
+	}
+	TmpPath = s + ".bmp";
+	UndoTmpPath = s + "_u.bmp";
   
-  return TRUE;
+	TRACE("CBaseImageDoc::ReloadDocument - returning TRUE\n");
+	return TRUE;
 }
 // Копирование файла изображения в TEMP директорию
 void CBaseImageDoc::CopyImage()

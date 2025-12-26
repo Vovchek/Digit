@@ -469,8 +469,14 @@ BOOL CDigitApp::OnIdle(LONG lCount)
 
 CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 {
+	TRACE("CDigitApp::OpenDocumentFile(%s)\n", lpszFileName ? lpszFileName : "NULL");
+
 	if (!lpszFileName)
-		return CWinApp::OpenDocumentFile(lpszFileName);
+	{
+		CDocument* pDoc = CWinApp::OpenDocumentFile(lpszFileName);
+		TRACE("CDigitApp::OpenDocumentFile - returning %s (NULL filename)\n", pDoc ? "valid doc" : "NULL");
+		return pDoc;
+	}
 
 	// Save filename before calling base method (MFC modifies the buffer despite LPCTSTR!)
 	CString safeFileName = lpszFileName;
@@ -481,7 +487,7 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 	CDocument* pDoc = CWinApp::OpenDocumentFile(lpszFileName);
 	if (!pDoc)
 	{
-		TRACE("OpenDocumentFile: Failed to open %s\n", (LPCTSTR)safeFileName);
+		TRACE("CDigitApp::OpenDocumentFile - returning NULL (failed to open %s)\n", (LPCTSTR)safeFileName);
 		return NULL;
 	}
 
@@ -503,10 +509,11 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 			}
 			else
 			{
-				TRACE("OpenDocumentFile: Digit.Load failed for %s\n", (LPCTSTR)safeFileName);
+				TRACE("CDigitApp::OpenDocumentFile - Digit.Load failed for %s\n", (LPCTSTR)safeFileName);
 			}
 		}
 	}
 
+	TRACE("CDigitApp::OpenDocumentFile - returning %s\n", pDoc ? "valid doc" : "NULL");
 	return pDoc;
 }
