@@ -255,3 +255,51 @@ void GetContour(const XYEllipse &Ell, XYPolygon &Plg, int NFi)
   Plg.SetTypeSystCoor(Ell.TypeSystCoor);
   }
 //=========================================================================
+//=========================================================================
+XYEllipse :: XYEllipse(const XYPoint &P1, const XYPoint &P2, const XYPoint &P3, const XYPoint &P4,
+                       int _TypeLimits, int _TypeSystCoor)
+  {
+  // Calculate center as average of all points
+  Xc = (P1.X + P2.X + P3.X + P4.X) / 4.0;
+  Yc = (P1.Y + P2.Y + P3.Y + P4.Y) / 4.0;
+  
+  // Find the two most distant points to determine major axis direction
+  double maxDist = 0.;
+  XYPoint Pa, Pb;
+  XYPoint points[4] = {P1, P2, P3, P4};
+  
+  for (int i = 0; i < 4; i++)
+    for (int j = i + 1; j < 4; j++)
+      {
+      double dist = Distance(points[i], points[j]);
+      if (dist > maxDist)
+        {
+        maxDist = dist;
+        Pa = points[i];
+        Pb = points[j];
+        }
+      }
+  
+  // Calculate rotation angle from major axis
+  Fi = atan2(Pb.Y - Pa.Y, Pb.X - Pa.X) * RD_GRD;
+  Si = sin(GRD_RD * Fi);
+  Co = cos(GRD_RD * Fi);
+  
+  // Transform points to ellipse coordinate system and find semi-axes
+  double maxA = 0., maxB = 0.;
+  for (int i = 0; i < 4; i++)
+    {
+    double X1 =  (points[i].X - Xc) * Co + (points[i].Y - Yc) * Si;
+    double Y1 = -(points[i].X - Xc) * Si + (points[i].Y - Yc) * Co;
+    if (fabs(X1) > maxA)
+      maxA = fabs(X1);
+    if (fabs(Y1) > maxB)
+      maxB = fabs(Y1);
+    }
+  
+  Ax = maxA;
+  By = maxB;
+  TypeLimits = _TypeLimits;
+  TypeSystCoor = _TypeSystCoor;
+  }
+//=========================================================================

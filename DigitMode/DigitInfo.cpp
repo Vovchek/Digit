@@ -5,6 +5,7 @@
 #include <math.h>
 #include <filesystem>
 #include <string>
+#include <windowsx.h>
 
 CDigitInfo::CDigitInfo()
 {
@@ -1607,120 +1608,91 @@ BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int he
         return FALSE;
     }
     
-    try {
-        // Clean up existing DIB if any
-        if (pImageCtrls->m_pDIB) {
-            delete pImageCtrls->m_pDIB;
-            pImageCtrls->m_pDIB = NULL;
-        }
-        
-        // Create new CDIB instance
-        pImageCtrls->m_pDIB = new SECDib();
-        if (!pImageCtrls->m_pDIB) {
-            TRACE("CreateFakeGrayImage: Failed to allocate CDIB\n");
-            return FALSE;
-        }
-        
-        SECDib* pDIB = pImageCtrls->m_pDIB;
-        
-        // Create grayscale BITMAPINFO structure
-        BITMAPINFO bmi;
-        memset(&bmi, 0, sizeof(BITMAPINFO));
-        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
-        bmi.bmiHeader.biWidth = width;
-        bmi.bmiHeader.biHeight = height;
-        bmi.bmiHeader.biPlanes = 1;
-        bmi.bmiHeader.biBitCount = 8; // 8-bit grayscale
-        bmi.bmiHeader.biCompression = BI_RGB;
-        bmi.bmiHeader.biSizeImage = 0; // Can be 0 for BI_RGB
-        
-        // Calculate padded width (DWORD-aligned)
-        DWORD dwPadWidth = ((width + 3) / 4) * 4;
-        DWORD dwImageSize = dwPadWidth * height;
-        
-        // Create bitmap with medium gray fill
-        BYTE* pBits = new BYTE[dwImageSize];
-        if (!pBits) {
-            TRACE("CreateFakeGrayImage: Failed to allocate pixel buffer\n");
-            delete pDIB;
-            pImageCtrls->m_pDIB = NULL;
-            return FALSE;
-        }
-        
-        // Fill with medium gray (128)
-        memset(pBits, 128, dwImageSize);
-        
-        // Create MFC bitmap
-        CBitmap bitmap;
-        if (!bitmap.CreateBitmap(width, height, 1, 8, pBits)) {
-            TRACE("CreateFakeGrayImage: Failed to create CBitmap\n");
-            delete[] pBits;
-            delete pDIB;
-            pImageCtrls->m_pDIB = NULL;
-            return FALSE;
-        }
-        
-        // Get bitmap info to verify creation
-        BITMAP bmpInfo;
-        bitmap.GetBitmap(&bmpInfo);
-        
-        // Set CDIB properties
-        pDIB->m_dwWidth = width;
-        pDIB->m_dwHeight = height;
-        pDIB->m_dwPadWidth = dwPadWidth;
-        pDIB->m_nSrcBitsPerPixel = 8;
-        pDIB->m_bIsPadded = FALSE;
-        
-        // Allocate and copy pixel data
-        pDIB->m_lpSrcBits = new BYTE[dwImageSize];
-        if (!pDIB->m_lpSrcBits) {
-            TRACE("CreateFakeGrayImage: Failed to allocate m_lpSrcBits\n");
-            delete[] pBits;
-            delete pDIB;
-            pImageCtrls->m_pDIB = NULL;
-            return FALSE;
-        }
-        memcpy(pDIB->m_lpSrcBits, pBits, dwImageSize);
-        
-        // Create grayscale palette (256 colors)
-        pDIB->m_pPalette = new CPalette();
-        if (!pDIB->m_pPalette) {
-            TRACE("CreateFakeGrayImage: Failed to allocate palette\n");
-            delete[] pDIB->m_lpSrcBits;
-            delete[] pBits;
-            delete pDIB;
-            pImageCtrls->m_pDIB = NULL;
-            return FALSE;
-        }
-        
-        /*
-		for (int i = 0; i < 256; i++) {
-            pDIB->m_pPalette[i].rgbRed = static_cast<BYTE>(i);
-            pDIB->m_pPalette[i].rgbGreen = static_cast<BYTE>(i);
-            pDIB->m_pPalette[i].rgbBlue = static_cast<BYTE>(i);
-            pDIB->m_pPalette[i].rgbReserved = 0;
-        }
-		*/
-        
-        // Set ImageCtrls properties
-        pImageCtrls->ImageSize.cx = width;
-        pImageCtrls->ImageSize.cy = height;
-        
-        // Clean up temporary buffer
-        delete[] pBits;
-        
-        TRACE("CreateFakeGrayImage: Successfully created %dx%d image (padded=%d)\n", 
-              width, height, dwPadWidth);
-        return TRUE;
+    // Clean up existing DIB if any
+    if (pImageCtrls->m_pDIB) {
+        delete pImageCtrls->m_pDIB;
+        pImageCtrls->m_pDIB = NULL;
     }
-    catch (...) {
-        TRACE("CreateFakeGrayImage: Exception during creation\n");
-        if (pImageCtrls->m_pDIB) {
-            delete pImageCtrls->m_pDIB;
-            pImageCtrls->m_pDIB = NULL;
-        }
+    
+    // Create new CDIB instance
+    pImageCtrls->m_pDIB = new SECDib();
+    if (!pImageCtrls->m_pDIB) {
+        TRACE("CreateFakeGrayImage: Failed to allocate CDIB\n");
         return FALSE;
     }
+    
+    // Set dimensions
+    pImageCtrls->m_pDIB->m_dwWidth = width;
+    pImageCtrls->m_pDIB->m_dwHeight = height;
+    pImageCtrls->m_pDIB->m_nSrcBitsPerPixel = 8; // 8-bit grayscale
+    pImageCtrls->m_pDIB->m_wColors = 256;
+    pImageCtrls->m_pDIB->m_nBitPlanes = 1;
+    
+    // Calculate padded width (DWORD-aligned)
+    pImageCtrls->m_pDIB->m_dwPadWidth = ((width + 3) / 4) * 4;
+    
+    // Allocate BITMAPINFO structure using GlobalAllocPtr
+    DWORD bmiSize = sizeof(BITMAPINFOHEADER) + 256 * sizeof(RGBQUAD);
+    pImageCtrls->m_pDIB->m_lpBMI = (LPBITMAPINFO)GlobalAllocPtr(GHND, bmiSize);
+    if (!pImageCtrls->m_pDIB->m_lpBMI) {
+        TRACE("CreateFakeGrayImage: Failed to allocate BITMAPINFO\n");
+        delete pImageCtrls->m_pDIB;
+        pImageCtrls->m_pDIB = NULL;
+        return FALSE;
+    }
+    
+    // Fill BITMAPINFOHEADER
+    LPBITMAPINFOHEADER lpbi = &pImageCtrls->m_pDIB->m_lpBMI->bmiHeader;
+    lpbi->biSize = sizeof(BITMAPINFOHEADER);
+    lpbi->biWidth = width;
+    lpbi->biHeight = height;
+    lpbi->biPlanes = 1;
+    lpbi->biBitCount = 8;
+    lpbi->biCompression = BI_RGB;
+    lpbi->biSizeImage = pImageCtrls->m_pDIB->m_dwPadWidth * height;
+    lpbi->biXPelsPerMeter = 0;
+    lpbi->biYPelsPerMeter = 0;
+    lpbi->biClrUsed = 256;
+    lpbi->biClrImportant = 0;
+    
+    // Set m_lpRGB pointer to bmiColors array
+    pImageCtrls->m_pDIB->m_lpRGB = pImageCtrls->m_pDIB->m_lpBMI->bmiColors;
+    
+    // Fill grayscale palette in BITMAPINFO.bmiColors
+    for (int i = 0; i < 256; i++) {
+        pImageCtrls->m_pDIB->m_lpBMI->bmiColors[i].rgbRed = (BYTE)i;
+        pImageCtrls->m_pDIB->m_lpBMI->bmiColors[i].rgbGreen = (BYTE)i;
+        pImageCtrls->m_pDIB->m_lpBMI->bmiColors[i].rgbBlue = (BYTE)i;
+        pImageCtrls->m_pDIB->m_lpBMI->bmiColors[i].rgbReserved = 0;
+    }
+    
+    // Allocate pixel buffer using GlobalAllocPtr
+    DWORD imageSize = lpbi->biSizeImage;
+    pImageCtrls->m_pDIB->m_lpSrcBits = (LPBYTE)GlobalAllocPtr(GHND, imageSize);
+    if (!pImageCtrls->m_pDIB->m_lpSrcBits) {
+        TRACE("CreateFakeGrayImage: Failed to allocate pixel buffer\n");
+        GlobalFreePtr(pImageCtrls->m_pDIB->m_lpBMI);
+        pImageCtrls->m_pDIB->m_lpBMI = NULL;
+        pImageCtrls->m_pDIB->m_lpRGB = NULL;
+        delete pImageCtrls->m_pDIB;
+        pImageCtrls->m_pDIB = NULL;
+        return FALSE;
+    }
+    
+    // Fill with medium gray (128)
+    memset(pImageCtrls->m_pDIB->m_lpSrcBits, 128, imageSize);
+    
+    // The palette will be created by SECImage::CreatePalette() when needed
+    // We don't need to create it here - let the base class handle it
+    //pImageCtrls->m_pDIB->CreatePalette();
+    
+    // Set other required fields
+    pImageCtrls->m_pDIB->m_bIsPadded = FALSE;
+    pImageCtrls->ImageSize.cx = width;
+    pImageCtrls->ImageSize.cy = height;
+    
+    TRACE("CreateFakeGrayImage: Successfully created %dx%d image\n", width, height);
+    return TRUE;
 }
 
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
@@ -1751,6 +1723,7 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
    }
    
    // Create fake gray image if actual image failed to load
+   // TODO: investigate throw and memory leaks when image is missing
    if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
        TRACE("LoadZAP: Creating fake gray image as fallback\n");
        if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {

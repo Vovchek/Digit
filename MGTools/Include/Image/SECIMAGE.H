@@ -160,7 +160,7 @@ public:
 	/* Constructs a SECImage object.*/
     SECImage();
 	
-protected:
+//protected:
 
 	//@cmember
 	/* Creates the image palette.*/

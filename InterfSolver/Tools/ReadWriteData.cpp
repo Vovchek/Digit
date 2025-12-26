@@ -184,7 +184,8 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	if (Fl.GetStringAfter("IMAGE", Str))
 		IntInfo.ImageFileName = Str;
 
-	XYBounds Bnd;
+	// TODO: maybe FIDS stands for 4 feducials, denoting ellipse bounds?
+	// restore ellipse bounds
 	Fl.GetStringAfter("FIDS", Str);
 	CutStringToBreak(Str, 'E');
 	FormArrFromString(Str, Buf);
@@ -195,7 +196,7 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	double YMax = Buf[3];
 	double XMin = Buf[4];
 	double XMax = Buf[6];
-	Bnd = XYBounds(XMin, YMax, XMax, YMin);
+	auto Bnd = XYBounds(XMin, YMax, XMax, YMin);
 	IntInfo.EBnd = Bnd;
 	
 	double Xc, Yc, Rad;
@@ -204,14 +205,13 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	auto BEll = XYEllipse(Rad, Rad, Xc, Yc);
 	IntInfo.ArrEll.Add(BEll);
 
-	XYEllipse Ell;
 	if (Fl.SeekToSection("ELLIPS"))
 	{
 		Fl.SetEndOfSection("END");
 		while (Fl.ReadStringInSection(Str))
 		{
 			FormArrFromString(Str, Buf);
-			Ell = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), 1);
+			auto Ell = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), 1);
 			Ell.DeNormalize(Xc, Yc, Rad);
 			IntInfo.ArrEll.Add(Ell);
 		}
@@ -244,15 +244,13 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 
 	// TODO: app crashes on inconsistent data, need to check it  
 
-	int NEll = IntInfo.ArrEll.GetSize();
-
 	// Fake image size to inverse Y-coordinates
 	// in DOS ZAP files Y-axis is inverted
 	// but image size is not stored in the file
 	int Nx = int(fabs(IntInfo.EBnd.XRight - IntInfo.EBnd.XLeft) + 0.5);
 	int Ny = int(fabs(IntInfo.EBnd.YTop - IntInfo.EBnd.YBottom) + 0.5);
 
-	for (i = 0; i < NEll; i++)
+	for (i = 0; i < IntInfo.ArrEll.GetSize(); i++)
 		IntInfo.ArrEll[i].InverseY(Ny);
 	IntInfo.EBnd.InverseY(Ny);
 	IntInfo.DigitDat.InverseY(Ny);

@@ -23,6 +23,8 @@ class XYEllipse
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     XYEllipse(const XYEllipse &A);
     XYEllipse(const XYBounds &Bnd, int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
+    XYEllipse(const XYPoint &P1, const XYPoint &P2, const XYPoint &P3, const XYPoint &P4, 
+                  int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     void Set(double _Ax = 1., double _By = 1., double _Xc = 0., double _Yc = 0.,
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     ~XYEllipse();
