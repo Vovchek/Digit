@@ -3,6 +3,8 @@
 #include "Utils\middle.h"
 #include "MGTools\Include\Utils\Utils.h"
 #include <math.h>
+#include <filesystem>
+#include <string>
 
 CDigitInfo::CDigitInfo()
 {
@@ -443,7 +445,7 @@ void CDigitInfo::CreateRedCenters()
 	  for(int ii=0; ii < Sections[i].NumLines.GetSize(); ii++){
 		  HidenDots.Add(CDPoint(Sections[i].NumLines[ii].redX, Sections[i].L.P1.y));
 	  }
-	  
+	  	
   }
   free(line);
   free(inv_line);
@@ -1532,6 +1534,195 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 	    return FALSE;
 }
 
+/// <summary>
+/// Resolves a potentially relative image filename to an absolute path.
+/// Checks if the path exists relative to the data file's directory.
+/// </summary>
+/// <param name="dataFilePath">Full path to the .zap or .frn file</param>
+/// <param name="imageFileName">Image filename from the data file (may be relative or absolute)</param>
+/// <returns>Resolved absolute path if file exists, original path otherwise</returns>
+std::string CDigitInfo::ResolveImagePath(const std::string& dataFilePath, const std::string& imageFileName)
+{
+	TRACE("ResolveImagePath: dataFile=%s, imageFile=%s\n", dataFilePath.c_str(), imageFileName.c_str());
+
+	if (imageFileName.empty()) {
+		return imageFileName;
+	}
+
+	namespace fs = std::filesystem;
+
+	try {
+		fs::path imgPath(imageFileName);
+
+		// Check if already absolute
+		if (imgPath.is_absolute()) {
+			TRACE("ResolveImagePath: Already absolute, returning as-is\n");
+			return imageFileName;
+		}
+
+		// Resolve relative to data file directory
+		fs::path dataPath(dataFilePath);
+		fs::path parentDir = dataPath.parent_path();
+		fs::path combinedPath = parentDir / imgPath;
+
+		// Normalize path (resolve .., ., etc.)
+		combinedPath = fs::absolute(combinedPath).lexically_normal();
+
+		// Check if resolved path exists
+		if (fs::exists(combinedPath)) {
+			std::string resolved = combinedPath.string();
+			TRACE("ResolveImagePath: Resolved to %s\n", resolved.c_str());
+			return resolved;
+		}
+		else {
+			TRACE("ResolveImagePath: Resolved path doesn't exist, returning original\n");
+			return imageFileName;
+		}
+	}
+	catch (const fs::filesystem_error& e) {
+		TRACE("ResolveImagePath: Filesystem error: %s\n", e.what());
+		return imageFileName;
+	}
+}
+
+/// <summary>
+/// Creates a fake gray DIB image of specified dimensions.
+/// Used when actual image file is missing but vector data needs to be displayed.
+/// </summary>
+/// <param name="pImageCtrls">Pointer to image controls</param>
+/// <param name="width">Image width in pixels</param>
+/// <param name="height">Image height in pixels</param>
+/// <returns>TRUE if successful, FALSE otherwise</returns>
+BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int height)
+{
+    TRACE("CreateFakeGrayImage: Creating %dx%d gray image\n", width, height);
+    
+    if (!pImageCtrls) {
+        TRACE("CreateFakeGrayImage: pImageCtrls is NULL\n");
+        return FALSE;
+    }
+    
+    if (width <= 0 || height <= 0) {
+        TRACE("CreateFakeGrayImage: Invalid dimensions %dx%d\n", width, height);
+        return FALSE;
+    }
+    
+    try {
+        // Clean up existing DIB if any
+        if (pImageCtrls->m_pDIB) {
+            delete pImageCtrls->m_pDIB;
+            pImageCtrls->m_pDIB = NULL;
+        }
+        
+        // Create new CDIB instance
+        pImageCtrls->m_pDIB = new SECDib();
+        if (!pImageCtrls->m_pDIB) {
+            TRACE("CreateFakeGrayImage: Failed to allocate CDIB\n");
+            return FALSE;
+        }
+        
+        SECDib* pDIB = pImageCtrls->m_pDIB;
+        
+        // Create grayscale BITMAPINFO structure
+        BITMAPINFO bmi;
+        memset(&bmi, 0, sizeof(BITMAPINFO));
+        bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+        bmi.bmiHeader.biWidth = width;
+        bmi.bmiHeader.biHeight = height;
+        bmi.bmiHeader.biPlanes = 1;
+        bmi.bmiHeader.biBitCount = 8; // 8-bit grayscale
+        bmi.bmiHeader.biCompression = BI_RGB;
+        bmi.bmiHeader.biSizeImage = 0; // Can be 0 for BI_RGB
+        
+        // Calculate padded width (DWORD-aligned)
+        DWORD dwPadWidth = ((width + 3) / 4) * 4;
+        DWORD dwImageSize = dwPadWidth * height;
+        
+        // Create bitmap with medium gray fill
+        BYTE* pBits = new BYTE[dwImageSize];
+        if (!pBits) {
+            TRACE("CreateFakeGrayImage: Failed to allocate pixel buffer\n");
+            delete pDIB;
+            pImageCtrls->m_pDIB = NULL;
+            return FALSE;
+        }
+        
+        // Fill with medium gray (128)
+        memset(pBits, 128, dwImageSize);
+        
+        // Create MFC bitmap
+        CBitmap bitmap;
+        if (!bitmap.CreateBitmap(width, height, 1, 8, pBits)) {
+            TRACE("CreateFakeGrayImage: Failed to create CBitmap\n");
+            delete[] pBits;
+            delete pDIB;
+            pImageCtrls->m_pDIB = NULL;
+            return FALSE;
+        }
+        
+        // Get bitmap info to verify creation
+        BITMAP bmpInfo;
+        bitmap.GetBitmap(&bmpInfo);
+        
+        // Set CDIB properties
+        pDIB->m_dwWidth = width;
+        pDIB->m_dwHeight = height;
+        pDIB->m_dwPadWidth = dwPadWidth;
+        pDIB->m_nSrcBitsPerPixel = 8;
+        pDIB->m_bIsPadded = FALSE;
+        
+        // Allocate and copy pixel data
+        pDIB->m_lpSrcBits = new BYTE[dwImageSize];
+        if (!pDIB->m_lpSrcBits) {
+            TRACE("CreateFakeGrayImage: Failed to allocate m_lpSrcBits\n");
+            delete[] pBits;
+            delete pDIB;
+            pImageCtrls->m_pDIB = NULL;
+            return FALSE;
+        }
+        memcpy(pDIB->m_lpSrcBits, pBits, dwImageSize);
+        
+        // Create grayscale palette (256 colors)
+        pDIB->m_pPalette = new CPalette();
+        if (!pDIB->m_pPalette) {
+            TRACE("CreateFakeGrayImage: Failed to allocate palette\n");
+            delete[] pDIB->m_lpSrcBits;
+            delete[] pBits;
+            delete pDIB;
+            pImageCtrls->m_pDIB = NULL;
+            return FALSE;
+        }
+        
+        /*
+		for (int i = 0; i < 256; i++) {
+            pDIB->m_pPalette[i].rgbRed = static_cast<BYTE>(i);
+            pDIB->m_pPalette[i].rgbGreen = static_cast<BYTE>(i);
+            pDIB->m_pPalette[i].rgbBlue = static_cast<BYTE>(i);
+            pDIB->m_pPalette[i].rgbReserved = 0;
+        }
+		*/
+        
+        // Set ImageCtrls properties
+        pImageCtrls->ImageSize.cx = width;
+        pImageCtrls->ImageSize.cy = height;
+        
+        // Clean up temporary buffer
+        delete[] pBits;
+        
+        TRACE("CreateFakeGrayImage: Successfully created %dx%d image (padded=%d)\n", 
+              width, height, dwPadWidth);
+        return TRUE;
+    }
+    catch (...) {
+        TRACE("CreateFakeGrayImage: Exception during creation\n");
+        if (pImageCtrls->m_pDIB) {
+            delete pImageCtrls->m_pDIB;
+            pImageCtrls->m_pDIB = NULL;
+        }
+        return FALSE;
+    }
+}
+
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 {
    CString FileName = fname;
@@ -1539,59 +1730,62 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
    if(!ReadZAPData(FileName, IntInfo))
 	   return FALSE;
 
-   // --- Resolve image filename relative to ZAP file directory (fix MRU / shell opens) ---
+   // --- Resolve image filename relative to ZAP file directory ---
    if (!IntInfo.ImageFileName.IsEmpty()) {
-       CString img = IntInfo.ImageFileName;
-       bool isAbsolute = false;
-       if (img.GetLength() >= 2 && img[1] == ':') // "C:\..."
-           isAbsolute = true;
-       if (img.GetLength() >= 2 && img[0] == '\\' && img[1] == '\\') // UNC "\\server\..."
-           isAbsolute = true;
-       if (!isAbsolute) {
-           int pos = FileName.ReverseFind('\\');
-           if (pos != -1) {
-               CString dir = FileName.Left(pos + 1);
-               CString combined = dir + img;
-               // Если комбинированный путь существует — используем его
-               if (IsFileExist(combined, FALSE)) {
-                   IntInfo.ImageFileName = combined;
-				   TRACE("LoadZAP: Resolved image path to %s\n", combined);
-			   }
-               // иначе оставляем как есть — LoadImage попробует абсолютный/относительный путь
-           }
-       }
-	   TRACE("LoadZAP: Final image path: %s\n", IntInfo.ImageFileName);
+       std::string zapFile = CT2A(FileName);
+       std::string imgFile = CT2A(IntInfo.ImageFileName);
+       std::string resolved = ResolveImagePath(zapFile, imgFile);
+       IntInfo.ImageFileName = CString(resolved.c_str());
+       TRACE("LoadZAP: Image path resolved to: %s\n", resolved.c_str());
    }
-   // -------------------------------------------------------------------------------
 
    //Вызов LoadImage для инициализации m_pDIB
    CImageCtrls* pI = GetImageCtrls();
-   if (IntInfo.ImageFileName.IsEmpty()) {
-	   AfxMessageBox(_T("Имя файла изображения в ZAP-файле отсутствует"));
-	   return TRUE;
-
-   }
-   else if (!pI->LoadImage(IntInfo.ImageFileName))
-   {
-	   AfxMessageBox(_T("Не удалось загрузить изображение из ZAP-файла"));
-	   return TRUE;
+   BOOL imageLoaded = FALSE;
+   
+   if (!IntInfo.ImageFileName.IsEmpty()) {
+       imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
+       if (!imageLoaded) {
+           TRACE("LoadZAP: Failed to load image %s\n", CT2A(IntInfo.ImageFileName));
+       }
    }
    
-   TRACE("LoadZAP: Image loaded successfully, m_pDIB=%p\n", pI->m_pDIB);
+   // Create fake gray image if actual image failed to load
+   if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
+       TRACE("LoadZAP: Creating fake gray image as fallback\n");
+       if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
+           imageLoaded = TRUE; // Treat as successful load for processing
+           AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
+           TRACE("LoadZAP: Fake image created successfully\n");
+       } else {
+           AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
+           TRACE("LoadZAP: Failed to create fake image\n");
+       }
+   }
+   
+   TRACE("LoadZAP: Image loaded=%d, m_pDIB=%p\n", imageLoaded, pI->m_pDIB);
 
    if(IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
    {
-	   double dY = (pI->ImageSize.cy - IntInfo.ImageSize[1]);
-	   IntInfo.DigitDat.ShiftY(dY);
-	   IntInfo.EBnd.ShiftY(dY);
-	   for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++)
-		   IntInfo.ArrEll[i].ShiftY(dY);
-	   IntInfo.ImageSize[0] = pI->ImageSize.cx;
-	   IntInfo.ImageSize[1] = pI->ImageSize.cy;
+       // Use ImageSize from IntInfo if image failed to load
+       int actualHeight = imageLoaded ? pI->ImageSize.cy : IntInfo.ImageSize[1];
+       double dY = (actualHeight - IntInfo.ImageSize[1]);
+       IntInfo.DigitDat.ShiftY(dY);
+       IntInfo.EBnd.ShiftY(dY);
+       for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++)
+           IntInfo.ArrEll[i].ShiftY(dY);
+       IntInfo.ImageSize[0] = imageLoaded ? pI->ImageSize.cx : IntInfo.ImageSize[0];
+       IntInfo.ImageSize[1] = actualHeight;
    }
 
    if (!ExamineNumberingInterferogramInfo(IntInfo))
 	   return FALSE;
+
+   // Ensure ImageSize is set even without loaded image
+   if (!imageLoaded) {
+       pI->ImageSize.cx = IntInfo.ImageSize[0];
+       pI->ImageSize.cy = IntInfo.ImageSize[1];
+   }
 
    CreateBufLine();
    if(pI->m_pDIB){
@@ -1613,34 +1807,45 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
    if(!ReadFRNData(FileName, IntInfo))
 	   return FALSE;
 
-   // --- Resolve image filename relative to FRN file directory (fix MRU / shell opens) ---
+   // --- Resolve image filename relative to FRN file directory ---
    if (!IntInfo.ImageFileName.IsEmpty()) {
-       CString img = IntInfo.ImageFileName;
-       bool isAbsolute = false;
-       if (img.GetLength() >= 2 && img[1] == ':') // "C:\..."
-           isAbsolute = true;
-       if (img.GetLength() >= 2 && img[0] == '\\' && img[1] == '\\') // UNC "\\server\..."
-           isAbsolute = true;
-       if (!isAbsolute) {
-           int pos = FileName.ReverseFind('\\');
-           if (pos != -1) {
-               CString dir = FileName.Left(pos + 1);
-               CString combined = dir + img;
-               if (IsFileExist(combined, FALSE)) {
-                   IntInfo.ImageFileName = combined;
-               }
-           }
+       std::string frnFile = CT2A(FileName);
+       std::string imgFile = CT2A(IntInfo.ImageFileName);
+       std::string resolved = ResolveImagePath(frnFile, imgFile);
+       IntInfo.ImageFileName = CString(resolved.c_str());
+       TRACE("LoadFRN: Image path resolved to: %s\n", resolved.c_str());
+   }
+
+   //Вызов LoadImage для инициализации m_pDIB
+   CImageCtrls* pI = GetImageCtrls();
+   BOOL imageLoaded = FALSE;
+   
+   if (!IntInfo.ImageFileName.IsEmpty()) {
+       imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
+       if (!imageLoaded) {
+           TRACE("LoadFRN: Failed to load image %s\n", CT2A(IntInfo.ImageFileName));
        }
    }
-   // -------------------------------------------------------------------------------
+   
+   // Create fake gray image if actual image failed to load
+   if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
+       TRACE("LoadFRN: Creating fake gray image as fallback\n");
+       if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
+           imageLoaded = TRUE; // Treat as successful load
+           AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
+           TRACE("LoadFRN: Fake image created successfully\n");
+       } else {
+           AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
+           TRACE("LoadFRN: Failed to create fake image\n");
+       }
+   }
 
    if(!ExamineNumberingInterferogramInfo(IntInfo))
 	   return FALSE;
 
-   CImageCtrls* pI = GetImageCtrls();
    CreateBufLine();
    if(pI->m_pDIB){
-    CreateRedCenters();
+       CreateRedCenters();
    }
    Delete_buf_line();
    return TRUE;

@@ -12,6 +12,8 @@
 
 #include "InterfSolver\Tools\ReadWriteData.h"
 
+class CImageCtrls;  // Forward declaration
+
 class CDigitInfo
 {
   public:
@@ -138,5 +140,11 @@ class CDigitInfo
 	  void ProcessSectionPropagation(int sectionIndex, int direction, 
 		  CArray<CNumLine>& refNumLines, int& maxSize, 
 		  double& minN, double& maxN, double& leftX, double& rightX);
+private:
+    // Helper method to resolve relative image path to absolute path
+    static std::string ResolveImagePath(const std::string& dataFilePath, const std::string& imageFileName);
+    
+    // Helper method to create a fake gray image when actual image is missing
+    static BOOL CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int height);
 };
 #endif // !defined(AFX_DIGIT_INFO_DEFS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
