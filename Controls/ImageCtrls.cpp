@@ -117,10 +117,13 @@ BOOL CImageCtrls::ConvertToDIB(CString& name)
 
     switch (type)
     {
-    case T_BMP:
-        // If already BMP, no conversion needed — just verify it loads
-        res = dib->LoadImage(name);
+    case T_BMP: {
+        // If already BMP, do conversion to asure the format correctness
+        auto src = std::make_unique<SECDib>();
+        if (src->LoadImage(name) && dib->ConvertImage(src.get()))
+            res = TRUE;
         break;
+    }
     case T_PCX: {
         auto src = std::make_unique<SECPcx>();
         if(src->LoadImage(name) && dib->ConvertImage(src.get()))
