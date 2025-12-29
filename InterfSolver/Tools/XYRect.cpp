@@ -235,10 +235,10 @@ bool isVisible(const XYRect& Rect, const XYPoint& P)
 {
 	bool isIn = isInside(Rect, P);
 	if (isIn && Rect.TypeLimits == INTERNAL)
-		return false;
+		return true;
 	else if (!isIn && Rect.TypeLimits == EXTERNAL)
-		return false;
-	return true;
+		return true;
+	return false;
 }
 //=========================================================================
 void GetContour(const XYRect& Rect, XYPolygon& Plg, int NFi)

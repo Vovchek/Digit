@@ -231,10 +231,10 @@ bool isVisible(const XYPolygon &Plg, const XYPoint &P)
   {
   bool isIn = isInside(Plg, P);
   if (isIn && Plg.TypeLimits == INTERNAL)
-    return false;
+    return true;
   else if (!isIn && Plg.TypeLimits == EXTERNAL)
-    return false;
-  return true;
+    return true;
+  return false;
   }
 //=========================================================================
 XYBounds GetBounds(const XYPolygon &Plg)

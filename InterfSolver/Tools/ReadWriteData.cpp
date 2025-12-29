@@ -198,7 +198,7 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 		XYPoint(Buf[4], Buf[5]),
 		XYPoint(Buf[6], Buf[7])
 	};
-	auto BEll = XYEllipse(FidPnts);
+	auto BEll = XYEllipse(FidPnts, INTERNAL);
 	IntInfo.ArrEll.Add(BEll);
 	double YMin, YMax, XMin, XMax;
 	BEll.GetExtents(XMin, YMin, XMax, YMax);
