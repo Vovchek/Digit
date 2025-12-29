@@ -192,18 +192,19 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	if (Buf.GetSize() != 8) {
 		ASSERT(false);
 	}
-	double YMin = Buf[1];
-	double YMax = Buf[3];
-	double XMin = Buf[4];
-	double XMax = Buf[6];
-	auto Bnd = XYBounds(XMin, YMax, XMax, YMin);
-	IntInfo.EBnd = Bnd;
-	
-	double Xc, Yc, Rad;
-	CalcBoundCircle(Bnd, Xc, Yc, Rad);
-	
-	auto BEll = XYEllipse(Rad, Rad, Xc, Yc);
+	const std::vector<XYPoint> FidPnts = {
+		XYPoint(Buf[0], Buf[1]),
+		XYPoint(Buf[2], Buf[3]),
+		XYPoint(Buf[4], Buf[5]),
+		XYPoint(Buf[6], Buf[7])
+	};
+	auto BEll = XYEllipse(FidPnts);
 	IntInfo.ArrEll.Add(BEll);
+	double YMin, YMax, XMin, XMax;
+	BEll.GetExtents(XMin, YMin, XMax, YMax);
+	IntInfo.EBnd = XYBounds(XMin, YMax, XMax, YMin);
+	double Xc, Yc, Rad;
+	CalcBoundCircle(IntInfo.EBnd, Xc, Yc, Rad);
 
 	if (Fl.SeekToSection("ELLIPS"))
 	{

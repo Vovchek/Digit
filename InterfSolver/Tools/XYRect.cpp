@@ -111,7 +111,7 @@ bool XYRect::isVisible(double X, double Y)
 	return isVisible(P);
 }
 //=========================================================================
-bool XYRect::GetContour(XYBrokenLine& BLine, int NFi)
+bool XYRect::GetContour(XYBrokenLine& BLine, int NFi) const
 {
 	if (NFi < 2)
 		return false;

@@ -2,7 +2,7 @@
 #define __MATRIX_H
 
 #include "stdafx.h"
-#include "include\CArrDef.h"
+#include "InterfSolver\include\CArrDef.h"
 #include "Vector.h"
 
 //===============================================================================

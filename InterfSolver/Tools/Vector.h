@@ -6,7 +6,7 @@
 #include <stdarg.h>
 #include <process.h>
 #include "stdafx.h"
-#include "include\CArrDef.h"
+#include "InterfSolver\include\CArrDef.h"
 
 //===============================================================================
 class Vector

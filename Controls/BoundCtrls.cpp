@@ -495,6 +495,32 @@ void CBoundCtrls::RemoveCurBound()
 void CBoundCtrls::FormBoundsOnLoadFile()
 {
 	CalcContour(ArrEll, ArrRect, ArrPlg, ArrContour, NPntNax);
+
+#ifdef _DEBUG
+	{
+		CString debugPath = "C:\\temp\\contour_points.txt";
+		FILE* debugFile = fopen(CStringA(debugPath), "w");
+		if (debugFile) {
+			for (int i = 0; i < ArrContour.GetSize(); i++) {
+				XYPolygon& plg = ArrContour[i];
+				fprintf(debugFile, "Contour %d (Type: %d, Points: %d):\n",
+					i, plg.GetTypeLimits(), plg.GetSize());
+
+				CArrayDouble arrX, arrY;
+				plg.GetArrX(arrX);
+				plg.GetArrY(arrY);
+
+				for (int j = 0; j < arrX.GetSize(); j++) {
+					fprintf(debugFile, "%.6f %.6f\n", arrX[j], arrY[j]);
+				}
+				fprintf(debugFile, "\n");
+			}
+			fclose(debugFile);
+			TRACE("Saved contour points to %s\n", CStringA(debugPath));
+		}
+	}
+#endif
+
 	 int Type;
 	 int i = 0;
 	 int nExtCont, nInsCont;

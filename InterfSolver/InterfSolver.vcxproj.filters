@@ -193,4 +193,7 @@
       <Filter>Resource Files</Filter>
     </CustomBuild>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Tools\MATRIX_TRANSPOSE_BUG_FIX.md" />
+  </ItemGroup>
 </Project>

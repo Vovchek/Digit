@@ -5,6 +5,7 @@
 #include "XYBounds.h"
 #include "XYPolygon.h"
 #include "XYBrokenLine.h"
+#include <vector>
 
 class XYEllipse 
   {
@@ -23,8 +24,7 @@ class XYEllipse
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     XYEllipse(const XYEllipse &A);
     XYEllipse(const XYBounds &Bnd, int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
-    XYEllipse(const XYPoint &P1, const XYPoint &P2, const XYPoint &P3, const XYPoint &P4, 
-                  int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
+    XYEllipse(const std::vector<XYPoint> &points, int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     void Set(double _Ax = 1., double _By = 1., double _Xc = 0., double _Yc = 0.,
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     ~XYEllipse();
@@ -38,6 +38,7 @@ class XYEllipse
     bool GetContour(XYBrokenLine &BLine, double Step) const;
     bool GetContour(XYPolygon& Plg, int NFi) const;
     bool GetContour(XYPolygon &Plg, double Step) const;
+    void GetExtents(double &Xmin, double &Ymin, double &Xmax, double &Ymax) const;
     void InverseY(double YcInv);
     void ShiftX(double dX);
     void ShiftY(double dY);

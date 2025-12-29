@@ -1,5 +1,5 @@
 #include <math.h>
-#include "Include\Int_Cons.h"
+#include "InterfSolver\Include\Int_Cons.h"
 #include "CalcContour.h"
 
 /**
@@ -142,7 +142,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
   // Connect segments by matching endpoints within tolerance
   int iBLn;
   int NCur;
-  double Eps = 2.5 * Step;  // Distance tolerance for endpoint matching
+  double Eps = max(2.5 * Step, 1e-5);  // Distance tolerance for endpoint matching
   bool isFind = true;
   XYPoint Pn, Pk;
   while ((NBLn = ArrBLn.GetSize()) > 0)
@@ -202,9 +202,18 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     if (CurCont.GetSize() > 0)
       {
+      // Explicitly close the contour if endpoints are close
+      NCur = CurCont.GetSize();
+      double closingDist = Distance(CurCont[0], CurCont[NCur-1]);
+      
+      // If endpoints are close, close the contour by duplicating first point
+      if (closingDist < Eps * 2.0)
+        {
+        CurCont.Add(CurCont[0]);
+        }
+      
       Plg = XYPolygon(CurCont);
       ArrCont.Add(Plg);
-
       }
     }
  //------------------------------------------------------------------------
@@ -215,32 +224,24 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     ArrCont[0].SetTypeLimits(EXTERNAL);
     return;
     }
-  // Determine which contour is external by testing containment
-  int iExt, i;
-  bool isIns;
+  // Mark all contours that aren't inside others as EXTERNAL
+  int i;
+  bool isInsideAny;
   for (iElm = 0; iElm < NCont; iElm++)
     {
     P = ArrCont[iElm][0];
+    isInsideAny = false;
     for (i = 0; i < NCont; i++)
       {
       if (i == iElm)
         continue;
-      if (isIns = ArrCont[i].isInside(P))
+      if (ArrCont[i].isInside(P))
+        {
+        isInsideAny = true;
         break;
+        }
       }
-    if (!isIns)
-      {
-      iExt = iElm;
-      break;
-      }
-    }
-  // Set contour types: one external, others internal
-  for (iElm = 0; iElm < NCont; iElm++)
-    {
-    if (iElm == iExt)
-      ArrCont[iElm].SetTypeLimits(EXTERNAL);
-    else
-      ArrCont[iElm].SetTypeLimits(INTERNAL);
+    ArrCont[iElm].SetTypeLimits(isInsideAny ? INTERNAL : EXTERNAL);
     }
   }
 //=========================================================================

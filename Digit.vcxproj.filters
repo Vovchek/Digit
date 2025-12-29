@@ -305,5 +305,13 @@
     <None Include="glut32.dll" />
     <None Include="Doc\ToDo.md" />
     <None Include="REFACTORING_PLAN.md" />
+    <None Include="Tools\visualize_contours.py" />
+    <None Include="Docs\BOUNDS_USAGE_IN_CREATEREDCENTERS.md" />
+    <None Include="Docs\BUG_CREATEREDCENTERS_POLYGON_MASKING.md" />
+    <None Include="Docs\FIX_SUMMARY_CREATEREDCENTERS.md" />
+    <None Include="Docs\CBOUNDCTRLS_DATA_STRUCTURE_MAP.md" />
+    <None Include="Docs\ISPUPIL_OPTIMIZATION_GUIDE.md" />
+    <None Include="Docs\ISPUPIL_OPTIMIZATION_SUMMARY.md" />
+    <None Include="Docs\ISPUPIL_QUICK_START.md" />
   </ItemGroup>
 </Project>

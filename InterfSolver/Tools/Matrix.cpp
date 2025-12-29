@@ -334,11 +334,11 @@ Matrix Trans(const Matrix &A)
   {
   int Mx = A.GetSizeX();
   int My = A.GetSizeY();
-  Matrix C(My,Mx);
+  Matrix C(Mx,My);  // Fixed: transposed dimensions
   for (int iy = 0; iy < My; iy++) 
     {
     for (int ix = 0; ix < Mx; ix++) 
-      C(iy,ix) = A(ix,iy);
+      C(ix,iy) = A(iy,ix);  // Swap indices for transpose
 		}
 	return C;
   }
