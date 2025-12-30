@@ -75,9 +75,10 @@ XYEllipse& XYEllipse ::operator= (const XYEllipse &A)
   return *this;
   }
 //=========================================================================
-double XYEllipse :: Perimeter()const
+double XYEllipse :: Perimeter() const
   {
-  double Perim = PI * (1.5 * (Ax + By) - sqrt(Ax * By));
+	constexpr double dPI = 3.14159265358979323846;
+  double Perim = dPI * (1.5 * (Ax + By) - sqrt(Ax * By));
   return Perim;
   }
 //=========================================================================

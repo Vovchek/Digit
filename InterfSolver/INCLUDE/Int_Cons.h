@@ -47,19 +47,19 @@ enum KEY_INP { NOINP, YESINP };
 
 #define  N_ELL 10
 
-#define  EPSR  1.E-5
-#define  EPSA  1.E-5
-#define  E18  -1.E18
-#define  E17  -1.E17
-#define  E10   1.E10
-#define  E3    1.E-3
-#define  E4    1.E-4
-#define  PI 3.14159265359
-#define  PI2 6.28318530718
-#define  PIG 180.
-#define  PIG2 360.
-#define  GRD_RD     0.01745329
-#define  RD_GRD     57.2957795
-#define  MIN        60.
-#define  THESHOLD   1.e-3
+#define  EPSR     1.E-5
+#define  EPSA     1.E-5
+#define  E18     -1.E18
+#define  E17     -1.E17
+#define  E10      1.E10
+#define  E3       1.E-3
+#define  E4       1.E-4
+#define  PI	      3.14159265359
+#define  PI2      6.28318530717958647692
+#define  PIG      180.
+#define  PIG2     360.
+#define  GRD_RD   0.01745329251994329576
+#define  RD_GRD   57.2957795130823208767
+#define  MIN      60.
+#define  THESHOLD 1.e-3
 #endif

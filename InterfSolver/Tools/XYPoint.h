@@ -60,8 +60,9 @@ struct XYPoint
     }
   friend double Angle(const XYPoint &P1, const XYPoint &P2)
     {
+      constexpr double dPI = 3.14159265358979323846;
     double dFi = P2.Angle() - P1.Angle();
-    if (fabs(dFi) > PI)
+    if (fabs(dFi) > dPI)
       dFi -= SIGN(dFi) * PI2;
     return dFi;
     }
