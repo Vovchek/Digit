@@ -62,7 +62,7 @@ void CDigitInfo::Init_buf_line(int ny, int n)
 	int i = 0;
 	Delete_buf_line();
 	ny_buf_line = ny;
-	buf_line = (int**)malloc(sizeof(int) * (ny_buf_line));
+	buf_line = (int**)malloc(sizeof(int *) * (ny_buf_line));
 	for (i = 0; i < ny; i++) {
 		buf_line[i] = (int*)malloc(sizeof(int) * (n));
 	}
@@ -170,6 +170,7 @@ void CDigitInfo::CreateBufLineApertureSimple()
 	double a, b;
 	int ny = BoundR.Height() + 1;
 
+	// BUG: if BoundR height is less then YLines size, the app will crash
 	Init_buf_line(ny, n);
 
 	// Aperture
@@ -225,6 +226,7 @@ void CDigitInfo::CreateBufLineApertureComplex()
 	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
 		return;
 	int n = 4;
+	// BUG: if BoundR height is less then YLines size, the app will crash
 	int ny = BoundR.Height() + 1;
 
 	Init_buf_line(ny, n);
@@ -771,10 +773,12 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 		iy = int(y);
 		CZapLineInfo zL;
 		if (pI->m_pDIB) {
+// BUG: Sections siz may be less then YLines size
 			zL.L = Sections[iy - ext_t_y].L;
 			zL.iSec = iy - ext_t_y;
 		}
 		else {
+// BUG: buf_line size may be less then YLines size
 			zL.L.P1.x = buf_line[iy - ext_t_y][0];
 			zL.L.P2.x = buf_line[iy - ext_t_y][1];
 			zL.L.P1.y = zL.L.P2.y = iy - ext_t_y;

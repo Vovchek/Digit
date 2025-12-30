@@ -58,17 +58,20 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     {
     ArrEll[iElm].GetContour(CurCont, Step);
     NPnt = CurCont.GetSize();
+    // BUG: when even NPnt CurCont[0] gives 2 points
+    // that causes empty bounding rect add crashes 
     for (iPnt = 0; iPnt < NPnt; iPnt++)
       {
       P = CurCont[iPnt];
       if (isPupil(P, ArrEll, iElm) && isPupil(P, ArrRect) && isPupil(P, ArrPlg))
-        CurBLn.Add(P);
+		  CurBLn.Add(P); // collect visible segment
       else if (CurBLn.GetSize() > 0)
-        {
+	  { // store segment
         ArrBLn.Add(CurBLn);
         CurBLn.RemoveAll();
         }
       }
+	// Store last segment if any
     if (CurBLn.GetSize() > 0)
       {
       ArrBLn.Add(CurBLn);
@@ -77,7 +80,7 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     }
  //------------------------------------------------------------------------
   // Extract visible contour segments from rectangles
-  CurBLn.RemoveAll();
+  CurBLn.RemoveAll(); // clear segment buffer
   for (iElm = 0; iElm < NRect; iElm++)
     {
     ArrRect[iElm].GetContour(CurCont, Step);
@@ -101,7 +104,8 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     }
  //------------------------------------------------------------------------
   // Extract visible contour segments from polygons
-  CurBLn.RemoveAll();
+  // BUG: some contours (even length?) handled inproperly
+  CurBLn.RemoveAll(); // clear segment buffer
   for (iElm = 0; iElm < NPlg; iElm++)
     {
     CurCont = ArrPlg[iElm];
@@ -131,11 +135,11 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
   CurCont.RemoveAll();
   XYPolygon Plg;
  //------------------------------------------------------------------------
-  int NBLn = ArrBLn.GetSize();
+  int NBLn = ArrBLn.GetSize(); // number of broken line segments
   if (NBLn == 1)
     {
     Plg = XYPolygon(ArrBLn[0]);
-    ArrCont.Add(Plg);
+    ArrCont.Add(Plg); // 
     return; 
     }
  //------------------------------------------------------------------------

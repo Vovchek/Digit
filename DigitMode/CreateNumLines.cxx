@@ -153,7 +153,10 @@ void CDigitInfo::ProcessSectionPropagation(int sectionIndex, int direction,
 void CDigitInfo::CreateNumLines()
 {
 	// Main section index determined by SelectMainSection()
-	int idxMain = idxMainSection;
+	int idxMain = max(0, min(idxMainSection, Sections.GetSize()));
+	if (Sections.GetSize() < 1 || Sections[idxMain].NumLines.GetSize() < 1)
+		return; // No sections or no fringes in main section
+
 	// Fringe segment width tolerance based on detected step size
 	double SecSegm12 = SecSegm * CorrectionSecSegm;
 	double N = -numStep;
