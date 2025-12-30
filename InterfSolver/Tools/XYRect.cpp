@@ -235,10 +235,10 @@ bool isVisible(const XYRect& Rect, const XYPoint& P)
 {
 	bool isIn = isInside(Rect, P);
 	if (isIn && Rect.TypeLimits == INTERNAL)
-		return true;
+		return false; // INTERNAL = obsuration
 	else if (!isIn && Rect.TypeLimits == EXTERNAL)
-		return true;
-	return false;
+		return false; // EXTERNAL = CA opening
+	return true;
 }
 //=========================================================================
 void GetContour(const XYRect& Rect, XYPolygon& Plg, int NFi)

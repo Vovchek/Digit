@@ -107,10 +107,10 @@ bool XYEllipse :: isVisible(const XYPoint &P) const
   {
   bool isIn = isInside(P);
   if (isIn && TypeLimits == INTERNAL)
-    return true;   // Inside visible for INTERNAL
+    return false;   // INTERNAL = obsuration
   else if (!isIn && TypeLimits == EXTERNAL)
-    return true;   // Outside visible for EXTERNAL
-  return false;
+    return false;   // EXTERNAL = CA opening
+  return true;
   }
 //=========================================================================
 bool XYEllipse :: isVisible(double X, double Y)

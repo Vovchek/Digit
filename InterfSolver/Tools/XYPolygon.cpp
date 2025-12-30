@@ -120,9 +120,9 @@ bool XYPolygon :: isVisible(const XYPoint &P) const
   {
   bool isIn = isInside(P);
   if (isIn && TypeLimits == INTERNAL)
-    return false;
+    return false; // INTERNAL = obsuration
   else if (!isIn && TypeLimits == EXTERNAL)
-    return false;
+    return false; // EXTERNAL = CA opening
   return true;
   }
 //=========================================================================
