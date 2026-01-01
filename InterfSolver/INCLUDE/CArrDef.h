@@ -13,13 +13,13 @@
 #define CArrayLong     CArray<long,long>
 #define CArrayFloat    CArray<float,float>
 #define CArrayDouble   CArray<double,double>
-#define CArrayComplex  CArray<complex,complex>
+#define CArrayComplex  CArray<complex>
 
-#define CArrayXYPoint  CArray<XYPoint,XYPoint>
-#define CArrayXYBrokenLine  CArray<XYBrokenLine,XYBrokenLine>
-#define CArrayXYPolygon  CArray<XYPolygon,XYPolygon>
-#define CArrayXYEllipse  CArray<XYEllipse,XYEllipse>
-#define CArrayXYRect  CArray<XYRect,XYRect>
-#define CArrayXYBounds  CArray<XYBounds,XYBounds>
+#define CArrayXYPoint  CArray<XYPoint>
+#define CArrayXYBrokenLine  CArray<XYBrokenLine>
+#define CArrayXYPolygon  CArray<XYPolygon>
+#define CArrayXYEllipse  CArray<XYEllipse>
+#define CArrayXYRect  CArray<XYRect>
+#define CArrayXYBounds  CArray<XYBounds>
 
 #endif

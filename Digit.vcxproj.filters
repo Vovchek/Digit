@@ -313,8 +313,5 @@
     <None Include="Docs\ISPUPIL_OPTIMIZATION_GUIDE.md" />
     <None Include="Docs\ISPUPIL_OPTIMIZATION_SUMMARY.md" />
     <None Include="Docs\ISPUPIL_QUICK_START.md" />
-    <None Include="Docs\BUG_WINDING_NUMBER_HARDCODED_CONSTANTS.md" />
-    <None Include="Docs\PRECISION_CRASH_FIX_SUMMARY.md" />
-    <None Include="Docs\DOS_ZAP_COORDINATE_ISSUE.md" />
   </ItemGroup>
 </Project>

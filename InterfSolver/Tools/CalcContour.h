@@ -7,5 +7,7 @@
 
   void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
            const CArrayXYPolygon &ArrPlg, CArrayXYPolygon &ArrCont, int NPntNax = N_CONT);
-//double GetContour() const;
+
+  void ConnectSegments(const CArrayXYBrokenLine& ArrBLn, CArrayXYPolygon& ArrCont, double Eps);
+
 #endif

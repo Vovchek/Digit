@@ -1,6 +1,132 @@
-#include <math.h>
+﻿#include <math.h>
+#include <functional>
 #include "InterfSolver\Include\Int_Cons.h"
 #include "CalcContour.h"
+
+/**
+ * @brief Connects broken line segments into continuous contour polygons
+ * 
+ * This function takes an array of broken line segments (visible portions of shape boundaries)
+ * and connects them by matching endpoints within a tolerance distance. The algorithm uses a
+ * greedy approach to assemble fragments into complete closed contours.
+ * 
+ * @param ArrBLn Input array of broken line segments to connect
+ * @param ArrCont Output array of resulting contour polygons
+ * @param Eps Distance tolerance for considering endpoints "close enough" to connect
+ * 
+ * Algorithm:
+ * 1. Take first segment from ArrBLn as starting contour
+ * 2. Repeatedly search remaining segments for endpoints matching current contour endpoints
+ * 3. Connect matching segments (reversing if needed to maintain direction)
+ * 4. Close contour if endpoints are within tolerance
+ * 5. Convert to polygon and add to output array
+ * 6. Repeat until all segments are processed
+ * 
+ * Connection cases:
+ * - New segment's start matches current contour's start → Reverse new segment, prepend
+ * - New segment's end matches current contour's start → Prepend as-is
+ * - New segment's start matches current contour's end → Append as-is
+ * - New segment's end matches current contour's end → Reverse new segment, append
+ */
+void ConnectSegments(const CArrayXYBrokenLine& InputBLn, CArrayXYPolygon& ArrCont, double Eps)
+{
+  ArrCont.RemoveAll();
+  auto NBLn = InputBLn.GetSize();
+  
+  if (NBLn == 0)
+    return;
+    
+  if (NBLn == 1)
+    {
+    auto Plg = XYPolygon(InputBLn[0]);
+    if(!Plg.isDegenerate())
+        ArrCont.Add(Plg);
+    return;
+    }
+
+  // Make a working copy since we'll be removing elements
+  // Skip 0-length lines to avoid crash
+  CArrayXYBrokenLine ArrBLn;
+  for(auto i = 0; i < InputBLn.GetSize(); ++i) 
+    {
+      if (InputBLn[i].GetSize() > 0)
+          ArrBLn.Add(InputBLn[i]);
+    }
+  
+  while ((NBLn = ArrBLn.GetSize()) > 0)
+    {
+    auto CurCont = ArrBLn[0];
+    ArrBLn.RemoveAt(0);
+    auto NCur = CurCont.GetSize();
+    auto Pn = CurCont[0];
+    auto Pk = CurCont[NCur-1];
+    bool isFound = true;
+    
+    while (isFound)
+      {
+      NBLn = ArrBLn.GetSize();
+      if (NBLn == 0)
+        break;
+        
+      for (auto iBLn = 0; iBLn < NBLn; iBLn++)
+        {
+        auto NPnt = ArrBLn[iBLn].GetSize();
+        if (Distance(Pn, ArrBLn[iBLn][0]) < Eps)
+          {
+          ArrBLn[iBLn].Inverse();
+          CurCont.InsertAt(0, ArrBLn[iBLn]);
+          ArrBLn.RemoveAt(iBLn);
+          Pn = CurCont[0];
+          isFound = true;
+          break;
+          }
+        else if (Distance(Pn, ArrBLn[iBLn][NPnt-1]) < Eps)
+          {
+          CurCont.InsertAt(0, ArrBLn[iBLn]);
+          ArrBLn.RemoveAt(iBLn);
+          Pn = CurCont[0];
+          isFound = true;
+          break;
+          }
+        else if (Distance(Pk, ArrBLn[iBLn][0]) < Eps)
+          {
+          CurCont.Append(ArrBLn[iBLn]);
+          ArrBLn.RemoveAt(iBLn);
+          NCur = CurCont.GetSize();
+          Pk = CurCont[NCur-1];
+          isFound = true;
+          break;
+          }
+        else if (Distance(Pk, ArrBLn[iBLn][NPnt-1]) < Eps)
+          {
+          ArrBLn[iBLn].Inverse();
+          CurCont.Append(ArrBLn[iBLn]);
+          ArrBLn.RemoveAt(iBLn);
+          NCur = CurCont.GetSize();
+          Pk = CurCont[NCur-1];
+          isFound = true;
+          break;
+          }
+        isFound = false;
+        }
+      }
+      
+    if (CurCont.GetSize() > 0)
+      {
+      NCur = CurCont.GetSize();
+      double closingDist = Distance(CurCont[0], CurCont[NCur-1]);
+      
+      if (closingDist < Eps * 2.0)
+        {
+        CurCont.Add(CurCont[0]);
+        }
+      
+      auto Plg = XYPolygon(CurCont);
+	  if (!Plg.isDegenerate())
+        ArrCont.Add(Plg);
+      }
+    }
+}
 
 /**
  * @brief Computes visible contours of geometric shapes accounting for occlusion
@@ -52,43 +178,16 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
     }
   Step = MaxPerim / NPntMax;
  //------------------------------------------------------------------------
-  // Extract visible contour segments from ellipses
-  CurBLn.RemoveAll();
-  for (iElm = 0; iElm < NEll; iElm++)
+  // Lambda to extract visible segments from a contour
+  auto extractVisibleSegments = [&](const XYBrokenLine& contour, 
+                                     std::function<bool(const XYPoint&)> isVisible)
     {
-    ArrEll[iElm].GetContour(CurCont, Step);
-    NPnt = CurCont.GetSize();
-    // BUG: when even NPnt CurCont[0] gives 2 points
-    // that causes empty bounding rect add crashes 
+    NPnt = contour.GetSize();
+    CurBLn.RemoveAll();
     for (iPnt = 0; iPnt < NPnt; iPnt++)
       {
-      P = CurCont[iPnt];
-      if (isPupil(P, ArrEll, iElm) && isPupil(P, ArrRect) && isPupil(P, ArrPlg))
-		  CurBLn.Add(P); // collect visible segment
-      else if (CurBLn.GetSize() > 0)
-	  { // store segment
-        ArrBLn.Add(CurBLn);
-        CurBLn.RemoveAll();
-        }
-      }
-	// Store last segment if any
-    if (CurBLn.GetSize() > 0)
-      {
-      ArrBLn.Add(CurBLn);
-      CurBLn.RemoveAll();
-      }
-    }
- //------------------------------------------------------------------------
-  // Extract visible contour segments from rectangles
-  CurBLn.RemoveAll(); // clear segment buffer
-  for (iElm = 0; iElm < NRect; iElm++)
-    {
-    ArrRect[iElm].GetContour(CurCont, Step);
-    NPnt = CurCont.GetSize();
-    for (iPnt = 0; iPnt < NPnt; iPnt++)
-      {
-      P = CurCont[iPnt];
-      if (isPupil(P, ArrEll) && isPupil(P, ArrRect, iElm) && isPupil(P, ArrPlg))
+      P = contour[iPnt];
+      if (isVisible(P))
         CurBLn.Add(P);
       else if (CurBLn.GetSize() > 0)
         {
@@ -101,125 +200,41 @@ void CalcContour(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       ArrBLn.Add(CurBLn);
       CurBLn.RemoveAll();
       }
+    };
+ //------------------------------------------------------------------------
+  // Extract visible contour segments from ellipses
+  for (iElm = 0; iElm < NEll; iElm++)
+    {
+    ArrEll[iElm].GetContour(CurCont, Step);
+    extractVisibleSegments(CurCont, [&](const XYPoint& pt) {
+      return isPupil(pt, ArrEll, iElm) && isPupil(pt, ArrRect) && isPupil(pt, ArrPlg);
+    });
+    }
+ //------------------------------------------------------------------------
+  // Extract visible contour segments from rectangles
+  for (iElm = 0; iElm < NRect; iElm++)
+    {
+    ArrRect[iElm].GetContour(CurCont, Step);
+    extractVisibleSegments(CurCont, [&](const XYPoint& pt) {
+      return isPupil(pt, ArrEll) && isPupil(pt, ArrRect, iElm) && isPupil(pt, ArrPlg);
+    });
     }
  //------------------------------------------------------------------------
   // Extract visible contour segments from polygons
-  // BUG: some contours (even length?) handled inproperly
-  CurBLn.RemoveAll(); // clear segment buffer
   for (iElm = 0; iElm < NPlg; iElm++)
     {
     CurCont = ArrPlg[iElm];
     NPnt = CurCont.GetSize();
     CurCont.RemoveAt(NPnt - 1);
     NPnt--;
-    for (iPnt = 0; iPnt < NPnt; iPnt++)
-      {
-      P = CurCont[iPnt];
-      if (isPupil(P, ArrEll) && isPupil(P, ArrRect) && isPupil(P, ArrPlg, iElm))
-        CurBLn.Add(P);
-      else if (CurBLn.GetSize() > 0)
-        {
-        ArrBLn.Add(CurBLn);
-        CurBLn.RemoveAll();
-        }
-      }
-    if (CurBLn.GetSize() > 0)
-      {
-      ArrBLn.Add(CurBLn);
-      CurBLn.RemoveAll();
-      }
+    extractVisibleSegments(CurCont, [&](const XYPoint& pt) {
+      return isPupil(pt, ArrEll) && isPupil(pt, ArrRect) && isPupil(pt, ArrPlg, iElm);
+    });
     }
  //------------------------------------------------------------------------
   // Connect broken line segments into continuous contours
-  CurBLn.RemoveAll();
-  CurCont.RemoveAll();
-  XYPolygon Plg;
- //------------------------------------------------------------------------
-  int NBLn = ArrBLn.GetSize(); // number of broken line segments
-  if (NBLn == 1)
-    {
-    Plg = XYPolygon(ArrBLn[0]);
-    ArrCont.Add(Plg); // 
-    return; 
-    }
- //------------------------------------------------------------------------
-  // Connect segments by matching endpoints within tolerance
-  int iBLn;
-  int NCur;
-  double Eps = max(2.5 * Step, 1e-5);  // Distance tolerance for endpoint matching
-  bool isFind = true;
-  XYPoint Pn, Pk;
-  while ((NBLn = ArrBLn.GetSize()) > 0)
-    {
-    CurCont = ArrBLn[0];
-    ArrBLn.RemoveAt(0);
-    NCur = CurCont.GetSize();
-    Pn = CurCont[0];
-    Pk = CurCont[NCur-1];
-    isFind = true;
-    while (isFind)
-      {
-      NBLn = ArrBLn.GetSize();
-      if (NBLn == 0)
-        break;
-      for (iBLn = 0; iBLn < NBLn; iBLn++)
-        {
-        NPnt = ArrBLn[iBLn].GetSize();
-        if (Distance(Pn, ArrBLn[iBLn][0]) < Eps)
-          {
-          ArrBLn[iBLn].Inverse();
-          CurCont.InsertAt(0, ArrBLn[iBLn]);
-          ArrBLn.RemoveAt(iBLn);
-          Pn = CurCont[0];
-          isFind = true;
-          break;
-          }
-        else if (Distance(Pn, ArrBLn[iBLn][NPnt-1]) < Eps)
-          {
-          CurCont.InsertAt(0, ArrBLn[iBLn]);
-          ArrBLn.RemoveAt(iBLn);
-          Pn = CurCont[0];
-          isFind = true;
-          break;
-          }
-        else if (Distance(Pk, ArrBLn[iBLn][0]) < Eps)
-          {
-          CurCont.Append(ArrBLn[iBLn]);
-          ArrBLn.RemoveAt(iBLn);
-          NCur = CurCont.GetSize();
-          Pk = CurCont[NCur-1];
-          isFind = true;
-          break;
-          }
-        else if (Distance(Pk, ArrBLn[iBLn][NPnt-1]) < Eps)
-          {
-          ArrBLn[iBLn].Inverse();
-          CurCont.Append(ArrBLn[iBLn]);
-          ArrBLn.RemoveAt(iBLn);
-          NCur = CurCont.GetSize();
-          Pk = CurCont[NCur-1];
-          isFind = true;
-          break;
-          }
-        isFind = false;
-        }
-      }
-    if (CurCont.GetSize() > 0)
-      {
-      // Explicitly close the contour if endpoints are close
-      NCur = CurCont.GetSize();
-      double closingDist = Distance(CurCont[0], CurCont[NCur-1]);
-      
-      // If endpoints are close, close the contour by duplicating first point
-      if (closingDist < Eps * 2.0)
-        {
-        CurCont.Add(CurCont[0]);
-        }
-      
-      Plg = XYPolygon(CurCont);
-      ArrCont.Add(Plg);
-      }
-    }
+  double Eps = max(2.5 * Step, 1e-5);
+  ConnectSegments(ArrBLn, ArrCont, Eps);
  //------------------------------------------------------------------------
   // Classify contours as external or internal (holes)
   int NCont = ArrCont.GetSize();

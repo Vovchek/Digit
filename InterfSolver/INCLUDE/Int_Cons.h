@@ -9,6 +9,7 @@ enum KEY_INP { NOINP, YESINP };
 #define SIGN(v) ((v >= 0) ? 1. : -1.)
 
 #define  PRECISION 0.00000001
+#define  HIGH_PRECISION 1.e-15
 
 #define  DAT 0
 #define  ZAP 1

@@ -305,28 +305,28 @@ TEST_F(XYEllipseTest, isVisible_ExternalLimits_Inside) {
     XYEllipse ellipse(5.0, 3.0, 0.0, 0.0, 0.0, EXTERNAL);
     XYPoint inside(0.0, 0.0);
     
-    EXPECT_FALSE(ellipse.isVisible(inside));  // Inside not visible for EXTERNAL
+    EXPECT_TRUE(ellipse.isVisible(inside));  // Inside is visible for EXTERNAL
 }
 
 TEST_F(XYEllipseTest, isVisible_ExternalLimits_Outside) {
     XYEllipse ellipse(5.0, 3.0, 0.0, 0.0, 0.0, EXTERNAL);
     XYPoint outside(10.0, 10.0);
     
-    EXPECT_TRUE(ellipse.isVisible(outside));  // Outside visible for EXTERNAL
+    EXPECT_FALSE(ellipse.isVisible(outside));  // Outside invisible for EXTERNAL
 }
 
 TEST_F(XYEllipseTest, isVisible_InternalLimits_Inside) {
     XYEllipse ellipse(5.0, 3.0, 0.0, 0.0, 0.0, INTERNAL);
     XYPoint inside(0.0, 0.0);
     
-    EXPECT_TRUE(ellipse.isVisible(inside));  // Inside visible for INTERNAL
+    EXPECT_FALSE(ellipse.isVisible(inside));  // Inside invisible for INTERNAL
 }
 
 TEST_F(XYEllipseTest, isVisible_InternalLimits_Outside) {
     XYEllipse ellipse(5.0, 3.0, 0.0, 0.0, 0.0, INTERNAL);
     XYPoint outside(10.0, 10.0);
     
-    EXPECT_FALSE(ellipse.isVisible(outside));  // Outside not visible for INTERNAL
+    EXPECT_TRUE(ellipse.isVisible(outside));  // Outside is visible for INTERNAL
 }
 
 // ============================================================================

@@ -24,12 +24,12 @@ EXPORTS
 ??4XYRect@@QAEAAV0@ABV0@@Z
 ??0XYBrokenLine@@QAE@ABV0@@Z
 ??4XYBrokenLine@@QAEAAV0@ABV0@@Z
-?CalcBounds@@YA_NABV?$CArray@VXYEllipse@@V1@@@ABV?$CArray@VXYRect@@V1@@@ABV?$CArray@VXYPolygon@@V1@@@AAUXYBounds@@@Z
+?CalcBounds@@YA_NABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAUXYBounds@@@Z
 ?GetArrY@XYBrokenLine@@QAEXAAV?$CArray@NN@@@Z
 ?GetArrX@XYBrokenLine@@QAEXAAV?$CArray@NN@@@Z
 ?GetBounds@XYPolygon@@QAEXAAUXYBounds@@@Z
-?CalcContour@@YAXABV?$CArray@VXYEllipse@@V1@@@ABV?$CArray@VXYRect@@V1@@@ABV?$CArray@VXYPolygon@@V1@@@AAV3@H@Z
-?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYPolygon@@V1@@@@Z
+?CalcContour@@YAXABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAV3@H@Z
+?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
 ??1XYPolygon@@QAE@XZ
 ??0XYPolygon@@QAE@ABV0@@Z
 ?CalcPolygonLimits@@YA_NABVXYBrokenLine@@HAAVXYPolygon@@@Z
@@ -40,7 +40,7 @@ EXPORTS
 ;?WriteFRNData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ??0SAMPLE_DATA@@QAE@XZ
 ?Clear@SAMPLE_DATA@@QAEXXZ
-?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYEllipse@@V1@@@ABV?$CArray@VXYRect@@V1@@@ABV?$CArray@VXYPolygon@@V1@@@@Z
+?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
 ??1Matrix@@QAE@XZ
 ?CalcPolAprImageMatr@@YAHAAUNUMBERING_INTERFEROGRAM_INFO@@HNAAVMatrix@@@Z
 ??0Matrix@@QAE@XZ

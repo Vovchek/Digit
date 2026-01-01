@@ -89,7 +89,7 @@ bool XYEllipse :: isInside(const XYPoint &P) const
   double R = (X1 * X1 / (Ax * Ax) + Y1 * Y1 / (By * By));
   double T = R - 1.;
 
-  if (T <= 0.)
+  if (T <= HIGH_PRECISION) // give a little allowance for numerical precision
     return true;
   else if (T > 0.)
     return false;

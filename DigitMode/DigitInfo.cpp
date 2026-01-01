@@ -62,7 +62,7 @@ void CDigitInfo::Init_buf_line(int ny, int n)
 	int i = 0;
 	Delete_buf_line();
 	ny_buf_line = ny;
-	buf_line = (int**)malloc(sizeof(int *) * (ny_buf_line));
+	buf_line = (int**)malloc(sizeof(int) * (ny_buf_line));
 	for (i = 0; i < ny; i++) {
 		buf_line[i] = (int*)malloc(sizeof(int) * (n));
 	}
@@ -162,15 +162,20 @@ void CDigitInfo::CreateBufLineApertureSimple()
 	int xDIB = pI->ImageSize.cx;
 	int yDIB = pI->ImageSize.cy;
 	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE)) {
+		TRACE("CreateBufLineApertureSimple: GetExtCorBound FAILED!\n");
 		return;
+	}
+	TRACE("CreateBufLineApertureSimple: xDIB=%d, yDIB=%d, BoundR: top=%d, bottom=%d, left=%d, right=%d\n",
+		xDIB, yDIB, BoundR.top, BoundR.bottom, BoundR.left, BoundR.right);
+	TRACE("CreateBufLineApertureSimple: ExtBoundType=%d, ArrEll.size=%d\n", pB->ExtBoundType, pB->ArrEll.GetSize());
+	
 	int n = 4;
 	int x, y;
 	int l_x, r_x;
 	double a, b;
 	int ny = BoundR.Height() + 1;
 
-	// BUG: if BoundR height is less then YLines size, the app will crash
 	Init_buf_line(ny, n);
 
 	// Aperture
@@ -179,6 +184,8 @@ void CDigitInfo::CreateBufLineApertureSimple()
 		a = BoundR.Width() / 2.;
 		b = ny / 2.;
 		cent = BoundR.CenterPoint();
+		TRACE("CreateBufLineApertureSimple: ELLIPSE mode, naP=%d, a=%f, b=%f, cent=(%f,%f)\n",
+			naP, a, b, cent.x, cent.y);
 		for (int i = 0; i < naP; i++) {
 			y = (int)(BoundR.top - cent.y + i);
 			x = (int)((1. - y * y / b / b) * a * a);
@@ -201,6 +208,8 @@ void CDigitInfo::CreateBufLineApertureSimple()
 			buf_line[naP * 2 - i - 1][2] = -1;
 			buf_line[naP * 2 - i - 1][3] = -1;
 		}
+		TRACE("CreateBufLineApertureSimple: First line buf_line[0]: [%d,%d], Last line buf_line[%d]: [%d,%d]\n",
+			buf_line[0][0], buf_line[0][1], ny-1, buf_line[ny-1][0], buf_line[ny-1][1]);
 	}
 	else if (pB->ExtBoundType == BOUND_RECT) {
 		for (int i = 0; i < ny; i++) {
@@ -213,6 +222,7 @@ void CDigitInfo::CreateBufLineApertureSimple()
 			buf_line[i][2] = -1;
 			buf_line[i][3] = -1;
 		}
+		TRACE("CreateBufLineApertureSimple: RECT mode, all lines set to [%d,%d]\n", l_x, r_x);
 	}
 }
 
@@ -226,7 +236,6 @@ void CDigitInfo::CreateBufLineApertureComplex()
 	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
 		return;
 	int n = 4;
-	// BUG: if BoundR height is less then YLines size, the app will crash
 	int ny = BoundR.Height() + 1;
 
 	Init_buf_line(ny, n);
@@ -393,8 +402,14 @@ void CDigitInfo::CreateRedCenters()
 	int xDIB = pI->m_pDIB->m_dwWidth;
 	int yDIB = pI->m_pDIB->m_dwHeight;
 	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE)) {
+		TRACE("CreateRedCenters: GetExtCorBound FAILED!\n");
 		return;
+	}
+	TRACE("CreateRedCenters: xDIB=%d, yDIB=%d, BoundR: top=%d, bottom=%d, left=%d, right=%d, height=%d\n",
+		xDIB, yDIB, BoundR.top, BoundR.bottom, BoundR.left, BoundR.right, BoundR.Height());
+	TRACE("CreateRedCenters: buf_line allocated with ny_buf_line=%d\n", ny_buf_line);
+	
 	int idx;
 	int begY = BoundR.top;
 	int endY = BoundR.bottom;
@@ -406,6 +421,11 @@ void CDigitInfo::CreateRedCenters()
 	int nContours = pB->ArrContour.GetSize();
 	XYPoint P;
 	bool useComplexMasking = (pB->ExtBoundType == BOUND_POLYGON || pB->InsBoundType == BOUND_POLYGON);
+	
+	TRACE("CreateRedCenters: begY=%d, endY=%d, ny=%d, useComplexMasking=%d, ArrEll.size=%d\n",
+		begY, endY, ny, useComplexMasking, pB->ArrEll.GetSize());
+	
+	int totalRedCenters = 0;
 	for (int iy = begY; iy < endY; iy++) {
 		int n = -1;
 		for (auto iCol = 0; iCol < pI->m_pDIB->m_dwWidth; iCol++) {
@@ -449,9 +469,12 @@ void CDigitInfo::CreateRedCenters()
 
 		for (int ii = 0; ii < Sections[i].NumLines.GetSize(); ii++) {
 			HidenDots.Add(CDPoint(Sections[i].NumLines[ii].redX, Sections[i].L.P1.y));
+			totalRedCenters++;
 		}
 
 	}
+	TRACE("CreateRedCenters: TOTAL red centers found: %d, HidenDots.size=%d\n", totalRedCenters, HidenDots.GetSize());
+	
 	free(line);
 	free(inv_line);
 
@@ -773,12 +796,10 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 		iy = int(y);
 		CZapLineInfo zL;
 		if (pI->m_pDIB) {
-// BUG: Sections siz may be less then YLines size
 			zL.L = Sections[iy - ext_t_y].L;
 			zL.iSec = iy - ext_t_y;
 		}
 		else {
-// BUG: buf_line size may be less then YLines size
 			zL.L.P1.x = buf_line[iy - ext_t_y][0];
 			zL.L.P2.x = buf_line[iy - ext_t_y][1];
 			zL.L.P1.y = zL.L.P2.y = iy - ext_t_y;
@@ -1103,7 +1124,7 @@ bool CDigitInfo::IsDotUnderCursor(CPoint P, int dotSide, int& idx)
 	int DotSide12 = dotSide / 2;
 	CPoint lP;
 	CRect dotR;
-	for (int i = 0; i < Dots.GetSize(); i++) {
+for (int i = 0; i < Dots.GetSize(); i++) {
 		lP.x = int(Dots[i].P.x);
 		lP.y = int(Dots[i].P.y);
 		dotR.left = lP.x - DotSide12;
@@ -1177,7 +1198,7 @@ void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 		int idx;
 		CDPoint dP;
 		if (GetDot(iZapSec, Number, idx, dP)) {
-			idxMainDot = idx;
+		idxMainDot = idx;
 			CurrentNumber = Number;
 			return;
 		}
@@ -1296,9 +1317,9 @@ bool CDigitInfo::GetFirstDotInFringe(double Number, int& idx, CDPoint& dP)
 		}
 	}
 	if (minidx != -1) {
-		idx = minidx;
-		dP = Dots[idx].P;
-		return true;
+	idx = minidx;
+	dP = Dots[idx].P;
+	return true;
 	}
 	else
 		return false;
@@ -1750,10 +1771,21 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		// Use ImageSize from IntInfo if image failed to load
 		int actualHeight = imageLoaded ? pI->ImageSize.cy : IntInfo.ImageSize[1];
 		double dY = (actualHeight - IntInfo.ImageSize[1]);
+		TRACE("LoadZAP: DOS ZAP detected, actualHeight=%d, fakeHeight=%d, dY=%f\n", 
+			actualHeight, IntInfo.ImageSize[1], dY);
+		
 		IntInfo.DigitDat.ShiftY(dY);
 		IntInfo.EBnd.ShiftY(dY);
-		for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++)
+		TRACE("LoadZAP: After EBnd shift: XLeft=%f, YTop=%f, XRight=%f, YBottom=%f\n",
+			IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop, IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
+			
+		for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++) {
+			TRACE("LoadZAP: Before shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n", 
+				i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
 			IntInfo.ArrEll[i].ShiftY(dY);
+			TRACE("LoadZAP: After shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n", 
+				i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
+		}
 		IntInfo.ImageSize[0] = imageLoaded ? pI->ImageSize.cx : IntInfo.ImageSize[0];
 		IntInfo.ImageSize[1] = actualHeight;
 	}
@@ -1773,6 +1805,9 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		SelectFringeStep();
 		SelectMainSection();
 		CreateNumLines();
+	}
+	else {
+		TRACE("LoadZAP: No image loaded - skipping fringe processing (CreateRedCenters/CreateNumLines)\n");
 	}
 	CreateZAPSectionsOnLoadZAPFile();
 	Delete_buf_line();

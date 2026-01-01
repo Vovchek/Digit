@@ -29,6 +29,8 @@ class XYPolygon : public XYBrokenLine
     XYPolygon& operator= (const XYBrokenLine &A);
     XYPolygon& operator= (const CArrayXYPoint &A);
     double Perimeter() const;
+    double Area() const;
+    bool isDegenerate() const;
     bool isInside(const XYPoint &P) const;
     bool isInside(double X, double Y);
     bool isVisible(const XYPoint &P) const;
