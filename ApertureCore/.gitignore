@@ -1,0 +1,258 @@
+# ApertureCore .gitignore
+# CMake C++ Project with Visual Studio on Windows
+
+# ============================================================================
+# Build Directories
+# ============================================================================
+build/
+build-*/
+out/
+cmake-build-*/
+_build/
+_builds/
+
+# ============================================================================
+# CMake Generated Files
+# ============================================================================
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+*.cmake
+
+# Keep custom cmake files
+!cmake/*.cmake
+!cmake/*.cmake.in
+!CMakeLists.txt
+
+# ============================================================================
+# Visual Studio / MSBuild
+# ============================================================================
+.vs/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+# Keep our hand-crafted VS project files
+!ApertureCore.vcxproj
+!ApertureCore.vcxproj.filters
+
+# Ignore CMake-generated VS projects (in build/)
+build/*.vcxproj
+build/*.vcxproj.filters
+build/*.sln
+
+# Visual Studio profiler
+*.psess
+*.vsp
+*.vspx
+*.sap
+
+# ============================================================================
+# Build Artifacts
+# ============================================================================
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Debug/Release directories
+Debug/
+Release/
+RelWithDebInfo/
+MinSizeRel/
+x64/
+x86/
+Win32/
+
+# ============================================================================
+# Google Test
+# ============================================================================
+# Don't ignore the fetched googletest if using FetchContent
+# but ignore test results
+Testing/
+CTestTestfile.cmake
+DartConfiguration.tcl
+
+# Test output files
+*.log
+*.trs
+test-suite.log
+
+# Coverage files
+*.gcov
+*.gcda
+*.gcno
+coverage/
+coverage.info
+lcov.info
+
+# ============================================================================
+# IDEs
+# ============================================================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# CLion
+.idea/
+cmake-build-debug/
+cmake-build-release/
+
+# Qt Creator
+*.pro.user
+*.pro.user.*
+CMakeLists.txt.user*
+
+# Xcode
+*.xcodeproj/
+*.xcworkspace/
+
+# ============================================================================
+# Package Managers
+# ============================================================================
+# Conan
+conanbuildinfo.cmake
+conaninfo.txt
+graph_info.json
+
+# vcpkg
+vcpkg_installed/
+
+# ============================================================================
+# Documentation
+# ============================================================================
+# Doxygen
+docs/html/
+docs/latex/
+docs/xml/
+Doxyfile.bak
+
+# ============================================================================
+# Temporary Files
+# ============================================================================
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# ============================================================================
+# Installation
+# ============================================================================
+install/
+prefix/
+dist/
+
+# ============================================================================
+# Profiling & Debugging
+# ============================================================================
+*.dmp
+*.stackdump
+gmon.out
+callgrind.out.*
+cachegrind.out.*
+*.prof
+
+# ============================================================================
+# Project Specific
+# ============================================================================
+# Keep documentation
+!DESIGN.md
+!README.md
+!IMPLEMENTATION.md
+!PROJECT_SUMMARY.md
+!QUICK_REFERENCE.md
+!PHASE1_PROGRESS.md
+!PHASE1_DAY1_COMPLETE.md
+
+# Keep build scripts
+!build.ps1
+!build.sh
+
+# Keep CMake config templates
+!cmake/ApertureCoreConfig.cmake.in
+
+# ============================================================================
+# OS Specific
+# ============================================================================
+# Windows
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# ============================================================================
+# Package Files (Don't commit binaries)
+# ============================================================================
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ============================================================================
+# Ninja
+# ============================================================================
+.ninja_deps
+.ninja_log
+build.ninja
+rules.ninja

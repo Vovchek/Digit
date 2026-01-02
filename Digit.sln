@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.0.11217.181 d18.0
+VisualStudioVersion = 18.0.11217.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Digit", "Digit.vcxproj", "{73A10FAD-863F-2B93-476F-EEF060AB33C6}"
 	ProjectSection(ProjectDependencies) = postProject
@@ -20,6 +20,8 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "InterfSolver", "InterfSolver\InterfSolver.vcxproj", "{D427EE42-6D63-CC23-9451-AA82FF993D56}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj", "{9F4C3E94-ADB9-496B-91C7-21012269E892}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ApertureCore", "ApertureCore\ApertureCore.vcxproj", "{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -64,6 +66,12 @@ Global
 		{9F4C3E94-ADB9-496B-91C7-21012269E892}.Release|Win32.Build.0 = Release|Win32
 		{9F4C3E94-ADB9-496B-91C7-21012269E892}.Template|Win32.ActiveCfg = Debug|Win32
 		{9F4C3E94-ADB9-496B-91C7-21012269E892}.Template|Win32.Build.0 = Debug|Win32
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Debug|Win32.ActiveCfg = Debug|x64
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Debug|Win32.Build.0 = Debug|x64
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Release|Win32.ActiveCfg = Release|x64
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Release|Win32.Build.0 = Release|x64
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Template|Win32.ActiveCfg = Debug|x64
+		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Template|Win32.Build.0 = Debug|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
