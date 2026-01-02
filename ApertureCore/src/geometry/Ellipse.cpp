@@ -172,4 +172,35 @@ std::unique_ptr<Shape> Ellipse::clone() const {
     return std::make_unique<Ellipse>(*this);
 }
 
+void Ellipse::normalize(double originX, double originY, double radius) {
+    semiMajor_ /= radius;
+    semiMinor_ /= radius;
+    center_.x = (center_.x - originX) / radius;
+    center_.y = (center_.y - originY) / radius;
+    coordSystem_ = CoordinateSystem::NORMALIZED;
+}
+
+void Ellipse::denormalize(double originX, double originY, double radius) {
+    semiMajor_ *= radius;
+    semiMinor_ *= radius;
+    center_.x = center_.x * radius + originX;
+    center_.y = center_.y * radius + originY;
+    coordSystem_ = CoordinateSystem::MEASURING;
+}
+
+void Ellipse::inverseY(double centerY) {
+    center_.y = centerY - center_.y;
+    rotationDeg_ = -rotationDeg_;
+    rotationRad_ = -rotationRad_;
+    updateRotationCache();
+}
+
+void Ellipse::shiftX(double deltaX) {
+    center_.x += deltaX;
+}
+
+void Ellipse::shiftY(double deltaY) {
+    center_.y += deltaY;
+}
+
 } // namespace aperture

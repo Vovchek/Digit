@@ -79,6 +79,14 @@ public:
      * @brief Get corner points in order: TL, TR, BR, BL
      */
     std::array<Point, 4> corners() const;
+    
+    // Coordinate transformation interface implementation
+    
+    void normalize(double originX, double originY, double radius) override;
+    void denormalize(double originX, double originY, double radius) override;
+    void inverseY(double centerY) override;
+    void shiftX(double deltaX) override;
+    void shiftY(double deltaY) override;
 
 private:
     double width_;          ///< Width (local X)

@@ -131,4 +131,35 @@ std::unique_ptr<Shape> Rectangle::clone() const {
     return std::make_unique<Rectangle>(*this);
 }
 
+void Rectangle::normalize(double originX, double originY, double radius) {
+    width_ /= radius;
+    height_ /= radius;
+    center_.x = (center_.x - originX) / radius;
+    center_.y = (center_.y - originY) / radius;
+    coordSystem_ = CoordinateSystem::NORMALIZED;
+}
+
+void Rectangle::denormalize(double originX, double originY, double radius) {
+    width_ *= radius;
+    height_ *= radius;
+    center_.x = center_.x * radius + originX;
+    center_.y = center_.y * radius + originY;
+    coordSystem_ = CoordinateSystem::MEASURING;
+}
+
+void Rectangle::inverseY(double centerY) {
+    center_.y = centerY - center_.y;
+    rotationDeg_ = -rotationDeg_;
+    rotationRad_ = -rotationRad_;
+    updateRotationCache();
+}
+
+void Rectangle::shiftX(double deltaX) {
+    center_.x += deltaX;
+}
+
+void Rectangle::shiftY(double deltaY) {
+    center_.y += deltaY;
+}
+
 } // namespace aperture

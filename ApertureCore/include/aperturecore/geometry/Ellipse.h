@@ -85,6 +85,33 @@ public:
      * @brief Get focal distance (distance from center to focus)
      */
     double focalDistance() const;
+    
+    // Coordinate transformation interface implementation
+    
+    /**
+     * @brief Normalize coordinates to unit system
+     */
+    void normalize(double originX, double originY, double radius) override;
+    
+    /**
+     * @brief Denormalize coordinates back to measuring system
+     */
+    void denormalize(double originX, double originY, double radius) override;
+    
+    /**
+     * @brief Invert Y coordinate
+     */
+    void inverseY(double centerY) override;
+    
+    /**
+     * @brief Shift shape in X direction
+     */
+    void shiftX(double deltaX) override;
+    
+    /**
+     * @brief Shift shape in Y direction
+     */
+    void shiftY(double deltaY) override;
 
 private:
     double semiMajor_;      ///< Semi-major axis (A)

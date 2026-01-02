@@ -99,6 +99,14 @@ public:
      * @brief Close the polygon if not already closed
      */
     void ensureClosed(double tolerance = 1e-6);
+    
+    // Coordinate transformation interface implementation
+    
+    void normalize(double originX, double originY, double radius) override;
+    void denormalize(double originX, double originY, double radius) override;
+    void inverseY(double centerY) override;
+    void shiftX(double deltaX) override;
+    void shiftY(double deltaY) override;
 
 private:
     std::vector<Point> vertices_;  ///< Polygon vertices

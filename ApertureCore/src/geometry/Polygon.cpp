@@ -252,4 +252,38 @@ std::unique_ptr<Shape> Polygon::clone() const {
     return std::make_unique<Polygon>(*this);
 }
 
+void Polygon::normalize(double originX, double originY, double radius) {
+    for (auto& vertex : vertices_) {
+        vertex.x = (vertex.x - originX) / radius;
+        vertex.y = (vertex.y - originY) / radius;
+    }
+    coordSystem_ = CoordinateSystem::NORMALIZED;
+}
+
+void Polygon::denormalize(double originX, double originY, double radius) {
+    for (auto& vertex : vertices_) {
+        vertex.x = vertex.x * radius + originX;
+        vertex.y = vertex.y * radius + originY;
+    }
+    coordSystem_ = CoordinateSystem::MEASURING;
+}
+
+void Polygon::inverseY(double centerY) {
+    for (auto& vertex : vertices_) {
+        vertex.y = centerY - vertex.y;
+    }
+}
+
+void Polygon::shiftX(double deltaX) {
+    for (auto& vertex : vertices_) {
+        vertex.x += deltaX;
+    }
+}
+
+void Polygon::shiftY(double deltaY) {
+    for (auto& vertex : vertices_) {
+        vertex.y += deltaY;
+    }
+}
+
 } // namespace aperture
