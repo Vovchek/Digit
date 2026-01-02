@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Google Test suite for CalcContour function
 /// Tests visible contour calculation with occlusion handling for geometric shapes
 /// </summary>
@@ -122,32 +122,16 @@ TEST_F(CalcContourTest, SinglePolygon_ProducesOneContour) {
 // Occlusion Tests
 // ============================================================================
 
-TEST_F(CalcContourTest, TwoNonOverlappingEllipses_ProducesTwoContours) {
+TEST_F(CalcContourTest, TwoConcentricEllipses_EXTERNAL_InnerOnly) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
 
-    // Two ellipses far apart
-    XYEllipse ellipse1(5.0, 3.0, -20.0, 0.0, 0.0, EXTERNAL);
-    XYEllipse ellipse2(5.0, 3.0, 20.0, 0.0, 0.0, EXTERNAL);
-    arrEll.Add(ellipse1);
-    arrEll.Add(ellipse2);
-
-    CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
-
-    EXPECT_EQ(arrCont.GetSize(), 2);
-}
-
-TEST_F(CalcContourTest, EllipseInsideEllipse_EXTERNAL_ProducesOneContour) {
-    CArrayXYEllipse arrEll;
-    CArrayXYRect arrRect;
-    CArrayXYPolygon arrPlg;
-    CArrayXYPolygon arrCont;
-
-    // Large outer ellipse (EXTERNAL - only outside is visible)
+    // Two EXTERNAL ellipses (apertures), one inside the other
+    // EXTERNAL means INSIDE each shape is visible
+    // Visible area = intersection = smaller inner ellipse
     XYEllipse outer(20.0, 15.0, 0.0, 0.0, 0.0, EXTERNAL);
-    // Small inner ellipse (EXTERNAL - only outside is visible)
     XYEllipse inner(5.0, 3.0, 0.0, 0.0, 0.0, EXTERNAL);
     
     arrEll.Add(outer);
@@ -155,8 +139,17 @@ TEST_F(CalcContourTest, EllipseInsideEllipse_EXTERNAL_ProducesOneContour) {
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
 
-    // Should produce one contour for outer and one for inner
-    EXPECT_GE(arrCont.GetSize(), 1);
+    // Should produce contour for the intersection (inner ellipse)
+    EXPECT_EQ(arrCont.GetSize(), 1)
+        << "Intersection of two EXTERNAL ellipses = inner ellipse";
+    
+    // Contour should approximate inner ellipse size
+    if (arrCont.GetSize() > 0) {
+        XYBounds bounds = arrCont[0].GetBounds();
+        // Bounds should be close to inner ellipse dimensions
+        EXPECT_LT(bounds.XRight - bounds.XLeft, 12.0);  // Inner width ~10
+        EXPECT_LT(bounds.YBottom - bounds.YTop, 8.0);   // Inner height ~6
+    }
 }
 
 TEST_F(CalcContourTest, EllipseWithInternalHole_ProducesTwoContours) {
@@ -216,7 +209,8 @@ TEST_F(CalcContourTest, EllipseAndRectangle_NonOverlapping) {
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
 
-    EXPECT_EQ(arrCont.GetSize(), 2);
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "Non-overlapping EXTERNAL shapes should produce empty visible area";
 }
 
 TEST_F(CalcContourTest, EllipseRectanglePolygon_Mixed) {
@@ -242,7 +236,8 @@ TEST_F(CalcContourTest, EllipseRectanglePolygon_Mixed) {
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
 
-    EXPECT_EQ(arrCont.GetSize(), 3);
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "Three non-overlapping EXTERNAL shapes should produce empty visible area";
 }
 
 // ============================================================================
@@ -337,26 +332,28 @@ TEST_F(CalcContourTest, DefaultStepSize_UsesNContConstant) {
 // Segment Connection Tests
 // ============================================================================
 
-TEST_F(CalcContourTest, BrokenSegments_AreConnected) {
+TEST_F(CalcContourTest, ThreeOverlappingEllipses_EXTERNAL_ComplexIntersection) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
 
-    // Create two ellipses that partially occlude a third
-    XYEllipse base(15.0, 10.0, 0.0, 0.0, 0.0, EXTERNAL);
-    XYEllipse occluder1(4.0, 3.0, -8.0, 0.0, 0.0, EXTERNAL);
-    XYEllipse occluder2(4.0, 3.0, 8.0, 0.0, 0.0, EXTERNAL);
-    
-    arrEll.Add(base);
-    arrEll.Add(occluder1);
-    arrEll.Add(occluder2);
+    // Three overlapping EXTERNAL ellipses
+    // Visible area = their intersection (complex shape)
+    XYEllipse ellipse1(12.0, 10.0, 0.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse ellipse2(8.0, 6.0, -4.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse ellipse3(8.0, 6.0, 4.0, 0.0, 0.0, EXTERNAL);
+
+    arrEll.Add(ellipse1);
+    arrEll.Add(ellipse2);
+    arrEll.Add(ellipse3);
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
 
-    // Should connect broken segments
-    EXPECT_GE(arrCont.GetSize(), 1);
-    
+    // Should produce contour for complex intersection
+    EXPECT_GE(arrCont.GetSize(), 1)
+        << "Overlapping EXTERNAL ellipses should produce intersection contour";
+
     // All contours should be closed
     for (int i = 0; i < arrCont.GetSize(); i++) {
         EXPECT_TRUE(IsClosed(arrCont[i]));
@@ -433,13 +430,15 @@ TEST_F(CalcContourTest, VeryLargeShape_HandlesGracefully) {
     EXPECT_GT(arrCont[0].GetSize(), 0);
 }
 
-TEST_F(CalcContourTest, CompletelyOccludedShape_ProducesNoContour) {
+TEST_F(CalcContourTest, TwoConcentricEllipses_EXTERNAL_InnerVisible) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
 
-    // Large ellipse completely hiding small one
+    // Two concentric EXTERNAL ellipses (large contains small)
+    // EXTERNAL means inside is visible
+    // Visible area = intersection = smaller ellipse
     XYEllipse largeEll(20.0, 15.0, 0.0, 0.0, 0.0, EXTERNAL);
     XYEllipse smallEll(3.0, 2.0, 0.0, 0.0, 0.0, EXTERNAL);
     
@@ -448,9 +447,22 @@ TEST_F(CalcContourTest, CompletelyOccludedShape_ProducesNoContour) {
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
 
-    // Small ellipse should be completely hidden
-    // Only large ellipse contour should appear
-    EXPECT_GE(arrCont.GetSize(), 1);
+    // Should produce contour for the intersection (small ellipse)
+    EXPECT_EQ(arrCont.GetSize(), 1)
+        << "Intersection of concentric EXTERNAL ellipses = small ellipse";
+    
+    // Verify the contour approximates the small ellipse size
+    if (arrCont.GetSize() > 0) {
+        XYBounds bounds = arrCont[0].GetBounds();
+        // Bounds should be close to small ellipse dimensions (width ~6, height ~4)
+        double width = bounds.XRight - bounds.XLeft;
+        double height = bounds.YBottom - bounds.YTop;
+        
+        EXPECT_LT(width, 8.0)   << "Contour too wide for small ellipse";
+        EXPECT_GT(width, 4.0)   << "Contour too narrow for small ellipse";
+        EXPECT_LT(height, 6.0)  << "Contour too tall for small ellipse";
+        EXPECT_GT(height, 2.0)  << "Contour too short for small ellipse";
+    }
 }
 
 // ============================================================================
@@ -562,35 +574,52 @@ TEST_F(CalcContourTest, SelfIntersectingPolygon_HandlesGracefully) {
 // Visibility Logic Tests
 // ============================================================================
 
-TEST_F(CalcContourTest, AllEXTERNAL_OnlyOutsidePointsVisible) {
+TEST_F(CalcContourTest, TwoNonOverlapping_EXTERNAL_InsideIsVisible_EmptyIntersection) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
 
-    // All shapes marked as EXTERNAL
+    // Two EXTERNAL apertures: INSIDE each shape is visible
+    // But shapes don't overlap → intersection = EMPTY
     arrEll.Add(XYEllipse(10.0, 8.0, 0.0, 0.0, 0.0, EXTERNAL));
     arrRect.Add(XYRect(5.0, 4.0, 20.0, 0.0, 0.0, EXTERNAL));
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
 
-    EXPECT_EQ(arrCont.GetSize(), 2);
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "EXTERNAL shapes: inside is visible, but non-overlapping → empty intersection";
 }
 
-TEST_F(CalcContourTest, MixedEXTERNALandINTERNAL_ProducesCorrectContours) {
+TEST_F(CalcContourTest, TwoOverlappingEllipses_EXTERNAL_IntersectionVisible) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
 
-    // Outer EXTERNAL, inner INTERNAL (hole)
-    arrEll.Add(XYEllipse(20.0, 15.0, 0.0, 0.0, 0.0, EXTERNAL));
-    arrEll.Add(XYEllipse(5.0, 4.0, 0.0, 0.0, 0.0, INTERNAL));
+    // Two overlapping EXTERNAL ellipses
+    // Visible area = intersection region
+    XYEllipse ellipse1(10.0, 8.0, 0.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse ellipse2(10.0, 8.0, 3.0, 2.0, 0.0, EXTERNAL);
+    
+    arrEll.Add(ellipse1);
+    arrEll.Add(ellipse2);
 
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
 
-    // Should produce contours for both
-    EXPECT_GE(arrCont.GetSize(), 1);
+    EXPECT_GT(arrCont.GetSize(), 0)
+        << "Overlapping EXTERNAL shapes should produce visible intersection";
+    
+    // Verify all contour points are inside BOTH ellipses (intersection)
+    for (int i = 0; i < arrCont.GetSize(); i++) {
+        for (int j = 0; j < arrCont[i].GetSize() - 1; j++) {  // -1 to skip closing point
+            XYPoint pt = arrCont[i][j];
+            EXPECT_TRUE(ellipse1.isInside(pt)) 
+                << "Point should be inside first ellipse (intersection)";
+            EXPECT_TRUE(ellipse2.isInside(pt)) 
+                << "Point should be inside second ellipse (intersection)";
+        }
+    }
 }
 
 // ============================================================================
@@ -679,24 +708,6 @@ TEST_F(CalcContourTest, Square_ProducesRectangularContour) {
 // Boundary Condition Tests
 // ============================================================================
 
-TEST_F(CalcContourTest, TouchingButNotOverlapping_ProducesSeparateContours) {
-    CArrayXYEllipse arrEll;
-    CArrayXYRect arrRect;
-    CArrayXYPolygon arrPlg;
-    CArrayXYPolygon arrCont;
-
-    // Two circles touching at one point
-    XYEllipse circle1(5.0, 5.0, -5.0, 0.0, 0.0, EXTERNAL);
-    XYEllipse circle2(5.0, 5.0, 5.0, 0.0, 0.0, EXTERNAL);
-    
-    arrEll.Add(circle1);
-    arrEll.Add(circle2);
-
-    CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
-
-    EXPECT_EQ(arrCont.GetSize(), 2);
-}
-
 TEST_F(CalcContourTest, IdenticalShapes_ProducesSingleContour) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
@@ -714,4 +725,63 @@ TEST_F(CalcContourTest, IdenticalShapes_ProducesSingleContour) {
 
     // Should produce one contour (shapes are identical)
     EXPECT_GE(arrCont.GetSize(), 1);
+}
+
+TEST_F(CalcContourTest, TwoNonOverlappingEllipses_EXTERNAL_EmptyVisibleArea) {
+    CArrayXYEllipse arrEll;
+    CArrayXYRect arrRect;
+    CArrayXYPolygon arrPlg;
+    CArrayXYPolygon arrCont;
+
+    // Two EXTERNAL ellipses far apart (centers 40 units apart)
+    // Visible area = intersection = EMPTY
+    XYEllipse ellipse1(5.0, 3.0, -20.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse ellipse2(5.0, 3.0, 20.0, 0.0, 0.0, EXTERNAL);
+    arrEll.Add(ellipse1);
+    arrEll.Add(ellipse2);
+
+    CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
+
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "Non-overlapping EXTERNAL apertures should produce empty visible area";
+}
+
+TEST_F(CalcContourTest, ManyNonOverlappingShapes_EXTERNAL_EmptyIntersection) {
+    CArrayXYEllipse arrEll;
+    CArrayXYRect arrRect;
+    CArrayXYPolygon arrPlg;
+    CArrayXYPolygon arrCont;
+
+    // Add 25 EXTERNAL ellipses in a grid (spacing 10 units, size ~4 units)
+    // Non-overlapping → intersection of all = EMPTY
+    for (int i = 0; i < 5; i++) {
+        for (int j = 0; j < 5; j++) {
+            arrEll.Add(XYEllipse(2.0, 1.5, i * 10.0, j * 10.0, 0.0, EXTERNAL));
+        }
+    }
+
+    CalcContour(arrEll, arrRect, arrPlg, arrCont, 50);
+
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "25 non-overlapping EXTERNAL shapes → intersection = EMPTY";
+}
+
+TEST_F(CalcContourTest, TwoTouchingCircles_EXTERNAL_DegenerateIntersection) {
+    CArrayXYEllipse arrEll;
+    CArrayXYRect arrRect;
+    CArrayXYPolygon arrPlg;
+    CArrayXYPolygon arrCont;
+
+    // Two EXTERNAL circles touching at single point (0, 0)
+    // Intersection ≈ point → degenerate → filtered out
+    XYEllipse circle1(5.0, 5.0, -5.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse circle2(5.0, 5.0, 5.0, 0.0, 0.0, EXTERNAL);
+    
+    arrEll.Add(circle1);
+    arrEll.Add(circle2);
+
+    CalcContour(arrEll, arrRect, arrPlg, arrCont, 100);
+
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "Touching EXTERNAL circles → intersection ≈ point → degenerate → filtered out";
 }

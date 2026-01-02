@@ -3,6 +3,44 @@
 #include "InterfSolver\Include\Int_Cons.h"
 #include "CalcContour.h"
 
+// Helper function
+bool AreSegmentsIdentical(const XYBrokenLine& seg1, const XYBrokenLine& seg2, double eps)
+{
+    if (seg1.GetSize() != seg2.GetSize())
+        return false;
+
+    auto n = seg1.GetSize();
+    if (n < 2)
+        return false;
+
+    // Check forward direction
+    bool forwardMatch = true;
+    for (auto i = 0; i < n; ++i)
+    {
+        if (Distance(seg1[i], seg2[i]) > eps)
+        {
+            forwardMatch = false;
+            break;
+        }
+    }
+
+    if (forwardMatch)
+        return true;
+
+    // Check reverse direction
+    bool reverseMatch = true;
+    for (auto i = 0; i < n; ++i)
+    {
+        if (Distance(seg1[i], seg2[n - 1 - i]) > eps)
+        {
+            reverseMatch = false;
+            break;
+        }
+    }
+
+    return reverseMatch;
+}
+
 /**
  * @brief Connects broken line segments into continuous contour polygons
  * 
@@ -49,9 +87,23 @@ void ConnectSegments(const CArrayXYBrokenLine& InputBLn, CArrayXYPolygon& ArrCon
   CArrayXYBrokenLine ArrBLn;
   for(auto i = 0; i < InputBLn.GetSize(); ++i) 
     {
-      if (InputBLn[i].GetSize() > 0)
+      if (InputBLn[i].GetSize() == 0)
+          continue;
+
+      // Check if this segment is a duplicate of any previously added segment
+      bool isDuplicate = false;
+      for (auto j = 0; j < ArrBLn.GetSize(); ++j)
+      {
+          if (AreSegmentsIdentical(InputBLn[i], ArrBLn[j], Eps))
+          {
+              isDuplicate = true;
+              break;
+          }
+      }
+
+      if (!isDuplicate)
           ArrBLn.Add(InputBLn[i]);
-    }
+  }
   
   while ((NBLn = ArrBLn.GetSize()) > 0)
     {

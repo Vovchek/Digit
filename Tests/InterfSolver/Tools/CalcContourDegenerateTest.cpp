@@ -1,4 +1,4 @@
-/// <summary>
+﻿/// <summary>
 /// Test suite for detecting degenerate polygon bug in CalcContour
 /// 
 /// This test suite specifically targets the bug where:
@@ -279,13 +279,14 @@ TEST_F(CalcContourDegenerateTest, VisibilityFiltering_NotOverlyAggressive) {
         << "Less than 5% visible points on ellipse 1";
 }
 
-TEST_F(CalcContourDegenerateTest, ExternalApertures_PreserveVisibleRegions) {
+TEST_F(CalcContourDegenerateTest, ExternalApertures_NonOverlapping_EmptyVisibleArea) {
     CArrayXYEllipse arrEll;
     CArrayXYRect arrRect;
     CArrayXYPolygon arrPlg;
     CArrayXYPolygon arrCont;
     
-    // Two EXTERNAL apertures that don't overlap
+    // Two EXTERNAL apertures that DON'T overlap
+    // Visible area = intersection of apertures = EMPTY
     XYEllipse ellipse1(5.0, 4.0, -10.0, 0.0, 0.0, EXTERNAL);
     XYEllipse ellipse2(5.0, 4.0, 10.0, 0.0, 0.0, EXTERNAL);
     
@@ -294,14 +295,37 @@ TEST_F(CalcContourDegenerateTest, ExternalApertures_PreserveVisibleRegions) {
     
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
     
-    // Should produce 2 contours (one for each aperture)
-    EXPECT_EQ(arrCont.GetSize(), 2);
+    // Non-overlapping EXTERNAL apertures → no visible area → no contours
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "Non-overlapping EXTERNAL apertures should produce empty visible area";
+}
+
+TEST_F(CalcContourDegenerateTest, ExternalApertures_Overlapping_ProducesContour) {
+    CArrayXYEllipse arrEll;
+    CArrayXYRect arrRect;
+    CArrayXYPolygon arrPlg;
+    CArrayXYPolygon arrCont;
     
-    // Each should have many points
+    // Two EXTERNAL apertures that DO overlap
+    // Visible area = intersection of apertures
+    XYEllipse ellipse1(10.0, 8.0, 0.0, 0.0, 0.0, EXTERNAL);
+    XYEllipse ellipse2(10.0, 8.0, 2.0, 1.0, 0.0, EXTERNAL);  // Overlapping
+    
+    arrEll.Add(ellipse1);
+    arrEll.Add(ellipse2);
+    
+    CalcContour(arrEll, arrRect, arrPlg, arrCont, 200);
+    
+    // Should produce contour(s) for the overlapping region
+    EXPECT_GT(arrCont.GetSize(), 0)
+        << "Overlapping EXTERNAL apertures should produce visible area";
+    
+    // All contours should be valid
     for (int i = 0; i < arrCont.GetSize(); i++) {
-        EXPECT_GT(arrCont[i].GetSize(), 50)
-            << "Contour " << i << " has too few points: " 
-            << arrCont[i].GetSize();
+        EXPECT_GE(arrCont[i].GetSize(), MIN_VIABLE_POLYGON_POINTS)
+            << "Contour " << i << " is degenerate";
+        EXPECT_FALSE(IsDegenerate(arrCont[i]))
+            << "Contour " << i << " is degenerate";
     }
 }
 
@@ -318,7 +342,7 @@ TEST_F(CalcContourDegenerateTest, VerySmallStep_ProducesValidPolygons) {
     XYEllipse ellipse(10.0, 8.0, 0.0, 0.0, 0.0, EXTERNAL);
     arrEll.Add(ellipse);
     
-    // Very large NPntMax ? very small step
+    // Very large NPntMax → very small step
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 5000);
     
     ASSERT_GT(arrCont.GetSize(), 0);
@@ -335,7 +359,7 @@ TEST_F(CalcContourDegenerateTest, VeryLargeStep_StillProducesValidPolygons) {
     XYEllipse ellipse(10.0, 8.0, 0.0, 0.0, 0.0, EXTERNAL);
     arrEll.Add(ellipse);
     
-    // Very small NPntMax ? very large step
+    // Very small NPntMax → very large step
     CalcContour(arrEll, arrRect, arrPlg, arrCont, 10);
     
     ASSERT_GT(arrCont.GetSize(), 0);
@@ -465,28 +489,22 @@ TEST_F(CalcContourDegenerateTest, PolygonConstructor_RejectsDegenerate) {
         << "XYPolygon from 2 points has unexpected size: " << size;
 }
 
-TEST_F(CalcContourDegenerateTest, ConnectSegments_ValidatesMinimumPoints) {
-    // Test that ConnectSegments produces valid polygons
-    
+TEST_F(CalcContourDegenerateTest, ConnectSegments_FiltersOutDegenerateTwoPoints) {
     CArrayXYBrokenLine arrBLn;
     CArrayXYPolygon arrCont;
-    
-    // Create single 2-point segment
+
+    // Create single 2-point segment (degenerate)
     XYBrokenLine twoPointSegment;
     twoPointSegment.Add(XYPoint(0.0, 0.0));
     twoPointSegment.Add(XYPoint(1.0, 0.0));
     arrBLn.Add(twoPointSegment);
-    
+
     double eps = 0.1;
     ConnectSegments(arrBLn, arrCont, eps);
-    
-    // Should produce a polygon, but is it valid?
-    ASSERT_EQ(arrCont.GetSize(), 1);
-    
-    // Document current behavior (may need fixing)
-    int pointCount = arrCont[0].GetSize();
-    EXPECT_TRUE(pointCount >= 2)
-        << "ConnectSegments produced polygon with " << pointCount << " points";
+
+    // Degenerate polygon should be filtered out
+    EXPECT_EQ(arrCont.GetSize(), 0)
+        << "2-point degenerate polygon should be filtered out";
 }
 
 // ============================================================================

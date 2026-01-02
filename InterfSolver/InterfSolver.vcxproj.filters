@@ -93,6 +93,9 @@
     <ClCompile Include="Tools\ClassicAberr.cpp">
       <Filter>Source Files\Tools</Filter>
     </ClCompile>
+    <ClCompile Include="Tools\XYShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="InterfSolver.rc">
@@ -183,6 +186,9 @@
     </ClInclude>
     <ClInclude Include="Tools\Sort.h">
       <Filter>Header Files\Include_H</Filter>
+    </ClInclude>
+    <ClInclude Include="Tools\XYShape.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

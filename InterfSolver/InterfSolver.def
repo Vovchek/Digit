@@ -10,41 +10,69 @@ EXPORTS
 ??0NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
 ??1NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
 ??1XYBrokenLine@@QAE@XZ
-??1XYEllipse@@QAE@XZ
-??1XYRect@@QAE@XZ
+
+; XYShape base class exports
+??0XYShape@@QAE@HH@Z                                    ; XYShape::XYShape(int,int)
+??1XYShape@@UAE@XZ                                      ; XYShape::~XYShape() - virtual destructor
+?SetTypeLimits@XYShape@@UAEXH@Z                         ; XYShape::SetTypeLimits(int)
+?GetTypeLimits@XYShape@@UBEHXZ                          ; XYShape::GetTypeLimits() const
+?SetTypeSystCoor@XYShape@@UAEXH@Z                       ; XYShape::SetTypeSystCoor(int)
+?GetTypeSystCoor@XYShape@@UBEHXZ                        ; XYShape::GetTypeSystCoor() const
+?isVisible@XYShape@@UBE_NABUXYPoint@@@Z                 ; XYShape::isVisible(XYPoint const &) const
+?isVisible@XYShape@@UAE_NNN@Z                           ; XYShape::isVisible(double,double)
+?GetBounds@XYShape@@UBEXAAUXYBounds@@@Z                 ; XYShape::GetBounds(XYBounds &) const
+
+; XYEllipse exports
+??1XYEllipse@@UAE@XZ                                    ; XYEllipse::~XYEllipse() - virtual destructor
+??0XYEllipse@@QAE@NNNNNHH@Z                             ; XYEllipse::XYEllipse(double,double,double,double,double,int,int)
+??0XYEllipse@@QAE@ABV0@@Z                               ; XYEllipse::XYEllipse(XYEllipse const &)
+??0XYEllipse@@QAE@ABV?$vector@UXYPoint@@V?$allocator@UXYPoint@@@std@@@std@@HH@Z  ; NEW: XYEllipse::XYEllipse(std::vector<XYPoint> const &,int,int)
+??4XYEllipse@@QAEAAV0@ABV0@@Z                           ; XYEllipse::operator=(XYEllipse const &)
+?ShiftY@XYEllipse@@UAEXN@Z
+
+; XYRect exports
+??1XYRect@@UAE@XZ                                       ; XYRect::~XYRect() - virtual destructor
+??0XYRect@@QAE@NNNNNHH@Z                                ; XYRect::XYRect(double,double,double,double,double,int,int)
+??0XYRect@@QAE@ABV0@@Z                                  ; XYRect::XYRect(XYRect const &)
+??4XYRect@@QAEAAV0@ABV0@@Z                              ; XYRect::operator=(XYRect const &)
+
+; Shape calculation functions
 ?CalcRectangleLimits@@YA_NABVXYBrokenLine@@HAAVXYRect@@AAUXYBounds@@@Z
 ?CalcEllipseLimits@@YA_NABVXYBrokenLine@@HAAVXYEllipse@@AAUXYBounds@@@Z
 ?CalcCircleLimits@@YA_NABVXYBrokenLine@@HAAVXYEllipse@@AAUXYBounds@@@Z
-??0XYRect@@QAE@NNNNNHH@Z
-??0XYEllipse@@QAE@NNNNNHH@Z
+
+; XYBrokenLine exports
 ??0XYBrokenLine@@QAE@XZ
-??0XYEllipse@@QAE@ABV0@@Z
-??0XYRect@@QAE@ABV0@@Z
-??4XYEllipse@@QAEAAV0@ABV0@@Z
-??4XYRect@@QAEAAV0@ABV0@@Z
 ??0XYBrokenLine@@QAE@ABV0@@Z
 ??4XYBrokenLine@@QAEAAV0@ABV0@@Z
-?CalcBounds@@YA_NABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAUXYBounds@@@Z
 ?GetArrY@XYBrokenLine@@QAEXAAV?$CArray@NN@@@Z
 ?GetArrX@XYBrokenLine@@QAEXAAV?$CArray@NN@@@Z
-?GetBounds@XYPolygon@@QAEXAAUXYBounds@@@Z
-?CalcContour@@YAXABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAV3@H@Z
-?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
-??1XYPolygon@@QAE@XZ
+
+; XYPolygon exports
+??1XYPolygon@@UAE@XZ                                    ; XYPolygon::~XYPolygon() - CHANGED to virtual (UAE)
 ??0XYPolygon@@QAE@ABV0@@Z
-?CalcPolygonLimits@@YA_NABVXYBrokenLine@@HAAVXYPolygon@@@Z
 ??0XYPolygon@@QAE@XZ
 ??4XYPolygon@@QAEAAV0@ABV0@@Z
+;?GetBounds@XYPolygon@@QAEXAAUXYBounds@@@Z
+?CalcPolygonLimits@@YA_NABVXYBrokenLine@@HAAVXYPolygon@@@Z
+
+; Bounds and contour functions
+?CalcBounds@@YA_NABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAUXYBounds@@@Z
+?CalcContour@@YAXABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@AAV3@H@Z
+
+; isPupil functions
+?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
+?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
+
+; Other exports
 ;?ReadZAPData@@YAHABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ;?ReadFRNData@@YAHABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ;?WriteFRNData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ??0SAMPLE_DATA@@QAE@XZ
 ?Clear@SAMPLE_DATA@@QAEXXZ
-?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
 ??1Matrix@@QAE@XZ
 ?CalcPolAprImageMatr@@YAHAAUNUMBERING_INTERFEROGRAM_INFO@@HNAAVMatrix@@@Z
 ??0Matrix@@QAE@XZ
 ?GetFringeNumbers@NUMBERING_INTERFEROGRAM_INFO@@QAEXAAV?$CArray@NN@@@Z
 ;?WriteDosZAPData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
-?ShiftY@XYEllipse@@QAEXN@Z
 ?ShiftY@SAMPLE_DATA@@QAEXN@Z

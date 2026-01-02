@@ -1,41 +1,35 @@
 #include "XYRect.h"
+#include "XYPolygon.h"
+#include "XYBrokenLine.h"
+
+//=========================================================================
+// Constructor - call base class constructor
 //=========================================================================
 XYRect::XYRect(double _Ax, double _By, double _Xc, double _Yc, double _Fi,
 	int _TypeLimits, int _TypeSystCoor)
+	: XYShape(_TypeLimits, _TypeSystCoor),  // NEW: Initialize base class
+	  Ax(_Ax), By(_By), Xc(_Xc), Yc(_Yc), Fi(_Fi)
 {
-	Ax = _Ax;
-	By = _By;
-	Xc = _Xc;
-	Yc = _Yc;
-	Fi = _Fi;
-	TypeLimits = _TypeLimits;
-	TypeSystCoor = _TypeSystCoor;
 	Si = sin(GRD_RD * Fi);
 	Co = cos(GRD_RD * Fi);
 }
 //=========================================================================
+// Copy constructor - call base class constructor
+//=========================================================================
 XYRect::XYRect(const XYRect& A)
+	: XYShape(A.TypeLimits, A.TypeSystCoor),  // NEW: Initialize base class
+	  Ax(A.Ax), By(A.By), Xc(A.Xc), Yc(A.Yc), Fi(A.Fi), Si(A.Si), Co(A.Co)
 {
-	Ax = A.Ax;
-	By = A.By;
-	Xc = A.Xc;
-	Yc = A.Yc;
-	Fi = A.Fi;
-	TypeLimits = A.TypeLimits;
-	TypeSystCoor = A.TypeSystCoor;
-	Si = A.Si;
-	Co = A.Co;
 }
 //=========================================================================
 XYRect::XYRect(const XYBounds& Bnd, int _TypeLimits, int _TypeSystCoor)
+	: XYShape(_TypeLimits, _TypeSystCoor)  // NEW: Initialize base class
 {
 	Xc = (Bnd.XLeft + Bnd.XRight) / 2;
 	Yc = (Bnd.YBottom + Bnd.YTop) / 2;
 	Ax = fabs((Bnd.XRight - Bnd.XLeft) / 2);
 	By = fabs((Bnd.YTop - Bnd.YBottom) / 2);
 	Fi = 0.;
-	TypeLimits = _TypeLimits;
-	TypeSystCoor = _TypeSystCoor;
 	Si = sin(GRD_RD * Fi);
 	Co = cos(GRD_RD * Fi);
 }
@@ -48,8 +42,8 @@ void XYRect::Set(double _Ax, double _By, double _Xc, double _Yc, double _Fi,
 	Xc = _Xc;
 	Yc = _Yc;
 	Fi = _Fi;
-	TypeLimits = _TypeLimits;
-	TypeSystCoor = _TypeSystCoor;
+	TypeLimits = _TypeLimits;      // Base class member
+	TypeSystCoor = _TypeSystCoor;  // Base class member
 	Si = sin(GRD_RD * Fi);
 	Co = cos(GRD_RD * Fi);
 }
@@ -58,17 +52,24 @@ XYRect :: ~XYRect()
 {
 }
 //=========================================================================
+// Assignment operator - copy base class members
+//=========================================================================
 XYRect& XYRect ::operator= (const XYRect& A)
 {
-	Ax = A.Ax;
-	By = A.By;
-	Xc = A.Xc;
-	Yc = A.Yc;
-	Fi = A.Fi;
-	TypeLimits = A.TypeLimits;
-	TypeSystCoor = A.TypeSystCoor;
-	Si = A.Si;
-	Co = A.Co;
+	if (this != &A) {
+		// Copy base class members
+		TypeLimits = A.TypeLimits;
+		TypeSystCoor = A.TypeSystCoor;
+		
+		// Copy derived class members
+		Ax = A.Ax;
+		By = A.By;
+		Xc = A.Xc;
+		Yc = A.Yc;
+		Fi = A.Fi;
+		Si = A.Si;
+		Co = A.Co;
+	}
 	return *this;
 }
 //=========================================================================
@@ -86,29 +87,12 @@ bool XYRect::isInside(const XYPoint& P) const
 		return true;
 	else
 		return false;
-	return true;
 }
 //=========================================================================
 bool XYRect::isInside(double X, double Y)
 {
 	XYPoint P(X, Y);
 	return isInside(P);
-}
-//=========================================================================
-bool XYRect::isVisible(const XYPoint& P) const
-{
-	bool isIn = isInside(P);
-	if (isIn && TypeLimits == INTERNAL)
-		return false;
-	else if (!isIn && TypeLimits == EXTERNAL)
-		return false;
-	return true;
-}
-//=========================================================================
-bool XYRect::isVisible(double X, double Y)
-{
-	XYPoint P(X, Y);
-	return isVisible(P);
 }
 //=========================================================================
 bool XYRect::GetContour(XYBrokenLine& BLine, int NFi) const
@@ -217,30 +201,59 @@ void XYRect::Normalize(double Xo, double Yo, double Ro)
 	TypeSystCoor = NORMALISED;
 }
 //=========================================================================
+void XYRect::DeNormalize(double Xo, double Yo, double Ro)
+{
+	Ax *= Ro;
+	By *= Ro;
+	Xc = Xc * Ro + Xo;
+	Yc = Yc * Ro + Yo;
+	TypeSystCoor = MEASURING;
+}
+//=========================================================================
+XYBounds XYRect::GetBounds() const
+{
+	auto dx = fabs(Ax * Co - By * Si);
+	auto dy = fabs(Ax * Si + By * Co);
+	return {Xc-dx, Yc-dy, Xc+dx, Yc+dy};
+}
+//=========================================================================
+void XYRect::InverseY(double YcInv)
+{
+	Yc = YcInv - Yc;
+}
+//=========================================================================
+void XYRect::ShiftX(double dX)
+{
+	Xc += dX;
+}
+//=========================================================================
+void XYRect::ShiftY(double dY)
+{
+	Yc += dY;
+}
+
+//=========================================================================
+// DEPRECATED FRIEND FUNCTIONS
+// These functions are kept for backward compatibility but should not be used.
+// They have INCORRECT isVisible() logic (inverted from correct implementation).
+// Use member functions instead: rect.isInside(pt), rect.isVisible(pt)
+//=========================================================================
+
+/**
+ * @brief Friend function for isInside - call member function
+ * 
+ * This friend function is maintained for backward compatibility but duplicates
+ * the member function. Prefer using the member function for clarity.
+ */
 bool isInside(const XYRect& Rect, const XYPoint& P)
 {
-	double X1 = (P.X - Rect.Xc) * Rect.Co + (P.Y - Rect.Yc) * Rect.Si;
-	double Y1 = -(P.X - Rect.Xc) * Rect.Si + (P.Y - Rect.Yc) * Rect.Co;
-	double R = (X1 * X1 / (Rect.Ax * Rect.Ax) + Y1 * Y1 / (Rect.By * Rect.By));
-	double T = R - 1.;
-
-	if (T < 0.)
-		return true;
-	else if (T > 0.)
-		return false;
-	return true;
+	return Rect.isInside(P);
 }
 //=========================================================================
-bool isVisible(const XYRect& Rect, const XYPoint& P)
-{
-	bool isIn = isInside(Rect, P);
-	if (isIn && Rect.TypeLimits == INTERNAL)
-		return false; // INTERNAL = obsuration
-	else if (!isIn && Rect.TypeLimits == EXTERNAL)
-		return false; // EXTERNAL = CA opening
-	return true;
-}
-//=========================================================================
+/**
+ * @brief DEPRECATED: Friend function for GetContour - use member function instead
+ * @deprecated Use rect.GetContour(Plg, NFi) instead
+ */
 void GetContour(const XYRect& Rect, XYPolygon& Plg, int NFi)
 {
 	Plg.RemoveAll();

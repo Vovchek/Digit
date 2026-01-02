@@ -3,12 +3,11 @@
 
 #include "XYBrokenLine.h"
 #include "XYBounds.h"
+#include "XYShape.h"      // NEW: Include XYShape base class
 
-class XYPolygon : public XYBrokenLine
+// Multiple inheritance: XYBrokenLine for point storage, XYShape for type management
+class XYPolygon : public XYBrokenLine, public XYShape  // NEW: Multiple inheritance
   {
-  protected:
-    int TypeLimits;
-    int TypeSystCoor;
   public:
     XYPolygon();
     XYPolygon(const XYPolygon &A);
@@ -20,29 +19,46 @@ class XYPolygon : public XYBrokenLine
     XYPolygon(const CArrayDouble &ArrX, const CArrayDouble &ArrY, int TypLim = EXTERNAL,
                                                                int _TypeSystCoor = MEASURING);
     XYPolygon(const CArrayDouble &ArrXY, int TypLim = EXTERNAL, int _TypeSystCoor = MEASURING);
-    ~XYPolygon();
-    void SetTypeLimits (int TypLim) {TypeLimits = TypLim;}
-    int GetTypeLimits () {return TypeLimits;}
-    void SetTypeSystCoor (int _TypeSystCoor) {TypeSystCoor = _TypeSystCoor;}
-    int GetTypeSystCoor () {return TypeSystCoor;}
+    virtual ~XYPolygon();  // NEW: virtual destructor
+    
     XYPolygon& operator= (const XYPolygon &A);
-    XYPolygon& operator= (const XYBrokenLine &A);
+    XYPolygon& operator= (const XYBrokenLine& A);
     XYPolygon& operator= (const CArrayXYPoint &A);
-    double Perimeter() const;
+    
+    // Pure virtual implementations from XYShape (override keyword added)
+    virtual double Perimeter() const override;
+    virtual bool isInside(const XYPoint &P) const override;
+    virtual bool isInside(double X, double Y) override;
+    virtual void Normalize(double Xo, double Yo, double Ro) override;
+    virtual void DeNormalize(double Xo, double Yo, double Ro) override;
+    virtual XYBounds GetBounds() const override;
+    virtual void InverseY(double YcInv) override;
+    virtual void ShiftX(double dX) override;
+    virtual void ShiftY(double dY) override;
+
+    // XYShape requires GetContour methods - XYPolygon IS a contour, so provide stubs
+    // These are not used for XYPolygon but required by XYShape interface
+    virtual bool GetContour(XYBrokenLine &BLine, int NFi) const override {
+        BLine = *this;  // Polygon is already a broken line
+        return true;
+    }
+    virtual bool GetContour(XYBrokenLine &BLine, double Step) const override {
+        BLine = *this;  // Polygon is already a broken line
+        return true;
+    }
+    virtual bool GetContour(XYPolygon &Plg, int NFi) override {
+        Plg = *this;  // Polygon is already a polygon
+        return true;
+    }
+    virtual bool GetContour(XYPolygon &Plg, double Step) override {
+        Plg = *this;  // Polygon is already a polygon
+        return true;
+    }
+
+    // XYPolygon-specific methods (not in XYShape)
     double Area() const;
     bool isDegenerate() const;
-    bool isInside(const XYPoint &P) const;
-    bool isInside(double X, double Y);
-    bool isVisible(const XYPoint &P) const;
-    bool isVisible(double X, double Y);
-    void Normalize(double Xo, double Yo, double Ro);
-    XYBounds GetBounds();
-    void GetBounds(XYBounds &Bnd);
     XYPoint GetCentroid();
 
-    friend bool isInside(const XYPolygon &Plg, const XYPoint &P);
-    friend bool isVisible(const XYPolygon &Plg, const XYPoint &P);
-    friend XYBounds GetBounds(const XYPolygon &Plg);
-    friend void GetBounds(const XYPolygon &Plg, XYBounds &Bnd);
   };
 #endif

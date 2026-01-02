@@ -1,89 +1,111 @@
-#include "XYPolygon.h"
+﻿#include "XYPolygon.h"
+//=========================================================================
+// Constructor - call both base class constructors
 //=========================================================================
 XYPolygon :: XYPolygon()
+  : XYBrokenLine(),  // Initialize XYBrokenLine base
+    XYShape(EXTERNAL, MEASURING)  // NEW: Initialize XYShape base
   {
-  TypeLimits = EXTERNAL;
-  TypeSystCoor = MEASURING;
   }
 //=========================================================================
-XYPolygon :: XYPolygon(const XYPolygon &A) : XYBrokenLine (A)
+// Copy constructor - call both base class constructors
+//=========================================================================
+XYPolygon :: XYPolygon(const XYPolygon &A) 
+  : XYBrokenLine(A),  // Initialize XYBrokenLine base
+    XYShape(A.TypeLimits, A.TypeSystCoor)  // NEW: Initialize XYShape base
   {
-  TypeLimits = A.TypeLimits;
-  TypeSystCoor = A.TypeSystCoor;
   }
 //=========================================================================
 
 XYPolygon :: XYPolygon(const XYBrokenLine &A, int TypLim, int _TypeSystCoor) : 
-                                                                          XYBrokenLine (A)
+  XYBrokenLine(A),  // Initialize XYBrokenLine base
+  XYShape(TypLim, _TypeSystCoor)  // NEW: Initialize XYShape base
   {
   int NPnt = A.GetSize();
   if (Distance(ArrPnt[0], ArrPnt[NPnt-1]) > PRECISION)
     ArrPnt.Add(ArrPnt[0]);
-  TypeLimits = TypLim;
-  TypeSystCoor = _TypeSystCoor;
   }
 //=========================================================================
 XYPolygon :: XYPolygon(int NPnt, double *pArrX, double *pArrY, int TypLim, 
-                                       int _TypeSystCoor) : XYBrokenLine (NPnt, pArrX, pArrY)
+                                       int _TypeSystCoor) 
+  : XYBrokenLine(NPnt, pArrX, pArrY),  // Initialize XYBrokenLine base
+    XYShape(TypLim, _TypeSystCoor)  // NEW: Initialize XYShape base
   {
   if (Distance(ArrPnt[0], ArrPnt[NPnt-1]) > PRECISION)
     ArrPnt.Add(ArrPnt[0]);
-  TypeLimits = TypLim;
-  TypeSystCoor = _TypeSystCoor;
   }
 //=========================================================================
 XYPolygon :: XYPolygon(int NPnt, int *pArrX, int *pArrY, int TypLim, int _TypeSystCoor) : 
-                                                            XYBrokenLine (NPnt, pArrX, pArrY)
+  XYBrokenLine(NPnt, pArrX, pArrY),  // Initialize XYBrokenLine base
+  XYShape(TypLim, _TypeSystCoor)  // NEW: Initialize XYShape base
   {
   if (Distance(ArrPnt[0], ArrPnt[NPnt-1]) > PRECISION)
     ArrPnt.Add(ArrPnt[0]);
-  TypeLimits = TypLim;
-  TypeSystCoor = _TypeSystCoor;
   }
 //=========================================================================
 XYPolygon :: XYPolygon(const CArrayDouble &ArrX, const CArrayDouble &ArrY, int TypLim,
-                                                int _TypeSystCoor) : XYBrokenLine (ArrX, ArrY)
+                                                int _TypeSystCoor) 
+  : XYBrokenLine(ArrX, ArrY),  // Initialize XYBrokenLine base
+    XYShape(TypLim, _TypeSystCoor)  // NEW: Initialize XYShape base
   {
   int NPnt = ArrX.GetSize();
   if (Distance(ArrPnt[0], ArrPnt[NPnt-1]) > PRECISION)
     ArrPnt.Add(ArrPnt[0]);
-  TypeLimits = TypLim;
-  TypeSystCoor = _TypeSystCoor;
   }
 //=========================================================================
 XYPolygon :: XYPolygon(const CArrayDouble &ArrXY, int TypLim, int _TypeSystCoor) :
-                                                                        XYBrokenLine (ArrXY)
+  XYBrokenLine(ArrXY),  // Initialize XYBrokenLine base
+  XYShape(TypLim, _TypeSystCoor)  // NEW: Initialize XYShape base
   {
   int NPnt = ArrPnt.GetSize();
   if (Distance(ArrPnt[0], ArrPnt[NPnt-1]) > PRECISION)
     ArrPnt.Add(ArrPnt[0]);
-  TypeLimits = TypLim;
-  TypeSystCoor = _TypeSystCoor;
   }
 //=========================================================================
 XYPolygon :: ~XYPolygon()
   {
   }
 //=========================================================================
+// Assignment operator - copy both base class members
+//=========================================================================
 XYPolygon& XYPolygon :: operator= (const XYPolygon &A)
   {
-  ArrPnt.Copy(A.ArrPnt);
-  TypeLimits = A.TypeLimits;
-  TypeSystCoor = A.TypeSystCoor;
+  if (this != &A) {
+    ArrPnt.Copy(A.ArrPnt);
+    // Copy XYShape base class members
+    TypeLimits = A.TypeLimits;
+    TypeSystCoor = A.TypeSystCoor;
+  }
   return *this;
   }
 //=========================================================================
 XYPolygon& XYPolygon :: operator= (const CArrayXYPoint &A)
   {
-  int i;
-  int Na = A.GetSize();
+  auto Na = A.GetSize();
   ArrPnt.SetSize(Na);
-  for (i = 0; i < Na; i++)
+  for (auto i = 0; i < Na; i++)
     ArrPnt[i] = A[i];
+  if (Distance(ArrPnt[0], ArrPnt[Na - 1]) > PRECISION)
+      ArrPnt.Add(ArrPnt[0]);
+  // Reset to defaults
   TypeLimits = EXTERNAL;
   TypeSystCoor = MEASURING;
   return *this;
   }
+//=========================================================================
+XYPolygon& XYPolygon :: operator= (const XYBrokenLine& A)
+{
+    auto Na = A.GetSize();
+    ArrPnt.SetSize(Na);
+    for (auto i = 0; i < Na; i++)
+        ArrPnt[i] = A[i];
+    if (Distance(ArrPnt[0], ArrPnt[Na - 1]) > PRECISION)
+        ArrPnt.Add(ArrPnt[0]);
+    // Reset to defaults
+    TypeLimits = EXTERNAL;
+    TypeSystCoor = MEASURING;
+    return *this;
+}
 //=========================================================================
 double XYPolygon :: Perimeter() const
   {
@@ -168,180 +190,107 @@ bool XYPolygon :: isInside(double X, double Y)
   return isInside(P);
   }
 //=========================================================================
-bool XYPolygon :: isVisible(const XYPoint &P) const
-  {
-  bool isIn = isInside(P);
-  if (isIn && TypeLimits == INTERNAL)
-    return false; // INTERNAL = obsuration
-  else if (!isIn && TypeLimits == EXTERNAL)
-    return false; // EXTERNAL = CA opening
-  return true;
-  }
-//=========================================================================
-bool XYPolygon :: isVisible(double X, double Y) 
-  {
-  XYPoint P(X, Y);
-  return isVisible(P);
-  }
-//=========================================================================
 void XYPolygon :: Normalize(double Xo, double Yo, double Ro)
   {
   int i;
   int NPnt = GetSize();
   for (i = 0; i < NPnt; i++)
     ArrPnt[i].Normalize(Xo, Yo, Ro);
-  TypeSystCoor = NORMALISED;
+  TypeSystCoor = NORMALISED;  // Base class member
   }
 //=========================================================================
-XYBounds XYPolygon :: GetBounds()
-  {
+void XYPolygon::DeNormalize(double Xo, double Yo, double Ro)
+{
   int i;
-  XYBounds Bnd;
-  XYPoint P;
   int NPnt = GetSize();
-  double XMin = -E18;
-  double XMax = E18;
-  double YMin = -E18;
-  double YMax = E18;
   for (i = 0; i < NPnt; i++)
     {
-    P = ArrPnt[i];
-    if (P.X < XMin)
-      XMin = P.X;
-    if (P.X > XMax)
-      XMax = P.X;
-    if (P.Y < YMin)
-      YMin = P.Y;
-    if (P.Y > YMax)
-      YMax = P.Y;
+    ArrPnt[i].X = ArrPnt[i].X * Ro + Xo;
+    ArrPnt[i].Y = ArrPnt[i].Y * Ro + Yo;
     }
-  Bnd.XLeft = XMin;
-  Bnd.YTop = YMin;
-  Bnd.XRight = XMax;
-  Bnd.YBottom = YMax;
+  TypeSystCoor = MEASURING;  // Base class member
+}
+//=========================================================================
+XYBounds XYPolygon::GetBounds() const
+{
+  auto NPnt = GetSize();
+  XYBounds Bnd { -E18, -E18, E18, E18}; // E18 = -1e18
+  for (auto i = 0; i < NPnt; i++)
+    {
+    auto P = ArrPnt[i];
+    if (P.X < Bnd.XLeft)
+        Bnd.XLeft = P.X;
+    if (P.X > Bnd.XRight)
+        Bnd.XRight = P.X;
+    if (P.Y < Bnd.YTop)
+        Bnd.YTop = P.Y;
+    if (P.Y > Bnd.YBottom)
+        Bnd.YBottom = P.Y;
+    }
   return Bnd;
-  }
+}
+//=========================================================================
+void XYPolygon::InverseY(double YcInv)
+{
+  auto NPnt = GetSize();
+  for (auto i = 0; i < NPnt; i++)
+	  ArrPnt[i].Y = YcInv - ArrPnt[i].Y;
+}
+//=========================================================================
+void XYPolygon::ShiftX(double dX)
+{
+  auto NPnt = GetSize();
+  for (auto i = 0; i < NPnt; i++)
+	  ArrPnt[i].X += dX;
+}
+//=========================================================================
+void XYPolygon::ShiftY(double dY)
+{
+  auto NPnt = GetSize();
+  for (auto i = 0; i < NPnt; i++)
+	  ArrPnt[i].Y += dY;
+}
 //=========================================================================
 XYPoint XYPolygon :: GetCentroid()
   {
-  int i;
-  XYPoint P, SumP;
-  int NPnt = GetSize();
+    double area = 0.0;
+    double centroid_x = 0.0;
+    double centroid_y = 0.0;
+    int n = GetSize();
 
-  SumP = XYPoint(0.,0.);
-  for (i = 0; i < NPnt; i++)
-    SumP =  SumP + ArrPnt[i];
+    if (n < 3) {
+		// For polygons with less than 3 points, return the average of the points
+        XYPoint sum{ 0, 0 };
+        for (auto i = 0; i < n; ++i) {
+            sum.X += ArrPnt[i].X;
+            sum.Y += ArrPnt[i].Y;
+        }
+        return { sum.X / n, sum.Y / n };
+    }
 
-  P.X = SumP.X / NPnt;
-  P.Y = SumP.Y / NPnt;
+	// Main formula
+    for (int i = 0; i < n; ++i) {
+		int j = (i + 1) % n; // next vertex index, wrapping around
 
-  return P;
-  }
-//=========================================================================
-void XYPolygon :: GetBounds(XYBounds &Bnd)
-  {
-  int i;
-  XYPoint P;
-  int NPnt = GetSize();
-  double XMin = -E18;
-  double XMax = E18;
-  double YMin = -E18;
-  double YMax = E18;
-  for (i = 0; i < NPnt; i++)
-    {
-    P = ArrPnt[i];
-    if (P.X < XMin)
-      XMin = P.X;
-    if (P.X > XMax)
-      XMax = P.X;
-    if (P.Y < YMin)
-      YMin = P.Y;
-    if (P.Y > YMax)
-      YMax = P.Y;
+        double xi = ArrPnt[i].X;
+        double yi = ArrPnt[i].Y;
+        double xj = ArrPnt[j].X;
+        double yj = ArrPnt[j].Y;
+
+        double cross = xi * yj - xj * yi; // (xᵢ*yⱼ - xⱼ*yᵢ)
+
+        area += cross;
+
+        centroid_x += (xi + xj) * cross;
+        centroid_y += (yi + yj) * cross;
     }
-  Bnd.XLeft = XMin;
-  Bnd.YTop = YMin;
-  Bnd.XRight = XMax;
-  Bnd.YBottom = YMax;
-  }
-//=========================================================================
-bool isInside(const XYPolygon &Plg, const XYPoint &P)
-    {
-    int i;
-    double Phi = 0.;
-    int NPnt = Plg.GetSize();
-    for (i = 0; i < NPnt - 1; i++)
-      Phi += Angle(Plg[i+1]-P, Plg[i]-P);
-    if (fabs(Phi) > 6.28)
-      return true;
-    else if (fabs(Phi) < 0.0001)
-      return false;
-    return true;
-    }
-//=========================================================================
-bool isVisible(const XYPolygon &Plg, const XYPoint &P)
-  {
-  bool isIn = isInside(Plg, P);
-  if (isIn && Plg.TypeLimits == INTERNAL)
-    return true;
-  else if (!isIn && Plg.TypeLimits == EXTERNAL)
-    return true;
-  return false;
-  }
-//=========================================================================
-XYBounds GetBounds(const XYPolygon &Plg)
-  {
-  int i;
-  XYBounds Bnd;
-  XYPoint P;
-  int NPnt = Plg.GetSize();
-  double XMin = -E18;
-  double XMax = E18;
-  double YMin = -E18;
-  double YMax = E18;
-  for (i = 0; i < NPnt; i++)
-    {
-    P = Plg[i];
-    if (P.X < XMin)
-      XMin = P.X;
-    if (P.X > XMax)
-      XMax = P.X;
-    if (P.Y < YMin)
-      YMin = P.Y;
-    if (P.Y > YMax)
-      YMax = P.Y;
-    }
-  Bnd.XLeft = XMin;
-  Bnd.YTop = YMin;
-  Bnd.XRight = XMax;
-  Bnd.YBottom = YMax;
-  return Bnd;
-  }
-//=========================================================================
-void GetBounds(const XYPolygon &Plg, XYBounds &Bnd)
-  {
-  int i;
-  XYPoint P;
-  int NPnt = Plg.GetSize();
-  double XMin = -E18;
-  double XMax = E18;
-  double YMin = -E18;
-  double YMax = E18;
-  for (i = 0; i < NPnt; i++)
-    {
-    P = Plg[i];
-    if (P.X < XMin)
-      XMin = P.X;
-    if (P.X > XMax)
-      XMax = P.X;
-    if (P.Y < YMin)
-      YMin = P.Y;
-    if (P.Y > YMax)
-      YMax = P.Y;
-    }
-  Bnd.XLeft = XMin;
-  Bnd.YTop = YMin;
-  Bnd.XRight = XMax;
-  Bnd.YBottom = YMax;
+
+    area *= 0.5;
+    double factor = 1.0 / (6.0 * area);
+
+    centroid_x *= factor;
+    centroid_y *= factor;
+
+    return { centroid_x, centroid_y };
   }
 //=========================================================================

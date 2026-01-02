@@ -1,24 +1,29 @@
 #ifndef _XYELLIPSE_H_
 #define _XYELLIPSE_H_
 
+#include "XYShape.h"      // NEW: Include base class
 #include "XYPoint.h"
 #include "XYBounds.h"
-#include "XYPolygon.h"
-#include "XYBrokenLine.h"
 #include <vector>
 
-class XYEllipse 
+// Forward declarations
+class XYPolygon;
+class XYBrokenLine;
+
+class XYEllipse : public XYShape  // NEW: Inherit from XYShape
   {
   public:
+    // Shape-specific parameters (not in base class)
     double Ax;
     double By;
     double Xc;
     double Yc;
     double Fi;
-    int TypeLimits;
-    int TypeSystCoor;
+    // REMOVED: int TypeLimits; (now in XYShape base class - PUBLIC)
+    // REMOVED: int TypeSystCoor; (now in XYShape base class - PUBLIC)
     double Si;
     double Co;
+    
   public:
     XYEllipse(double _Ax = 1., double _By = 1., double _Xc = 0., double _Yc = 0.,
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
@@ -27,25 +32,34 @@ class XYEllipse
     XYEllipse(const std::vector<XYPoint> &points, int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
     void Set(double _Ax = 1., double _By = 1., double _Xc = 0., double _Yc = 0.,
                   double _Fi = 0., int _TypeLimits = EXTERNAL, int _TypeSystCoor = MEASURING);
-    ~XYEllipse();
+    virtual ~XYEllipse();  // NEW: virtual destructor
     XYEllipse& operator= (const XYEllipse &A);
-    double Perimeter() const;
-    bool isInside(const XYPoint &P) const;
-    bool isInside(double X, double Y);
-    bool isVisible(const XYPoint &P) const;
-    bool isVisible(double X, double Y);
-    bool GetContour(XYBrokenLine& BLine, int NFi) const;
-    bool GetContour(XYBrokenLine &BLine, double Step) const;
-    bool GetContour(XYPolygon& Plg, int NFi) const;
-    bool GetContour(XYPolygon &Plg, double Step) const;
-    void GetExtents(double &Xmin, double &Ymin, double &Xmax, double &Ymax) const;
-    void InverseY(double YcInv);
-    void ShiftX(double dX);
-    void ShiftY(double dY);
-    void Normalize(double Xo, double Yo, double Ro);
-    void DeNormalize(double Xo, double Yo, double Ro);
+    
+    // REMOVED: SetTypeLimits, GetTypeLimits, SetTypeSystCoor, GetTypeSystCoor
+    // (inherited from XYShape base class)
+    
+    // Pure virtual implementations from XYShape (override keyword added)
+    virtual double Perimeter() const override;
+    virtual bool isInside(const XYPoint &P) const override;
+    virtual bool isInside(double X, double Y) override;
+    virtual bool GetContour(XYBrokenLine &BLine, int NFi) const override;
+    virtual bool GetContour(XYBrokenLine &BLine, double Step) const override;
+    virtual bool GetContour(XYPolygon &Plg, int NFi) override;      // Non-const to match base
+    virtual bool GetContour(XYPolygon &Plg, double Step) override;  // Non-const to match base
+    virtual void Normalize(double Xo, double Yo, double Ro) override;
+    virtual void DeNormalize(double Xo, double Yo, double Ro) override;
+    virtual XYBounds GetBounds() const override;
+    virtual void InverseY(double YcInv) override;
+    virtual void ShiftX(double dX) override;
+    virtual void ShiftY(double dY) override;
+
+    // REMOVED: isVisible() methods - using XYShape base class implementation
+    
+    // Shape-specific methods (not virtual)
+    
+    // DEPRECATED: Friend functions - these have incorrect isVisible logic!
+    // Use member functions instead: ellipse.isInside(pt), ellipse.isVisible(pt)
     friend bool isInside(const XYEllipse &Ell, const XYPoint &P);
-    friend bool isVisible(const XYEllipse &Ell, const XYPoint &P);
     friend void GetContour(const XYEllipse &Ell, XYPolygon &Plg, int NFi = N_CONT);
   };
 #endif

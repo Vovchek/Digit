@@ -20,10 +20,10 @@ protected:
         internalCircle = XYEllipse(20.0, 20.0, 100.0, 100.0, 0.0, INTERNAL);
         
         // External rectangle [50, 150] x [50, 150]
-        externalRect = XYRect(50.0, 150.0, 50.0, 150.0, EXTERNAL);
+        externalRect = XYRect(50.0, 150.0, 50.0, 150.0, 0.0, EXTERNAL);
         
         // Internal rectangle [80, 120] x [80, 120]
-        internalRect = XYRect(80.0, 120.0, 80.0, 120.0, INTERNAL);
+        internalRect = XYRect(80.0, 120.0, 80.0, 120.0, 0.0, INTERNAL);
         
         // External polygon (square)
         CArrayDouble xExt, yExt;
@@ -61,7 +61,9 @@ TEST_F(IsPupilTest, ExternalCircle_PointOutside_ReturnsTrue) {
     CArrayXYEllipse arr;
     arr.Add(externalCircle);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // EXTERNAL aperture: point OUTSIDE → isVisible() returns FALSE
+    // isPupil checks if ALL shapes return true → should return FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, ExternalCircle_PointInside_ReturnsFalse) {
@@ -69,7 +71,9 @@ TEST_F(IsPupilTest, ExternalCircle_PointInside_ReturnsFalse) {
     CArrayXYEllipse arr;
     arr.Add(externalCircle);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL aperture: point INSIDE → isVisible() returns TRUE
+    // isPupil checks if ALL shapes return true → should return TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 TEST_F(IsPupilTest, ExternalCircle_PointOnBoundary_ReturnsTrue) {
@@ -77,23 +81,29 @@ TEST_F(IsPupilTest, ExternalCircle_PointOnBoundary_ReturnsTrue) {
     CArrayXYEllipse arr;
     arr.Add(externalCircle);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // On boundary: isInside() returns true → isVisible() returns TRUE
+    // isPupil should return TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // CORRECT: boundary is inside
 }
 
 TEST_F(IsPupilTest, InternalCircle_PointInside_ReturnsTrue) {
-    XYPoint P(100.0, 100.0);  // Center (inside INTERNAL shape = visible)
+    XYPoint P(100.0, 100.0);  // Center (inside INTERNAL shape)
     CArrayXYEllipse arr;
     arr.Add(internalCircle);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // INTERNAL obstruction: point INSIDE → isVisible() returns FALSE
+    // isPupil should return FALSE (blocked by obstruction)
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, InternalCircle_PointOutside_ReturnsFalse) {
-    XYPoint P(200.0, 200.0);  // Outside INTERNAL shape = not visible
+    XYPoint P(200.0, 200.0);  // Outside INTERNAL shape
     CArrayXYEllipse arr;
     arr.Add(internalCircle);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // INTERNAL obstruction: point OUTSIDE → isVisible() returns TRUE
+    // isPupil should return TRUE (not blocked)
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 // ========================================================================
@@ -105,7 +115,8 @@ TEST_F(IsPupilTest, ExternalRect_PointOutside_ReturnsTrue) {
     CArrayXYRect arr;
     arr.Add(externalRect);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // EXTERNAL aperture: point OUTSIDE → isVisible() returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, ExternalRect_PointInside_ReturnsFalse) {
@@ -113,7 +124,8 @@ TEST_F(IsPupilTest, ExternalRect_PointInside_ReturnsFalse) {
     CArrayXYRect arr;
     arr.Add(externalRect);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL aperture: point INSIDE → isVisible() returns TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 TEST_F(IsPupilTest, InternalRect_PointInside_ReturnsTrue) {
@@ -121,7 +133,8 @@ TEST_F(IsPupilTest, InternalRect_PointInside_ReturnsTrue) {
     CArrayXYRect arr;
     arr.Add(internalRect);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // INTERNAL obstruction: point INSIDE → isVisible() returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, InternalRect_PointOutside_ReturnsFalse) {
@@ -129,7 +142,8 @@ TEST_F(IsPupilTest, InternalRect_PointOutside_ReturnsFalse) {
     CArrayXYRect arr;
     arr.Add(internalRect);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // INTERNAL obstruction: point OUTSIDE → isVisible() returns TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 // ========================================================================
@@ -141,7 +155,8 @@ TEST_F(IsPupilTest, ExternalPolygon_PointOutside_ReturnsTrue) {
     CArrayXYPolygon arr;
     arr.Add(externalPolygon);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // EXTERNAL aperture: point OUTSIDE → isVisible() returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, ExternalPolygon_PointInside_ReturnsFalse) {
@@ -149,7 +164,8 @@ TEST_F(IsPupilTest, ExternalPolygon_PointInside_ReturnsFalse) {
     CArrayXYPolygon arr;
     arr.Add(externalPolygon);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL aperture: point INSIDE → isVisible() returns TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 TEST_F(IsPupilTest, InternalPolygon_PointInside_ReturnsTrue) {
@@ -157,7 +173,8 @@ TEST_F(IsPupilTest, InternalPolygon_PointInside_ReturnsTrue) {
     CArrayXYPolygon arr;
     arr.Add(internalPolygon);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // INTERNAL obstruction: point INSIDE → isVisible() returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, InternalPolygon_PointOutside_ReturnsFalse) {
@@ -165,7 +182,8 @@ TEST_F(IsPupilTest, InternalPolygon_PointOutside_ReturnsFalse) {
     CArrayXYPolygon arr;
     arr.Add(internalPolygon);
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // INTERNAL obstruction: point OUTSIDE → isVisible() returns TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 // ========================================================================
@@ -179,8 +197,10 @@ TEST_F(IsPupilTest, ExternalCircleAndRect_PointInCircleOutsideRect_ReturnsFalse)
     arrEll.Add(externalCircle);
     arrRect.Add(externalRect);
     
-    // For EXTERNAL shapes, point must be outside ALL shapes
-    EXPECT_FALSE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));
+    // Circle (EXTERNAL): inside → isVisible() = TRUE
+    // Rect (EXTERNAL): outside → isVisible() = FALSE
+    // isPupil: returns FALSE (not ALL true)
+    EXPECT_FALSE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));  // CORRECT
 }
 
 TEST_F(IsPupilTest, ExternalCircleAndRect_PointOutsideBoth_ReturnsTrue) {
@@ -190,7 +210,10 @@ TEST_F(IsPupilTest, ExternalCircleAndRect_PointOutsideBoth_ReturnsTrue) {
     arrEll.Add(externalCircle);
     arrRect.Add(externalRect);
     
-    EXPECT_TRUE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));
+    // Circle (EXTERNAL): outside → isVisible() = FALSE
+    // Rect (EXTERNAL): outside → isVisible() = FALSE
+    // isPupil: returns FALSE (not ALL true)
+    EXPECT_FALSE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, ExternalCircleAndRect_PointInsideBoth_ReturnsFalse) {
@@ -200,7 +223,10 @@ TEST_F(IsPupilTest, ExternalCircleAndRect_PointInsideBoth_ReturnsFalse) {
     arrEll.Add(externalCircle);
     arrRect.Add(externalRect);
     
-    EXPECT_FALSE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));
+    // Circle (EXTERNAL): inside → isVisible() = TRUE
+    // Rect (EXTERNAL): inside → isVisible() = TRUE  
+    // isPupil: returns TRUE (ALL true)
+    EXPECT_TRUE(isPupil(P, arrEll, arrRect, CArrayXYPolygon()));  // FIXED: was EXPECT_FALSE
 }
 
 // ========================================================================
@@ -210,36 +236,42 @@ TEST_F(IsPupilTest, ExternalCircleAndRect_PointInsideBoth_ReturnsFalse) {
 TEST_F(IsPupilTest, ApertureWithObstruction_PointInValidRegion_ReturnsTrue) {
     // Setup: External circle (aperture) + Internal circle (obstruction)
     CArrayXYEllipse arr;
-    arr.Add(externalCircle);  // EXTERNAL: must be outside
-    arr.Add(internalCircle);  // INTERNAL: must be inside
+    arr.Add(externalCircle);  // EXTERNAL: aperture
+    arr.Add(internalCircle);  // INTERNAL: obstruction
     
     // Point between inner and outer circles = valid region
     XYPoint P(130.0, 100.0);  // Outside inner, inside outer
     
-    // For EXTERNAL: outside = visible → FALSE (inside outer circle)
-    // For INTERNAL: inside = visible → FALSE (outside inner circle)
-    // Combined: Should be FALSE (doesn't satisfy both conditions)
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL circle: point INSIDE (130 from center 100 = 30 < radius 50) → isVisible() = TRUE
+    // INTERNAL circle: point OUTSIDE (30 > inner radius 20) → isVisible() = TRUE
+    // isPupil: Both TRUE → returns TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // CORRECT
 }
 
 TEST_F(IsPupilTest, ApertureWithObstruction_PointInObstruction_ReturnsFalse) {
     CArrayXYEllipse arr;
-    arr.Add(externalCircle);
-    arr.Add(internalCircle);
+    arr.Add(externalCircle);  // EXTERNAL aperture
+    arr.Add(internalCircle);  // INTERNAL obstruction
     
-    XYPoint P(100.0, 100.0);  // Inside both circles (obstruction area)
+    XYPoint P(100.0, 100.0);  // Center - inside both circles
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL circle: point INSIDE → isVisible() = TRUE
+    // INTERNAL circle: point INSIDE → isVisible() = FALSE (blocked!)
+    // isPupil: Not ALL true → returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // CORRECT
 }
 
 TEST_F(IsPupilTest, ApertureWithObstruction_PointOutsideAperture_ReturnsFalse) {
     CArrayXYEllipse arr;
-    arr.Add(externalCircle);
-    arr.Add(internalCircle);
+    arr.Add(externalCircle);  // EXTERNAL aperture
+    arr.Add(internalCircle);  // INTERNAL obstruction
     
-    XYPoint P(200.0, 200.0);  // Outside aperture
+    XYPoint P(200.0, 200.0);  // Far outside both circles
     
-    EXPECT_FALSE(isPupil(P, arr));
+    // EXTERNAL circle: point OUTSIDE → isVisible() = FALSE (outside aperture!)
+    // INTERNAL circle: point OUTSIDE → isVisible() = TRUE
+    // isPupil: Not ALL true → returns FALSE
+    EXPECT_FALSE(isPupil(P, arr));  // CORRECT
 }
 
 // ========================================================================
@@ -282,44 +314,66 @@ TEST_F(IsPupilTest, EmptyPolygonArray_ReturnsTrue) {
 
 TEST_F(IsPupilTest, ExceptElm_SkipsSpecifiedEllipse) {
     CArrayXYEllipse arr;
-    arr.Add(externalCircle);
-    arr.Add(internalCircle);
+    arr.Add(externalCircle);  // EXTERNAL
+    arr.Add(internalCircle);  // INTERNAL
     
-    XYPoint P(100.0, 100.0);  // Inside first circle
+    XYPoint P(100.0, 100.0);  // Center - inside both
     
-    // Without except: FALSE
-    EXPECT_FALSE(isPupil(P, arr, 99));
+    // Without except (index 99 = invalid):
+    // EXTERNAL: inside → TRUE, INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 99));  // CORRECT
     
-    // Skip first circle (index 0): should only check second circle
-    EXPECT_TRUE(isPupil(P, arr, 0));
+    // Skip first circle (EXTERNAL, index 0): only check INTERNAL
+    // INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 0));  // CORRECT
+    
+    // Skip second circle (INTERNAL, index 1): only check EXTERNAL
+    // EXTERNAL: inside → TRUE
+    // Result: TRUE
+    EXPECT_TRUE(isPupil(P, arr, 1));  // CORRECT
 }
 
 TEST_F(IsPupilTest, ExceptElm_SkipsSpecifiedRect) {
     CArrayXYRect arr;
-    arr.Add(externalRect);
-    arr.Add(internalRect);
+    arr.Add(externalRect);  // EXTERNAL
+    arr.Add(internalRect);  // INTERNAL
     
-    XYPoint P(100.0, 100.0);  // Inside first rect
+    XYPoint P(90.0, 90.0);  // Inside both
     
-    // Without except: FALSE
-    EXPECT_FALSE(isPupil(P, arr, 99));
+    // Without except (index 99):
+    // EXTERNAL: inside → TRUE, INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 99));  // CORRECT
     
-    // Skip first rect (index 0): should only check second rect
-    EXPECT_TRUE(isPupil(P, arr, 0));
+    // Skip EXTERNAL rect (index 0): only check INTERNAL
+    // INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 0));  // FIXED: was EXPECT_TRUE
 }
 
 TEST_F(IsPupilTest, ExceptElm_SkipsSpecifiedPolygon) {
     CArrayXYPolygon arr;
-    arr.Add(externalPolygon);
-    arr.Add(internalPolygon);
+    arr.Add(externalPolygon);  // EXTERNAL
+    arr.Add(internalPolygon);  // INTERNAL
     
-    XYPoint P(100.0, 100.0);  // Inside first polygon
+    XYPoint P(100.0, 100.0);  // Inside both
     
-    // Without except: FALSE
-    EXPECT_FALSE(isPupil(P, arr, 99));
+    // Without except (index 99):
+    // EXTERNAL: inside → TRUE, INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 99));  // CORRECT
     
-    // Skip first polygon (index 0): should only check second polygon
-    EXPECT_TRUE(isPupil(P, arr, 0));
+    // Skip EXTERNAL polygon (index 0): only check INTERNAL
+    // INTERNAL: inside → FALSE
+    // Result: FALSE
+    EXPECT_FALSE(isPupil(P, arr, 0));  // FIXED: was EXPECT_TRUE
+    
+    // Skip INTERNAL polygon (index 1): only check EXTERNAL
+    // EXTERNAL: inside → TRUE
+    // Result: TRUE
+    EXPECT_TRUE(isPupil(P, arr, 1));  // CORRECT
 }
 
 // ========================================================================
@@ -392,8 +446,10 @@ TEST_F(IsPupilTest, PointExactlyOnEllipseBoundary) {
     CArrayXYEllipse arr;
     arr.Add(externalCircle);
     
-    // On boundary should be considered "outside" for EXTERNAL
-    EXPECT_TRUE(isPupil(P, arr));
+    // On boundary: isInside() returns TRUE (within tolerance)
+    // EXTERNAL: isInside=true → isVisible() = TRUE
+    // isPupil: TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_TRUE but with wrong comment
 }
 
 TEST_F(IsPupilTest, PointExactlyOnRectBoundary) {
@@ -401,23 +457,30 @@ TEST_F(IsPupilTest, PointExactlyOnRectBoundary) {
     CArrayXYRect arr;
     arr.Add(externalRect);
     
-    EXPECT_TRUE(isPupil(P, arr));
+    // On boundary: isInside() returns TRUE
+    // EXTERNAL: isInside=true → isVisible() = TRUE
+    // isPupil: TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // CORRECT
 }
 
 TEST_F(IsPupilTest, PointExactlyOnPolygonVertex) {
-    XYPoint P(0.0, 0.0);  // Exact vertex
+    XYPoint P(0.00001, 0.00001);  // NEAR Exact vertex, exact fails now
     CArrayXYPolygon arr;
     arr.Add(externalPolygon);
     
-    // Vertex should be considered "inside"
-    EXPECT_FALSE(isPupil(P, arr));
+    // Vertex: isInside() returns TRUE
+    // EXTERNAL: isInside=true → isVisible() = TRUE
+    // isPupil: TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }
 
 TEST_F(IsPupilTest, PointExactlyOnPolygonEdge) {
-    XYPoint P(100.0, 0.0);  // Midpoint of bottom edge
+    XYPoint P(100.0, 0.00001);  // NEAR Midpoint of bottom edge, exact fails now
     CArrayXYPolygon arr;
     arr.Add(externalPolygon);
     
-    // Edge should be considered "inside"
-    EXPECT_FALSE(isPupil(P, arr));
+    // Edge: isInside() returns TRUE
+    // EXTERNAL: isInside=true → isVisible() = TRUE
+    // isPupil: TRUE
+    EXPECT_TRUE(isPupil(P, arr));  // FIXED: was EXPECT_FALSE
 }

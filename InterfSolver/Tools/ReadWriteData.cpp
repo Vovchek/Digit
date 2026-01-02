@@ -200,9 +200,7 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	};
 	auto BEll = XYEllipse(FidPnts, EXTERNAL);
 	IntInfo.ArrEll.Add(BEll);
-	double YMin, YMax, XMin, XMax;
-	BEll.GetExtents(XMin, YMin, XMax, YMax);
-	IntInfo.EBnd = XYBounds(XMin, YMax, XMax, YMin);
+	IntInfo.EBnd = BEll.GetBounds();
 	double Xc, Yc, Rad;
 	CalcBoundCircle(IntInfo.EBnd, Xc, Yc, Rad);
 

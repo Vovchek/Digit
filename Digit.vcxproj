@@ -249,6 +249,13 @@
     <None Include="Docs\ISPUPIL_OPTIMIZATION_GUIDE.md" />
     <None Include="Docs\ISPUPIL_OPTIMIZATION_SUMMARY.md" />
     <None Include="Docs\ISPUPIL_QUICK_START.md" />
+    <None Include="Docs\XYRECT_REFACTORING_STATUS.md" />
+    <None Include="Docs\XYSHAPE_PHASE3_COMPLETE.md" />
+    <None Include="Docs\XYSHAPE_PHASE4_COMPLETE.md" />
+    <None Include="Docs\XYSHAPE_REFACTORING_PLAN.md" />
+    <None Include="Docs\XYSHAPE_TESTS_ADDED.md" />
+    <None Include="Docs\XYSHAPE_TEST_QUICK_REFERENCE.md" />
+    <None Include="Docs\XYSHAPE_TEST_SUITE_COMPLETE.md" />
     <None Include="Doc\ToDo.md" />
     <None Include="REFACTORING_PLAN.md" />
     <None Include="RusLangD.vcxproj.filters" />

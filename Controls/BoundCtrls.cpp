@@ -140,7 +140,6 @@ BOOL CBoundCtrls::GetExtCorBound(int Type, int xDIB, int yDIB, CRect& Bound, BOO
 
 BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints)
 {
-   XYBounds Bnd;
    PlgPoints.RemoveAll();
 
 	if(ArrContour.GetSize()==0)
@@ -149,7 +148,7 @@ BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
 		int TypeLimits = ArrContour[i].GetTypeLimits();
 		if(TypeLimits == EXTERNAL){
 			if(Type == BOUND_ROUND || Type == BOUND_ELLIPSE || Type == BOUND_RECT){
-				ArrContour[i].GetBounds(Bnd);
+				auto Bnd = ArrContour[i].GetBounds();
 				Bound.left = std::lround(Bnd.XLeft);
 				Bound.right = std::lround(Bnd.XRight);
 				Bound.top = std::lround(Bnd.YTop);
@@ -174,8 +173,7 @@ BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
 					PlgPoints[ii].x = int(ArrX[ii]+0.5);
 					PlgPoints[ii].y = int(ArrY[ii]+0.5);
 				}
-				XYBounds Bnd;
-				ArrContour[i].GetBounds(Bnd);
+				auto Bnd = ArrContour[i].GetBounds();
 				Bound.left = std::lround(Bnd.XLeft);
 				Bound.right = std::lround(Bnd.XRight);
 				Bound.top = std::lround(Bnd.YTop);
@@ -208,13 +206,12 @@ BOOL CBoundCtrls::GetInsCorBound(int Type, int xDIB, int yDIB, CRect& Bound, BOO
 
 BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB,int& idx, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints)
 {
-   XYBounds Bnd;
    PlgPoints.RemoveAll();
 	for(int i=idx; i < ArrContour.GetSize(); i++){
 		int TypeLimits = ArrContour[i].GetTypeLimits();
 		if(TypeLimits == INTERNAL){
 			if(Type == BOUND_ROUND || Type == BOUND_ELLIPSE || Type == BOUND_RECT){
-				ArrContour[i].GetBounds(Bnd);
+				auto Bnd = ArrContour[i].GetBounds();
 				Bound.left = std::lround(Bnd.XLeft);
 				Bound.right = std::lround(Bnd.XRight);
 				Bound.top = std::lround(Bnd.YTop);
@@ -241,8 +238,7 @@ BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB,int& idx, CRect& 
 					PlgPoints[ii].y = int(ArrY[ii]+0.5);
 				}
 				idx = i;
-				XYBounds Bnd;
-				ArrContour[i].GetBounds(Bnd);
+				auto Bnd = ArrContour[i].GetBounds();
 				Bound.left = std::lround(Bnd.XLeft);
 				Bound.right = std::lround(Bnd.XRight);
 				Bound.top = std::lround(Bnd.YTop);
@@ -541,7 +537,7 @@ void CBoundCtrls::FormBoundsOnLoadFile()
 	 int nExtRect, nInsRect;
 	 nExtRect = nInsRect = 0;
 	 for(i=0; i < ArrRect.GetSize(); i++){
-		 Type = ArrRect[i].TypeLimits;
+		 Type = ArrRect[i].GetTypeLimits();
 		 if(Type == EXTERNAL) nExtRect += 1;
 		 else if(Type == INTERNAL) nInsRect += 1;
 	 }
