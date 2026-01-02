@@ -23,18 +23,18 @@ set(APERTURE_SOURCES
     # Geometry (only implemented so far)
     src/geometry/Point.cpp
     src/geometry/Bounds.cpp
+    src/geometry/Shape.cpp
     
-    # Visibility (only TypeLimits so far)
+    # Visibility
     src/visibility/TypeLimits.cpp
+    src/visibility/ShapeCollection.cpp
+    src/visibility/VisibilityChecker.cpp
     
     # TODO: Add as implemented
-    # src/geometry/Shape.cpp
     # src/geometry/Ellipse.cpp
     # src/geometry/Rectangle.cpp
     # src/geometry/Polygon.cpp
     # src/geometry/BrokenLine.cpp
-    # src/visibility/ShapeCollection.cpp
-    # src/visibility/VisibilityChecker.cpp
     # src/visibility/VisibilityMask.cpp
     # src/contour/ContourExtractor.cpp
     # src/contour/SegmentConnector.cpp

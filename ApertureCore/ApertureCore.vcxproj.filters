@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Source Files">
@@ -36,6 +36,15 @@
     <ClInclude Include="include\aperturecore\visibility\TypeLimits.h">
       <Filter>Header Files\visibility</Filter>
     </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\Shape.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\ShapeCollection.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\VisibilityChecker.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\geometry\Point.cpp">
@@ -45,6 +54,15 @@
       <Filter>Source Files\geometry</Filter>
     </ClCompile>
     <ClCompile Include="src\visibility\TypeLimits.cpp">
+      <Filter>Source Files\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\Shape.cpp">
+      <Filter>Source Files\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\visibility\ShapeCollection.cpp">
+      <Filter>Source Files\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\visibility\VisibilityChecker.cpp">
       <Filter>Source Files\visibility</Filter>
     </ClCompile>
   </ItemGroup>

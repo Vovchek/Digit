@@ -24,21 +24,21 @@ if (-not $sourcesMatch.Success) {
 
 $sourcesBlock = $sourcesMatch.Groups[1].Value
 
-# Extract file paths (skip comments)
+# Extract file paths (skip comments and TODO lines)
 $sourceFiles = @()
 $headerFiles = @()
 
 foreach ($line in $sourcesBlock -split "`n") {
     $line = $line.Trim()
     
-    # Skip comments and empty lines
-    if ($line -match '^\s*#' -or $line -eq '') {
+    # Skip comments, empty lines, and TODO lines
+    if ($line -match '^\s*#' -or $line -eq '' -or $line -match '^\s*\)') {
         continue
     }
     
-    # Extract file path
-    if ($line -match '([\w/\.]+\.(cpp|h))') {
-        $file = $matches[1]
+    # Extract file path - look for src/... patterns
+    if ($line -match 'src/([\w/]+\.(?:cpp|h))') {
+        $file = "src/" + $matches[1]
         
         # Convert forward slashes to backslashes for VS
         $vsPath = $file -replace '/', '\'
