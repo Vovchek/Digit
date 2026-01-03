@@ -25,6 +25,7 @@ set(TEST_LIBS aperturecore GTest::gtest GTest::gtest_main)
 add_executable(geometry_tests
     geometry/PointTest.cpp
     geometry/BoundsTest.cpp
+    geometry/EllipseTest.cpp
 )
 target_link_libraries(geometry_tests PRIVATE ${TEST_LIBS})
 gtest_discover_tests(geometry_tests)
