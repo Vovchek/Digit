@@ -303,5 +303,9 @@
   <ItemGroup>
     <None Include="glut32.dll" />
     <None Include="ApertureCore\.gitignore" />
+    <None Include="Docs\GOOGLE_TEST_VISUAL_STUDIO_SETUP.md" />
+    <None Include="Docs\RUN_TESTS_QUICK_START.md" />
+    <None Include="Docs\GOOGLE_TEST_INSTALL_GUIDE.md" />
+    <None Include="Docs\GOOGLE_TEST_SETUP_SUMMARY.md" />
   </ItemGroup>
 </Project>

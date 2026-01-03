@@ -95,14 +95,24 @@
     <ClCompile Include="src\visibility\TypeLimits.cpp" />
     <ClCompile Include="src\visibility\ShapeCollection.cpp" />
     <ClCompile Include="src\visibility\VisibilityChecker.cpp" />
+    <ClCompile Include="tests\geometry\EllipseTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->
     <None Include="DUAL_BUILD_MAINTENANCE.md" />
+    <None Include="packages.config" />
+    <None Include="PHASE4_PROGRESS.md" />
     <None Include="README.md" />
     <None Include="DESIGN.md" />
     <None Include="IMPLEMENTATION.md" />
     <None Include="sync-builds.ps1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <Import Project="..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets" Condition="Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Данный проект ссылается на пакеты NuGet, отсутствующие на этом компьютере. Используйте восстановление пакетов NuGet, чтобы скачать их.  Дополнительную информацию см. по адресу: http://go.microsoft.com/fwlink/?LinkID=322105. Отсутствует следующий файл: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets'))" />
+  </Target>
 </Project>
