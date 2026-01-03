@@ -80,13 +80,19 @@
     <ClInclude Include="include\aperturecore\geometry\Shape.h" />
     <ClInclude Include="include\aperturecore\visibility\ShapeCollection.h" />
     <ClInclude Include="include\aperturecore\visibility\VisibilityChecker.h" />
+    <ClInclude Include="include\aperturecore\geometry\Ellipse.h" />
+    <ClInclude Include="include\aperturecore\geometry\Polygon.h" />
+    <ClInclude Include="include\aperturecore\geometry\Rectangle.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->
     <ClCompile Include="src\geometry\Point.cpp" />
     <ClCompile Include="src\geometry\Bounds.cpp" />
-    <ClCompile Include="src\visibility\TypeLimits.cpp" />
     <ClCompile Include="src\geometry\Shape.cpp" />
+    <ClCompile Include="src\geometry\Ellipse.cpp" />
+    <ClCompile Include="src\geometry\Rectangle.cpp" />
+    <ClCompile Include="src\geometry\Polygon.cpp" />
+    <ClCompile Include="src\visibility\TypeLimits.cpp" />
     <ClCompile Include="src\visibility\ShapeCollection.cpp" />
     <ClCompile Include="src\visibility\VisibilityChecker.cpp" />
   </ItemGroup>

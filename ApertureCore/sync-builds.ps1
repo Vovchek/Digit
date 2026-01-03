@@ -14,8 +14,9 @@ Write-Host ""
 # Parse CMakeLists.txt
 $cmakeFile = Get-Content "CMakeLists.txt" -Raw
 
-# Extract APERTURE_SOURCES
-$sourcesMatch = [regex]::Match($cmakeFile, 'set\(APERTURE_SOURCES\s+(.*?)\)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+# Extract APERTURE_SOURCES - Match everything until we find the closing parenthesis at start of line
+# This handles comments with parentheses inside the set() block
+$sourcesMatch = [regex]::Match($cmakeFile, 'set\(APERTURE_SOURCES\s+(.*?)\n\)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
 
 if (-not $sourcesMatch.Success) {
     Write-Host "Error: Could not find APERTURE_SOURCES in CMakeLists.txt" -ForegroundColor Red
@@ -32,7 +33,7 @@ foreach ($line in $sourcesBlock -split "`n") {
     $line = $line.Trim()
     
     # Skip comments, empty lines, and TODO lines
-    if ($line -match '^\s*#' -or $line -eq '' -or $line -match '^\s*\)') {
+    if ($line -match '^\s*#' -or $line -eq '') {
         continue
     }
     
@@ -67,12 +68,30 @@ Write-Host ""
 $vcxprojFile = "ApertureCore.vcxproj"
 [xml]$vcxproj = Get-Content $vcxprojFile
 
-# Find ClCompile ItemGroup
+# Find or create ClCompile and ClInclude ItemGroups
 $compileGroup = $vcxproj.Project.ItemGroup | Where-Object { $_.ClCompile -ne $null } | Select-Object -First 1
 $includeGroup = $vcxproj.Project.ItemGroup | Where-Object { $_.ClInclude -ne $null } | Select-Object -First 1
 
+# If no ClCompile group exists, find an empty ItemGroup or the one with source files comment
 if (-not $compileGroup) {
-    Write-Host "Error: Could not find ClCompile ItemGroup in .vcxproj" -ForegroundColor Red
+    # Look for ItemGroup with "Source files" comment
+    $compileGroup = $vcxproj.Project.ItemGroup | Where-Object { 
+        $_.HasChildNodes -eq $false -or ($_.FirstChild.NodeType -eq [System.Xml.XmlNodeType]::Comment -and $_.FirstChild.Value -match "Source files")
+    } | Select-Object -First 1
+    
+    # If still not found, create a new ItemGroup
+    if (-not $compileGroup) {
+        $compileGroup = $vcxproj.CreateElement("ItemGroup", $vcxproj.DocumentElement.NamespaceURI)
+        $comment = $vcxproj.CreateComment(" Source files ")
+        $compileGroup.AppendChild($comment) | Out-Null
+        # Insert before the last ItemGroup (which typically has documentation)
+        $lastItemGroup = $vcxproj.Project.ItemGroup | Select-Object -Last 1
+        $vcxproj.Project.InsertBefore($compileGroup, $lastItemGroup) | Out-Null
+    }
+}
+
+if (-not $includeGroup) {
+    Write-Host "Error: Could not find ClInclude ItemGroup in .vcxproj" -ForegroundColor Red
     exit 1
 }
 
