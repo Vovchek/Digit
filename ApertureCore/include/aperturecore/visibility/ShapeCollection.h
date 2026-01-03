@@ -116,6 +116,43 @@ public:
     Bounds getCombinedBounds() const;
     
     /**
+     * @brief Get visible region bounds (ROI for optimization)
+     * @return Bounds where visible points can exist
+     * 
+     * Computes the Region of Interest (ROI) for visibility checking:
+     * - If EXTERNAL shapes exist: intersection of all EXTERNAL bounds
+     * - If only APERTURE shapes: union of all APERTURE bounds
+     * - If no visibility-defining shapes: empty bounds
+     * 
+     * This ROI is used for:
+     * - Optimizing image processing (skip pixels outside ROI)
+     * - Coordinate normalization (scale to ROI dimensions)
+     * - Early rejection of points clearly outside visible region
+     * 
+     * @code{.cpp}
+     * ShapeCollection shapes;
+     * shapes.addExternal(std::make_unique<Ellipse>(100, 100, 50, 50));
+     * 
+     * Bounds roi = shapes.getVisibleRegion();
+     * // roi = bounds of ellipse (region where points might be visible)
+     * 
+     * // Use for image processing optimization
+     * for (int y = roi.top; y <= roi.bottom; ++y) {
+     *     for (int x = roi.left; x <= roi.right; ++x) {
+     *         Point p{x, y};
+     *         if (checker.isVisible(p)) {
+     *             // Process visible pixel
+     *         }
+     *     }
+     * }
+     * @endcode
+     * 
+     * @note Returns empty bounds if no EXTERNAL or APERTURE shapes exist
+     * @see getCombinedBounds() for bounds of all shapes regardless of type
+     */
+    Bounds getVisibleRegion() const;
+    
+    /**
      * @brief Clear all shapes
      */
     void clear();

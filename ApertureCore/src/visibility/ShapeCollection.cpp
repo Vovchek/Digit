@@ -85,6 +85,44 @@ Bounds ShapeCollection::getCombinedBounds() const {
     return combined;
 }
 
+Bounds ShapeCollection::getVisibleRegion() const {
+    // Priority 1: EXTERNAL shapes define the primary visible region
+    // Visible region is the INTERSECTION of all EXTERNAL bounds
+    if (!external_.empty()) {
+        // Start with first EXTERNAL shape's bounds
+        Bounds roi = external_[0]->getBounds();
+        
+        // Intersect with all other EXTERNAL shapes
+        for (size_t i = 1; i < external_.size(); ++i) {
+            roi = roi.intersection(external_[i]->getBounds());
+            
+            // Early exit if intersection becomes empty
+            if (roi.isEmpty()) {
+                return Bounds{};
+            }
+        }
+        
+        return roi;
+    }
+    
+    // Priority 2: If no EXTERNAL but have APERTURE shapes
+    // Visible region is the UNION of all APERTURE bounds
+    if (!apertures_.empty()) {
+        Bounds roi = apertures_[0]->getBounds();
+        
+        // Merge with all other APERTURE shapes
+        for (size_t i = 1; i < apertures_.size(); ++i) {
+            roi.merge(apertures_[i]->getBounds());
+        }
+        
+        return roi;
+    }
+    
+    // No visibility-defining shapes (only INTERNAL obstructions)
+    // No visible region exists
+    return Bounds{};
+}
+
 void ShapeCollection::clear() {
     external_.clear();
     internal_.clear();

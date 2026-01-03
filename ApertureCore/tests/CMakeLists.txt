@@ -32,12 +32,12 @@ add_executable(geometry_tests
 target_link_libraries(geometry_tests PRIVATE ${TEST_LIBS})
 gtest_discover_tests(geometry_tests)
 
-# Visibility tests (when implemented)
-# add_executable(visibility_tests
-#     visibility/TypeLimitsTest.cpp
-# )
-# target_link_libraries(visibility_tests PRIVATE ${TEST_LIBS})
-# gtest_discover_tests(visibility_tests)
+# Visibility tests
+add_executable(visibility_tests
+    visibility/VisibleRegionTest.cpp
+)
+target_link_libraries(visibility_tests PRIVATE ${TEST_LIBS})
+gtest_discover_tests(visibility_tests)
 
 # Integration tests (when implemented)
 # add_executable(integration_tests

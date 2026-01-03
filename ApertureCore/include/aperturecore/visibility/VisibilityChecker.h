@@ -62,6 +62,44 @@ public:
      * @brief Reset statistics counters
      */
     void resetStats();
+    
+    /**
+     * @brief Get visible region bounds (ROI)
+     * @return Bounds where visible points can exist
+     * 
+     * Returns the Region of Interest for visibility checking.
+     * Points outside this region are guaranteed to be invisible.
+     * 
+     * Use cases:
+     * - Image processing optimization (skip pixels outside ROI)
+     * - Coordinate normalization (scale relative to ROI)
+     * - Progress estimation (total pixels to check = ROI area)
+     * - Memory allocation (allocate only for ROI)
+     * 
+     * @code{.cpp}
+     * VisibilityChecker checker(shapes);
+     * Bounds roi = checker.getVisibleRegion();
+     * 
+     * // Process only pixels in ROI
+     * for (int y = roi.top; y <= roi.bottom; ++y) {
+     *     for (int x = roi.left; x <= roi.right; ++x) {
+     *         if (checker.isVisible({x, y})) {
+     *             // Process visible pixel
+     *         }
+     *     }
+     * }
+     * 
+     * // Normalize coordinates to [0,1] range
+     * Point p{100, 50};
+     * Point normalized = {
+     *     (p.x - roi.left) / roi.width(),
+     *     (p.y - roi.top) / roi.height()
+     * };
+     * @endcode
+     * 
+     * @see ShapeCollection::getVisibleRegion()
+     */
+    Bounds getVisibleRegion() const;
 
 private:
     const ShapeCollection& shapes_;  ///< Reference to shape collection

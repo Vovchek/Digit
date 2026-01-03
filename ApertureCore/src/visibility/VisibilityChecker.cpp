@@ -74,4 +74,8 @@ void VisibilityChecker::resetStats() {
     stats_ = Stats{};
 }
 
+Bounds VisibilityChecker::getVisibleRegion() const {
+    return shapes_.getVisibleRegion();
+}
+
 } // namespace aperture
