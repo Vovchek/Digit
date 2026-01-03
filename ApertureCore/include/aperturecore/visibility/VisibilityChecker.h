@@ -13,11 +13,46 @@ namespace aperture {
 /**
  * @brief Checks point visibility based on shape collection
  * 
- * Implements the new 3-type visibility algorithm:
- * 1. Initial state: visible if any EXTERNAL exists
- * 2. EXTERNAL check: must be inside ALL (intersection)
- * 3. APERTURE check: can be inside ANY (union, forces visible)
- * 4. INTERNAL check: must be outside ALL (final veto)
+ * Implements the correct 3-type visibility algorithm with optimized ordering:
+ * 
+ * **Order of Operations (optimized for early exit):**
+ * 
+ * 1. **INTERNAL check (early exit):**
+ *    - Inside ANY INTERNAL ? return false immediately
+ *    - INTERNAL shapes are absolute blockers (even APERTURE can't override)
+ *    - Checked first for performance (fastest rejection)
+ * 
+ * 2. **Initial state:**
+ *    - visible = true if any EXTERNAL exists, false otherwise
+ * 
+ * 3. **EXTERNAL check (intersection):**
+ *    - Must be inside ALL EXTERNAL shapes
+ *    - If outside any EXTERNAL ? set visible=false
+ *    - **Does NOT return** - APERTURE shapes can still override
+ * 
+ * 4. **APERTURE check (union, can override EXTERNAL):**
+ *    - Inside ANY APERTURE ? force visible=true
+ *    - This can override the visible=false from EXTERNAL check
+ *    - Allows "openings" in the EXTERNAL boundary
+ * 
+ * **Key Insight:** APERTURE shapes punch "holes" through EXTERNAL boundaries,
+ * but INTERNAL shapes are absolute blockers that nothing can override.
+ * 
+ * @example
+ * ```
+ * // Example: Annular aperture with central obstruction
+ * ShapeCollection shapes;
+ * shapes.add(Ellipse(100, 100), TypeLimits::EXTERNAL);   // Outer boundary
+ * shapes.add(Ellipse(20, 20), TypeLimits::INTERNAL);     // Central obstruction
+ * shapes.add(Rectangle(5, 50), TypeLimits::APERTURE);    // Opening/slit
+ * 
+ * VisibilityChecker checker(shapes);
+ * 
+ * Point p1{10, 10};  // Inside INTERNAL ? false (blocked)
+ * Point p2{3, 25};   // Inside APERTURE ? true (opened)
+ * Point p3{50, 50};  // Outside EXTERNAL, not in APERTURE ? false
+ * Point p4{70, 70};  // Inside EXTERNAL, not in INTERNAL ? true
+ * ```
  */
 class VisibilityChecker {
 public:

@@ -104,6 +104,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->
+    <None Include="BOUNDS_HYBRID_NAMING_COMPLETE.md" />
     <None Include="CONSERVATIVE_ROI_DECISION.md" />
     <None Include="COORDINATE_SYSTEM_COMPLETE.md" />
     <None Include="DUAL_BUILD_MAINTENANCE.md" />
