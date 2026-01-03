@@ -136,7 +136,7 @@ void Rectangle::normalize(double originX, double originY, double radius) {
     height_ /= radius;
     center_.x = (center_.x - originX) / radius;
     center_.y = (center_.y - originY) / radius;
-    coordSystem_ = CoordinateSystem::NORMALIZED;
+    normState_ = NormalizationState::NORMALIZED;
 }
 
 void Rectangle::denormalize(double originX, double originY, double radius) {
@@ -144,7 +144,7 @@ void Rectangle::denormalize(double originX, double originY, double radius) {
     height_ *= radius;
     center_.x = center_.x * radius + originX;
     center_.y = center_.y * radius + originY;
-    coordSystem_ = CoordinateSystem::MEASURING;
+    normState_ = NormalizationState::MEASURING;
 }
 
 void Rectangle::inverseY(double centerY) {

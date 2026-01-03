@@ -257,7 +257,7 @@ void Polygon::normalize(double originX, double originY, double radius) {
         vertex.x = (vertex.x - originX) / radius;
         vertex.y = (vertex.y - originY) / radius;
     }
-    coordSystem_ = CoordinateSystem::NORMALIZED;
+    normState_ = NormalizationState::NORMALIZED;
 }
 
 void Polygon::denormalize(double originX, double originY, double radius) {
@@ -265,7 +265,7 @@ void Polygon::denormalize(double originX, double originY, double radius) {
         vertex.x = vertex.x * radius + originX;
         vertex.y = vertex.y * radius + originY;
     }
-    coordSystem_ = CoordinateSystem::MEASURING;
+    normState_ = NormalizationState::MEASURING;
 }
 
 void Polygon::inverseY(double centerY) {

@@ -2,22 +2,29 @@
  * @file Bounds.h
  * @brief Axis-aligned bounding box for 2D shapes
  * 
- * The Bounds class provides an axis-aligned rectangular boundary used throughout
- * the ApertureCore geometry module. It replaces the legacy XYBounds class with
- * modern C++17 features and improved semantics.
- * 
  * ## Key Features
  * - Axis-aligned rectangle representation
  * - Factory methods for various construction patterns
  * - Containment and intersection queries
  * - Expansion and merging operations
  * - Point clamping and boundary calculations
+ * - **Coordinate system awareness (SCREEN vs MATH)**
  * 
  * ## Coordinate Convention
- * Uses screen/image coordinates where:
+ * 
+ * Bounds supports both SCREEN and MATH coordinate systems:
+ * 
+ * ### SCREEN Coordinates (Default)
  * - X-axis: left to right
  * - Y-axis: **top to bottom** (top < bottom)
  * - Origin: typically top-left corner
+ * - Used by: bitmaps, images, UI
+ * 
+ * ### MATH Coordinates
+ * - X-axis: left to right
+ * - Y-axis: **bottom to top** (bottom < top)
+ * - Origin: arbitrary
+ * - Used by: geometry, wavefront analysis
  * 
  * ## Usage Example
  * @code{.cpp}
@@ -25,37 +32,31 @@
  * 
  * using namespace aperture;
  * 
- * // Create bounds
- * Bounds box{0.0, 0.0, 100.0, 50.0};  // left, top, right, bottom
+ * // Create bounds in screen coordinates (default)
+ * Bounds screenBox{0.0, 0.0, 100.0, 50.0};  // left, top, right, bottom
  * 
- * // Query properties
+ * // Or explicitly specify system
+ * Bounds box{0.0, 0.0, 100.0, 50.0, CoordinateSystem::screen()};
+ * 
+ * // Math coordinates
+ * Bounds mathBox{0.0, 0.0, 100.0, 50.0, CoordinateSystem::math()};
+ * 
+ * // Query properties (works in any system)
  * double w = box.width();      // 100.0
  * double h = box.height();     // 50.0
  * Point c = box.center();      // {50.0, 25.0}
  * 
- * // Containment test
- * Point p{50.0, 25.0};
- * if (box.contains(p)) {
- *     // Point is inside bounds
- * }
- * 
- * // Expand to include points
- * Bounds bounds = Bounds::infinite();
- * for (const auto& point : points) {
- *     bounds.expand(point);
- * }
- * 
- * // Intersection
- * Bounds b1{0, 0, 10, 10};
- * Bounds b2{5, 5, 15, 15};
- * Bounds overlap = b1.intersection(b2);  // {5, 5, 10, 10}
+ * // Validation respects coordinate system
+ * assert(screenBox.isValid());  // top < bottom for SCREEN
+ * assert(mathBox.isValid());    // bottom < top for MATH
  * @endcode
  * 
- * @see Point, Shape
+ * @see Point, Shape, CoordinateSystem
  */
 #pragma once
 
 #include "Point.h"
+#include "CoordinateSystem.h"
 #include <algorithm>
 #include <limits>
 #include <array>
@@ -70,7 +71,10 @@ namespace aperture {
  * quick spatial queries, collision detection, and defining shape extents.
  * 
  * ### Coordinate System
- * The class follows screen/image coordinate conventions:
+ * 
+ * Bounds tracks its coordinate system to ensure correct validation and operations.
+ * 
+ * **SCREEN coordinates (default):**
  * ```
  * (left, top) -------- (right, top)
  *      |                    |
@@ -78,13 +82,24 @@ namespace aperture {
  *      |                    |
  * (left, bottom) -- (right, bottom)
  * ```
+ * - top < bottom (Y increases downward)
+ * - Validation: `top <= bottom`
  * 
- * **Important:** top < bottom (Y increases downward)
+ * **MATH coordinates:**
+ * ```
+ * (left, top) -------- (right, top)
+ *      |                    |
+ *      |      center        |
+ *      |                    |
+ * (left, bottom) -- (right, bottom)
+ * ```
+ * - bottom < top (Y increases upward)
+ * - Validation: `bottom <= top`
  * 
  * ### Memory Layout
  * ```
  * Bounds b{left, top, right, bottom};
- * sizeof(Bounds) == 32 bytes (4 ? sizeof(double))
+ * sizeof(Bounds) == 40 bytes (4 ? sizeof(double) + CoordinateSystem)
  * ```
  * 
  * ### Empty Bounds
@@ -96,47 +111,71 @@ namespace aperture {
 class Bounds {
 public:
     double left{0.0};    ///< Minimum X coordinate (left edge)
-    double top{0.0};     ///< Minimum Y coordinate (top edge)
+    double top{0.0};     ///< Top edge (meaning depends on coordinate system)
     double right{0.0};   ///< Maximum X coordinate (right edge)
-    double bottom{0.0};  ///< Maximum Y coordinate (bottom edge)
+    double bottom{0.0};  ///< Bottom edge (meaning depends on coordinate system)
+    
+    CoordinateSystem spatialSystem{CoordinateSystem::screen()};  ///< Coordinate system
     
     // Constructors
     
     /**
-     * @brief Default constructor - creates empty bounds at origin
+     * @brief Default constructor - creates empty bounds at origin in SCREEN coordinates
      * 
      * Creates bounds with all coordinates set to 0.0, representing
-     * an empty rectangle at the origin.
+     * an empty rectangle at the origin in screen coordinate system.
      * 
      * @code{.cpp}
-     * Bounds empty;  // {0, 0, 0, 0}
+     * Bounds empty;  // {0, 0, 0, 0} in SCREEN coordinates
      * assert(empty.isEmpty());
+     * assert(empty.spatialSystem.isScreen());
      * @endcode
      */
-    constexpr Bounds() = default;
+    Bounds() = default;
     
     /**
-     * @brief Construct from coordinates
+     * @brief Construct from coordinates (defaults to SCREEN system)
      * @param l Left edge (minimum X)
-     * @param t Top edge (minimum Y)
+     * @param t Top edge
      * @param r Right edge (maximum X)
-     * @param b Bottom edge (maximum Y)
+     * @param b Bottom edge
      * 
      * @code{.cpp}
-     * Bounds box{0.0, 0.0, 100.0, 50.0};
+     * Bounds box{0.0, 0.0, 100.0, 50.0};  // SCREEN coordinates
      * // Creates bounds: left=0, top=0, right=100, bottom=50
      * @endcode
      * 
      * @note No validation performed - use isValid() to check
-     * @warning Ensure left ? right and top ? bottom for valid bounds
+     * @warning Ensure coordinates match intended system:
+     *          SCREEN: top ? bottom, MATH: bottom ? top
      */
-    constexpr Bounds(double l, double t, double r, double b)
-        : left(l), top(t), right(r), bottom(b) {}
+    Bounds(double l, double t, double r, double b)
+        : left(l), top(t), right(r), bottom(b), spatialSystem(CoordinateSystem::screen()) {}
+    
+    /**
+     * @brief Construct from coordinates with explicit coordinate system
+     * @param l Left edge (minimum X)
+     * @param t Top edge
+     * @param r Right edge (maximum X)
+     * @param b Bottom edge
+     * @param sys Coordinate system
+     * 
+     * @code{.cpp}
+     * // Screen coordinates
+     * Bounds screenBox{0, 0, 100, 50, CoordinateSystem::screen(768)};
+     * 
+     * // Math coordinates
+     * Bounds mathBox{0, 0, 100, 50, CoordinateSystem::math()};
+     * @endcode
+     */
+    Bounds(double l, double t, double r, double b, CoordinateSystem sys)
+        : left(l), top(t), right(r), bottom(b), spatialSystem(sys) {}
     
     /**
      * @brief Construct from two corner points
      * @param p1 First corner
      * @param p2 Opposite corner (any diagonal)
+     * @param sys Coordinate system (defaults to SCREEN)
      * @return Bounds containing both points
      * 
      * Automatically determines min/max for each axis, so points
@@ -154,12 +193,14 @@ public:
      * 
      * @see fromCenterAndSize()
      */
-    static Bounds fromCorners(const Point& p1, const Point& p2) {
+    static Bounds fromCorners(const Point& p1, const Point& p2, 
+                             CoordinateSystem sys = CoordinateSystem::screen()) {
         return {
             std::min(p1.x, p2.x),
             std::min(p1.y, p2.y),
             std::max(p1.x, p2.x),
-            std::max(p1.y, p2.y)
+            std::max(p1.y, p2.y),
+            sys
         };
     }
     
@@ -168,12 +209,13 @@ public:
      * @param center Center point of bounds
      * @param width Width of bounds
      * @param height Height of bounds
+     * @param sys Coordinate system (defaults to SCREEN)
      * @return Bounds centered at specified point
      * 
      * @code{.cpp}
      * Point center{50.0, 25.0};
      * Bounds box = Bounds::fromCenterAndSize(center, 100.0, 50.0);
-     * // Creates bounds: {0, 0, 100, 50}
+     * // Creates bounds: {0, 0, 100, 50} in SCREEN coords
      * 
      * assert(box.center() == center);
      * assert(box.width() == 100.0);
@@ -182,19 +224,22 @@ public:
      * 
      * @see fromCorners()
      */
-    static Bounds fromCenterAndSize(const Point& center, double width, double height) {
+    static Bounds fromCenterAndSize(const Point& center, double width, double height,
+                                    CoordinateSystem sys = CoordinateSystem::screen()) {
         double halfW = width / 2.0;
         double halfH = height / 2.0;
         return {
             center.x - halfW,
             center.y - halfH,
             center.x + halfW,
-            center.y + halfH
+            center.y + halfH,
+            sys
         };
     }
     
     /**
      * @brief Create infinite bounds (for initial expansion)
+     * @param sys Coordinate system (defaults to SCREEN)
      * @return Bounds with inverted infinity values
      * 
      * Creates bounds with left/top = +? and right/bottom = -?.
@@ -212,9 +257,9 @@ public:
      * @note After first expand(), bounds become finite
      * @see expand()
      */
-    static Bounds infinite() {
+    static Bounds infinite(CoordinateSystem sys = CoordinateSystem::screen()) {
         constexpr double inf = std::numeric_limits<double>::infinity();
-        return {inf, inf, -inf, -inf};
+        return {inf, inf, -inf, -inf, sys};
     }
     
     // Properties
@@ -239,20 +284,27 @@ public:
     
     /**
      * @brief Check if bounds are valid (non-negative dimensions)
-     * @return true if left ? right and top ? bottom
+     * @return true if coordinates are valid for the current coordinate system
+     * 
+     * Validation rules depend on coordinate system:
+     * - SCREEN: left ? right AND top ? bottom (Y+ downward)
+     * - MATH: left ? right AND bottom ? top (Y+ upward)
      * 
      * @code{.cpp}
-     * Bounds valid{0, 0, 10, 10};
-     * assert(valid.isValid());
+     * Bounds screenValid{0, 0, 10, 10, CoordinateSystem::screen()};
+     * assert(screenValid.isValid());  // top(0) <= bottom(10) ?
      * 
-     * Bounds invalid{10, 10, 0, 0};  // Inverted
-     * assert(!invalid.isValid());
+     * Bounds mathValid{0, 0, 10, 10, CoordinateSystem::math()};
+     * assert(mathValid.isValid());     // bottom(10) <= top(0)? ?
+     * 
+     * Bounds mathValid2{0, 10, 10, 0, CoordinateSystem::math()};
+     * assert(mathValid2.isValid());    // bottom(0) <= top(10) ?
      * @endcode
      * 
      * @note Empty bounds (0,0,0,0) are considered valid
      */
     bool isValid() const {
-        return left <= right && top <= bottom;
+        return spatialSystem.areBoundsValid(left, top, right, bottom);
     }
     
     /**

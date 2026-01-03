@@ -6,6 +6,7 @@
 
 #include "Point.h"
 #include "Bounds.h"
+#include "CoordinateSystem.h"
 #include "../visibility/TypeLimits.h"
 #include <vector>
 #include <memory>
@@ -13,9 +14,9 @@
 namespace aperture {
 
 /**
- * @brief Coordinate system type for shapes
+ * @brief Normalization state for shapes
  */
-enum class CoordinateSystem {
+enum class NormalizationState {
     MEASURING = 0,   ///< Original measuring coordinates
     NORMALIZED = 1   ///< Normalized coordinates (centered, scaled)
 };
@@ -26,6 +27,23 @@ enum class CoordinateSystem {
  * Provides common interface for all shapes (Ellipse, Rectangle, Polygon).
  * Handles TypeLimits, coordinate system tracking, and defines pure virtual 
  * methods for geometry operations.
+ * 
+ * ## Coordinate Systems
+ * 
+ * Shapes track TWO coordinate properties:
+ * 
+ * 1. **Spatial System** (SCREEN vs MATH):
+ *    - SCREEN: Y+ downward (bitmap/image coordinates)
+ *    - MATH: Y+ upward (mathematical coordinates)
+ *    - Affects: rotation direction, bounds validation, Y comparisons
+ * 
+ * 2. **Normalization State** (MEASURING vs NORMALIZED):
+ *    - MEASURING: Original physical coordinates
+ *    - NORMALIZED: Scaled/centered coordinates
+ *    - Affects: coordinate interpretation, denormalization
+ * 
+ * These are independent: a shape can be in any combination
+ * (SCREEN+MEASURING, SCREEN+NORMALIZED, MATH+MEASURING, MATH+NORMALIZED).
  * 
  * Replaces XYShape with modern C++ design while maintaining compatibility
  * with legacy coordinate normalization functionality.
@@ -97,6 +115,8 @@ public:
     /**
      * @brief Invert Y coordinate (mirror across horizontal line)
      * @param centerY Y coordinate of inversion axis
+     * 
+     * Used for converting between SCREEN and MATH coordinate systems.
      */
     virtual void inverseY(double centerY) = 0;
     
@@ -130,22 +150,90 @@ public:
         typeLimits_ = type; 
     }
     
-    // Coordinate system management
+    // Spatial coordinate system management (SCREEN vs MATH)
     
     /**
-     * @brief Get current coordinate system type
-     * @return Current coordinate system
+     * @brief Get spatial coordinate system
+     * @return Current coordinate system (SCREEN or MATH)
      */
-    CoordinateSystem getCoordinateSystem() const {
-        return coordSystem_;
+    CoordinateSystem getSpatialSystem() const {
+        return spatialSystem_;
     }
     
     /**
-     * @brief Set coordinate system type
+     * @brief Set spatial coordinate system
      * @param system New coordinate system
+     * 
+     * @note This does NOT transform coordinates, only updates the tag.
+     *       Use transformToSystem() to convert coordinates.
      */
-    void setCoordinateSystem(CoordinateSystem system) {
-        coordSystem_ = system;
+    void setSpatialSystem(const CoordinateSystem& system) {
+        spatialSystem_ = system;
+    }
+    
+    /**
+     * @brief Transform shape to different spatial coordinate system
+     * @param targetSystem Target coordinate system
+     * 
+     * Converts shape coordinates from current system to target system.
+     * For SCREEN ? MATH conversion, this inverts the Y-axis around
+     * the reference height stored in the coordinate system.
+     * 
+     * @code{.cpp}
+     * // Shape in screen coordinates
+     * Ellipse ellipse(50, 50, 100, 50);  // Center at screen (100, 50)
+     * ellipse.setSpatialSystem(CoordinateSystem::screen(768.0));
+     * 
+     * // Convert to math coordinates
+     * ellipse.transformToSystem(CoordinateSystem::math(768.0));
+     * // Now center is at math (100, 718)  ? 768 - 50 = 718
+     * @endcode
+     * 
+     * @throws std::invalid_argument if reference height not set for conversion
+     */
+    virtual void transformToSystem(const CoordinateSystem& targetSystem) {
+        if (spatialSystem_.type() == targetSystem.type()) {
+            return;  // Already in target system
+        }
+        
+        // Get reference height for Y-axis inversion
+        double height = targetSystem.referenceHeight();
+        if (height <= 0.0) {
+            height = spatialSystem_.referenceHeight();
+        }
+        
+        if (height <= 0.0) {
+            throw std::invalid_argument(
+                "Shape::transformToSystem: reference height must be set for coordinate conversion"
+            );
+        }
+        
+        // Invert Y-axis around midpoint
+        inverseY(height / 2.0);
+        
+        // Update system tag
+        spatialSystem_ = targetSystem;
+    }
+    
+    // Normalization state management (MEASURING vs NORMALIZED)
+    
+    /**
+     * @brief Get normalization state
+     * @return Current normalization state
+     */
+    NormalizationState getNormalizationState() const {
+        return normState_;
+    }
+    
+    /**
+     * @brief Set normalization state
+     * @param state New normalization state
+     * 
+     * @note This does NOT transform coordinates, only updates the tag.
+     *       Use normalize()/denormalize() to transform coordinates.
+     */
+    void setNormalizationState(NormalizationState state) {
+        normState_ = state;
     }
     
     /**
@@ -153,7 +241,7 @@ public:
      * @return true if in normalized coordinate system
      */
     bool isNormalized() const {
-        return coordSystem_ == CoordinateSystem::NORMALIZED;
+        return normState_ == NormalizationState::NORMALIZED;
     }
     
     /**
@@ -161,7 +249,7 @@ public:
      * @return true if in measuring coordinate system
      */
     bool isMeasuring() const {
-        return coordSystem_ == CoordinateSystem::MEASURING;
+        return normState_ == NormalizationState::MEASURING;
     }
     
     // Optional: Area calculation (not all shapes implement this)
@@ -183,8 +271,9 @@ public:
     virtual const char* typeName() const = 0;
 
 protected:
-    TypeLimits typeLimits_{TypeLimits::EXTERNAL};          ///< Visibility behavior
-    CoordinateSystem coordSystem_{CoordinateSystem::MEASURING};  ///< Coordinate system type
+    TypeLimits typeLimits_{TypeLimits::EXTERNAL};           ///< Visibility behavior
+    CoordinateSystem spatialSystem_{CoordinateSystem::screen()};  ///< Spatial coordinate system (SCREEN/MATH)
+    NormalizationState normState_{NormalizationState::MEASURING};  ///< Normalization state
 };
 
 } // namespace aperture

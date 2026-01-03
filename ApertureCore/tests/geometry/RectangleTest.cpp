@@ -324,7 +324,7 @@ TEST_F(RectangleTest, Normalize) {
 
 TEST_F(RectangleTest, Denormalize) {
     Rectangle rect(2.0, 1.0, 1.0, 1.0);
-    rect.setCoordinateSystem(CoordinateSystem::NORMALIZED);
+    rect.setNormalizationState(NormalizationState::NORMALIZED);
     
     rect.denormalize(40.0, 20.0, 10.0);
     
@@ -504,4 +504,24 @@ TEST_F(RectangleTest, TypeLimits_SetAndGet) {
     
     rect.setTypeLimits(TypeLimits::APERTURE);
     EXPECT_EQ(rect.getTypeLimits(), TypeLimits::APERTURE);
+}
+
+TEST_F(RectangleTest, Normalize_TransformsCoordinates) {
+    Rectangle rect(100.0, 50.0, 200.0, 100.0);
+    
+    // Before normalization
+    EXPECT_FALSE(rect.isNormalized());
+    EXPECT_TRUE(rect.isMeasuring());
+    
+    // Normalize relative to origin (100, 50) with radius 100
+    rect.normalize(100.0, 50.0, 100.0);
+    
+    // After normalization
+    EXPECT_TRUE(rect.isNormalized());
+    EXPECT_FALSE(rect.isMeasuring());
+    
+    // Check transformed values
+    Point center = rect.center();
+    EXPECT_NEAR(center.x, 1.0, TOLERANCE);   // (200-100)/100 = 1
+    EXPECT_NEAR(center.y, 0.5, TOLERANCE);   // (100-50)/100 = 0.5
 }

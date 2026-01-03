@@ -177,7 +177,7 @@ void Ellipse::normalize(double originX, double originY, double radius) {
     semiMinor_ /= radius;
     center_.x = (center_.x - originX) / radius;
     center_.y = (center_.y - originY) / radius;
-    coordSystem_ = CoordinateSystem::NORMALIZED;
+    normState_ = NormalizationState::NORMALIZED;
 }
 
 void Ellipse::denormalize(double originX, double originY, double radius) {
@@ -185,7 +185,7 @@ void Ellipse::denormalize(double originX, double originY, double radius) {
     semiMinor_ *= radius;
     center_.x = center_.x * radius + originX;
     center_.y = center_.y * radius + originY;
-    coordSystem_ = CoordinateSystem::MEASURING;
+    normState_ = NormalizationState::MEASURING;
 }
 
 void Ellipse::inverseY(double centerY) {

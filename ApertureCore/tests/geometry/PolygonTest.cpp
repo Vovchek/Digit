@@ -425,7 +425,7 @@ TEST_F(PolygonTest, Denormalize) {
     };
     
     Polygon polygon(vertices);
-    polygon.setCoordinateSystem(CoordinateSystem::NORMALIZED);
+    polygon.setNormalizationState(NormalizationState::NORMALIZED);
     
     polygon.denormalize(40.0, 20.0, 10.0);
     
@@ -678,4 +678,33 @@ TEST_F(PolygonTest, Integration_ComplexShape) {
     complex.shiftX(10.0);
     Point centroid = complex.centroid();
     EXPECT_GT(centroid.x, 10.0);
+}
+
+TEST_F(PolygonTest, Normalize_TransformsVertices) {
+    std::vector<Point> vertices = {
+        {0.0, 0.0},
+        {100.0, 0.0},
+        {100.0, 100.0},
+        {0.0, 100.0}
+    };
+    
+    Polygon polygon(vertices);
+    
+    // Before normalization
+    EXPECT_FALSE(polygon.isNormalized());
+    EXPECT_TRUE(polygon.isMeasuring());
+    
+    // Normalize relative to origin (50, 50) with radius 50
+    polygon.normalize(50.0, 50.0, 50.0);
+    
+    // After normalization
+    EXPECT_TRUE(polygon.isNormalized());
+    EXPECT_FALSE(polygon.isMeasuring());
+    
+    // Check vertices are transformed correctly
+    // Original vertices relative to (50, 50) / 50:
+    // (0,0) -> (-50,-50)/50 = (-1,-1)
+    // (100,0) -> (50,-50)/50 = (1,-1)
+    // (100,100) -> (50,50)/50 = (1,1)
+    // (0,100) -> (-50,50)/50 = (-1,1)
 }

@@ -74,6 +74,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <!-- Headers -->
+    <ClInclude Include="include\aperturecore\geometry\CoordinateSystem.h" />
     <ClInclude Include="include\aperturecore\geometry\Point.h" />
     <ClInclude Include="include\aperturecore\geometry\Bounds.h" />
     <ClInclude Include="include\aperturecore\visibility\TypeLimits.h" />
@@ -86,6 +87,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->
+    <ClCompile Include="debug_rotation.cpp" />
     <ClCompile Include="src\geometry\Point.cpp" />
     <ClCompile Include="src\geometry\Bounds.cpp" />
     <ClCompile Include="src\geometry\Shape.cpp" />
@@ -96,15 +98,29 @@
     <ClCompile Include="src\visibility\ShapeCollection.cpp" />
     <ClCompile Include="src\visibility\VisibilityChecker.cpp" />
     <ClCompile Include="tests\geometry\EllipseTest.cpp" />
+    <ClCompile Include="tests\geometry\PolygonTest.cpp" />
+    <ClCompile Include="tests\geometry\RectangleTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->
+    <None Include="CONSERVATIVE_ROI_DECISION.md" />
     <None Include="DUAL_BUILD_MAINTENANCE.md" />
+    <None Include="ELLIPSE_TESTS_ALL_PASSING.md" />
+    <None Include="ELLIPSE_TEST_FIX_ROTATION.md" />
     <None Include="packages.config" />
     <None Include="PHASE4_PROGRESS.md" />
+    <None Include="PHASE4_STEP2_COMPLETE.md" />
+    <None Include="PHASE4_STEP3_COMPLETE.md" />
+    <None Include="PHASE5_PLAN.md" />
+    <None Include="PHASE5_PROGRESS_UPDATE.md" />
+    <None Include="PHASE5_READY.md" />
+    <None Include="PHASE5_STEP1.2_COMPLETE.md" />
+    <None Include="PHASE5_STEP1_PROGRESS.md" />
     <None Include="README.md" />
     <None Include="DESIGN.md" />
     <None Include="IMPLEMENTATION.md" />
+    <None Include="ROI_FEATURE_COMPLETE.md" />
     <None Include="sync-builds.ps1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

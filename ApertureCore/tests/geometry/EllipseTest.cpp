@@ -281,9 +281,33 @@ TEST_F(EllipseTest, Normalize) {
     EXPECT_TRUE(ellipse.isNormalized());
 }
 
+TEST_F(EllipseTest, Normalize_TransformsCoordinates) {
+    Ellipse ellipse(100.0, 50.0, 200.0, 100.0);
+    
+    // Before normalization
+    EXPECT_FALSE(ellipse.isNormalized());
+    EXPECT_TRUE(ellipse.isMeasuring());
+    
+    // Normalize relative to origin (100, 50) with radius 100
+    ellipse.normalize(100.0, 50.0, 100.0);
+    
+    // After normalization
+    EXPECT_TRUE(ellipse.isNormalized());
+    EXPECT_FALSE(ellipse.isMeasuring());
+    
+    // Check transformed values
+    Point center = ellipse.center();
+    EXPECT_NEAR(center.x, 1.0, TOLERANCE);   // (200-100)/100 = 1
+    EXPECT_NEAR(center.y, 0.5, TOLERANCE);   // (100-50)/100 = 0.5
+    
+    // Radii are also scaled
+    // Semi-major and semi-minor should be 1.0 and 0.5
+}
+
 TEST_F(EllipseTest, Denormalize) {
     Ellipse ellipse(1.0, 0.6, 1.0, 1.0);
-    ellipse.setCoordinateSystem(CoordinateSystem::NORMALIZED);
+    // Set normalization state manually (already set by normalize())
+    ellipse.setNormalizationState(NormalizationState::NORMALIZED);
     
     ellipse.denormalize(40.0, 20.0, 10.0);
     
