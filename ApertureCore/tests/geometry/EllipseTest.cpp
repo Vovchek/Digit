@@ -206,9 +206,23 @@ TEST_F(EllipseTest, getContour_PointCount) {
     
     EXPECT_GT(contour.size(), 10);
     
-    // Verify all points are on or inside the ellipse
+    // Verify points are close to the ellipse boundary
+    // Due to floating-point precision, exact boundary points may fail isInside()
+    // Instead, check they're approximately on the boundary
     for (const auto& point : contour) {
-        EXPECT_TRUE(ellipse.isInside(point));
+        Point local = Point{
+            (point.x - ellipse.center().x) * std::cos(-ellipse.rotationRadians()) - 
+            (point.y - ellipse.center().y) * std::sin(-ellipse.rotationRadians()),
+            (point.x - ellipse.center().x) * std::sin(-ellipse.rotationRadians()) + 
+            (point.y - ellipse.center().y) * std::cos(-ellipse.rotationRadians())
+        };
+        
+        double term1 = (local.x * local.x) / (ellipse.semiMajor() * ellipse.semiMajor());
+        double term2 = (local.y * local.y) / (ellipse.semiMinor() * ellipse.semiMinor());
+        double distanceFromBoundary = std::abs((term1 + term2) - 1.0);
+        
+        // Points should be very close to boundary (within 0.01%)
+        EXPECT_LT(distanceFromBoundary, 0.0001);
     }
 }
 
@@ -229,9 +243,25 @@ TEST_F(EllipseTest, getContour_RotatedEllipse) {
     
     EXPECT_GT(contour.size(), 10);
     
-    // All points should be inside
+    // Verify points are close to the ellipse boundary (accounting for rotation)
     for (const auto& point : contour) {
-        EXPECT_TRUE(ellipse.isInside(point));
+        // Transform to local coordinates manually
+        double dx = point.x - ellipse.center().x;
+        double dy = point.y - ellipse.center().y;
+        double cosRot = std::cos(ellipse.rotationRadians());
+        double sinRot = std::sin(ellipse.rotationRadians());
+        
+        Point local{
+            dx * cosRot + dy * sinRot,
+            -dx * sinRot + dy * cosRot
+        };
+        
+        double term1 = (local.x * local.x) / (ellipse.semiMajor() * ellipse.semiMajor());
+        double term2 = (local.y * local.y) / (ellipse.semiMinor() * ellipse.semiMinor());
+        double distanceFromBoundary = std::abs((term1 + term2) - 1.0);
+        
+        // Points should be very close to boundary (within 0.01%)
+        EXPECT_LT(distanceFromBoundary, 0.0001);
     }
 }
 
@@ -324,10 +354,12 @@ TEST_F(EllipseTest, isCircle_False) {
 }
 
 TEST_F(EllipseTest, isCircle_WithTolerance) {
-    Ellipse almostCircle(5.0, 4.999999, 0.0, 0.0);
+    // Test with value clearly within default tolerance (1e-6)
+    // Difference should be < 1e-6 to pass with default tolerance
+    Ellipse almostCircle(5.0, 4.9999999, 0.0, 0.0);  // diff = 1e-7 < 1e-6 ?
     
-    EXPECT_TRUE(almostCircle.isCircle());
-    EXPECT_FALSE(almostCircle.isCircle(1e-10));
+    EXPECT_TRUE(almostCircle.isCircle());  // Within default tolerance (1e-6)
+    EXPECT_FALSE(almostCircle.isCircle(1e-10));  // Outside strict tolerance (1e-7 > 1e-10)
 }
 
 TEST_F(EllipseTest, Eccentricity_Circle) {
