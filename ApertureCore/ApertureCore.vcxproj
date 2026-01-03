@@ -105,6 +105,7 @@
   <ItemGroup>
     <!-- Documentation -->
     <None Include="CONSERVATIVE_ROI_DECISION.md" />
+    <None Include="COORDINATE_SYSTEM_COMPLETE.md" />
     <None Include="DUAL_BUILD_MAINTENANCE.md" />
     <None Include="ELLIPSE_TESTS_ALL_PASSING.md" />
     <None Include="ELLIPSE_TEST_FIX_ROTATION.md" />
