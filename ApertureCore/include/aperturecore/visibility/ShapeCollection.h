@@ -116,38 +116,59 @@ public:
     Bounds getCombinedBounds() const;
     
     /**
-     * @brief Get visible region bounds (ROI for optimization)
-     * @return Bounds where visible points can exist
+     * @brief Get visible region bounds (conservative ROI for optimization)
+     * @return Conservative bounds where visible points MAY exist
      * 
-     * Computes the Region of Interest (ROI) for visibility checking:
+     * Computes a conservative Region of Interest (ROI) for visibility checking:
      * - If EXTERNAL shapes exist: intersection of all EXTERNAL bounds
      * - If only APERTURE shapes: union of all APERTURE bounds
      * - If no visibility-defining shapes: empty bounds
      * 
+     * **Important:** This returns a CONSERVATIVE bounding box. Due to INTERNAL
+     * obstructions within the EXTERNAL region, not all points inside the returned
+     * bounds are necessarily visible. You must still call isVisible() for each point.
+     * 
+     * The ROI guarantees:
+     * - All points OUTSIDE the ROI are invisible (safe to skip)
+     * - All points INSIDE the ROI *might* be visible (must check with isVisible())
+     * 
+     * This is still very useful for optimization:
+     * - Skip pixels clearly outside EXTERNAL bounds (often 80-90% of pixels)
+     * - Then check remaining pixels with isVisible() (handles INTERNAL)
+     * 
+     * Example:
+     * - EXTERNAL: Ellipse(100, 100, 0, 0) ? bounds [-100, -100, 100, 100]
+     * - INTERNAL: Ellipse(50, 100, 50, 0) ? blocks right half
+     * - ROI: [-100, -100, 100, 100] (conservative - includes blocked area)
+     * - You must still call isVisible() for points in ROI to check INTERNAL
+     * 
      * This ROI is used for:
-     * - Optimizing image processing (skip pixels outside ROI)
-     * - Coordinate normalization (scale to ROI dimensions)
-     * - Early rejection of points clearly outside visible region
+     * - First-pass culling (skip pixels outside ROI - major speedup!)
+     * - Coordinate normalization (scale to EXTERNAL bounds)
+     * - Memory allocation (allocate for worst-case visible area)
      * 
      * @code{.cpp}
      * ShapeCollection shapes;
      * shapes.addExternal(std::make_unique<Ellipse>(100, 100, 50, 50));
+     * shapes.addInternal(std::make_unique<Ellipse>(30, 50, 70, 50)); // Obstruction
      * 
      * Bounds roi = shapes.getVisibleRegion();
-     * // roi = bounds of ellipse (region where points might be visible)
+     * // roi is EXTERNAL bounds (conservative)
      * 
-     * // Use for image processing optimization
+     * // Two-stage checking for optimization
      * for (int y = roi.top; y <= roi.bottom; ++y) {
      *     for (int x = roi.left; x <= roi.right; ++x) {
      *         Point p{x, y};
+     *         // Only check points inside ROI (skips most pixels)
      *         if (checker.isVisible(p)) {
-     *             // Process visible pixel
+     *             // Process visible pixel (handles INTERNAL obstructions)
      *         }
      *     }
      * }
      * @endcode
      * 
-     * @note Returns empty bounds if no EXTERNAL or APERTURE shapes exist
+     * @note Returns conservative bounds - use isVisible() for exact visibility
+     * @note INTERNAL shapes require per-point checking even within ROI
      * @see getCombinedBounds() for bounds of all shapes regardless of type
      */
     Bounds getVisibleRegion() const;

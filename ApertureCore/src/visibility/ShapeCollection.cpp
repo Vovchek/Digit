@@ -102,6 +102,11 @@ Bounds ShapeCollection::getVisibleRegion() const {
             }
         }
         
+        // NOTE: We return the EXTERNAL intersection as the ROI.
+        // INTERNAL obstructions within this ROI require per-point checking.
+        // This ROI is a conservative bound - all visible points are within it,
+        // but not all points within it are necessarily visible (due to INTERNAL).
+        
         return roi;
     }
     

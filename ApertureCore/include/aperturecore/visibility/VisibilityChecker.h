@@ -64,32 +64,44 @@ public:
     void resetStats();
     
     /**
-     * @brief Get visible region bounds (ROI)
-     * @return Bounds where visible points can exist
+     * @brief Get visible region bounds (conservative ROI)
+     * @return Conservative bounds where visible points MAY exist
      * 
-     * Returns the Region of Interest for visibility checking.
-     * Points outside this region are guaranteed to be invisible.
+     * Returns a conservative Region of Interest for visibility checking.
+     * Points outside this region are **guaranteed invisible** (safe to skip).
+     * Points inside this region **might be visible** (must check with isVisible()).
+     * 
+     * The ROI is conservative due to INTERNAL obstructions - it returns the
+     * EXTERNAL intersection bounds, but INTERNAL shapes within that region
+     * are not accounted for in the bounds calculation.
+     * 
+     * **Optimization strategy:**
+     * 1. Get ROI to find maximum possible visible area
+     * 2. Skip all pixels outside ROI (major speedup - often 80-90% of pixels)
+     * 3. Check remaining pixels with isVisible() (handles INTERNAL obstructions)
      * 
      * Use cases:
      * - Image processing optimization (skip pixels outside ROI)
-     * - Coordinate normalization (scale relative to ROI)
-     * - Progress estimation (total pixels to check = ROI area)
-     * - Memory allocation (allocate only for ROI)
+     * - Coordinate normalization (scale relative to EXTERNAL bounds)
+     * - Progress estimation (worst-case pixel count = ROI area)
+     * - Memory allocation (allocate for maximum visible area)
      * 
      * @code{.cpp}
      * VisibilityChecker checker(shapes);
      * Bounds roi = checker.getVisibleRegion();
      * 
-     * // Process only pixels in ROI
+     * // Two-stage checking (optimal performance)
      * for (int y = roi.top; y <= roi.bottom; ++y) {
      *     for (int x = roi.left; x <= roi.right; ++x) {
+     *         // Stage 1: ROI culls ~90% of pixels (O(1) check)
+     *         // Stage 2: isVisible() checks remaining pixels
      *         if (checker.isVisible({x, y})) {
      *             // Process visible pixel
      *         }
      *     }
      * }
      * 
-     * // Normalize coordinates to [0,1] range
+     * // Normalization uses EXTERNAL bounds
      * Point p{100, 50};
      * Point normalized = {
      *     (p.x - roi.left) / roi.width(),
@@ -97,6 +109,8 @@ public:
      * };
      * @endcode
      * 
+     * @note Points outside ROI are guaranteed invisible
+     * @note Points inside ROI require isVisible() check (INTERNAL obstructions)
      * @see ShapeCollection::getVisibleRegion()
      */
     Bounds getVisibleRegion() const;

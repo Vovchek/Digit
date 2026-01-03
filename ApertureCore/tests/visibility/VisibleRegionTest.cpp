@@ -166,20 +166,22 @@ TEST_F(VisibleRegionTest, ExternalWithAperture_ExternalTakesPriority) {
 }
 
 TEST_F(VisibleRegionTest, ExternalWithInternal_InternalIgnored) {
-    // INTERNAL shapes don't affect ROI bounds
+    // INTERNAL shapes don't shrink ROI bounds (conservative approach)
     ShapeCollection shapes;
     
     // EXTERNAL: Circle at (100, 100), radius 50
     shapes.addExternal(std::make_unique<Ellipse>(50, 50, 100, 100));
     
-    // INTERNAL: Obstruction (doesn't change ROI)
+    // INTERNAL: Obstruction (doesn't change conservative ROI)
     shapes.addInternal(std::make_unique<Ellipse>(20, 20, 100, 100));
     
     Bounds roi = shapes.getVisibleRegion();
     
-    // ROI is EXTERNAL bounds only
+    // ROI is EXTERNAL bounds (conservative - includes obstruction area)
     EXPECT_DOUBLE_EQ(roi.left, 50.0);
     EXPECT_DOUBLE_EQ(roi.right, 150.0);
+    EXPECT_DOUBLE_EQ(roi.top, 50.0);
+    EXPECT_DOUBLE_EQ(roi.bottom, 150.0);
 }
 
 // ============================================================================
@@ -387,5 +389,106 @@ TEST_F(VisibleRegionTest, getCombinedBounds_DifferentFromVisibleRegion) {
     
     // Combined includes INTERNAL
     EXPECT_EQ(combined.left, 50.0);
-    EXPECT_EQ(combined.right, 600.0);
+    EXPECT_DOUBLE_EQ(combined.right, 600.0);
+}
+
+TEST_F(VisibleRegionTest, ConservativeROI_LeftEdgeObstruction) {
+    // Conservative ROI doesn't shrink for INTERNAL touching edges
+    ShapeCollection shapes;
+    
+    // EXTERNAL: Rectangle [-100, -100, 100, 100]
+    shapes.addExternal(std::make_unique<Rectangle>(200, 200, 0, 0, 0.0));
+    
+    // INTERNAL: Obstruction covering left half (doesn't affect conservative ROI)
+    shapes.addInternal(std::make_unique<Rectangle>(100, 200, -50, 0, 0.0));
+    
+    Bounds roi = shapes.getVisibleRegion();
+    
+    // Conservative ROI remains full EXTERNAL bounds
+    EXPECT_DOUBLE_EQ(roi.left, -100.0);
+    EXPECT_DOUBLE_EQ(roi.right, 100.0);
+    EXPECT_DOUBLE_EQ(roi.top, -100.0);
+    EXPECT_DOUBLE_EQ(roi.bottom, 100.0);
+}
+
+TEST_F(VisibleRegionTest, ConservativeROI_RightEdgeObstruction) {
+    // Conservative ROI doesn't shrink for INTERNAL
+    ShapeCollection shapes;
+    
+    shapes.addExternal(std::make_unique<Rectangle>(200, 200, 0, 0, 0.0));
+    shapes.addInternal(std::make_unique<Rectangle>(100, 200, 50, 0, 0.0));
+    
+    Bounds roi = shapes.getVisibleRegion();
+    
+    // Conservative ROI is full EXTERNAL
+    EXPECT_DOUBLE_EQ(roi.left, -100.0);
+    EXPECT_DOUBLE_EQ(roi.right, 100.0);
+}
+
+TEST_F(VisibleRegionTest, ConservativeROI_CompletelyBlocked) {
+    // Even if INTERNAL completely blocks, conservative ROI is EXTERNAL bounds
+    ShapeCollection shapes;
+    
+    shapes.addExternal(std::make_unique<Rectangle>(100, 100, 0, 0, 0.0));
+    shapes.addInternal(std::make_unique<Rectangle>(200, 200, 0, 0, 0.0));
+    
+    Bounds roi = shapes.getVisibleRegion();
+    
+    // Conservative ROI is EXTERNAL bounds (even though all points are blocked)
+    EXPECT_DOUBLE_EQ(roi.left, -50.0);
+    EXPECT_DOUBLE_EQ(roi.right, 50.0);
+    // Note: isVisible() will return false for all points due to INTERNAL
+}
+
+TEST_F(VisibleRegionTest, YourExample_ConservativeROI) {
+    // Your example with conservative ROI
+    ShapeCollection shapes;
+    
+    // EXTERNAL: Ellipse at origin ? bounds [-100, -100, 100, 100]
+    shapes.addExternal(std::make_unique<Ellipse>(100, 100, 0, 0));
+    
+    // INTERNAL: Blocks right half (doesn't affect conservative ROI)
+    shapes.addInternal(std::make_unique<Ellipse>(50, 100, 50, 0));
+    
+    Bounds roi = shapes.getVisibleRegion();
+    
+    // Conservative ROI is full EXTERNAL bounds
+    EXPECT_DOUBLE_EQ(roi.left, -100.0);
+    EXPECT_DOUBLE_EQ(roi.right, 100.0);
+    EXPECT_DOUBLE_EQ(roi.top, -100.0);
+    EXPECT_DOUBLE_EQ(roi.bottom, 100.0);
+    
+    // To find actual visible points, must call isVisible() for each point
+    // Points on right side (blocked by INTERNAL) will return false
+}
+
+TEST_F(VisibleRegionTest, ConservativeROI_TwoStageOptimization) {
+    // Demonstrate two-stage optimization with conservative ROI
+    ShapeCollection shapes;
+    
+    // EXTERNAL: Circle at (100, 100), radius 50
+    shapes.addExternal(std::make_unique<Ellipse>(50, 50, 100, 100));
+    
+    // INTERNAL: Small obstruction at center
+    shapes.addInternal(std::make_unique<Ellipse>(10, 10, 100, 100));
+    
+    VisibilityChecker checker(shapes);
+    Bounds roi = checker.getVisibleRegion();
+    
+    // Stage 1: ROI tells us bounds [50, 50, 150, 150]
+    EXPECT_EQ(roi.left, 50.0);
+    EXPECT_EQ(roi.right, 150.0);
+    
+    // Stage 2: Check points within ROI
+    int visibleCount = 0;
+    for (int y = static_cast<int>(roi.top); y <= static_cast<int>(roi.bottom); ++y) {
+        for (int x = static_cast<int>(roi.left); x <= static_cast<int>(roi.right); ++x) {
+            if (checker.isVisible({static_cast<double>(x), static_cast<double>(y)})) {
+                visibleCount++;
+            }
+        }
+    }
+    
+    // Some points should be visible (exact count depends on shapes)
+    EXPECT_GT(visibleCount, 0);
 }
