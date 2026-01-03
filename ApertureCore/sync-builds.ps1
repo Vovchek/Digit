@@ -206,3 +206,138 @@ if (-not $DryRun) {
 
 Write-Host ""
 Write-Host "Done!" -ForegroundColor Green
+
+# ============================================================================
+# Also sync the .vcxproj.filters file
+# ============================================================================
+
+Write-Host ""
+Write-Host "Syncing .vcxproj.filters..." -ForegroundColor Cyan
+
+$filtersFile = "ApertureCore.vcxproj.filters"
+if (Test-Path $filtersFile) {
+    [xml]$filters = Get-Content $filtersFile
+    
+    # Find ItemGroups for ClCompile and ClInclude
+    $filtersCompileGroup = $filters.Project.ItemGroup | Where-Object { $_.ClCompile -ne $null } | Select-Object -First 1
+    $filtersIncludeGroup = $filters.Project.ItemGroup | Where-Object { $_.ClInclude -ne $null } | Select-Object -First 1
+    
+    if ($filtersCompileGroup -and $filtersIncludeGroup) {
+        # Helper function to determine filter path from file path
+        function Get-FilterPath {
+            param([string]$filePath)
+            
+            # Examples:
+            # src\geometry\Point.cpp -> Source Files\geometry
+            # include\aperturecore\visibility\TypeLimits.h -> Header Files\visibility
+            
+            if ($filePath -match '^src\\(\w+)\\') {
+                return "Source Files\$($matches[1])"
+            }
+            elseif ($filePath -match '^include\\aperturecore\\(\w+)\\') {
+                return "Header Files\$($matches[1])"
+            }
+            
+            # Default
+            if ($filePath -match '\.cpp$') { return "Source Files" }
+            if ($filePath -match '\.h$') { return "Header Files" }
+            
+            return $null
+        }
+        
+        # Get existing files in filters
+        $existingFiltersCompile = @($filtersCompileGroup.ClCompile | ForEach-Object { $_.Include })
+        $existingFiltersInclude = @($filtersIncludeGroup.ClInclude | ForEach-Object { $_.Include })
+        
+        # Find files that need to be added to filters
+        $missingFiltersCompile = $sourceFiles | Where-Object { $_ -notin $existingFiltersCompile }
+        $missingFiltersInclude = $allHeaders | Where-Object { $_ -notin $existingFiltersInclude }
+        
+        # Find files that need to be removed from filters
+        $extraFiltersCompile = $existingFiltersCompile | Where-Object { $_ -notin $sourceFiles }
+        $extraFiltersInclude = $existingFiltersInclude | Where-Object { $_ -notin $allHeaders }
+        
+        if (-not $DryRun) {
+            $filtersChanged = $false
+            
+            # Add missing source files to filters
+            foreach ($file in $missingFiltersCompile) {
+                $filterPath = Get-FilterPath $file
+                if ($filterPath) {
+                    $newNode = $filters.CreateElement("ClCompile", $filters.DocumentElement.NamespaceURI)
+                    $newNode.SetAttribute("Include", $file)
+                    
+                    $filterNode = $filters.CreateElement("Filter", $filters.DocumentElement.NamespaceURI)
+                    $filterNode.InnerText = $filterPath
+                    $newNode.AppendChild($filterNode) | Out-Null
+                    
+                    $filtersCompileGroup.AppendChild($newNode) | Out-Null
+                    Write-Host "  Filters: Added $file -> $filterPath" -ForegroundColor Green
+                    $filtersChanged = $true
+                }
+            }
+            
+            # Add missing headers to filters
+            foreach ($file in $missingFiltersInclude) {
+                $filterPath = Get-FilterPath $file
+                if ($filterPath) {
+                    $newNode = $filters.CreateElement("ClInclude", $filters.DocumentElement.NamespaceURI)
+                    $newNode.SetAttribute("Include", $file)
+                    
+                    $filterNode = $filters.CreateElement("Filter", $filters.DocumentElement.NamespaceURI)
+                    $filterNode.InnerText = $filterPath
+                    $newNode.AppendChild($filterNode) | Out-Null
+                    
+                    $filtersIncludeGroup.AppendChild($newNode) | Out-Null
+                    Write-Host "  Filters: Added $file -> $filterPath" -ForegroundColor Green
+                    $filtersChanged = $true
+                }
+            }
+            
+            # Remove extra files from filters
+            foreach ($file in $extraFiltersCompile) {
+                $node = $filtersCompileGroup.ClCompile | Where-Object { $_.Include -eq $file }
+                if ($node) {
+                    $filtersCompileGroup.RemoveChild($node) | Out-Null
+                    Write-Host "  Filters: Removed $file" -ForegroundColor Yellow
+                    $filtersChanged = $true
+                }
+            }
+            
+            foreach ($file in $extraFiltersInclude) {
+                $node = $filtersIncludeGroup.ClInclude | Where-Object { $_.Include -eq $file }
+                if ($node) {
+                    $filtersIncludeGroup.RemoveChild($node) | Out-Null
+                    Write-Host "  Filters: Removed $file" -ForegroundColor Yellow
+                    $filtersChanged = $true
+                }
+            }
+            
+            if ($filtersChanged) {
+                # Backup
+                Copy-Item $filtersFile "$filtersFile.backup"
+                Write-Host ""
+                Write-Host "  Filters backup: $filtersFile.backup" -ForegroundColor Cyan
+                
+                # Save
+                $filters.Save((Resolve-Path $filtersFile))
+                Write-Host "  ? Saved $filtersFile" -ForegroundColor Green
+            } else {
+                Write-Host "  ? Filters already in sync" -ForegroundColor Green
+            }
+        } else {
+            if ($missingFiltersCompile.Count -gt 0 -or $missingFiltersInclude.Count -gt 0) {
+                Write-Host "  Would add $($missingFiltersCompile.Count) source files and $($missingFiltersInclude.Count) headers to filters" -ForegroundColor Yellow
+            } else {
+                Write-Host "  Filters already in sync" -ForegroundColor Green
+            }
+        }
+    } else {
+        Write-Host "  Warning: Could not find ItemGroups in .vcxproj.filters" -ForegroundColor Yellow
+    }
+} else {
+    Write-Host "  Warning: $filtersFile not found" -ForegroundColor Yellow
+}
+
+Write-Host ""
+Write-Host "Done!" -ForegroundColor Green

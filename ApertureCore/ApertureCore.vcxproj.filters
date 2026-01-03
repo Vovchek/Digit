@@ -45,6 +45,15 @@
     <ClInclude Include="include\aperturecore\visibility\VisibilityChecker.h">
       <Filter>Header Files\visibility</Filter>
     </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\Ellipse.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\Polygon.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\Rectangle.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\geometry\Point.cpp">
@@ -64,6 +73,15 @@
     </ClCompile>
     <ClCompile Include="src\visibility\VisibilityChecker.cpp">
       <Filter>Source Files\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\Ellipse.cpp">
+      <Filter>Source Files\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\Rectangle.cpp">
+      <Filter>Source Files\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\Polygon.cpp">
+      <Filter>Source Files\geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
