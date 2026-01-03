@@ -27,6 +27,7 @@ add_executable(geometry_tests
     geometry/BoundsTest.cpp
     geometry/EllipseTest.cpp
     geometry/RectangleTest.cpp
+    geometry/PolygonTest.cpp
 )
 target_link_libraries(geometry_tests PRIVATE ${TEST_LIBS})
 gtest_discover_tests(geometry_tests)
