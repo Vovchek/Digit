@@ -125,6 +125,7 @@
     <None Include="DESIGN.md" />
     <None Include="IMPLEMENTATION.md" />
     <None Include="ROI_FEATURE_COMPLETE.md" />
+    <None Include="SHAPE_CONSTRUCTOR_UPDATE_GUIDE.md" />
     <None Include="sync-builds.ps1" />
     <None Include="VISIBILITY_LOGIC_FIX.md" />
   </ItemGroup>

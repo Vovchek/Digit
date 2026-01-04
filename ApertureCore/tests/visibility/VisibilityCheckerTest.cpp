@@ -22,14 +22,6 @@
 
 using namespace aperture;
 
-// Helper function to create shape with specific type
-template<typename T>
-std::unique_ptr<T> makeShape(TypeLimits type, auto&&... args) {
-    auto shape = std::make_unique<T>(std::forward<decltype(args)>(args)...);
-    shape->setType(type);
-    return shape;
-}
-
 // ============================================================================
 // Test Fixture
 // ============================================================================
@@ -53,24 +45,24 @@ TEST_F(VisibilityCheckerTest, ApertureCanOverrideExternalBlocking) {
     ShapeCollection shapes;
     
     // EXTERNAL: Circle centered at (100, 100) with radius 50
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addExternal(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0));
     
     // APERTURE: Rectangle extending outside EXTERNAL boundary
-    // This creates an "opening" that extends beyond the main aperture
-    shapes.addShape(std::make_unique<Rectangle>(30.0, 100.0, 200.0, 100.0), 
-                    TypeLimits::APERTURE);
+    // Rectangle: width=100, height=30, center=(170, 100)
+    // X range: [170-50, 170+50] = [120, 220]
+    // Y range: [100-15, 100+15] = [85, 115]
+    shapes.addAperture(std::make_unique<Rectangle>(100.0, 30.0, 170.0, 100.0));
     
     VisibilityChecker checker(shapes);
     
     // Point outside EXTERNAL circle but inside APERTURE rectangle
     Point outsideExternalInsideAperture{170.0, 100.0};
     
-    // Distance from center: sqrt((170-100)^2 + 0) = 70 > 50 (outside EXTERNAL)
-    // But inside APERTURE rectangle: x in [185, 215], y in [0, 200]
+    // Distance from EXTERNAL center: sqrt((170-100)^2 + 0) = 70 > 50 (outside EXTERNAL)
+    // Inside APERTURE rectangle: x=170 in [120,220], y=100 in [85,115] ✓
     
-    // ? OLD BUG: Would return false (EXTERNAL check returned immediately)
-    // ? CORRECT: Should return true (APERTURE overrides EXTERNAL blocking)
+    // ❌ OLD BUG: Would return false (EXTERNAL check returned immediately)
+    // ✅ CORRECT: Should return true (APERTURE overrides EXTERNAL blocking)
     EXPECT_TRUE(checker.isVisible(outsideExternalInsideAperture))
         << "APERTURE must be able to override EXTERNAL blocking!";
 }
@@ -81,12 +73,12 @@ TEST_F(VisibilityCheckerTest, ApertureOpensHoleInExternalBoundary) {
     ShapeCollection shapes;
     
     // EXTERNAL: Large circle (main aperture)
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // APERTURE: Thin vertical slit extending beyond boundary
-    shapes.addShape(std::make_unique<Rectangle>(5.0, 150.0, 100.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(5.0, 150.0, 100.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -107,16 +99,16 @@ TEST_F(VisibilityCheckerTest, MultipleAperturesCreateMultipleOpenings) {
     ShapeCollection shapes;
     
     // EXTERNAL: Circle
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // APERTURE 1: Opening on the right
-    shapes.addShape(std::make_unique<Rectangle>(20.0, 30.0, 160.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(20.0, 30.0, 160.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     // APERTURE 2: Opening on the left
-    shapes.addShape(std::make_unique<Rectangle>(20.0, 30.0, 40.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(20.0, 30.0, 40.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -139,16 +131,16 @@ TEST_F(VisibilityCheckerTest, InternalBlocksEvenIfInsideAperture) {
     ShapeCollection shapes;
     
     // EXTERNAL: Large circle
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction
-    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     // APERTURE: Overlaps INTERNAL region
-    shapes.addShape(std::make_unique<Rectangle>(40.0, 40.0, 100.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(40.0, 40.0, 100.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -165,12 +157,12 @@ TEST_F(VisibilityCheckerTest, InternalBlocksInsideExternalAndAperture) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 0.0, 0.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 0.0, 0.0), 
-                    TypeLimits::INTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 0.0, 0.0), 
-                    TypeLimits::APERTURE);
+	shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 0.0, 0.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 0.0, 0.0, 0.0,
+                    TypeLimits::INTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 0.0, 0.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -191,12 +183,12 @@ TEST_F(VisibilityCheckerTest, InternalCheckedFirstForPerformance) {
     ShapeCollection shapes;
     
     // Add shapes in specific order
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
-    shapes.addShape(std::make_unique<Rectangle>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
+    shapes.addShape(std::make_unique<Rectangle>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -219,12 +211,12 @@ TEST_F(VisibilityCheckerTest, ApertureEarlyExitOptimization) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 120.0, 100.0), 
-                    TypeLimits::APERTURE);
-    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 80.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 120.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
+    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 80.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     checker.resetStats();
@@ -249,12 +241,12 @@ TEST_F(VisibilityCheckerTest, StandardAnnularAperture) {
     ShapeCollection shapes;
     
     // EXTERNAL: Outer circle (radius 100)
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction (radius 30)
-    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     VisibilityChecker checker(shapes);
     
@@ -278,16 +270,16 @@ TEST_F(VisibilityCheckerTest, AnnularApertureWithSlits) {
     ShapeCollection shapes;
     
     // EXTERNAL: Outer circle
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction
-    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(30.0, 30.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     // APERTURE: Vertical slit extending beyond boundary
-    shapes.addShape(std::make_unique<Rectangle>(5.0, 150.0, 100.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(5.0, 150.0, 100.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -311,50 +303,50 @@ TEST_F(VisibilityCheckerTest, NoShapes_AlwaysInvisible) {
     Point anywhere{100.0, 100.0};
     
     EXPECT_FALSE(checker.isVisible(anywhere)) 
-        << "No EXTERNAL shapes ? everything invisible";
+        << "No EXTERNAL shapes -> everything invisible";
 }
 
 TEST_F(VisibilityCheckerTest, OnlyExternal_InsideVisible) {
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     VisibilityChecker checker(shapes);
     
     Point inside{100.0, 100.0};
     Point outside{200.0, 200.0};
     
-    EXPECT_TRUE(checker.isVisible(inside)) << "Inside EXTERNAL ? visible";
-    EXPECT_FALSE(checker.isVisible(outside)) << "Outside EXTERNAL ? invisible";
+    EXPECT_TRUE(checker.isVisible(inside)) << "Inside EXTERNAL -> visible";
+    EXPECT_FALSE(checker.isVisible(outside)) << "Outside EXTERNAL -> invisible";
 }
 
 TEST_F(VisibilityCheckerTest, OnlyAperture_AlwaysInsideApertureVisible) {
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
     Point inside{100.0, 100.0};
     Point outside{200.0, 200.0};
     
-    EXPECT_TRUE(checker.isVisible(inside)) << "Inside APERTURE ? visible";
-    EXPECT_FALSE(checker.isVisible(outside)) << "Outside APERTURE ? invisible (no EXTERNAL)";
+    EXPECT_TRUE(checker.isVisible(inside)) << "Inside APERTURE -> visible";
+    EXPECT_FALSE(checker.isVisible(outside)) << "Outside APERTURE -> invisible (no EXTERNAL)";
 }
 
 TEST_F(VisibilityCheckerTest, OnlyInternal_AlwaysBlocked) {
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     VisibilityChecker checker(shapes);
     
     Point inside{100.0, 100.0};
     Point outside{200.0, 200.0};
     
-    // No EXTERNAL ? everything invisible (INTERNAL just blocks additionally)
-    EXPECT_FALSE(checker.isVisible(inside)) << "Inside INTERNAL ? blocked";
-    EXPECT_FALSE(checker.isVisible(outside)) << "No EXTERNAL ? invisible";
+    // No EXTERNAL -> everything invisible (INTERNAL just blocks additionally)
+    EXPECT_FALSE(checker.isVisible(inside)) << "Inside INTERNAL -> blocked";
+    EXPECT_FALSE(checker.isVisible(outside)) << "No EXTERNAL -> invisible";
 }
 
 // ============================================================================
@@ -367,24 +359,24 @@ TEST_F(VisibilityCheckerTest, ComplexMultiShapeConfiguration) {
     ShapeCollection shapes;
     
     // Main aperture (large circle)
-    shapes.addShape(std::make_unique<Ellipse>(150.0, 150.0, 200.0, 200.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(150.0, 150.0, 200.0, 200.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // Central obstruction
-    shapes.addShape(std::make_unique<Ellipse>(40.0, 40.0, 200.0, 200.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(40.0, 40.0, 200.0, 200.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     // Spider vanes (obstructions)
-    shapes.addShape(std::make_unique<Rectangle>(5.0, 300.0, 200.0, 200.0), 
-                    TypeLimits::INTERNAL);
-    shapes.addShape(std::make_unique<Rectangle>(300.0, 5.0, 200.0, 200.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Rectangle>(5.0, 300.0, 200.0, 200.0, 0.0,
+                    TypeLimits::INTERNAL));
+    shapes.addShape(std::make_unique<Rectangle>(300.0, 5.0, 200.0, 200.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     // Openings/slits
-    shapes.addShape(std::make_unique<Rectangle>(10.0, 50.0, 100.0, 200.0), 
-                    TypeLimits::APERTURE);
-    shapes.addShape(std::make_unique<Rectangle>(10.0, 50.0, 300.0, 200.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Rectangle>(10.0, 50.0, 100.0, 200.0, 0.0,
+                    TypeLimits::APERTURE));
+    shapes.addShape(std::make_unique<Rectangle>(10.0, 50.0, 300.0, 200.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -409,12 +401,12 @@ TEST_F(VisibilityCheckerTest, ComplexMultiShapeConfiguration) {
 TEST_F(VisibilityCheckerTest, StatisticsTracking) {
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 100.0, 100.0), 
-                    TypeLimits::INTERNAL);
-    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 150.0, 100.0), 
-                    TypeLimits::APERTURE);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(20.0, 20.0, 100.0, 100.0, 0.0,
+                    TypeLimits::INTERNAL));
+    shapes.addShape(std::make_unique<Rectangle>(30.0, 30.0, 150.0, 100.0, 0.0,
+                    TypeLimits::APERTURE));
     
     VisibilityChecker checker(shapes);
     
@@ -439,8 +431,8 @@ TEST_F(VisibilityCheckerTest, StatisticsTracking) {
 
 TEST_F(VisibilityCheckerTest, BatchCheckPoints) {
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     VisibilityChecker checker(shapes);
     
@@ -470,8 +462,8 @@ TEST_F(VisibilityCheckerTest, PolygonApertureOverridesExternal) {
     ShapeCollection shapes;
     
     // EXTERNAL: Circle
-    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // APERTURE: Polygon extending outside EXTERNAL
     std::vector<Point> vertices = {
@@ -480,7 +472,7 @@ TEST_F(VisibilityCheckerTest, PolygonApertureOverridesExternal) {
         {160.0, 120.0},
         {140.0, 120.0}
     };
-    shapes.addShape(std::make_unique<Polygon>(vertices), TypeLimits::APERTURE);
+    shapes.addAperture(std::make_unique<Polygon>(vertices));
     
     VisibilityChecker checker(shapes);
     
@@ -496,8 +488,8 @@ TEST_F(VisibilityCheckerTest, ComplexPolygonInternal) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 100.0, 100.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // Complex polygon obstruction
     std::vector<Point> vertices = {
@@ -507,7 +499,7 @@ TEST_F(VisibilityCheckerTest, ComplexPolygonInternal) {
         {100.0, 130.0},
         {80.0, 120.0}
     };
-    shapes.addShape(std::make_unique<Polygon>(vertices), TypeLimits::INTERNAL);
+    shapes.addInternal(std::make_unique<Polygon>(vertices));
     
     VisibilityChecker checker(shapes);
     

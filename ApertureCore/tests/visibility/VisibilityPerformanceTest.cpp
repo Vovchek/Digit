@@ -1,4 +1,4 @@
-﻿/**
+/**
  * @file VisibilityPerformanceTest.cpp
  * @brief Performance benchmarks for VisibilityChecker
  * 
@@ -33,10 +33,10 @@ using namespace std::chrono;
 class VisibilityPerformanceTest : public ::testing::Test {
 protected:
     // Standard image sizes
-    static constexpr int IMG_1MP = 1024 * 1024;         // 1 megapixel (1024×1024)
-    static constexpr int IMG_2MP = 1920 * 1080;         // ~2 megapixels (1920×1080, Full HD)
-    static constexpr int IMG_4MP = 2048 * 2048;         // 4 megapixels (2048×2048)
-    static constexpr int IMG_8MP = 3840 * 2160;         // ~8 megapixels (3840×2160, 4K)
+    static constexpr int IMG_1MP = 1024 * 1024;         // 1 megapixel (1024x1024)
+    static constexpr int IMG_2MP = 1920 * 1080;         // ~2 megapixels (1920x1080, Full HD)
+    static constexpr int IMG_4MP = 2048 * 2048;         // 4 megapixels (2048x2048)
+    static constexpr int IMG_8MP = 3840 * 2160;         // ~8 megapixels (3840x2160, 4K)
     
     // Performance thresholds (pixels per second)
     static constexpr double MIN_THROUGHPUT_PPS = 10'000'000.0;  // 10 million pixels/sec
@@ -87,7 +87,7 @@ protected:
         if (!testName.empty()) {
             std::cout << "\n=== " << testName << " ===" << std::endl;
         }
-        std::cout << "  Image size: " << width << "×" << height 
+        std::cout << "  Image size: " << width << "x" << height 
                   << " (" << (pixelCount / 1'000'000.0) << " MP)" << std::endl;
         std::cout << "  Pixels checked: " << pixelCount << std::endl;
         std::cout << "  Visible pixels: " << visibleCount 
@@ -105,7 +105,7 @@ protected:
     }
     
     // Helper to create polygon with N vertices
-    std::unique_ptr<Polygon> createNGon(int n, double radius, double centerX, double centerY) {
+    std::unique_ptr<Polygon> createNGon(int n, double radius, double centerX, double centerY, TypeLimits  typeLimits) {
         std::vector<Point> vertices;
         for (int i = 0; i < n; i++) {
             double angle = 2.0 * M_PI * i / n;
@@ -114,7 +114,7 @@ protected:
                 centerY + radius * std::sin(angle)
             });
         }
-        return std::make_unique<Polygon>(vertices);
+        return std::make_unique<Polygon>(vertices, typeLimits);
     }
 };
 
@@ -126,10 +126,10 @@ TEST_F(VisibilityPerformanceTest, Baseline_1MP_SimpleAnnulus) {
     // Baseline: 1MP image with simple annular aperture
     
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 512.0, 512.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(100.0, 100.0, 512.0, 512.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     VisibilityChecker checker(shapes);
     
@@ -140,19 +140,19 @@ TEST_F(VisibilityPerformanceTest, Baseline_1MP_SimpleAnnulus) {
     EXPECT_GT(result.pixelsPerSecond, MIN_THROUGHPUT_PPS)
         << "Throughput below minimum threshold!";
     
-    std::cout << "  ✓ Performance: " 
+    std::cout << "  V Performance: " 
               << (result.pixelsPerSecond >= TARGET_THROUGHPUT_PPS ? "EXCELLENT" : "ACCEPTABLE")
               << std::endl;
 }
 
 TEST_F(VisibilityPerformanceTest, Baseline_2MP_FullHD) {
-    // 2MP (1920×1080, Full HD) with simple configuration
+    // 2MP (1920x1080, Full HD) with simple configuration
     
     ShapeCollection shapes;
-    shapes.addShape(std::make_unique<Ellipse>(800.0, 500.0, 960.0, 540.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(std::make_unique<Ellipse>(150.0, 150.0, 960.0, 540.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(800.0, 500.0, 960.0, 540.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(std::make_unique<Ellipse>(150.0, 150.0, 960.0, 540.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     VisibilityChecker checker(shapes);
     
@@ -172,10 +172,10 @@ TEST_F(VisibilityPerformanceTest, Polygons_1MP_MultipleComplexPolygons) {
     ShapeCollection shapes;
     
     // EXTERNAL: 20-sided polygon
-    shapes.addShape(createNGon(20, 500.0, 512.0, 512.0), TypeLimits::EXTERNAL);
+    shapes.addShape(createNGon(20, 500.0, 512.0, 512.0, TypeLimits::EXTERNAL));
     
     // INTERNAL: 12-sided polygon (central obstruction)
-    shapes.addShape(createNGon(12, 100.0, 512.0, 512.0), TypeLimits::INTERNAL);
+    shapes.addShape(createNGon(12, 100.0, 512.0, 512.0, TypeLimits::INTERNAL));
     
     // INTERNAL: Spider vanes (4 elongated polygons)
     for (int i = 0; i < 4; i++) {
@@ -186,14 +186,14 @@ TEST_F(VisibilityPerformanceTest, Polygons_1MP_MultipleComplexPolygons) {
             {512.0 + 500.0 * std::cos(angle + 0.05), 512.0 + 500.0 * std::sin(angle + 0.05)},
             {512.0 + 50.0 * std::cos(angle + 0.05), 512.0 + 50.0 * std::sin(angle + 0.05)}
         };
-        shapes.addShape(std::make_unique<Polygon>(vane), TypeLimits::INTERNAL);
+        shapes.addInternal(std::make_unique<Polygon>(vane));
     }
     
     // APERTURE: 3 slit openings (8-sided polygons each)
     for (int i = 0; i < 3; i++) {
         double offsetX = (i - 1) * 200.0;
-        shapes.addShape(createNGon(8, 30.0, 512.0 + offsetX, 512.0), 
-                       TypeLimits::APERTURE);
+        shapes.addShape(createNGon(8, 30.0, 512.0 + offsetX, 512.0, 
+                       TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
@@ -214,10 +214,10 @@ TEST_F(VisibilityPerformanceTest, Polygons_2MP_RealisticTelescopeAperture) {
     ShapeCollection shapes;
     
     // EXTERNAL: 30-sided polygon (approximates circle)
-    shapes.addShape(createNGon(30, 900.0, 960.0, 540.0), TypeLimits::EXTERNAL);
+    shapes.addShape(createNGon(30, 900.0, 960.0, 540.0, TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction (20-sided)
-    shapes.addShape(createNGon(20, 200.0, 960.0, 540.0), TypeLimits::INTERNAL);
+    shapes.addShape(createNGon(20, 200.0, 960.0, 540.0, TypeLimits::INTERNAL));
     
     // INTERNAL: 4 spider vanes
     for (int i = 0; i < 4; i++) {
@@ -228,7 +228,7 @@ TEST_F(VisibilityPerformanceTest, Polygons_2MP_RealisticTelescopeAperture) {
             double a = angle + ((j % 2 == 0) ? -0.02 : 0.02);
             vane.push_back({960.0 + r * std::cos(a), 540.0 + r * std::sin(a)});
         }
-        shapes.addShape(std::make_unique<Polygon>(vane), TypeLimits::INTERNAL);
+        shapes.addInternal(std::make_unique<Polygon>(vane));
     }
     
     VisibilityChecker checker(shapes);
@@ -249,20 +249,20 @@ TEST_F(VisibilityPerformanceTest, Scaling_4MP_AnnulusWithSlits) {
     ShapeCollection shapes;
     
     // EXTERNAL: Large circle
-    shapes.addShape(std::make_unique<Ellipse>(1000.0, 1000.0, 1024.0, 1024.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(1000.0, 1000.0, 1024.0, 1024.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction
-    shapes.addShape(std::make_unique<Ellipse>(200.0, 200.0, 1024.0, 1024.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(200.0, 200.0, 1024.0, 1024.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     // APERTURE: 4 radial slits
     for (int i = 0; i < 4; i++) {
         double angle = M_PI * i / 2.0;
         double cx = 1024.0 + 600.0 * std::cos(angle);
         double cy = 1024.0 + 600.0 * std::sin(angle);
-        shapes.addShape(std::make_unique<Rectangle>(20.0, 100.0, cx, cy, angle * 180.0 / M_PI), 
-                       TypeLimits::APERTURE);
+        shapes.addShape(std::make_unique<Rectangle>(20.0, 100.0, cx, cy, angle * 180.0 / M_PI, 
+                       TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
@@ -280,16 +280,16 @@ TEST_F(VisibilityPerformanceTest, DISABLED_Scaling_8MP_4K_ComplexConfiguration) 
     ShapeCollection shapes;
     
     // Complex configuration with multiple shape types
-    shapes.addShape(std::make_unique<Ellipse>(1800.0, 1000.0, 1920.0, 1080.0), 
-                    TypeLimits::EXTERNAL);
-    shapes.addShape(createNGon(16, 300.0, 1920.0, 1080.0), TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(1800.0, 1000.0, 1920.0, 1080.0, 0.0,
+                    TypeLimits::EXTERNAL));
+    shapes.addShape(createNGon(16, 300.0, 1920.0, 1080.0, TypeLimits::INTERNAL));
     
     // Multiple aperture openings
     for (int i = 0; i < 6; i++) {
         double angle = 2.0 * M_PI * i / 6.0;
         double cx = 1920.0 + 1200.0 * std::cos(angle);
         double cy = 1080.0 + 800.0 * std::sin(angle);
-        shapes.addShape(createNGon(6, 50.0, cx, cy), TypeLimits::APERTURE);
+        shapes.addShape(createNGon(6, 50.0, cx, cy, TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
@@ -309,12 +309,12 @@ TEST_F(VisibilityPerformanceTest, Optimization_InternalEarlyExit) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // Large INTERNAL shape (covers ~50% of EXTERNAL)
-    shapes.addShape(std::make_unique<Ellipse>(350.0, 350.0, 512.0, 512.0), 
-                    TypeLimits::INTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(350.0, 350.0, 512.0, 512.0, 0.0,
+                    TypeLimits::INTERNAL));
     
     VisibilityChecker checker(shapes);
     
@@ -337,14 +337,14 @@ TEST_F(VisibilityPerformanceTest, Optimization_ApertureEarlyExit) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(500.0, 500.0, 512.0, 512.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // Multiple APERTURE shapes (first one should cause early exit)
     for (int i = 0; i < 5; i++) {
         shapes.addShape(std::make_unique<Rectangle>(100.0, 100.0, 
-                                                    512.0 + i * 50.0, 512.0), 
-                       TypeLimits::APERTURE);
+                                                    512.0 + i * 50.0, 512.0, 0.0,
+                       TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
@@ -371,15 +371,15 @@ TEST_F(VisibilityPerformanceTest, ShapeCount_10Polygons) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(createNGon(20, 500.0, 512.0, 512.0), TypeLimits::EXTERNAL);
+    shapes.addShape(createNGon(20, 500.0, 512.0, 512.0, TypeLimits::EXTERNAL));
     
     for (int i = 0; i < 9; i++) {
         double angle = 2.0 * M_PI * i / 9.0;
         double cx = 512.0 + 300.0 * std::cos(angle);
         double cy = 512.0 + 300.0 * std::sin(angle);
         int sides = 6 + (i % 4) * 2; // 6, 8, 10, or 12 sides
-        shapes.addShape(createNGon(sides, 40.0, cx, cy), 
-                       (i < 4) ? TypeLimits::INTERNAL : TypeLimits::APERTURE);
+        shapes.addShape(createNGon(sides, 40.0, cx, cy, 
+                       (i < 4) ? TypeLimits::INTERNAL : TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
@@ -395,7 +395,7 @@ TEST_F(VisibilityPerformanceTest, ShapeCount_20Polygons) {
     
     ShapeCollection shapes;
     
-    shapes.addShape(createNGon(24, 500.0, 512.0, 512.0), TypeLimits::EXTERNAL);
+    shapes.addShape(createNGon(24, 500.0, 512.0, 512.0, TypeLimits::EXTERNAL));
     
     for (int i = 0; i < 19; i++) {
         double angle = 2.0 * M_PI * i / 19.0;
@@ -409,7 +409,7 @@ TEST_F(VisibilityPerformanceTest, ShapeCount_20Polygons) {
         else if (i < 12) type = TypeLimits::APERTURE;
         else type = TypeLimits::INTERNAL;
         
-        shapes.addShape(createNGon(sides, 30.0, cx, cy), type);
+        shapes.addShape(createNGon(sides, 30.0, cx, cy, type));
     }
     
     VisibilityChecker checker(shapes);
@@ -434,10 +434,10 @@ TEST_F(VisibilityPerformanceTest, RealWorld_JWSTAperture) {
     ShapeCollection shapes;
     
     // EXTERNAL: Large hexagonal outer boundary
-    shapes.addShape(createNGon(6, 900.0, 960.0, 540.0), TypeLimits::EXTERNAL);
+    shapes.addShape(createNGon(6, 900.0, 960.0, 540.0, TypeLimits::EXTERNAL));
     
     // INTERNAL: Central obstruction (secondary mirror)
-    shapes.addShape(createNGon(6, 250.0, 960.0, 540.0), TypeLimits::INTERNAL);
+    shapes.addShape(createNGon(6, 250.0, 960.0, 540.0, TypeLimits::INTERNAL));
     
     // INTERNAL: 3 spider vanes
     for (int i = 0; i < 3; i++) {
@@ -448,7 +448,7 @@ TEST_F(VisibilityPerformanceTest, RealWorld_JWSTAperture) {
             double a = angle + ((j % 2 == 0) ? -0.015 : 0.015);
             vane.push_back({960.0 + r * std::cos(a), 540.0 + r * std::sin(a)});
         }
-        shapes.addShape(std::make_unique<Polygon>(vane), TypeLimits::INTERNAL);
+        shapes.addInternal(std::make_unique<Polygon>(vane));
     }
     
     VisibilityChecker checker(shapes);
@@ -465,8 +465,8 @@ TEST_F(VisibilityPerformanceTest, RealWorld_InterferometryAperture) {
     ShapeCollection shapes;
     
     // EXTERNAL: Large boundary
-    shapes.addShape(std::make_unique<Ellipse>(900.0, 900.0, 960.0, 540.0), 
-                    TypeLimits::EXTERNAL);
+    shapes.addShape(std::make_unique<Ellipse>(900.0, 900.0, 960.0, 540.0, 0.0,
+                    TypeLimits::EXTERNAL));
     
     // APERTURE: 7 circular sub-apertures in hexagonal pattern
     std::vector<std::pair<double, double>> positions = {
@@ -480,8 +480,8 @@ TEST_F(VisibilityPerformanceTest, RealWorld_InterferometryAperture) {
     };
     
     for (const auto& [dx, dy] : positions) {
-        shapes.addShape(createNGon(12, 80.0, 960.0 + dx, 540.0 + dy), 
-                       TypeLimits::APERTURE);
+        shapes.addShape(createNGon(12, 80.0, 960.0 + dx, 540.0 + dy, 
+                       TypeLimits::APERTURE));
     }
     
     VisibilityChecker checker(shapes);
