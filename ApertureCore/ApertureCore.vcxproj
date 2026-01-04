@@ -87,7 +87,6 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->
-    <ClCompile Include="debug_rotation.cpp" />
     <ClCompile Include="src\geometry\Point.cpp" />
     <ClCompile Include="src\geometry\Bounds.cpp" />
     <ClCompile Include="src\geometry\Shape.cpp" />
@@ -97,12 +96,6 @@
     <ClCompile Include="src\visibility\TypeLimits.cpp" />
     <ClCompile Include="src\visibility\ShapeCollection.cpp" />
     <ClCompile Include="src\visibility\VisibilityChecker.cpp" />
-    <ClCompile Include="tests\geometry\EllipseTest.cpp" />
-    <ClCompile Include="tests\geometry\PolygonTest.cpp" />
-    <ClCompile Include="tests\geometry\RectangleTest.cpp" />
-    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp" />
-    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp" />
-    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->

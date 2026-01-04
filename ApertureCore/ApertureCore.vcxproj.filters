@@ -54,6 +54,9 @@
     <ClInclude Include="include\aperturecore\geometry\Rectangle.h">
       <Filter>Header Files\geometry</Filter>
     </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\CoordinateSystem.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\geometry\Point.cpp">
