@@ -1,4 +1,4 @@
-# ApertureCore Quick Reference
+﻿# ApertureCore Quick Reference
 
 ## Project Overview
 

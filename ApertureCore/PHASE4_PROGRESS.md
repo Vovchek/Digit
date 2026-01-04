@@ -1,4 +1,4 @@
-# Phase 4 Testing Progress
+ï»¿# Phase 4 Testing Progress
 
 ## Status: IN PROGRESS
 
@@ -38,7 +38,7 @@
 
 ? **getBounds Tests (3/3)**
 - Axis-aligned ellipse
-- 45° rotated ellipse
+- 45ï¿½ rotated ellipse
 - Circle
 
 ? **getContour Tests (1/3)** - 2 failures
@@ -70,7 +70,7 @@
 - Very small ellipse
 - Very large ellipse
 - Highly eccentric ellipse
-- 360° rotation
+- 360ï¿½ rotation
 - Negative rotation
 
 ? **TypeLimits Tests (2/2)**

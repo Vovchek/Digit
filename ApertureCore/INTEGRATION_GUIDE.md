@@ -1,4 +1,4 @@
-# Integrating ApertureCore into Digit Solution
+﻿# Integrating ApertureCore into Digit Solution
 
 ## Overview
 

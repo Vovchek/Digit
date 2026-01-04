@@ -1,4 +1,4 @@
-# Coordinate System Support Added to ApertureCore ?
+﻿# Coordinate System Support Added to ApertureCore ?
 
 ## Summary
 

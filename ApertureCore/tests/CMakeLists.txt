@@ -26,6 +26,7 @@ add_executable(geometry_tests
     geometry/PointTest.cpp
     geometry/BoundsTest.cpp
     geometry/EllipseTest.cpp
+    geometry/EllipseFittingTest.cpp
     geometry/RectangleTest.cpp
     geometry/PolygonTest.cpp
 )

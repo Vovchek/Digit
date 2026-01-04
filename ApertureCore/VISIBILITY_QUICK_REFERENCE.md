@@ -1,4 +1,4 @@
-# Visibility System - Quick Reference Card
+﻿# Visibility System - Quick Reference Card
 
 ## ?? **Status: ? WORKING (96% tests passing)**
 

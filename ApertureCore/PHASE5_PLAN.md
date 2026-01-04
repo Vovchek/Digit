@@ -1,4 +1,4 @@
-# Phase 5: Geometry Module Documentation & Polish
+﻿# Phase 5: Geometry Module Documentation & Polish
 
 ## Status
 **Phase 4 Complete:** All geometry tests passing (212/212) ?  

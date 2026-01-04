@@ -1,4 +1,4 @@
-# sync-builds.ps1 Enhancement: Automatic Filter Organization
+﻿# sync-builds.ps1 Enhancement: Automatic Filter Organization
 
 ## What Was Added
 

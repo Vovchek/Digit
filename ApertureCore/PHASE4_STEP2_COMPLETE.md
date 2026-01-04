@@ -1,4 +1,4 @@
-# Phase 4, Step 2 Complete: Rectangle Tests Ported ?
+ï»¿# Phase 4, Step 2 Complete: Rectangle Tests Ported ?
 
 ## Summary
 
@@ -230,7 +230,7 @@ Total Test time (real) = 1.87 sec
 1. ? **Boundary Precision:** Test points slightly inside, not on exact boundary
 2. ? **Tolerance Values:** Use values clearly within tolerance (1e-7 < 1e-6, not 1e-6)
 3. ? **Contour Validation:** Test edge proximity, not just `isInside()`
-4. ? **Rotation Testing:** Include 90°, 180°, 360°, and negative rotations
+4. ? **Rotation Testing:** Include 90ï¿½, 180ï¿½, 360ï¿½, and negative rotations
 5. ? **Transform Round-trips:** Verify normalize/denormalize preserves values
 
 ---

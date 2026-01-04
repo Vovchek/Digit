@@ -1,4 +1,4 @@
-# Dual Build System Maintenance Guide
+﻿# Dual Build System Maintenance Guide
 
 ## Overview
 

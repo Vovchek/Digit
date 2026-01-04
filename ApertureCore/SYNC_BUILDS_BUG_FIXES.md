@@ -1,4 +1,4 @@
-# sync-builds.ps1 Bug Fixes
+﻿# sync-builds.ps1 Bug Fixes
 
 ## Issues Found and Fixed
 

@@ -1,4 +1,4 @@
-# ApertureCore Project Summary
+﻿# ApertureCore Project Summary
 
 ## What We've Created
 

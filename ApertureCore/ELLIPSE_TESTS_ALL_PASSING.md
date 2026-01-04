@@ -1,4 +1,4 @@
-# Ellipse Test Investigation Complete - All Tests Passing!
+﻿# Ellipse Test Investigation Complete - All Tests Passing!
 
 ## Summary
 

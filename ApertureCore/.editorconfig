@@ -1,0 +1,57 @@
+# EditorConfig configuration for ApertureCore
+# https://editorconfig.org
+
+root = true
+
+# Default settings for all files
+[*]
+charset = utf-8
+end_of_line = crlf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+# Markdown files - UTF-8 with BOM for Windows compatibility
+[*.md]
+charset = utf-8-bom
+indent_style = space
+indent_size = 2
+
+# C++ source files
+[*.{cpp,h,hpp,cxx}]
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+# CMake files
+[{CMakeLists.txt,*.cmake}]
+charset = utf-8
+indent_style = space
+indent_size = 4
+
+# PowerShell scripts
+[*.ps1]
+charset = utf-8-bom
+indent_style = space
+indent_size = 4
+
+# JSON files
+[*.json]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# YAML files
+[*.{yml,yaml}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+
+# Visual Studio files
+[*.{sln,vcxproj,vcxproj.filters}]
+charset = utf-8-bom
+indent_style = space
+indent_size = 2
+
+# Doxygen configuration
+[Doxyfile*]
+charset = utf-8

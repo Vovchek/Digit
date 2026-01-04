@@ -25,6 +25,9 @@
     <Filter Include="Header Files\visibility">
       <UniqueIdentifier>{D1234567-1234-1234-1234-123456789ABC}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tests">
+      <UniqueIdentifier>{14fedf6d-e3f2-4494-b14b-87b0d2e6d9ef}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\aperturecore\geometry\Point.h">
@@ -86,6 +89,33 @@
     <ClCompile Include="src\geometry\Polygon.cpp">
       <Filter>Source Files\geometry</Filter>
     </ClCompile>
+    <ClCompile Include="tests\geometry\PointTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\BoundsTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\EllipseTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\RectangleTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\PolygonTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\EllipseFittingTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md">
@@ -101,5 +131,85 @@
     <None Include="DUAL_BUILD_MAINTENANCE.md">
       <Filter>Documentation</Filter>
     </None>
+    <None Include="BOUNDS_HYBRID_NAMING_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="CONSERVATIVE_ROI_DECISION.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="COORDINATE_SYSTEM_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ELLIPSE_TESTS_ALL_PASSING.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ELLIPSE_TEST_FIX_ROTATION.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="packages.config" />
+    <None Include="PHASE4_PROGRESS.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE4_STEP2_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE4_STEP3_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_PLAN.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_PROGRESS_UPDATE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_READY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_STEP1.2_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_STEP1_PROGRESS.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ROI_FEATURE_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="SHAPE_CONSTRUCTOR_UPDATE_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="VISIBILITY_IMPLEMENTATION_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="VISIBILITY_LOGIC_FIX.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="VISIBILITY_QUICK_REFERENCE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="configure-vs-encoding.ps1" />
+    <None Include="VS_ENCODING_BUG_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ENCODING_FIX_QUICKSTART.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="restore-unicode.ps1" />
+    <None Include="quick-fix-unicode.ps1" />
+    <None Include="UNICODE_FIX_SUMMARY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_STEP1.3_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="PHASE5_STEP1.4_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ELLIPSE_FITTING_FEATURE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="ELLIPSE_FITTING_BUG_FIXES.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="commit-ellipse-fitting.ps1" />
   </ItemGroup>
 </Project>

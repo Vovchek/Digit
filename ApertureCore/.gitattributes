@@ -1,0 +1,28 @@
+# Git attributes for ApertureCore
+
+# Markdown files - UTF-8 with BOM
+*.md text eol=crlf encoding=utf-8
+
+# C++ source files - UTF-8
+*.cpp text eol=crlf encoding=utf-8
+*.h text eol=crlf encoding=utf-8
+*.hpp text eol=crlf encoding=utf-8
+*.cxx text eol=crlf encoding=utf-8
+
+# CMake files - UTF-8
+CMakeLists.txt text eol=crlf encoding=utf-8
+*.cmake text eol=crlf encoding=utf-8
+
+# PowerShell scripts - UTF-8 with BOM
+*.ps1 text eol=crlf encoding=utf-8
+
+# JSON files - UTF-8
+*.json text eol=crlf encoding=utf-8
+
+# Visual Studio files - UTF-8 with BOM
+*.sln text eol=crlf encoding=utf-8
+*.vcxproj text eol=crlf encoding=utf-8
+*.vcxproj.filters text eol=crlf encoding=utf-8
+
+# Doxygen configuration - UTF-8
+Doxyfile* text eol=crlf encoding=utf-8

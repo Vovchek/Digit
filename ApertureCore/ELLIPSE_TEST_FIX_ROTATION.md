@@ -1,4 +1,4 @@
-# Ellipse Test Fix: isInside_RotatedEllipse_MajorAxis
+ï»¿# Ellipse Test Fix: isInside_RotatedEllipse_MajorAxis
 
 ## Issue
 
@@ -27,14 +27,14 @@ TEST_F(EllipseTest, isInside_RotatedEllipse_MajorAxis) {
 ### Problem Analysis:
 
 The test created a point **exactly on the boundary** of the ellipse:
-- Ellipse: semi-major = 5.0, semi-minor = 3.0, rotated 45°
-- Point: distance = 5.0 from center, at 45° angle
+- Ellipse: semi-major = 5.0, semi-minor = 3.0, rotated 45ï¿½
+- Point: distance = 5.0 from center, at 45ï¿½ angle
 - This point is **exactly** on the major axis after rotation
 
 **Boundary precision issue:**
 - The point transforms to local coordinates (5.0, 0.0)
 - Ellipse equation: `(5.0/5.0)? + (0.0/3.0)? = 1.0`
-- With floating-point arithmetic: `cos(45°)`, `sin(45°)`, rotation matrix ops
+- With floating-point arithmetic: `cos(45ï¿½)`, `sin(45ï¿½)`, rotation matrix ops
 - Accumulated rounding errors cause: `sum ? 1.0000000000001` (slightly > 1.0)
 - Test `sum <= 1.0` returns false
 

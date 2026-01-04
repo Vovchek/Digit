@@ -96,15 +96,29 @@
     <ClCompile Include="src\visibility\TypeLimits.cpp" />
     <ClCompile Include="src\visibility\ShapeCollection.cpp" />
     <ClCompile Include="src\visibility\VisibilityChecker.cpp" />
+    <ClCompile Include="tests\geometry\EllipseFittingTest.cpp" />
+    <ClCompile Include="tests\geometry\PointTest.cpp" />
+    <ClCompile Include="tests\geometry\BoundsTest.cpp" />
+    <ClCompile Include="tests\geometry\EllipseTest.cpp" />
+    <ClCompile Include="tests\geometry\RectangleTest.cpp" />
+    <ClCompile Include="tests\geometry\PolygonTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->
     <None Include="BOUNDS_HYBRID_NAMING_COMPLETE.md" />
+    <None Include="commit-ellipse-fitting.ps1" />
+    <None Include="configure-vs-encoding.ps1" />
     <None Include="CONSERVATIVE_ROI_DECISION.md" />
     <None Include="COORDINATE_SYSTEM_COMPLETE.md" />
     <None Include="DUAL_BUILD_MAINTENANCE.md" />
+    <None Include="ELLIPSE_FITTING_BUG_FIXES.md" />
+    <None Include="ELLIPSE_FITTING_FEATURE.md" />
     <None Include="ELLIPSE_TESTS_ALL_PASSING.md" />
     <None Include="ELLIPSE_TEST_FIX_ROTATION.md" />
+    <None Include="ENCODING_FIX_QUICKSTART.md" />
     <None Include="packages.config" />
     <None Include="PHASE4_PROGRESS.md" />
     <None Include="PHASE4_STEP2_COMPLETE.md" />
@@ -113,14 +127,22 @@
     <None Include="PHASE5_PROGRESS_UPDATE.md" />
     <None Include="PHASE5_READY.md" />
     <None Include="PHASE5_STEP1.2_COMPLETE.md" />
+    <None Include="PHASE5_STEP1.3_COMPLETE.md" />
+    <None Include="PHASE5_STEP1.4_COMPLETE.md" />
     <None Include="PHASE5_STEP1_PROGRESS.md" />
+    <None Include="quick-fix-unicode.ps1" />
     <None Include="README.md" />
     <None Include="DESIGN.md" />
     <None Include="IMPLEMENTATION.md" />
+    <None Include="restore-unicode.ps1" />
     <None Include="ROI_FEATURE_COMPLETE.md" />
     <None Include="SHAPE_CONSTRUCTOR_UPDATE_GUIDE.md" />
     <None Include="sync-builds.ps1" />
+    <None Include="UNICODE_FIX_SUMMARY.md" />
+    <None Include="VISIBILITY_IMPLEMENTATION_COMPLETE.md" />
     <None Include="VISIBILITY_LOGIC_FIX.md" />
+    <None Include="VISIBILITY_QUICK_REFERENCE.md" />
+    <None Include="VS_ENCODING_BUG_GUIDE.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets" Condition="Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" />

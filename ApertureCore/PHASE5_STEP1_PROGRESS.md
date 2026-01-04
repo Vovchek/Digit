@@ -1,4 +1,4 @@
-# Phase 5 Step 1 Progress: API Documentation Setup ?
+﻿# Phase 5 Step 1 Progress: API Documentation Setup ?
 
 ## Status: Doxygen Configured and Ready
 

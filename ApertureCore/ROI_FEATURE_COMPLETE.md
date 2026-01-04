@@ -1,4 +1,4 @@
-# getVisibleRegion() Feature Complete ?
+﻿# getVisibleRegion() Feature Complete ?
 
 ## Summary
 

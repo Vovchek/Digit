@@ -1,4 +1,4 @@
-# Phase 3 Complete - Concrete Shapes Implementation ?
+п»ї# Phase 3 Complete - Concrete Shapes Implementation ?
 
 ## Achievement Summary
 
@@ -75,7 +75,7 @@
 Ellipse.cpp
 Rectangle.cpp  
 Polygon.cpp
-Создание кода...
+пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ...
 aperturecore.vcxproj -> aperturecore.lib
 ? Build complete
 ```

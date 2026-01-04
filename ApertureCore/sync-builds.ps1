@@ -1,4 +1,4 @@
-# Sync CMakeLists.txt to Visual Studio project
+﻿# Sync CMakeLists.txt to Visual Studio project
 # Run this after modifying CMakeLists.txt to update .vcxproj
 
 param(
@@ -57,6 +57,93 @@ Write-Host "  Source files: $($sourceFiles.Count)" -ForegroundColor Yellow
 Write-Host "  Header files: $($headerFiles.Count)" -ForegroundColor Yellow
 Write-Host ""
 
+# ============================================================================
+# NEW: Parse subdirectories for test executables and examples
+# ============================================================================
+
+# Function to parse add_executable() from CMakeLists.txt
+function Get-ExecutablesFromCMake {
+    param([string]$cmakeFilePath, [string]$subdir)
+    
+    $executables = @()
+    
+    if (-not (Test-Path $cmakeFilePath)) {
+        return $executables
+    }
+    
+    $content = Get-Content $cmakeFilePath -Raw
+    
+    # Match add_executable(name ...) blocks
+    $matches = [regex]::Matches($content, 'add_executable\((\w+)\s+(.*?)\)', [System.Text.RegularExpressions.RegexOptions]::Singleline)
+    
+    foreach ($match in $matches) {
+        $exeName = $match.Groups[1].Value
+        $filesBlock = $match.Groups[2].Value
+        
+        $exeFiles = @()
+        foreach ($line in $filesBlock -split "`n") {
+            $line = $line.Trim()
+            
+            # Skip comments and empty lines
+            if ($line -match '^\s*#' -or $line -eq '') {
+                continue
+            }
+            
+            # Extract file paths (cpp files typically)
+            if ($line -match '([\w/]+\.cpp)') {
+                $file = $matches[1]
+                # Make path relative to ApertureCore root
+                $vsPath = "$subdir\$file" -replace '/', '\'
+                $exeFiles += $vsPath
+            }
+        }
+        
+        if ($exeFiles.Count -gt 0) {
+            $executables += @{
+                Name = $exeName
+                Files = $exeFiles
+                Subdir = $subdir
+            }
+        }
+    }
+    
+    return $executables
+}
+
+# Parse tests/CMakeLists.txt
+$testExecutables = @()
+if (Test-Path "tests\CMakeLists.txt") {
+    Write-Host "Parsing tests/CMakeLists.txt..." -ForegroundColor Cyan
+    $testExecutables = Get-ExecutablesFromCMake "tests\CMakeLists.txt" "tests"
+    
+    foreach ($exe in $testExecutables) {
+        Write-Host "  Found test: $($exe.Name) ($($exe.Files.Count) files)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+}
+
+# Parse examples/CMakeLists.txt (if it exists)
+$exampleExecutables = @()
+if (Test-Path "examples\CMakeLists.txt") {
+    Write-Host "Parsing examples/CMakeLists.txt..." -ForegroundColor Cyan
+    $exampleExecutables = Get-ExecutablesFromCMake "examples\CMakeLists.txt" "examples"
+    
+    foreach ($exe in $exampleExecutables) {
+        Write-Host "  Found example: $($exe.Name) ($($exe.Files.Count) files)" -ForegroundColor Yellow
+    }
+    Write-Host ""
+}
+
+# Collect all test/example source files
+$testSourceFiles = @()
+foreach ($exe in $testExecutables + $exampleExecutables) {
+    $testSourceFiles += $exe.Files
+}
+
+# ============================================================================
+# End of subdirectory parsing
+# ============================================================================
+
 # Auto-discover headers from include directory
 $allHeaders = Get-ChildItem -Path "include\aperturecore" -Recurse -Filter "*.h" | 
     ForEach-Object { $_.FullName.Replace((Get-Location).Path + '\', '') }
@@ -99,9 +186,12 @@ if (-not $includeGroup) {
 $existingCompile = @($compileGroup.ClCompile | ForEach-Object { $_.Include })
 $existingInclude = @($includeGroup.ClInclude | ForEach-Object { $_.Include })
 
+# Combine all source files (library + tests + examples)
+$allSourceFiles = $sourceFiles + $testSourceFiles
+
 # Compare
-$missingInVS_Compile = $sourceFiles | Where-Object { $_ -notin $existingCompile }
-$extraInVS_Compile = $existingCompile | Where-Object { $_ -notin $sourceFiles }
+$missingInVS_Compile = $allSourceFiles | Where-Object { $_ -notin $existingCompile }
+$extraInVS_Compile = $existingCompile | Where-Object { $_ -notin $allSourceFiles }
 
 $missingInVS_Include = $allHeaders | Where-Object { $_ -notin $existingInclude }
 $extraInVS_Include = $existingInclude | Where-Object { $_ -notin $allHeaders }
@@ -116,7 +206,7 @@ if ($missingInVS_Compile.Count -gt 0) {
         Write-Host "    + $file" -ForegroundColor Green
     }
 } else {
-    Write-Host "  ? All source files in sync" -ForegroundColor Green
+    Write-Host "  ✓ All source files in sync" -ForegroundColor Green
 }
 
 if ($extraInVS_Compile.Count -gt 0) {
@@ -134,7 +224,7 @@ if ($missingInVS_Include.Count -gt 0) {
         Write-Host "    + $file" -ForegroundColor Green
     }
 } else {
-    Write-Host "  ? All headers in sync" -ForegroundColor Green
+    Write-Host "  ✓ All headers in sync" -ForegroundColor Green
 }
 
 if ($extraInVS_Include.Count -gt 0) {
@@ -195,9 +285,9 @@ if (-not $DryRun) {
         
         # Save
         $vcxproj.Save((Resolve-Path $vcxprojFile))
-        Write-Host "  ? Saved $vcxprojFile" -ForegroundColor Green
+        Write-Host "  ✓ Saved $vcxprojFile" -ForegroundColor Green
     } else {
-        Write-Host "  ? No changes needed" -ForegroundColor Green
+        Write-Host "  ✓ No changes needed" -ForegroundColor Green
     }
 } else {
     Write-Host "DRY RUN - No changes applied" -ForegroundColor Yellow
@@ -230,8 +320,16 @@ if (Test-Path $filtersFile) {
             # Examples:
             # src\geometry\Point.cpp -> Source Files\geometry
             # include\aperturecore\visibility\TypeLimits.h -> Header Files\visibility
+            # tests\geometry\PointTest.cpp -> Tests\geometry
+            # examples\basic_shapes.cpp -> Examples
             
-            if ($filePath -match '^src\\(\w+)\\') {
+            if ($filePath -match '^tests\\(\w+)\\') {
+                return "Tests\$($matches[1])"
+            }
+            elseif ($filePath -match '^examples\\') {
+                return "Examples"
+            }
+            elseif ($filePath -match '^src\\(\w+)\\') {
                 return "Source Files\$($matches[1])"
             }
             elseif ($filePath -match '^include\\aperturecore\\(\w+)\\') {
@@ -250,11 +348,11 @@ if (Test-Path $filtersFile) {
         $existingFiltersInclude = @($filtersIncludeGroup.ClInclude | ForEach-Object { $_.Include })
         
         # Find files that need to be added to filters
-        $missingFiltersCompile = $sourceFiles | Where-Object { $_ -notin $existingFiltersCompile }
+        $missingFiltersCompile = $allSourceFiles | Where-Object { $_ -notin $existingFiltersCompile }
         $missingFiltersInclude = $allHeaders | Where-Object { $_ -notin $existingFiltersInclude }
         
         # Find files that need to be removed from filters
-        $extraFiltersCompile = $existingFiltersCompile | Where-Object { $_ -notin $sourceFiles }
+        $extraFiltersCompile = $existingFiltersCompile | Where-Object { $_ -notin $allSourceFiles }
         $extraFiltersInclude = $existingFiltersInclude | Where-Object { $_ -notin $allHeaders }
         
         if (-not $DryRun) {
@@ -321,9 +419,9 @@ if (Test-Path $filtersFile) {
                 
                 # Save
                 $filters.Save((Resolve-Path $filtersFile))
-                Write-Host "  ? Saved $filtersFile" -ForegroundColor Green
+                Write-Host "  ✓ Saved $filtersFile" -ForegroundColor Green
             } else {
-                Write-Host "  ? Filters already in sync" -ForegroundColor Green
+                Write-Host "  ✓ Filters already in sync" -ForegroundColor Green
             }
         } else {
             if ($missingFiltersCompile.Count -gt 0 -or $missingFiltersInclude.Count -gt 0) {

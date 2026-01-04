@@ -1,4 +1,4 @@
-# VisibilityChecker Logic Fix - Critical Bug Corrected
+﻿# VisibilityChecker Logic Fix - Critical Bug Corrected
 
 ## ?? **Critical Bug Fixed**
 

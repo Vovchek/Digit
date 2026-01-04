@@ -1,4 +1,4 @@
-# ?? ApertureCore: Ready for Phase 5
+﻿# ?? ApertureCore: Ready for Phase 5
 
 ## ? **Phase 4 COMPLETE: Comprehensive Testing**
 

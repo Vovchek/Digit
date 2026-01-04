@@ -1,4 +1,4 @@
-# Phase 5 Step 1 Progress Update
+﻿# Phase 5 Step 1 Progress Update
 
 ## Status: API Documentation In Progress
 

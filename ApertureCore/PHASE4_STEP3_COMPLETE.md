@@ -1,4 +1,4 @@
-# Phase 4, Step 3 Complete: Polygon Tests Ported ?
+﻿# Phase 4, Step 3 Complete: Polygon Tests Ported ?
 
 ## Summary
 

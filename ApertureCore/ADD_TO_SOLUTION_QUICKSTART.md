@@ -1,4 +1,4 @@
-# Adding ApertureCore to Digit Solution - Quick Start
+﻿# Adding ApertureCore to Digit Solution - Quick Start
 
 ## Yes, You Can! ?
 

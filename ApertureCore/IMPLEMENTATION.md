@@ -1,4 +1,4 @@
-# ApertureCore Implementation Roadmap
+﻿# ApertureCore Implementation Roadmap
 
 ## Project Status
 

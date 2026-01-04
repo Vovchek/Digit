@@ -1,4 +1,4 @@
-# Conservative ROI Implementation - Final Summary
+﻿# Conservative ROI Implementation - Final Summary
 
 ## Decision: Conservative ROI Approach
 

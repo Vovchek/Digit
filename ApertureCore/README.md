@@ -1,4 +1,4 @@
-# ApertureCore Library
+﻿# ApertureCore Library
 
 Modern C++ library for geometric aperture and visibility calculations.
 

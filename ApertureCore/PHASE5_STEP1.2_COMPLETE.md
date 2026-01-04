@@ -1,4 +1,4 @@
-# Phase 5 Step 1.2 Complete: Point.h Documentation ?
+﻿# Phase 5 Step 1.2 Complete: Point.h Documentation ?
 
 ## Status: Point.h Fully Documented
 
