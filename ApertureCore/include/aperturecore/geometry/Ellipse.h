@@ -1,6 +1,63 @@
 /**
  * @file Ellipse.h
- * @brief Elliptical shape with rotation support
+ * @brief Elliptical shape with rotation support and ellipse fitting
+ * 
+ * ## Overview
+ * 
+ * Ellipse provides parametric elliptical shapes with:
+ * - Point containment testing for rotated ellipses
+ * - Contour generation with adaptive sampling
+ * - Ellipse fitting from 2-100+ points
+ * - Geometric properties (eccentricity, focal distance)
+ * - Full rotation and coordinate transformation support
+ * 
+ * ## Key Features
+ * 
+ * ### 1. Parametric Ellipse Representation
+ * 
+ * Ellipses are defined by semi-major (a) and semi-minor (b) axes:
+ * 
+ * @code{.cpp}
+ * // Circle (a = b)
+ * Ellipse circle(10.0, 10.0, 0.0, 0.0);
+ * 
+ * // Ellipse (a > b)
+ * Ellipse ellipse(15.0, 8.0, 0.0, 0.0);
+ * 
+ * // Rotated ellipse
+ * Ellipse rotated(12.0, 6.0, 0.0, 0.0, 45.0);
+ * @endcode
+ * 
+ * ### 2. Ellipse Fitting from Points
+ * 
+ * Fit ellipses to measured data using various algorithms:
+ * - 2-3 points: Circle fitting
+ * - 4 points: Axis-aligned ellipse
+ * - 5 points: Exact conic fit
+ * - 6+ points: Least squares fit
+ * 
+ * See fitting constructor documentation for details.
+ * 
+ * ### 3. Rotation Support
+ * 
+ * Full rotation support with efficient coordinate transformation:
+ * 
+ * @code{.cpp}
+ * Ellipse e(10, 5, 0, 0, 30);  // 30° rotation
+ * 
+ * // Point-in-ellipse works for any rotation
+ * bool inside = e.isInside({3, 2});
+ * @endcode
+ * 
+ * ### 4. Geometric Properties
+ * 
+ * Access standard ellipse properties:
+ * - Eccentricity: e = sqrt(1 - b²/a²)
+ * - Focal distance: c = sqrt(a² - b²)
+ * - Area: π*a*b
+ * - Perimeter: Ramanujan approximation
+ * 
+ * @see eccentricity(), focalDistance(), area(), perimeter()
  */
 #pragma once
 
@@ -14,26 +71,74 @@
 namespace aperture {
 
 /**
- * @brief Ellipse shape with optional rotation
+ * @class Ellipse
+ * @brief Parametric elliptical shape with rotation
  * 
- * Represents an ellipse defined by semi-major and semi-minor axes,
- * center position, and rotation angle. Supports all Shape operations
- * including rotated point-in-ellipse testing and contour generation.
+ * Represents an ellipse defined by semi-major axis (a), semi-minor axis (b),
+ * center position, and optional rotation angle. Supports point containment,
+ * contour generation, and ellipse fitting from point sets.
  * 
- * Replaces XYEllipse with modern C++ design.
+ * ## Mathematical Definition
+ * 
+ * Standard ellipse equation in local coordinates:
+ * ```
+ * (x/a)² + (y/b)² = 1
+ * ```
+ * 
+ * Where:
+ * - a = semi-major axis (larger radius)
+ * - b = semi-minor axis (smaller radius)
+ * 
+ * For rotated ellipse, apply rotation transformation.
+ * 
+ * ## Memory Layout
+ * 
+ * ```
+ * sizeof(Ellipse) ≈ 64 bytes:
+ *   - semiMajor, semiMinor: 16 bytes
+ *   - center (Point): 16 bytes
+ *   - rotationDeg, rotationRad: 16 bytes
+ *   - cosRot, sinRot (cached): 16 bytes
+ *   + Shape base: variable
+ * ```
+ * 
+ * @note Replaces XYEllipse from InterfSolver
  */
 class Ellipse : public Shape {
 public:
     /**
-     * @brief Construct ellipse
-     * @param semiMajorAxis Semi-major axis length (A)
-     * @param semiMinorAxis Semi-minor axis length (B)
-     * @param centerX Center X coordinate
-     * @param centerY Center Y coordinate
+     * @brief Construct ellipse from dimensions and position
+     * @param semiMajorAxis Semi-major axis length (radius along major axis)
+     * @param semiMinorAxis Semi-minor axis length (radius along minor axis)
+     * @param centerX Center X coordinate in world frame
+     * @param centerY Center Y coordinate in world frame
      * @param rotationDegrees Rotation angle in degrees (counter-clockwise)
-     * @param typeLimits Visibility type (default: EXTERNAL)
-     * @param spatialSystem Spatial coordinate system (default: SCREEN)
+     * @param typeLimits Visibility behavior (default: EXTERNAL)
+     * @param spatialSystem Coordinate system (default: SCREEN)
      * @param normState Normalization state (default: MEASURING)
+     * 
+     * Creates an ellipse centered at (centerX, centerY) with specified radii.
+     * Optional rotation rotates major axis from +X toward +Y.
+     * 
+     * ## Examples
+     * 
+     * @code{.cpp}
+     * // Circle at origin (a = b = 10)
+     * Ellipse circle(10.0, 10.0, 0.0, 0.0);
+     * 
+     * // Ellipse 15x8 at (50, 50)
+     * Ellipse ellipse(15.0, 8.0, 50.0, 50.0);
+     * 
+     * // Rotated ellipse (45 degrees)
+     * Ellipse rotated(12.0, 6.0, 0.0, 0.0, 45.0);
+     * 
+     * // With visibility type
+     * Ellipse aperture(20.0, 10.0, 0.0, 0.0, 0.0, TypeLimits::EXTERNAL);
+     * @endcode
+     * 
+     * @note Semi-axes are half the full width/height (radius from center to edge)
+     * @note For circle, set semiMajor == semiMinor
+     * @see Ellipse(std::vector<Point>) - Fit from points
      */
     Ellipse(double semiMajorAxis, double semiMinorAxis,
             double centerX, double centerY,
@@ -84,7 +189,7 @@ public:
      * 
      * ### 6+ Points - Least Squares Ellipse Fit
      * 
-     * Minimizes algebraic distance: Σ(Ax²ᵢ + Bxᵢyᵢ + Cy²ᵢ + Dxᵢ + Eyᵢ + F)²
+     * Minimizes algebraic distance: Σ(Ax²ᵉ + Bxᵢyᵢ + Cy²ᵢ + Dxᵢ + Eyᵢ + F)²
      * 
      * Subject to ellipse constraint: B²-4AC < 0
      * 
@@ -171,55 +276,323 @@ public:
     
     // Shape interface implementation
     
+    /**
+     * @brief Test if point is inside ellipse
+     * @param point Point to test in world coordinates
+     * @return true if point is inside or on ellipse boundary
+     * 
+     * Tests point containment using coordinate transformation:
+     * 1. Transform point to ellipse-local coordinates
+     * 2. Check (x/a)² + (y/b)² <= 1
+     * 
+     * Works correctly for rotated ellipses (O(1) complexity).
+     * 
+     * @code{.cpp}
+     * Ellipse ellipse(10.0, 5.0, 0.0, 0.0, 30.0);  // Rotated 30°
+     * 
+     * assert(ellipse.isInside({0, 0}));      // Center - inside
+     * assert(ellipse.isInside({10, 0}));     // On boundary (major axis)
+     * assert(!ellipse.isInside({15, 0}));    // Outside
+     * 
+     * // Rotation handled automatically
+     * Point rotatedPoint{5, 3};
+     * bool inside = ellipse.isInside(rotatedPoint);
+     * @endcode
+     * 
+     * @note Boundary points return true (inclusive)
+     * @note O(1) complexity regardless of rotation
+     * @see getBounds() - Quick rejection test
+     */
     bool isInside(const Point& point) const override;
+    
+    /**
+     * @brief Get axis-aligned bounding box
+     * @return Smallest axis-aligned Bounds containing ellipse
+     * 
+     * For rotated ellipses, computes tight-fitting bounding box analytically.
+     * 
+     * @code{.cpp}
+     * // Axis-aligned ellipse
+     * Ellipse aligned(10, 5, 0, 0);
+     * Bounds b1 = aligned.getBounds();
+     * // b1 = [-10, -5, 10, 5] (exact fit)
+     * 
+     * // Rotated ellipse (45 degrees)
+     * Ellipse rotated(10, 5, 0, 0, 45);
+     * Bounds b2 = rotated.getBounds();
+     * // b2 is larger (contains rotated ellipse)
+     * @endcode
+     * 
+     * @note O(1) complexity (analytical formula)
+     * @note Bounds are axis-aligned (no rotation)
+     * @see isInside() - Precise containment test
+     */
     Bounds getBounds() const override;
+    
+    /**
+     * @brief Get contour points along ellipse perimeter
+     * @param stepSize Target distance between consecutive points
+     * @return Vector of points forming ellipse boundary
+     * 
+     * Generates points parametrically along ellipse, spacing them
+     * approximately stepSize apart. Number of points is based on
+     * perimeter / stepSize.
+     * 
+     * @code{.cpp}
+     * Ellipse ellipse(10, 5, 0, 0);
+     * 
+     * // Generate contour with ~1 unit spacing
+     * auto contour = ellipse.getContour(1.0);
+     * // ~47 points (perimeter ≈ 47.1)
+     * 
+     * // Fine contour
+     * auto fine = ellipse.getContour(0.1);
+     * // ~471 points
+     * 
+     * // Verify closure
+     * assert(contour.front().isNear(contour.back(), stepSize * 2));
+     * @endcode
+     * 
+     * @param stepSize Target spacing between points
+     * @return Points in world coordinates (rotation applied)
+     * @note Point count = perimeter / stepSize (approximately)
+     * @note Contour forms closed loop
+     * @see perimeter() - Get total perimeter
+     */
     std::vector<Point> getContour(double stepSize) const override;
+    
+    /**
+     * @brief Calculate perimeter using Ramanujan's approximation
+     * @return Approximate perimeter length
+     * 
+     * Uses Ramanujan's second approximation formula:
+     * ```
+     * h = ((a-b)/(a+b))²
+     * P ≈ π(a+b)(1 + 3h/(10 + sqrt(4-3h)))
+     * ```
+     * 
+     * Accurate to within 0.01% for most ellipses.
+     * Exact for circles (a = b).
+     * 
+     * @code{.cpp}
+     * // Circle radius 10
+     * Ellipse circle(10, 10, 0, 0);
+     * double p1 = circle.perimeter();
+     * assert(std::abs(p1 - 2*M_PI*10) < 0.001);  // Exact
+     * 
+     * // Ellipse 15x8
+     * Ellipse ellipse(15, 8, 0, 0);
+     * double p2 = ellipse.perimeter();  // ~72.4
+     * 
+     * // Rotation doesn't change perimeter
+     * Ellipse rotated(15, 8, 0, 0, 45);
+     * assert(rotated.perimeter() == p2);
+     * @endcode
+     * 
+     * @note Rotation-invariant
+     * @note Very accurate approximation
+     * @see area() - Calculate enclosed area
+     */
     double perimeter() const override;
+    
+    /**
+     * @brief Calculate area
+     * @return Area in square units
+     * 
+     * Area = π * a * b
+     * 
+     * Exact formula. Rotation-invariant.
+     * 
+     * @code{.cpp}
+     * // Circle radius 10
+     * Ellipse circle(10, 10, 0, 0);
+     * assert(circle.area() == M_PI * 100);  // π*10²
+     * 
+     * // Ellipse 15x8
+     * Ellipse ellipse(15, 8, 0, 0);
+     * assert(ellipse.area() == M_PI * 15 * 8);  // π*15*8
+     * 
+     * // Rotation doesn't change area
+     * Ellipse rotated(15, 8, 0, 0, 45);
+     * assert(rotated.area() == ellipse.area());
+     * @endcode
+     * 
+     * @note Exact calculation (not approximation)
+     * @note Rotation-invariant
+     * @see perimeter() - Calculate boundary length
+     */
     double area() const override;
+    
+    /**
+     * @brief Create deep copy of ellipse
+     * @return Unique pointer to cloned ellipse
+     * 
+     * Creates independent copy including all geometry and state.
+     * 
+     * @code{.cpp}
+     * Ellipse original(10, 5, 0, 0, 30);
+     * original.setTypeLimits(TypeLimits::EXTERNAL);
+     * 
+     * std::unique_ptr<Shape> clone = original.clone();
+     * 
+     * // Clone is independent
+     * clone->shiftX(100);  // Move clone
+     * // original unchanged
+     * @endcode
+     * 
+     * @return Unique pointer to new Ellipse instance
+     * @see Shape::clone() - Base class interface
+     */
     std::unique_ptr<Shape> clone() const override;
+    
+    /**
+     * @brief Get type name for debugging/serialization
+     * @return "Ellipse"
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 0, 0);
+     * assert(std::string(e.typeName()) == "Ellipse");
+     * @endcode
+     */
     const char* typeName() const override { return "Ellipse"; }
     
     // Ellipse-specific properties
     
     /**
-     * @brief Get center point
+     * @brief Get center point in world coordinates
+     * @return Center point
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 50, 25);
+     * Point c = e.center();  // {50, 25}
+     * @endcode
      */
     Point center() const { return center_; }
     
     /**
      * @brief Get semi-major axis length
+     * @return Semi-major axis (larger radius)
+     * 
+     * @code{.cpp}
+     * Ellipse e(15, 8, 0, 0);
+     * assert(e.semiMajor() == 15.0);
+     * @endcode
+     * 
+     * @note This is radius from center to edge (not full width)
+     * @see semiMinor() - Get minor axis
      */
     double semiMajor() const { return semiMajor_; }
     
     /**
      * @brief Get semi-minor axis length
+     * @return Semi-minor axis (smaller radius)
+     * 
+     * @code{.cpp}
+     * Ellipse e(15, 8, 0, 0);
+     * assert(e.semiMinor() == 8.0);
+     * @endcode
+     * 
+     * @note This is radius from center to edge (not full height)
+     * @see semiMajor() - Get major axis
      */
     double semiMinor() const { return semiMinor_; }
     
     /**
      * @brief Get rotation angle in degrees
+     * @return Rotation angle (counter-clockwise from +X)
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 0, 0, 30);
+     * assert(e.rotationDegrees() == 30.0);
+     * @endcode
+     * 
+     * @see rotationRadians() - Get in radians
      */
     double rotationDegrees() const { return rotationDeg_; }
     
     /**
      * @brief Get rotation angle in radians
+     * @return Rotation angle (counter-clockwise from +X)
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 0, 0, 45);
+     * double rad = e.rotationRadians();
+     * assert(std::abs(rad - M_PI/4) < 1e-6);
+     * @endcode
+     * 
+     * @see rotationDegrees() - Get in degrees
      */
     double rotationRadians() const { return rotationRad_; }
     
     /**
      * @brief Check if ellipse is actually a circle
+     * @param tolerance Tolerance for a==b comparison
+     * @return true if semi-major and semi-minor are within tolerance
+     * 
+     * @code{.cpp}
+     * Ellipse circle(10, 10, 0, 0);
+     * assert(circle.isCircle());
+     * 
+     * Ellipse nearCircle(10, 9.999, 0, 0);
+     * assert(nearCircle.isCircle(0.01));
+     * 
+     * Ellipse ellipse(10, 5, 0, 0);
+     * assert(!ellipse.isCircle());
+     * @endcode
      */
     bool isCircle(double tolerance = 1e-6) const {
         return std::abs(semiMajor_ - semiMinor_) < tolerance;
     }
     
     /**
-     * @brief Get eccentricity (0 for circle, approaching 1 for elongated)
+     * @brief Calculate eccentricity
+     * @return Eccentricity (0 for circle, <1 for ellipse)
+     * 
+     * Eccentricity measures how "stretched" the ellipse is:
+     * ```
+     * e = sqrt(1 - b²/a²)
+     * ```
+     * 
+     * - e = 0: Perfect circle
+     * - 0 < e < 1: Ellipse
+     * - e → 1: Very elongated
+     * 
+     * @code{.cpp}
+     * Ellipse circle(10, 10, 0, 0);
+     * assert(circle.eccentricity() == 0.0);  // Circle
+     * 
+     * Ellipse ellipse(10, 5, 0, 0);
+     * double e = ellipse.eccentricity();
+     * // e ≈ 0.866 (fairly elongated)
+     * @endcode
+     * 
+     * @note Always 0 <= e < 1 for valid ellipse
+     * @see focalDistance() - Related focal property
      */
     double eccentricity() const;
     
     /**
-     * @brief Get focal distance (distance from center to focus)
+     * @brief Calculate focal distance
+     * @return Distance from center to focus
+     * 
+     * Focal distance (linear eccentricity):
+     * ```
+     * c = sqrt(a² - b²)
+     * ```
+     * 
+     * The two foci are at distance c from center along major axis.
+     * 
+     * @code{.cpp}
+     * Ellipse circle(10, 10, 0, 0);
+     * assert(circle.focalDistance() == 0.0);  // Foci at center
+     * 
+     * Ellipse ellipse(10, 5, 0, 0);
+     * double c = ellipse.focalDistance();
+     * // c ≈ 8.66 (foci at ±8.66 along major axis)
+     * @endcode
+     * 
+     * @note Returns 0 for circles
+     * @see eccentricity() - Related measure of elongation
      */
     double focalDistance() const;
     
@@ -227,56 +600,141 @@ public:
     
     /**
      * @brief Normalize coordinates to unit system
+     * @param originX Origin X in measuring system
+     * @param originY Origin Y in measuring system
+     * @param radius Normalization scale
+     * 
+     * Transforms: (a_norm, b_norm, center_norm) = (a/radius, b/radius, (center-origin)/radius)
+     * 
+     * @code{.cpp}
+     * Ellipse e(100, 50, 200, 150);
+     * e.normalize(200, 150, 50);
+     * 
+     * // Now: a=2, b=1, center=(0,0)
+     * assert(e.isNormalized());
+     * @endcode
+     * 
+     * @see denormalize() - Inverse operation
      */
     void normalize(double originX, double originY, double radius) override;
     
     /**
-     * @brief Denormalize coordinates back to measuring system
+     * @brief Denormalize coordinates to measuring system
+     * @param originX Origin X in measuring system
+     * @param originY Origin Y in measuring system
+     * @param radius Normalization scale
+     * 
+     * Inverse of normalize().
+     * 
+     * @code{.cpp}
+     * Ellipse e(2, 1, 0, 0);  // Normalized
+     * e.denormalize(200, 150, 50);
+     * 
+     * // Now: a=100, b=50, center=(200,150)
+     * assert(e.isMeasuring());
+     * @endcode
+     * 
+     * @warning Must use SAME parameters as normalize() call
+     * @see normalize() - Forward operation
      */
     void denormalize(double originX, double originY, double radius) override;
     
     /**
-     * @brief Invert Y coordinate
+     * @brief Invert Y coordinate (flip across horizontal line)
+     * @param centerY Y coordinate of inversion axis
+     * 
+     * Mirrors ellipse: y_new = centerY - y_old
+     * Also inverts rotation angle.
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 100, 100, 30);
+     * e.inverseY(400);
+     * 
+     * // Center Y: 100 -> 300
+     * // Rotation: 30° -> -30°
+     * assert(e.center().y == 300);
+     * assert(e.rotationDegrees() == -30);
+     * @endcode
+     * 
+     * @see transformToSystem() - System conversion
      */
     void inverseY(double centerY) override;
     
     /**
-     * @brief Shift shape in X direction
+     * @brief Shift ellipse in X direction
+     * @param deltaX Amount to shift (positive=right)
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 0, 0);
+     * e.shiftX(50);
+     * 
+     * assert(e.center().x == 50);
+     * @endcode
+     * 
+     * @see shiftY() - Vertical shift
      */
     void shiftX(double deltaX) override;
     
     /**
-     * @brief Shift shape in Y direction
+     * @brief Shift ellipse in Y direction
+     * @param deltaY Amount to shift (direction depends on coordinate system)
+     * 
+     * Direction:
+     * - SCREEN: positive = down
+     * - MATH: positive = up
+     * 
+     * @code{.cpp}
+     * Ellipse e(10, 5, 0, 0);
+     * e.shiftY(25);
+     * 
+     * assert(e.center().y == 25);
+     * @endcode
+     * 
+     * @note Direction depends on coordinate system
+     * @see shiftX() - Horizontal shift
      */
     void shiftY(double deltaY) override;
 
 private:
-    double semiMajor_;      ///< Semi-major axis (A)
-    double semiMinor_;      ///< Semi-minor axis (B)
-    Point center_;          ///< Center point
-    double rotationDeg_;    ///< Rotation in degrees
-    double rotationRad_;    ///< Rotation in radians (cached)
+    double semiMajor_;      ///< Semi-major axis (A) - larger radius
+    double semiMinor_;      ///< Semi-minor axis (B) - smaller radius
+    Point center_;          ///< Center point in world coordinates
+    double rotationDeg_;    ///< Rotation in degrees (counter-clockwise)
+    double rotationRad_;    ///< Rotation in radians (cached for efficiency)
     
-    // Cached trigonometric values for rotation
-    double cosRot_;         ///< cos(rotation)
-    double sinRot_;         ///< sin(rotation)
+    // Cached trigonometric values for fast coordinate transformation
+    double cosRot_;         ///< cos(rotationRad_) - cached
+    double sinRot_;         ///< sin(rotationRad_) - cached
     
     /**
-     * @brief Update cached rotation values
+     * @brief Update cached rotation trigonometric values
+     * 
+     * Recalculates cosRot_ and sinRot_ from rotationRad_.
+     * Called whenever rotation angle changes.
      */
     void updateRotationCache();
     
     /**
-     * @brief Transform point from world to ellipse local coordinates
+     * @brief Transform point from world to ellipse-local coordinates
      * @param point Point in world coordinates
      * @return Point in ellipse-local coordinates (centered, aligned)
+     * 
+     * Performs:
+     * 1. Translate to ellipse-relative: p' = p - center
+     * 2. Rotate by -rotation: p_local = Rotate(p', -θ)
+     * 
+     * Result is in ellipse frame (no rotation, center at origin).
      */
     Point toLocalCoordinates(const Point& point) const;
     
     /**
-     * @brief Transform point from ellipse local to world coordinates
+     * @brief Transform point from ellipse-local to world coordinates
      * @param point Point in ellipse-local coordinates
      * @return Point in world coordinates
+     * 
+     * Inverse of toLocalCoordinates():
+     * 1. Rotate by +rotation: p' = Rotate(p, +θ)
+     * 2. Translate: p_world = p' + center
      */
     Point toWorldCoordinates(const Point& point) const;
 };
