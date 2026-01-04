@@ -9,14 +9,26 @@
 
 namespace aperture {
 
-Polygon::Polygon(const std::vector<Point>& vertices)
+Polygon::Polygon(const std::vector<Point>& vertices,
+                 TypeLimits typeLimits,
+                 CoordinateSystem spatialSystem,
+                 NormalizationState normState)
     : vertices_(vertices)
 {
+    typeLimits_ = typeLimits;
+    spatialSystem_ = spatialSystem;
+    normState_ = normState;
 }
 
-Polygon::Polygon(std::initializer_list<Point> vertices)
+Polygon::Polygon(std::initializer_list<Point> vertices,
+                 TypeLimits typeLimits,
+                 CoordinateSystem spatialSystem,
+                 NormalizationState normState)
     : vertices_(vertices)
 {
+    typeLimits_ = typeLimits;
+    spatialSystem_ = spatialSystem;
+    normState_ = normState;
 }
 
 void Polygon::addVertex(const Point& point) {

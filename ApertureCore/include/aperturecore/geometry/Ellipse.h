@@ -27,10 +27,16 @@ public:
      * @param centerX Center X coordinate
      * @param centerY Center Y coordinate
      * @param rotationDegrees Rotation angle in degrees (counter-clockwise)
+     * @param typeLimits Visibility type (default: EXTERNAL)
+     * @param spatialSystem Spatial coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
      */
     Ellipse(double semiMajorAxis, double semiMinorAxis,
             double centerX, double centerY,
-            double rotationDegrees = 0.0);
+            double rotationDegrees = 0.0,
+            TypeLimits typeLimits = TypeLimits::EXTERNAL,
+            CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+            NormalizationState normState = NormalizationState::MEASURING);
     
     // Shape interface implementation
     

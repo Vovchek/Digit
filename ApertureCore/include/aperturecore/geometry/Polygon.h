@@ -28,13 +28,26 @@ public:
     /**
      * @brief Construct from vertex list
      * @param vertices Vector of vertices (will be closed automatically)
+     * @param typeLimits Visibility type (default: EXTERNAL)
+     * @param spatialSystem Spatial coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
      */
-    explicit Polygon(const std::vector<Point>& vertices);
+    explicit Polygon(const std::vector<Point>& vertices,
+                     TypeLimits typeLimits = TypeLimits::EXTERNAL,
+                     CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+                     NormalizationState normState = NormalizationState::MEASURING);
     
     /**
      * @brief Construct from initializer list
+     * @param vertices Initializer list of vertices
+     * @param typeLimits Visibility type (default: EXTERNAL)
+     * @param spatialSystem Spatial coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
      */
-    Polygon(std::initializer_list<Point> vertices);
+    Polygon(std::initializer_list<Point> vertices,
+            TypeLimits typeLimits = TypeLimits::EXTERNAL,
+            CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+            NormalizationState normState = NormalizationState::MEASURING);
     
     // Shape interface implementation
     

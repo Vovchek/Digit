@@ -15,7 +15,10 @@ namespace aperture {
 
 Rectangle::Rectangle(double width, double height,
                      double centerX, double centerY,
-                     double rotationDegrees)
+                     double rotationDegrees,
+                     TypeLimits typeLimits,
+                     CoordinateSystem spatialSystem,
+                     NormalizationState normState)
     : width_(width)
     , height_(height)
     , center_(centerX, centerY)
@@ -24,6 +27,9 @@ Rectangle::Rectangle(double width, double height,
     , cosRot_(0.0)
     , sinRot_(0.0)
 {
+    typeLimits_ = typeLimits;
+    spatialSystem_ = spatialSystem;
+    normState_ = normState;
     updateRotationCache();
 }
 

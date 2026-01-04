@@ -34,26 +34,36 @@ public:
     // Add shapes
     
     /**
-     * @brief Add shape to collection (auto-categorized by TypeLimits)
+     * @brief Add shape to collection (auto-categorized by shape's TypeLimits)
      * @param shape Shape to add (ownership transferred)
+     * 
+     * The shape is categorized based on its getTypeLimits() value.
+     * This is the preferred method when shapes are constructed with
+     * their TypeLimits already set in the constructor.
      */
     void addShape(std::unique_ptr<Shape> shape);
     
     /**
      * @brief Add EXTERNAL shape (aperture)
      * @param shape Shape to add (TypeLimits set to EXTERNAL)
+     * 
+     * Convenience method that sets the shape's TypeLimits before adding.
      */
     void addExternal(std::unique_ptr<Shape> shape);
     
     /**
      * @brief Add INTERNAL shape (obstruction)
      * @param shape Shape to add (TypeLimits set to INTERNAL)
+     * 
+     * Convenience method that sets the shape's TypeLimits before adding.
      */
     void addInternal(std::unique_ptr<Shape> shape);
     
     /**
      * @brief Add APERTURE shape (opening)
      * @param shape Shape to add (TypeLimits set to APERTURE)
+     * 
+     * Convenience method that sets the shape's TypeLimits before adding.
      */
     void addAperture(std::unique_ptr<Shape> shape);
     

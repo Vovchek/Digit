@@ -15,7 +15,10 @@ namespace aperture {
 
 Ellipse::Ellipse(double semiMajorAxis, double semiMinorAxis,
                  double centerX, double centerY,
-                 double rotationDegrees)
+                 double rotationDegrees,
+                 TypeLimits typeLimits,
+                 CoordinateSystem spatialSystem,
+                 NormalizationState normState)
     : semiMajor_(semiMajorAxis)
     , semiMinor_(semiMinorAxis)
     , center_(centerX, centerY)
@@ -24,6 +27,9 @@ Ellipse::Ellipse(double semiMajorAxis, double semiMinorAxis,
     , cosRot_(0.0)
     , sinRot_(0.0)
 {
+    typeLimits_ = typeLimits;
+    spatialSystem_ = spatialSystem;
+    normState_ = normState;
     updateRotationCache();
 }
 

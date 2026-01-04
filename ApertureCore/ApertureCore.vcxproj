@@ -100,6 +100,8 @@
     <ClCompile Include="tests\geometry\EllipseTest.cpp" />
     <ClCompile Include="tests\geometry\PolygonTest.cpp" />
     <ClCompile Include="tests\geometry\RectangleTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp" />
+    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp" />
     <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -124,6 +126,7 @@
     <None Include="IMPLEMENTATION.md" />
     <None Include="ROI_FEATURE_COMPLETE.md" />
     <None Include="sync-builds.ps1" />
+    <None Include="VISIBILITY_LOGIC_FIX.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <Import Project="..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets" Condition="Exists('..\packages\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.1.8.1.8\build\native\Microsoft.googletest.v140.windesktop.msvcstl.static.rt-dyn.targets')" />
