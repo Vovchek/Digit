@@ -242,7 +242,9 @@
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".vsconfig" />
     <None Include="ApertureCore\.gitignore" />
+    <None Include="VISUAL_STUDIO_SETUP.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
@@ -252,6 +254,7 @@
     <None Include="Docs\GOOGLE_TEST_SETUP_SUMMARY.md" />
     <None Include="Docs\GOOGLE_TEST_VISUAL_STUDIO_SETUP.md" />
     <None Include="Docs\RUN_TESTS_QUICK_START.md" />
+    <None Include="export-vs-config.ps1" />
     <None Include="glut32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

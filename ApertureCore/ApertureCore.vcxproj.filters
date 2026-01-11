@@ -28,6 +28,12 @@
     <Filter Include="Tests">
       <UniqueIdentifier>{14fedf6d-e3f2-4494-b14b-87b0d2e6d9ef}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Tests\geometry">
+      <UniqueIdentifier>{f2843dbb-df8d-4f81-9535-1ad43a16d504}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Tests\visibility">
+      <UniqueIdentifier>{e5f4d238-8161-4df9-ae43-635d85b79738}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\aperturecore\geometry\Point.h">
@@ -89,32 +95,32 @@
     <ClCompile Include="src\geometry\Polygon.cpp">
       <Filter>Source Files\geometry</Filter>
     </ClCompile>
-    <ClCompile Include="tests\geometry\PointTest.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="tests\geometry\RectangleTest.cpp">
+      <Filter>Tests\geometry</Filter>
     </ClCompile>
     <ClCompile Include="tests\geometry\BoundsTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\geometry\EllipseTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\geometry\RectangleTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\geometry\PolygonTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Tests\geometry</Filter>
     </ClCompile>
     <ClCompile Include="tests\geometry\EllipseFittingTest.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Tests\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\EllipseTest.cpp">
+      <Filter>Tests\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\PointTest.cpp">
+      <Filter>Tests\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\geometry\PolygonTest.cpp">
+      <Filter>Tests\geometry</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp">
+      <Filter>Tests\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp">
+      <Filter>Tests\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="tests\visibility\VisibleRegionTest.cpp">
+      <Filter>Tests\visibility</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -211,5 +217,32 @@
       <Filter>Documentation</Filter>
     </None>
     <None Include="commit-ellipse-fitting.ps1" />
+    <None Include="PHASE5_STEP1.6_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="commit-rectangle-docs.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PHASE5_STEP1.7_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="commit-polygon-docs.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PHASE5_STEP1.5_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="commit-ellipse-complete.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PHASE5_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="commit-phase5-complete.bat">
+      <Filter>Source Files</Filter>
+    </None>
+    <None Include="PHASE6_INTEGRATION_PLAN.md">
+      <Filter>Documentation</Filter>
+    </None>
   </ItemGroup>
 </Project>

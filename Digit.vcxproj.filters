@@ -307,5 +307,8 @@
     <None Include="Docs\RUN_TESTS_QUICK_START.md" />
     <None Include="Docs\GOOGLE_TEST_INSTALL_GUIDE.md" />
     <None Include="Docs\GOOGLE_TEST_SETUP_SUMMARY.md" />
+    <None Include=".vsconfig" />
+    <None Include="export-vs-config.ps1" />
+    <None Include="VISUAL_STUDIO_SETUP.md" />
   </ItemGroup>
 </Project>
