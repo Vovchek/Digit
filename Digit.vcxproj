@@ -211,6 +211,12 @@
     <ClInclude Include="Controls\controls.h" />
     <ClInclude Include="Controls\ImageCtrls.h" />
     <ClInclude Include="Controls\MeasureCtrls.h" />
+    <ClInclude Include="MFringe\Resource.h" />
+    <ClInclude Include="MFringe\src\mfc\MainFrm.h" />
+    <ClInclude Include="MFringe\src\mfc\MFringeApp.h" />
+    <ClInclude Include="MFringe\src\mfc\MFringeDoc.h" />
+    <ClInclude Include="MFringe\src\mfc\MFringeView.h" />
+    <ClInclude Include="MFringe\StdAfx.h" />
     <ClInclude Include="Utils\Edit\BaseTextDoc.h" />
     <ClInclude Include="Utils\Edit\BaseTextFrm.h" />
     <ClInclude Include="Utils\Edit\BaseTextView.h" />

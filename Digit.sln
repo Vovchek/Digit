@@ -23,6 +23,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxpro
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ApertureCore", "ApertureCore\ApertureCore.vcxproj", "{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MFringe", "MFringe\MFringe.vcxproj", "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -72,6 +74,12 @@ Global
 		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Release|Win32.Build.0 = Release|x64
 		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Template|Win32.ActiveCfg = Debug|x64
 		{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}.Template|Win32.Build.0 = Debug|x64
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Debug|Win32.Build.0 = Debug|Win32
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Release|Win32.ActiveCfg = Release|Win32
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Release|Win32.Build.0 = Release|Win32
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Template|Win32.ActiveCfg = Debug|Win32
+		{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}.Template|Win32.Build.0 = Debug|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

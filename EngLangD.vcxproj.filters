@@ -23,6 +23,9 @@
     <ResourceCompile Include="EngLangD.rc">
       <Filter>Source Files</Filter>
     </ResourceCompile>
+    <ResourceCompile Include="MFringe\MFringe_NEW.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h">

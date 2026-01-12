@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -9,31 +9,23 @@
       <Configuration>Release</Configuration>
       <Platform>Win32</Platform>
     </ProjectConfiguration>
-    <ProjectConfiguration Include="Template|Win32">
-      <Configuration>Template</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <SccProjectName />
     <SccLocalPath />
     <Keyword>MFCProj</Keyword>
-    <ProjectGuid>{57399E2D-7B03-8976-826B-7385E96AAAE7}</ProjectGuid>
+    <ProjectGuid>{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}</ProjectGuid>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
     <PlatformToolset>v143</PlatformToolset>
@@ -41,26 +33,21 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
   </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-    <Import Project="$(VCTargetsPath)Microsoft.Cpp.UpgradeFromVC60.props" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)Build\Release\</OutDir>
-    <IntDir>$(SolutionDir)Build\Release\EngLangDTemp\</IntDir>
+    <OutDir>..\Build\Release\</OutDir>
+    <IntDir>..\Build\Release\MFringeTemp\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)Build\Debug\</OutDir>
-    <IntDir>$(SolutionDir)Build\Debug\EngLangDTemp\</IntDir>
+    <OutDir>..\Build\Debug\</OutDir>
+    <IntDir>..\Build\Debug\MFringeTemp\</IntDir>
     <LinkIncremental>true</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -72,18 +59,19 @@
       <Optimization>MaxSpeed</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)MFringe;$(SolutionDir)MGTools;$(SolutionDir)MGTools\Include;$(SolutionDir)InterfSolver;$(SolutionDir)InterfSolver\INCLUDE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <PrecompiledHeaderOutputFile>$(IntDir)EngLangD.pch</PrecompiledHeaderOutputFile>
+      <BrowseInformation>true</BrowseInformation>
+      <PrecompiledHeaderOutputFile>$(IntDir)MFringe.pch</PrecompiledHeaderOutputFile>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)EngLangD.pdb</ProgramDataBaseFileName>
-      <MinimalRebuild />
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(IntDir)MFringe.pdb</ProgramDataBaseFileName>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TypeLibraryName>$(OutDir)EngLangD.tlb</TypeLibraryName>
+      <TypeLibraryName>$(OutDir)MFringe.tlb</TypeLibraryName>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <TargetEnvironment>Win32</TargetEnvironment>
     </Midl>
@@ -91,17 +79,12 @@
       <Culture>0x0419</Culture>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>$(OutDir)EngLangD.bsc</OutputFile>
-    </Bscmake>
     <Link>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <LinkDLL>true</LinkDLL>
-      <SubSystem>Console</SubSystem>
-      <OutputFile>$(OutDir)EngLangD.dll</OutputFile>
-      <ImportLibrary>$(OutDir)EngLangD.lib</ImportLibrary>
-      <ModuleDefinitionFile>$(ProjectDir)EngLangD.def</ModuleDefinitionFile>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)MFringe.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Build\Release;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MGTools.lib;InterfSolver.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -112,23 +95,21 @@
       <Optimization>Disabled</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <MinimalRebuild>
-      </MinimalRebuild>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;WIN32;_DEBUG;_WINDOWS;_WINDLL;_AFXEXT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)MFringe;$(SolutionDir)MGTools;$(SolutionDir)MGTools\Include;$(SolutionDir)InterfSolver;$(SolutionDir)InterfSolver\INCLUDE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
-      <PrecompiledHeaderOutputFile>$(IntDir)EngLangD.pch</PrecompiledHeaderOutputFile>
-      <PrecompiledHeader>
-      </PrecompiledHeader>
+      <BrowseInformation>true</BrowseInformation>
+      <PrecompiledHeaderOutputFile>$(IntDir)MFringe.pch</PrecompiledHeaderOutputFile>
       <ObjectFileName>$(IntDir)</ObjectFileName>
-      <ProgramDataBaseFileName>$(IntDir)EngLangD.pdb</ProgramDataBaseFileName>
+      <ProgramDataBaseFileName>$(IntDir)MFringe.pdb</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <TypeLibraryName>$(OutDir)EngLangD.tlb</TypeLibraryName>
+      <TypeLibraryName>$(OutDir)MFringe.tlb</TypeLibraryName>
       <MkTypLibCompatible>true</MkTypLibCompatible>
       <TargetEnvironment>Win32</TargetEnvironment>
     </Midl>
@@ -136,60 +117,49 @@
       <Culture>0x0419</Culture>
       <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ResourceCompile>
-    <Bscmake>
-      <SuppressStartupBanner>true</SuppressStartupBanner>
-      <OutputFile>$(OutDir)EngLangD.bsc</OutputFile>
-    </Bscmake>
     <Link>
       <SuppressStartupBanner>true</SuppressStartupBanner>
-      <LinkDLL>true</LinkDLL>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <SubSystem>Console</SubSystem>
-      <OutputFile>$(OutDir)EngLangD.dll</OutputFile>
-      <ImportLibrary>$(OutDir)EngLangD.lib</ImportLibrary>
-      <ModuleDefinitionFile>$(ProjectDir)EngLangD.def</ModuleDefinitionFile>
+      <SubSystem>Windows</SubSystem>
+      <OutputFile>$(OutDir)MFringe.exe</OutputFile>
+      <AdditionalLibraryDirectories>..\Build\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>MGTools.lib;InterfSolver.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Template|Win32'">
-    <ClCompile>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;</PreprocessorDefinitions>
-      <MinimalRebuild />
-      <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
-    </ClCompile>
-  </ItemDefinitionGroup>
-  <ItemGroup>
-    <ClCompile Include="EngLangD.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="EngLangD.def" />
-    <CustomBuild Include="Res\bitmap17.bmp" />
-    <CustomBuild Include="Res\bmp00001.bmp" />
-    <CustomBuild Include="Res\bmp00002.bmp" />
-    <CustomBuild Include="Res\cursor1.cur" />
-    <CustomBuild Include="res\Digit.ico" />
-    <CustomBuild Include="res\DigitDoc.ico" />
-    <CustomBuild Include="Res\digittoo.bmp" />
-    <CustomBuild Include="Res\edittool.bmp" />
-    <CustomBuild Include="Res\harrow.cur" />
-    <CustomBuild Include="Res\hnwse.cur" />
-    <CustomBuild Include="Res\markpt.cur" />
-    <CustomBuild Include="Res\measure.CUR" />
-    <CustomBuild Include="Res\rect_bou.cur" />
-    <CustomBuild Include="Res\sel_dot.cur" />
-    <CustomBuild Include="Res\sel_zap_.cur" />
-    <CustomBuild Include="Res\toolbar1.bmp" />
-    <CustomBuild Include="Res\viewtool.bmp" />
-    <CustomBuild Include="Res\ZOOMIN.CUR" />
-    <CustomBuild Include="Res\ZOOMOUT.CUR" />
-    <CustomBuild Include="Res\ZOOMRECT.CUR" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="EngLangD.rc" />
-    <ResourceCompile Include="MFringe\MFringe_NEW.rc" />
-  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h" />
+    <ClInclude Include="src\mfc\COutputPane.h" />
+    <ClInclude Include="src\mfc\CParametersPane.h" />
+    <ClInclude Include="src\mfc\CPipelineTreePane.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="src\mfc\MFringeApp.h" />
+    <ClInclude Include="src\mfc\MainFrm.h" />
+    <ClInclude Include="src\mfc\MFringeDoc.h" />
+    <ClInclude Include="src\mfc\MFringeView.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\mfc\COutputPane.cpp" />
+    <ClCompile Include="src\mfc\CParametersPane.cpp" />
+    <ClCompile Include="src\mfc\CPipelineTreePane.cpp" />
+    <ClCompile Include="StdAfx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">StdAfx.h</PrecompiledHeaderFile>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">StdAfx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="src\mfc\MFringeApp.cpp" />
+    <ClCompile Include="src\mfc\MainFrm.cpp" />
+    <ClCompile Include="src\mfc\MFringeDoc.cpp" />
+    <ClCompile Include="src\mfc\MFringeView.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="MFringe.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="COPILOT_INSTRUCTIONS.md" />
+    <None Include="SETUP_HISTORY.md" />
+    <None Include="TODO_AFTER_RESTART.md" />
+    <None Include="VCXPROJ_FIX.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

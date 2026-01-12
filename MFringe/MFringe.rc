@@ -1,0 +1,92 @@
+﻿#include "Resource.h"
+#include "afxres.h"
+
+LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+// Menu
+//
+
+IDR_MAINFRAME MENU
+BEGIN
+    POPUP "&File"
+    BEGIN
+        MENUITEM "&New\tCtrl+N",        ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",    ID_FILE_OPEN
+        MENUITEM "&Save\tCtrl+S",       ID_FILE_SAVE
+        MENUITEM "Save &As...",         ID_FILE_SAVE_AS
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",               ID_APP_EXIT
+    END
+    POPUP "&View"
+    BEGIN
+        MENUITEM "&Pipeline\tAlt+1",    ID_VIEW_PIPELINE_TREE
+        MENUITEM "P&arameters\tAlt+2",  ID_VIEW_PARAMETERS
+        MENUITEM "&Output\tAlt+3",      ID_VIEW_OUTPUT
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About MFringe...",   ID_APP_ABOUT
+    END
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS
+BEGIN
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+    VK_F1,          ID_APP_ABOUT,           VIRTKEY
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "About MFringe"
+FONT 8, "MS Shell Dlg", 0, 0, 0x1
+BEGIN
+    LTEXT           "MFringe Version 1.0",IDC_STATIC,40,10,119,8,SS_NOPREFIX
+    LTEXT           "Interferogram Analysis",IDC_STATIC,40,25,119,8
+    DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
+END
+
+/////////////////////////////////////////////////////////////////////////////
+// String Table
+//
+
+STRINGTABLE
+BEGIN
+    IDR_MAINFRAME           "MFringe\nMFringe\nMFringe\n\n\nMFringe.Document\nMFringe.Document"
+    IDS_TOOLBAR_STANDARD    "Standard"
+    IDS_TOOLBAR_CUSTOMIZE   "Customize..."
+    IDS_PIPELINE_TREE       "Pipeline"
+    IDS_PARAMETERS          "Parameters"
+    IDS_OUTPUT              "Output"
+END
+
+STRINGTABLE
+BEGIN
+    ID_FILE_NEW             "Create a new document\nNew"
+    ID_FILE_OPEN            "Open an existing document\nOpen"
+    ID_FILE_SAVE            "Save the active document\nSave"
+    ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
+    ID_APP_ABOUT            "Display program information\nAbout"
+    ID_APP_EXIT             "Quit the application\nExit"
+END
+
+STRINGTABLE
+BEGIN
+    ID_VIEW_PIPELINE_TREE   "Show or hide the Pipeline pane\nToggle Pipeline"
+    ID_VIEW_PARAMETERS      "Show or hide the Parameters pane\nToggle Parameters"
+    ID_VIEW_OUTPUT          "Show or hide the Output pane\nToggle Output"
+END
