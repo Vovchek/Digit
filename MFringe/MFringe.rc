@@ -3,10 +3,6 @@
 
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 
-/////////////////////////////////////////////////////////////////////////////
-// Menu
-//
-
 IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
@@ -17,6 +13,26 @@ BEGIN
         MENUITEM "Save &As...",         ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "E&xit",               ID_APP_EXIT
+    END
+    POPUP "&Processing"
+    BEGIN
+        MENUITEM "&Start Pipeline\tF5",        ID_PROCESSING_START
+        MENUITEM "&Pause\tF6",                 ID_PROCESSING_PAUSE
+        MENUITEM "S&top\tShift+F5",            ID_PROCESSING_STOP
+        MENUITEM "&Reset All Stages\tCtrl+R",  ID_PROCESSING_RESET
+        MENUITEM SEPARATOR
+        MENUITEM "Run &Selected Stage\tF9",    ID_PROCESSING_RUN_SELECTED
+        MENUITEM SEPARATOR
+        POPUP "&Test Status"
+        BEGIN
+            MENUITEM "Set Pending",    ID_TEST_STATUS_PENDING
+            MENUITEM "Set Running",    ID_TEST_STATUS_RUNNING
+            MENUITEM "Set Success",    ID_TEST_STATUS_SUCCESS
+            MENUITEM "Set Warning",    ID_TEST_STATUS_WARNING
+            MENUITEM "Set Error",      ID_TEST_STATUS_ERROR
+            MENUITEM SEPARATOR
+            MENUITEM "Reset All",      ID_TEST_STATUS_RESET_ALL
+        END
     END
     POPUP "&View"
     BEGIN
@@ -30,21 +46,18 @@ BEGIN
     END
 END
 
-/////////////////////////////////////////////////////////////////////////////
-// Accelerator
-//
-
 IDR_MAINFRAME ACCELERATORS
 BEGIN
-    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
-    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
-    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
-    VK_F1,          ID_APP_ABOUT,           VIRTKEY
+    "N",            ID_FILE_NEW,                VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,               VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,               VIRTKEY, CONTROL
+    "R",            ID_PROCESSING_RESET,        VIRTKEY, CONTROL
+    VK_F1,          ID_APP_ABOUT,               VIRTKEY
+    VK_F5,          ID_PROCESSING_START,        VIRTKEY
+    VK_F5,          ID_PROCESSING_STOP,         VIRTKEY, SHIFT
+    VK_F6,          ID_PROCESSING_PAUSE,        VIRTKEY
+    VK_F9,          ID_PROCESSING_RUN_SELECTED, VIRTKEY
 END
-
-/////////////////////////////////////////////////////////////////////////////
-// Dialog
-//
 
 IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -55,10 +68,6 @@ BEGIN
     LTEXT           "Interferogram Analysis",IDC_STATIC,40,25,119,8
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
-
-/////////////////////////////////////////////////////////////////////////////
-// String Table
-//
 
 STRINGTABLE
 BEGIN
@@ -76,10 +85,6 @@ BEGIN
     ID_FILE_OPEN            "Open an existing document\nOpen"
     ID_FILE_SAVE            "Save the active document\nSave"
     ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
-END
-
-STRINGTABLE
-BEGIN
     ID_APP_ABOUT            "Display program information\nAbout"
     ID_APP_EXIT             "Quit the application\nExit"
 END
@@ -89,4 +94,23 @@ BEGIN
     ID_VIEW_PIPELINE_TREE   "Show or hide the Pipeline pane\nToggle Pipeline"
     ID_VIEW_PARAMETERS      "Show or hide the Parameters pane\nToggle Parameters"
     ID_VIEW_OUTPUT          "Show or hide the Output pane\nToggle Output"
+END
+
+STRINGTABLE
+BEGIN
+    ID_PROCESSING_START         "Start pipeline processing\nStart"
+    ID_PROCESSING_PAUSE         "Pause pipeline processing\nPause"
+    ID_PROCESSING_STOP          "Stop pipeline processing\nStop"
+    ID_PROCESSING_RESET         "Reset all pipeline stages\nReset"
+    ID_PROCESSING_RUN_SELECTED  "Run selected pipeline stage\nRun Selected"
+END
+
+STRINGTABLE
+BEGIN
+    ID_TEST_STATUS_PENDING      "Set selected stage to Pending status\nPending"
+    ID_TEST_STATUS_RUNNING      "Set selected stage to Running status\nRunning"
+    ID_TEST_STATUS_SUCCESS      "Set selected stage to Success status\nSuccess"
+    ID_TEST_STATUS_WARNING      "Set selected stage to Warning status\nWarning"
+    ID_TEST_STATUS_ERROR        "Set selected stage to Error status\nError"
+    ID_TEST_STATUS_RESET_ALL    "Reset all stages to Pending\nReset All"
 END

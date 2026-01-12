@@ -28,6 +28,21 @@ BEGIN_MESSAGE_MAP(CMFringeMainFrame, CFrameWndEx)
 	ON_COMMAND(ID_VIEW_OUTPUT, &CMFringeMainFrame::OnViewOutput)
 	ON_UPDATE_COMMAND_UI(ID_VIEW_OUTPUT, &CMFringeMainFrame::OnUpdateViewOutput)
 	ON_WM_SETTINGCHANGE()
+	
+	// Processing menu
+	ON_COMMAND(ID_PROCESSING_START, &CMFringeMainFrame::OnProcessingStart)
+	ON_COMMAND(ID_PROCESSING_PAUSE, &CMFringeMainFrame::OnProcessingPause)
+	ON_COMMAND(ID_PROCESSING_STOP, &CMFringeMainFrame::OnProcessingStop)
+	ON_COMMAND(ID_PROCESSING_RESET, &CMFringeMainFrame::OnProcessingReset)
+	ON_COMMAND(ID_PROCESSING_RUN_SELECTED, &CMFringeMainFrame::OnProcessingRunSelected)
+	
+	// Test status commands
+	ON_COMMAND(ID_TEST_STATUS_PENDING, &CMFringeMainFrame::OnTestStatusPending)
+	ON_COMMAND(ID_TEST_STATUS_RUNNING, &CMFringeMainFrame::OnTestStatusRunning)
+	ON_COMMAND(ID_TEST_STATUS_SUCCESS, &CMFringeMainFrame::OnTestStatusSuccess)
+	ON_COMMAND(ID_TEST_STATUS_WARNING, &CMFringeMainFrame::OnTestStatusWarning)
+	ON_COMMAND(ID_TEST_STATUS_ERROR, &CMFringeMainFrame::OnTestStatusError)
+	ON_COMMAND(ID_TEST_STATUS_RESET_ALL, &CMFringeMainFrame::OnTestStatusResetAll)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -303,6 +318,106 @@ void CMFringeMainFrame::OnViewOutput()
 void CMFringeMainFrame::OnUpdateViewOutput(CCmdUI* pCmdUI)
 {
 	pCmdUI->SetCheck(m_wndOutput->IsVisible());
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Processing menu handlers
+
+void CMFringeMainFrame::OnProcessingStart()
+{
+	// TODO: Implement actual pipeline start
+	AfxMessageBox(_T("Processing Start - Not yet implemented"));
+	m_wndOutput->AddMessage(_T("Pipeline processing started..."));
+}
+
+void CMFringeMainFrame::OnProcessingPause()
+{
+	// TODO: Implement actual pipeline pause
+	AfxMessageBox(_T("Processing Pause - Not yet implemented"));
+	m_wndOutput->AddMessage(_T("Pipeline processing paused."));
+}
+
+void CMFringeMainFrame::OnProcessingStop()
+{
+	// TODO: Implement actual pipeline stop
+	AfxMessageBox(_T("Processing Stop - Not yet implemented"));
+	m_wndOutput->AddMessage(_T("Pipeline processing stopped."));
+}
+
+void CMFringeMainFrame::OnProcessingReset()
+{
+	// Reset all pipeline stages to pending
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->ResetAllStages();
+		m_wndOutput->AddMessage(_T("All pipeline stages reset to Pending status."));
+	}
+}
+
+void CMFringeMainFrame::OnProcessingRunSelected()
+{
+	// TODO: Implement running selected stage
+	AfxMessageBox(_T("Run Selected Stage - Not yet implemented"));
+	m_wndOutput->AddMessage(_T("Running selected pipeline stage..."));
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// Test status menu handlers (for demonstration)
+
+void CMFringeMainFrame::OnTestStatusPending()
+{
+	// Set stage 0 to Pending (for testing)
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->SetStageStatus(0, STAGE_PENDING);
+		m_wndOutput->AddMessage(_T("Stage 0 set to PENDING status"));
+	}
+}
+
+void CMFringeMainFrame::OnTestStatusRunning()
+{
+	// Set stage 0 to Running (for testing)
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->SetStageStatus(0, STAGE_RUNNING);
+		m_wndOutput->AddMessage(_T("Stage 0 set to RUNNING status"));
+	}
+}
+
+void CMFringeMainFrame::OnTestStatusSuccess()
+{
+	// Set stage 0 to Success (for testing)
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->SetStageStatus(0, STAGE_SUCCESS);
+		m_wndOutput->AddMessage(_T("Stage 0 set to SUCCESS status"));
+	}
+}
+
+void CMFringeMainFrame::OnTestStatusWarning()
+{
+	// Set stage 0 to Warning (for testing)
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->SetStageStatus(0, STAGE_WARNING);
+		m_wndOutput->AddMessage(_T("Stage 0 set to WARNING status"));
+	}
+}
+
+void CMFringeMainFrame::OnTestStatusError()
+{
+	// Set stage 0 to Error (for testing)
+	if (m_wndPipelineTree)
+	{
+		m_wndPipelineTree->SetStageStatus(0, STAGE_ERROR);
+		m_wndOutput->AddMessage(_T("Stage 0 set to ERROR status"));
+	}
+}
+
+void CMFringeMainFrame::OnTestStatusResetAll()
+{
+	// Reset all stages (same as Processing > Reset)
+	OnProcessingReset();
 }
 
 void CMFringeMainFrame::OnSettingChange(UINT uFlags, LPCTSTR lpszSection)

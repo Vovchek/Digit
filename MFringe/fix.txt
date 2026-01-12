@@ -1,0 +1,108 @@
+1) Как добавить иконки в проект MFringe
+Вариант A: Через Resource View (если VS не падает)
+1.	Откройте Resource View:
+•	View → Other Windows → Resource View (или Ctrl+Shift+E)
+2.	Раскройте MFringe.rc:
+•	В дереве найдите MFringe → MFringe.rc
+3.	Добавьте новую группу Icon:
+•	Правый клик на MFringe.rc → Add Resource
+•	Выберите Icon → Import
+•	Укажите путь к res\icons\status_pending.ico
+•	VS спросит ID - введите IDI_STATUS_PENDING
+4.	Повторите для остальных иконок:
+•	status_running.ico → IDI_STATUS_RUNNING
+•	status_success.ico → IDI_STATUS_SUCCESS
+•	status_warning.ico → IDI_STATUS_WARNING
+•	status_error.ico → IDI_STATUS_ERROR
+•	status_skipped.ico → IDI_STATUS_SKIPPED
+Вариант B: Вручную через редактор (безопаснее)
+1.	Закройте Visual Studio полностью
+2.	Откройте resource.h в Notepad++/VS Code
+3.	Добавьте ID для иконок (после строки #define IDI_OUTPUT_HC 205):
+
+// Status icons (206-211 range)
+#define IDI_STATUS_PENDING              206
+#define IDI_STATUS_RUNNING              207
+#define IDI_STATUS_SUCCESS              208
+#define IDI_STATUS_WARNING              209
+#define IDI_STATUS_ERROR                210
+#define IDI_STATUS_SKIPPED              211
+
+4.	Откройте MFringe.rc в текстовом редакторе
+5.	Добавьте секцию Icon (в самое начало, после LANGUAGE LANG_RUSSIAN):
+
+/////////////////////////////////////////////////////////////////////////////
+// Icon
+//
+
+IDI_STATUS_PENDING      ICON    "res\\icons\\status_pending.ico"
+IDI_STATUS_RUNNING      ICON    "res\\icons\\status_running.ico"
+IDI_STATUS_SUCCESS      ICON    "res\\icons\\status_success.ico"
+IDI_STATUS_WARNING      ICON    "res\\icons\\status_warning.ico"
+IDI_STATUS_ERROR        ICON    "res\\icons\\status_error.ico"
+IDI_STATUS_SKIPPED      ICON    "res\\icons\\status_skipped.ico"
+
+6.	Сохраните оба файла
+7.	Откройте Visual Studio и пересоберите проект
+---
+2) Как убрать MFringe_NEW.rc из EngLang
+Причина проблемы:
+MFringe_NEW.rc был добавлен в MFringe.vcxproj.filters файл, и даже после удаления физического файла VS помнит о нём.
+Решение:
+1.	Закройте Visual Studio
+2.	Откройте MFringe.vcxproj.filters в текстовом редакторе
+3.	Найдите строку с MFringe_NEW.rc:
+•	Используйте поиск (Ctrl+F) → ищите MFringe_NEW.rc
+•	Должна быть строка типа:
+
+<ResourceCompile Include="MFringe_NEW.rc" />
+
+4.	Удалите эту строку полностью
+5.	Проверьте также MFringe.vcxproj.filters:
+•	Откройте MFringe.vcxproj.filters
+•	Найдите и удалите любые упоминания MFringe_NEW.rc:
+<ResourceCompile Include="MFringe_NEW.rc">
+     <Filter>Resource Files</Filter>
+   </ResourceCompile>
+   
+  6.	Сохраните оба файла
+7.	Откройте Visual Studio
+8.	Reload проект (если VS спросит)
+---
+3) Использование иконок в коде
+После добавления иконок обновите CPipelineTreePane.cpp → метод InitializeImageList():
+Замените создание битмапов на загрузку иконок:
+
+ void CPipelineTreePane::InitializeImageList()
+{
+    if (m_PipelineImages.GetSafeHandle())
+    {
+        m_PipelineImages.DeleteImageList();
+    }
+    
+    // Create 16x16 image list
+    m_PipelineImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 1);
+    
+    // Load status icons from resources
+    HICON hIcons[6] = {
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_PENDING), IMAGE_ICON, 16, 16, 0),
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_RUNNING), IMAGE_ICON, 16, 16, 0),
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_SUCCESS), IMAGE_ICON, 16, 16, 0),
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_WARNING), IMAGE_ICON, 16, 16, 0),
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_ERROR), IMAGE_ICON, 16, 16, 0),
+        (HICON)::LoadImage(AfxGetResourceHandle(), MAKEINTRESOURCE(IDI_STATUS_SKIPPED), IMAGE_ICON, 16, 16, 0)
+    };
+    
+    // Add icons to image list
+    for (int i = 0; i < 6; i++)
+    {
+        if (hIcons[i])
+        {
+            m_PipelineImages.Add(hIcons[i]);
+            ::DestroyIcon(hIcons[i]); // Clean up handle
+        }
+    }
+    
+    m_wndPipelineTree.SetImageList(&m_PipelineImages, TVSIL_NORMAL);
+}
+

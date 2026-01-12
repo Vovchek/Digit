@@ -30,6 +30,21 @@
 #define ID_VIEW_OUTPUT                  33003
 #define ID_VIEW_CUSTOMIZE               33004
 
+// Processing menu commands (33100+ range)
+#define ID_PROCESSING_START             33100
+#define ID_PROCESSING_PAUSE             33101
+#define ID_PROCESSING_STOP              33102
+#define ID_PROCESSING_RESET             33103
+#define ID_PROCESSING_RUN_SELECTED      33104
+
+// Test commands for status simulation (33200+ range)
+#define ID_TEST_STATUS_PENDING          33200
+#define ID_TEST_STATUS_RUNNING          33201
+#define ID_TEST_STATUS_SUCCESS          33202
+#define ID_TEST_STATUS_WARNING          33203
+#define ID_TEST_STATUS_ERROR            33204
+#define ID_TEST_STATUS_RESET_ALL        33205
+
 // Status bar indicators (safe range 40000+)
 #define ID_INDICATOR_RMS                40001
 #define ID_INDICATOR_PV                 40002
@@ -48,7 +63,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        306
-#define _APS_NEXT_COMMAND_VALUE         33005
+#define _APS_NEXT_COMMAND_VALUE         33206
 #define _APS_NEXT_CONTROL_VALUE         1000
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

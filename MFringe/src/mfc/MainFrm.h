@@ -59,5 +59,21 @@ protected:
 	afx_msg void OnViewOutput();
 	afx_msg void OnUpdateViewOutput(CCmdUI* pCmdUI);
 	afx_msg void OnSettingChange(UINT uFlags, LPCTSTR lpszSection);
+	
+	// Processing menu commands
+	afx_msg void OnProcessingStart();
+	afx_msg void OnProcessingPause();
+	afx_msg void OnProcessingStop();
+	afx_msg void OnProcessingReset();
+	afx_msg void OnProcessingRunSelected();
+	
+	// Test status commands
+	afx_msg void OnTestStatusPending();
+	afx_msg void OnTestStatusRunning();
+	afx_msg void OnTestStatusSuccess();
+	afx_msg void OnTestStatusWarning();
+	afx_msg void OnTestStatusError();
+	afx_msg void OnTestStatusResetAll();
+	
 	DECLARE_MESSAGE_MAP()
 };
