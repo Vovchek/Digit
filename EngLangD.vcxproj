@@ -185,7 +185,6 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="EngLangD.rc" />
-    <ResourceCompile Include="MFringe\MFringe_NEW.rc" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Resource.h" />

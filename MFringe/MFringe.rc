@@ -1,63 +1,87 @@
-﻿#include "Resource.h"
-#include "afxres.h"
+// Microsoft Visual C++ generated resource script.
+//
+#pragma code_page(65001)
 
+#include "afxres.h"
+#include "resource.h"
+/////////////////////////////////////////////////////////////////////////////
+// Russian (Russia) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
 
 IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
     BEGIN
-        MENUITEM "&New\tCtrl+N",        ID_FILE_NEW
-        MENUITEM "&Open...\tCtrl+O",    ID_FILE_OPEN
-        MENUITEM "&Save\tCtrl+S",       ID_FILE_SAVE
-        MENUITEM "Save &As...",         ID_FILE_SAVE_AS
+        MENUITEM "&New\tCtrl+N",                ID_FILE_NEW
+        MENUITEM "&Open...\tCtrl+O",            ID_FILE_OPEN
+        MENUITEM "&Save\tCtrl+S",               ID_FILE_SAVE
+        MENUITEM "Save &As...",                 ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
-        MENUITEM "E&xit",               ID_APP_EXIT
+        MENUITEM "E&xit",                       ID_APP_EXIT
     END
     POPUP "&Processing"
     BEGIN
-        MENUITEM "&Start Pipeline\tF5",        ID_PROCESSING_START
-        MENUITEM "&Pause\tF6",                 ID_PROCESSING_PAUSE
-        MENUITEM "S&top\tShift+F5",            ID_PROCESSING_STOP
-        MENUITEM "&Reset All Stages\tCtrl+R",  ID_PROCESSING_RESET
+        MENUITEM "&Start Pipeline\tF5",         ID_PROCESSING_START
+        MENUITEM "&Pause\tF6",                  ID_PROCESSING_PAUSE
+        MENUITEM "S&top\tShift+F5",             ID_PROCESSING_STOP
+        MENUITEM "&Reset All Stages\tCtrl+R",   ID_PROCESSING_RESET
         MENUITEM SEPARATOR
-        MENUITEM "Run &Selected Stage\tF9",    ID_PROCESSING_RUN_SELECTED
+        MENUITEM "Run &Selected Stage\tF9",     ID_PROCESSING_RUN_SELECTED
         MENUITEM SEPARATOR
         POPUP "&Test Status"
         BEGIN
-            MENUITEM "Set Pending",    ID_TEST_STATUS_PENDING
-            MENUITEM "Set Running",    ID_TEST_STATUS_RUNNING
-            MENUITEM "Set Success",    ID_TEST_STATUS_SUCCESS
-            MENUITEM "Set Warning",    ID_TEST_STATUS_WARNING
-            MENUITEM "Set Error",      ID_TEST_STATUS_ERROR
+            MENUITEM "Set Pending",                 ID_TEST_STATUS_PENDING
+            MENUITEM "Set Running",                 ID_TEST_STATUS_RUNNING
+            MENUITEM "Set Success",                 ID_TEST_STATUS_SUCCESS
+            MENUITEM "Set Warning",                 ID_TEST_STATUS_WARNING
+            MENUITEM "Set Error",                   ID_TEST_STATUS_ERROR
             MENUITEM SEPARATOR
-            MENUITEM "Reset All",      ID_TEST_STATUS_RESET_ALL
+            MENUITEM "Reset All",                   ID_TEST_STATUS_RESET_ALL
         END
     END
     POPUP "&View"
     BEGIN
-        MENUITEM "&Pipeline\tAlt+1",    ID_VIEW_PIPELINE_TREE
-        MENUITEM "P&arameters\tAlt+2",  ID_VIEW_PARAMETERS
-        MENUITEM "&Output\tAlt+3",      ID_VIEW_OUTPUT
+        MENUITEM "&Pipeline\tAlt+1",            ID_VIEW_PIPELINE_TREE
+        MENUITEM "P&arameters\tAlt+2",          ID_VIEW_PARAMETERS
+        MENUITEM "&Output\tAlt+3",              ID_VIEW_OUTPUT
     END
     POPUP "&Help"
     BEGIN
-        MENUITEM "&About MFringe...",   ID_APP_ABOUT
+        MENUITEM "&About MFringe...",           ID_APP_ABOUT
     END
 END
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
 IDR_MAINFRAME ACCELERATORS
 BEGIN
-    "N",            ID_FILE_NEW,                VIRTKEY, CONTROL
-    "O",            ID_FILE_OPEN,               VIRTKEY, CONTROL
-    "S",            ID_FILE_SAVE,               VIRTKEY, CONTROL
-    "R",            ID_PROCESSING_RESET,        VIRTKEY, CONTROL
-    VK_F1,          ID_APP_ABOUT,               VIRTKEY
-    VK_F5,          ID_PROCESSING_START,        VIRTKEY
-    VK_F5,          ID_PROCESSING_STOP,         VIRTKEY, SHIFT
-    VK_F6,          ID_PROCESSING_PAUSE,        VIRTKEY
-    VK_F9,          ID_PROCESSING_RUN_SELECTED, VIRTKEY
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+    "R",            ID_PROCESSING_RESET,    VIRTKEY, CONTROL
+    VK_F1,          ID_APP_ABOUT,           VIRTKEY 
+    VK_F5,          ID_PROCESSING_START,    VIRTKEY 
+    VK_F5,          ID_PROCESSING_STOP,     VIRTKEY, SHIFT
+    VK_F6,          ID_PROCESSING_PAUSE,    VIRTKEY 
+    VK_F9,          ID_PROCESSING_RUN_SELECTED, VIRTKEY 
 END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
 
 IDD_ABOUTBOX DIALOGEX 0, 0, 235, 55
 STYLE DS_SETFONT | DS_MODALFRAME | DS_FIXEDSYS | WS_POPUP | WS_CAPTION | WS_SYSMENU
@@ -69,9 +93,58 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,16,WS_GROUP
 END
 
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_STATUS_PENDING      ICON                    "res\\icons\\status_pending.ico"
+IDI_STATUS_RUNNING      ICON                    "res\\icons\\status_running.ico"
+IDI_STATUS_SUCCESS      ICON                    "res\\icons\\status_success.ico"
+IDI_STATUS_WARNING      ICON                    "res\\icons\\status_warning.ico"
+IDI_STATUS_ERROR        ICON                    "res\\icons\\status_error.ico"
+IDI_STATUS_SKIPPED      ICON                    "res\\icons\\status_skipped.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
 STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "MFringe\nMFringe\nMFringe\n\n\nMFringe.Document\nMFringe.Document"
+END
+
+STRINGTABLE
+BEGIN
     IDS_TOOLBAR_STANDARD    "Standard"
     IDS_TOOLBAR_CUSTOMIZE   "Customize..."
     IDS_PIPELINE_TREE       "Pipeline"
@@ -85,6 +158,10 @@ BEGIN
     ID_FILE_OPEN            "Open an existing document\nOpen"
     ID_FILE_SAVE            "Save the active document\nSave"
     ID_FILE_SAVE_AS         "Save the active document with a new name\nSave As"
+END
+
+STRINGTABLE
+BEGIN
     ID_APP_ABOUT            "Display program information\nAbout"
     ID_APP_EXIT             "Quit the application\nExit"
 END
@@ -98,19 +175,39 @@ END
 
 STRINGTABLE
 BEGIN
-    ID_PROCESSING_START         "Start pipeline processing\nStart"
-    ID_PROCESSING_PAUSE         "Pause pipeline processing\nPause"
-    ID_PROCESSING_STOP          "Stop pipeline processing\nStop"
-    ID_PROCESSING_RESET         "Reset all pipeline stages\nReset"
-    ID_PROCESSING_RUN_SELECTED  "Run selected pipeline stage\nRun Selected"
+    ID_PROCESSING_START     "Start pipeline processing\nStart"
+    ID_PROCESSING_PAUSE     "Pause pipeline processing\nPause"
+    ID_PROCESSING_STOP      "Stop pipeline processing\nStop"
+    ID_PROCESSING_RESET     "Reset all pipeline stages\nReset"
 END
 
 STRINGTABLE
 BEGIN
-    ID_TEST_STATUS_PENDING      "Set selected stage to Pending status\nPending"
-    ID_TEST_STATUS_RUNNING      "Set selected stage to Running status\nRunning"
-    ID_TEST_STATUS_SUCCESS      "Set selected stage to Success status\nSuccess"
-    ID_TEST_STATUS_WARNING      "Set selected stage to Warning status\nWarning"
-    ID_TEST_STATUS_ERROR        "Set selected stage to Error status\nError"
-    ID_TEST_STATUS_RESET_ALL    "Reset all stages to Pending\nReset All"
+    ID_PROCESSING_RUN_SELECTED "Run selected pipeline stage\nRun Selected"
 END
+
+STRINGTABLE
+BEGIN
+    ID_TEST_STATUS_PENDING  "Set selected stage to Pending status\nPending"
+    ID_TEST_STATUS_RUNNING  "Set selected stage to Running status\nRunning"
+    ID_TEST_STATUS_SUCCESS  "Set selected stage to Success status\nSuccess"
+    ID_TEST_STATUS_WARNING  "Set selected stage to Warning status\nWarning"
+    ID_TEST_STATUS_ERROR    "Set selected stage to Error status\nError"
+    ID_TEST_STATUS_RESET_ALL "Reset all stages to Pending\nReset All"
+END
+
+#endif    // Russian (Russia) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+

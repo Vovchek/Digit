@@ -161,6 +161,15 @@
     <None Include="TODO_AFTER_RESTART.md" />
     <None Include="VCXPROJ_FIX.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\icons\icon1.ico" />
+    <Image Include="res\icons\status_error.ico" />
+    <Image Include="res\icons\status_pending.ico" />
+    <Image Include="res\icons\status_running.ico" />
+    <Image Include="res\icons\status_skipped.ico" />
+    <Image Include="res\icons\status_success.ico" />
+    <Image Include="res\icons\status_warning.ico" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -47,46 +47,27 @@ void CPipelineTreePane::InitializeImageList()
 	// Create 16x16 image list with 6 icons
 	m_PipelineImages.Create(16, 16, ILC_COLOR32 | ILC_MASK, 6, 1);
 	
-	// Load or create status icons
-	// For now, create colored rectangles as placeholders
-	// TODO: Replace with actual icon resources
-	
-	CBitmap bmp;
-	CDC memDC;
-	CDC* pDC = GetDC();
-	memDC.CreateCompatibleDC(pDC);
-	
-	// Create each status icon
-	COLORREF colors[] = {
-		RGB(128, 128, 128),  // 0: Pending (Gray)
-		RGB(0, 120, 215),    // 1: Running (Blue)
-		RGB(16, 124, 16),    // 2: Success (Green)
-		RGB(255, 185, 0),    // 3: Warning (Yellow/Orange)
-		RGB(232, 17, 35),    // 4: Error (Red)
-		RGB(160, 160, 160)   // 5: Skipped (Light Gray)
+	// Load status icons from resources
+	HINSTANCE hInst = AfxGetApp()->m_hInstance;
+	HICON hIcons[6] = {
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_PENDING)),
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_RUNNING)),
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_SUCCESS)),
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_WARNING)),
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_ERROR)),
+		::LoadIcon(hInst, MAKEINTRESOURCE(IDI_STATUS_SKIPPED))
 	};
-	
+
+	// Add icons to image list
 	for (int i = 0; i < 6; i++)
 	{
-		bmp.CreateCompatibleBitmap(pDC, 16, 16);
-		CBitmap* pOldBmp = memDC.SelectObject(&bmp);
-		
-		memDC.FillSolidRect(0, 0, 16, 16, RGB(255, 255, 255)); // White background
-		
-		// Draw colored circle
-		CBrush brush(colors[i]);
-		CBrush* pOldBrush = memDC.SelectObject(&brush);
-		memDC.Ellipse(2, 2, 14, 14);
-		memDC.SelectObject(pOldBrush);
-		
-		m_PipelineImages.Add(&bmp, RGB(255, 255, 255));
-		
-		memDC.SelectObject(pOldBmp);
-		bmp.DeleteObject();
+		if (hIcons[i])
+		{
+			m_PipelineImages.Add(hIcons[i]);
+			::DestroyIcon(hIcons[i]); // Clean up handle
+		}
 	}
-	
-	ReleaseDC(pDC);
-	
+
 	m_wndPipelineTree.SetImageList(&m_PipelineImages, TVSIL_NORMAL);
 }
 

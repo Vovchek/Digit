@@ -86,4 +86,27 @@
     <None Include="VCXPROJ_FIX.md" />
     <None Include="COPILOT_INSTRUCTIONS.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\icons\status_error.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\status_running.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\status_skipped.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\status_success.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\status_warning.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\status_pending.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icons\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
 </Project>
