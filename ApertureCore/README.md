@@ -4,7 +4,7 @@ Modern C++ library for geometric aperture and visibility calculations.
 
 ## Documentation
 
-📖 **[Complete API Reference (Doxygen)](./docs/html/index.html)** - Full API documentation with class diagrams, method signatures, and examples
+📖 **[Complete API Reference (Doxygen)](Docs/html/index.html)** - Full API documentation with class diagrams, method signatures, and examples
 
 > **Note:** To generate the API documentation locally, run: `.\build.ps1 -Docs` or `cmake --build build --target docs`
 
