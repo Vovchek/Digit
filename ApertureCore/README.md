@@ -40,7 +40,7 @@ ctest  # Run tests
 # Option 2: Using CMake directly
 cmake --build build --target docs
 
-# Documentation will be at: ApertureCore/docs/html/index.html
+# Documentation will be at: ApertureCore/Docs/html/index.html
 ```
 
 ### Basic Usage
@@ -326,7 +326,7 @@ TEST(VisibilityChecker, ApertureCreatesOpening) {
 
 ## API Documentation
 
-📚 **[Full API Documentation](../docs/html/index.html)** - Browse complete API reference with class diagrams and detailed method documentation
+📚 **[Full API Documentation](Docs/html/index.html)** - Browse complete API reference with class diagrams and detailed method documentation
 
 ### Key Headers
 
