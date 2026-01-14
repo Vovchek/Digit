@@ -1,0 +1,15 @@
+digraph "Graphical Class Hierarchy"
+{
+ // LATEX_PDF_SIZE
+  bgcolor="transparent";
+  edge [fontname=Helvetica,fontsize=10,labelfontname=Helvetica,labelfontsize=10];
+  node [fontname=Helvetica,fontsize=10,shape=box,height=0.2,width=0.4];
+  rankdir="LR";
+  Node0 [id="Node000000",label="aperture::Shape",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classaperture_1_1_shape.html",tooltip="Abstract base class for all 2D geometric shapes."];
+  Node0 -> Node1 [id="edge1_Node000000_Node000001",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node1 [id="Node000001",label="aperture::Ellipse",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classaperture_1_1_ellipse.html",tooltip="Parametric elliptical shape with rotation."];
+  Node0 -> Node2 [id="edge2_Node000000_Node000002",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node2 [id="Node000002",label="aperture::Polygon",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classaperture_1_1_polygon.html",tooltip="Arbitrary polygon defined by variable number of vertices."];
+  Node0 -> Node3 [id="edge3_Node000000_Node000003",dir="back",color="steelblue1",style="solid",tooltip=" "];
+  Node3 [id="Node000003",label="aperture::Rectangle",height=0.2,width=0.4,color="grey40", fillcolor="white", style="filled",URL="$classaperture_1_1_rectangle.html",tooltip="Axis-aligned or rotated rectangular shape."];
+}

@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['ray_20casting_20algorithm_0',['Ray-Casting Algorithm',['../_polygon_8h.html#autotoc_md62',1,'']]],
+  ['ray_20casting_20point_20in_20polygon_20test_1',['2. Ray-Casting Point-in-Polygon Test',['../_polygon_8h.html#autotoc_md46',1,'']]],
+  ['real_20world_20applications_2',['4. Real-World Applications',['../_visibility_checker_8h.html#autotoc_md141',1,'']]],
+  ['recommendations_3',['Usage Recommendations',['../classaperture_1_1_bounds.html#autotoc_md17',1,'']]],
+  ['recommended_4',['System-Agnostic Accessors (Recommended)',['../_bounds_8h.html#autotoc_md3',1,'']]],
+  ['recommended_3a_20use_20fromminmax_20and_20min_20max_20accessors_5',['Recommended: Use fromMinMax() and min/max accessors',['../_bounds_8h.html#autotoc_md8',1,'']]],
+  ['rectangle_6',['Rectangle',['../_rectangle_8h.html#autotoc_md95',1,'Bounding Box for Rotated Rectangle'],['../classaperture_1_1_rectangle.html',1,'aperture::Rectangle'],['../classaperture_1_1_rectangle.html#a398a54b723eaa9d121ed8233fa4e3b48',1,'aperture::Rectangle::Rectangle()']]],
+  ['rectangle_20test_7',['Point-in-Rectangle Test',['../_rectangle_8h.html#autotoc_md94',1,'']]],
+  ['rectangle_2ecpp_8',['Rectangle.cpp',['../_rectangle_8cpp.html',1,'']]],
+  ['rectangle_2eh_9',['Rectangle.h',['../_rectangle_8h.html',1,'']]],
+  ['rectangles_10',['Rectangles',['../_rectangle_8h.html#autotoc_md89',1,'Creating Rectangles'],['../classaperture_1_1_rectangle.html#autotoc_md101',1,'Creating Rectangles']]],
+  ['referenceheight_11',['referenceHeight',['../classaperture_1_1_coordinate_system.html#a4271894a07a3cc31e3ef54b75ef57783',1,'aperture::CoordinateSystem']]],
+  ['references_12',['Mathematical References',['../classaperture_1_1_ellipse.html#autotoc_md38',1,'']]],
+  ['representation_13',['1. Parametric Ellipse Representation',['../_ellipse_8h.html#autotoc_md24',1,'']]],
+  ['resetstats_14',['resetStats',['../classaperture_1_1_visibility_checker.html#a091a2bb8bf07853fa71a14a1f50c4639',1,'aperture::VisibilityChecker']]],
+  ['right_15',['right',['../classaperture_1_1_bounds.html#ad9c441ef5fe69e1f52cd027b27a1b756',1,'aperture::Bounds']]],
+  ['roi_20calculation_16',['ROI Calculation',['../classaperture_1_1_visibility_checker.html#autotoc_md154',1,'']]],
+  ['rotated_17',['rotated',['../structaperture_1_1_point.html#a26b0c3fa037262d25ee0c42398bf925a',1,'aperture::Point']]],
+  ['rotated_20rectangle_18',['Bounding Box for Rotated Rectangle',['../_rectangle_8h.html#autotoc_md95',1,'']]],
+  ['rotatedaround_19',['rotatedAround',['../structaperture_1_1_point.html#a5b01f96cd48826c26c50c962939f8f70',1,'aperture::Point']]],
+  ['rotation_20direction_20',['Rotation Direction',['../_rectangle_8h.html#autotoc_md85',1,'']]],
+  ['rotation_20support_21',['Rotation Support',['../_rectangle_8h.html#autotoc_md78',1,'1. Rotation Support'],['../_ellipse_8h.html#autotoc_md26',1,'3. Rotation Support']]],
+  ['rotationdegrees_22',['rotationDegrees',['../classaperture_1_1_ellipse.html#a4e90f3a04ba14d8d42db65b1adf44f6b',1,'aperture::Ellipse::rotationDegrees()'],['../classaperture_1_1_rectangle.html#a062f851cb6661a38051dc4facaabfb12',1,'aperture::Rectangle::rotationDegrees()']]],
+  ['rotationradians_23',['rotationRadians',['../classaperture_1_1_ellipse.html#a140f1b74166fb4f14dfd17733a7efa17',1,'aperture::Ellipse::rotationRadians()'],['../classaperture_1_1_rectangle.html#a511e4483caeff998427058aed85cbd9b',1,'aperture::Rectangle::rotationRadians()']]]
+];

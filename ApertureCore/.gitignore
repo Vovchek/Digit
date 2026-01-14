@@ -154,7 +154,7 @@ vcpkg_installed/
 # Documentation
 # ============================================================================
 # Doxygen
-docs/html/
+# docs/html/
 docs/latex/
 docs/xml/
 Doxyfile.bak

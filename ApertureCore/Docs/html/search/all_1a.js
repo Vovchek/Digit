@@ -1,0 +1,27 @@
+var searchData=
+[
+  ['validation_0',['Validation',['../_bounds_8h.html#autotoc_md10',1,'']]],
+  ['vertex_1',['vertex',['../classaperture_1_1_polygon.html#a17a6c62e4838d5648b7de84b3fe42ae6',1,'aperture::Polygon']]],
+  ['vertex_20count_2',['1. Arbitrary Vertex Count',['../_polygon_8h.html#autotoc_md45',1,'']]],
+  ['vertex_20manipulation_3',['Vertex Manipulation',['../classaperture_1_1_polygon.html#autotoc_md71',1,'']]],
+  ['vertexcount_4',['vertexCount',['../classaperture_1_1_polygon.html#aba02deb7c9945eb644132546e4458d58',1,'aperture::Polygon']]],
+  ['vertices_5',['Vertices',['../_polygon_8h.html#autotoc_md51',1,'Dynamic vs Static Vertices'],['../_polygon_8h.html#autotoc_md59',1,'Working with Vertices']]],
+  ['vertices_6',['vertices',['../classaperture_1_1_polygon.html#ab8f9bf9713254028de05ca757bb45842',1,'aperture::Polygon']]],
+  ['virtual_7',['Provided Functionality (Non-Virtual)',['../classaperture_1_1_shape.html#autotoc_md123',1,'']]],
+  ['virtual_20interface_20nvi_20pattern_8',['Non-Virtual Interface (NVI) Pattern',['../_shape_8h.html#autotoc_md117',1,'']]],
+  ['virtual_20interface_20pattern_9',['Virtual Interface Pattern',['../_shape_8h.html#autotoc_md116',1,'']]],
+  ['virtual_20methods_20must_20implement_10',['Pure Virtual Methods (Must Implement)',['../classaperture_1_1_shape.html#autotoc_md122',1,'']]],
+  ['visibility_20algorithm_11',['Visibility Algorithm',['../_visibility_checker_8h.html#autotoc_md142',1,'']]],
+  ['visibility_20checking_12',['Basic Visibility Checking',['../_visibility_checker_8h.html#autotoc_md144',1,'']]],
+  ['visibility_20control_13',['Visibility Control',['../classaperture_1_1_shape.html#autotoc_md127',1,'']]],
+  ['visibility_20control_20typelimits_14',['2. Visibility Control (TypeLimits)',['../_shape_8h.html#autotoc_md111',1,'']]],
+  ['visibility_20in_20optical_20systems_15',['Visibility in Optical Systems',['../_rectangle_8h.html#autotoc_md92',1,'']]],
+  ['visibility_20types_16',['1. Three Visibility Types',['../_visibility_checker_8h.html#autotoc_md138',1,'']]],
+  ['visibilitychecker_17',['VisibilityChecker',['../classaperture_1_1_visibility_checker.html',1,'aperture::VisibilityChecker'],['../classaperture_1_1_visibility_checker.html#a45c40f48af6cd9746d2df5d9e510133e',1,'aperture::VisibilityChecker::VisibilityChecker()']]],
+  ['visibilitychecker_2ecpp_18',['VisibilityChecker.cpp',['../_visibility_checker_8cpp.html',1,'']]],
+  ['visibilitychecker_2eh_19',['VisibilityChecker.h',['../_visibility_checker_8h.html',1,'']]],
+  ['vs_20math_20coordinates_20',['SCREEN vs MATH Coordinates',['../_bounds_8h.html#autotoc_md4',1,'']]],
+  ['vs_20semi_20axes_21',['Width/Height vs Semi-axes',['../_rectangle_8h.html#autotoc_md84',1,'']]],
+  ['vs_20static_20vertices_22',['Dynamic vs Static Vertices',['../_polygon_8h.html#autotoc_md51',1,'']]],
+  ['vs_20world_20coordinates_23',['Local vs World Coordinates',['../_rectangle_8h.html#autotoc_md86',1,'']]]
+];

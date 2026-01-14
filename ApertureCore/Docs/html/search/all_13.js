@@ -1,0 +1,26 @@
+var searchData=
+[
+  ['openings_0',['Annular Aperture with Openings',['../_visibility_checker_8h.html#autotoc_md145',1,'']]],
+  ['operations_1',['Operations',['../classaperture_1_1_shape.html#autotoc_md126',1,'Basic Geometry Operations'],['../classaperture_1_1_rectangle.html#autotoc_md102',1,'Common Operations']]],
+  ['operator_21_3d_2',['operator!=',['../classaperture_1_1_bounds.html#afeef2104094289233a40fb0a09e17b3b',1,'aperture::Bounds::operator!=()'],['../classaperture_1_1_coordinate_system.html#a0b83f4332ab711f21df86b00ed46e9d7',1,'aperture::CoordinateSystem::operator!=()'],['../structaperture_1_1_point.html#af149082e7cd122177a54fad9596653b1',1,'aperture::Point::operator!=(const Point &amp;other) const']]],
+  ['operator_2a_3',['operator*',['../structaperture_1_1_point.html#ae57dcc2b2b9cfc9f3048732890d06ef0',1,'aperture::Point::operator*(double scalar) const'],['../structaperture_1_1_point.html#a50c557f52146522563811f7cd1ff24be',1,'aperture::Point::operator*(double scalar, const Point &amp;p)'],['../structaperture_1_1_point.html#a50c557f52146522563811f7cd1ff24be',1,'aperture::operator*()']]],
+  ['operator_2a_3d_4',['operator*=',['../structaperture_1_1_point.html#a31c89765aeafa818a45e16bed24a12ae',1,'aperture::Point']]],
+  ['operator_2b_5',['operator+',['../structaperture_1_1_point.html#a0f2b51d3fe1661d492e69a80ed537027',1,'aperture::Point']]],
+  ['operator_2b_3d_6',['operator+=',['../structaperture_1_1_point.html#a6ea644856bceffb1edb5e8796b21cc57',1,'aperture::Point']]],
+  ['operator_2d_7',['operator-',['../structaperture_1_1_point.html#a020c2a097c76c68c532b4b803f38759d',1,'aperture::Point::operator-(const Point &amp;other) const'],['../structaperture_1_1_point.html#a7c38a2718b586ea986d15b330cfe1696',1,'aperture::Point::operator-() const']]],
+  ['operator_2d_3d_8',['operator-=',['../structaperture_1_1_point.html#aec72303ed612459a7d28cec357e8df9b',1,'aperture::Point']]],
+  ['operator_2f_9',['operator/',['../structaperture_1_1_point.html#a67b650aef75188995e07826f3542dfc3',1,'aperture::Point']]],
+  ['operator_2f_3d_10',['operator/=',['../structaperture_1_1_point.html#aebec5ea9ded73671d431b6c5e61d9b94',1,'aperture::Point']]],
+  ['operator_3c_3c_11',['operator&lt;&lt;',['../classaperture_1_1_bounds.html#aed7a7fda1095a9b1c04f32ed2b113f9b',1,'aperture::Bounds::operator&lt;&lt;()'],['../structaperture_1_1_point.html#ab322db2b5457c54c9b959c6336792d2d',1,'aperture::Point::operator&lt;&lt;()'],['../namespaceaperture.html#ac5621b5713a2d6dec40bd504ce54fee4',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Bounds &amp;b)'],['../namespaceaperture.html#a36ff9d201e281e4f81c678b1ccc0f739',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Point &amp;p)'],['../classaperture_1_1_bounds.html#aed7a7fda1095a9b1c04f32ed2b113f9b',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Bounds &amp;b)'],['../structaperture_1_1_point.html#ab322db2b5457c54c9b959c6336792d2d',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Point &amp;p)']]],
+  ['operator_3d_12',['operator=',['../classaperture_1_1_shape_collection.html#a9ff6e11876b5ebe9d3d7f253b1424c98',1,'aperture::ShapeCollection::operator=(const ShapeCollection &amp;)=delete'],['../classaperture_1_1_shape_collection.html#a061e307c5d4558ebcfa7d755a65e1536',1,'aperture::ShapeCollection::operator=(ShapeCollection &amp;&amp;)=default']]],
+  ['operator_3d_3d_13',['operator==',['../classaperture_1_1_bounds.html#a9486bd7d486ccf7d0bf73f0f461ea902',1,'aperture::Bounds::operator==()'],['../classaperture_1_1_coordinate_system.html#af0294786d14343ebdd3029b40a58d72a',1,'aperture::CoordinateSystem::operator==()'],['../structaperture_1_1_point.html#a28f6e4cc1fee7920c231f8f1b2931c31',1,'aperture::Point::operator==()']]],
+  ['optical_20systems_14',['Visibility in Optical Systems',['../_rectangle_8h.html#autotoc_md92',1,'']]],
+  ['optimization_15',['3. Performance Optimization',['../_visibility_checker_8h.html#autotoc_md140',1,'']]],
+  ['optimization_20strategy_16',['Optimization Strategy',['../classaperture_1_1_visibility_checker.html#autotoc_md156',1,'']]],
+  ['optimized_20checking_20order_17',['2. Optimized Checking Order',['../_visibility_checker_8h.html#autotoc_md139',1,'']]],
+  ['optimized_20image_20processing_18',['Optimized Image Processing',['../_visibility_checker_8h.html#autotoc_md146',1,'']]],
+  ['order_19',['2. Optimized Checking Order',['../_visibility_checker_8h.html#autotoc_md139',1,'']]],
+  ['order_20and_20orientation_20',['5. Winding Order and Orientation',['../_polygon_8h.html#autotoc_md49',1,'']]],
+  ['orientation_21',['5. Winding Order and Orientation',['../_polygon_8h.html#autotoc_md49',1,'']]],
+  ['overview_22',['Overview',['../_ellipse_8h.html#autotoc_md22',1,'Overview'],['../_polygon_8h.html#autotoc_md43',1,'Overview'],['../_rectangle_8h.html#autotoc_md76',1,'Overview'],['../_shape_8h.html#autotoc_md107',1,'Overview'],['../_visibility_checker_8h.html#autotoc_md136',1,'Overview']]]
+];
