@@ -10,6 +10,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 option(APERTURE_BUILD_TESTS "Build tests" ON)
 option(APERTURE_BUILD_LEGACY "Build legacy compatibility layer" ON)
 option(APERTURE_BUILD_EXAMPLES "Build examples" OFF)
+option(APERTURE_BUILD_DOCS "Build documentation" ON)
 
 # Compiler warnings
 if(MSVC)
@@ -98,6 +99,47 @@ endif()
 # Examples
 if(APERTURE_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+# Documentation
+if(APERTURE_BUILD_DOCS)
+    find_package(Doxygen QUIET)
+    if(DOXYGEN_FOUND)
+        message(STATUS "Doxygen found: ${DOXYGEN_EXECUTABLE}")
+        
+        # Check for optional components separately (don't fail if missing)
+        find_program(DOXYGEN_DOT_EXECUTABLE
+            NAMES dot
+            DOC "Graphviz Dot tool for generating diagrams"
+        )
+        
+        if(DOXYGEN_DOT_EXECUTABLE)
+            message(STATUS "Graphviz dot found: ${DOXYGEN_DOT_EXECUTABLE}")
+            set(DOXYGEN_HAVE_DOT "YES")
+        else()
+            message(STATUS "Graphviz dot not found - diagrams will be disabled")
+            set(DOXYGEN_HAVE_DOT "NO")
+        endif()
+        
+        set(DOXYGEN_IN ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+        set(DOXYGEN_OUT ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile)
+        
+        # Configure Doxyfile (replaces @DOXYGEN_HAVE_DOT@)
+        configure_file(${DOXYGEN_IN} ${DOXYGEN_OUT} @ONLY)
+        
+        add_custom_target(docs
+            COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+            COMMENT "Generating API documentation with Doxygen"
+            VERBATIM
+        )
+        
+        message(STATUS "Documentation target 'docs' created")
+        message(STATUS "  Build with: cmake --build build --target docs")
+    else()
+        message(WARNING "Doxygen not found - documentation will not be built")
+        message(WARNING "  Install Doxygen to enable documentation generation")
+    endif()
 endif()
 
 # Install rules

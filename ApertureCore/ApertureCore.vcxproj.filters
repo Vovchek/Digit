@@ -124,124 +124,166 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="README.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="DESIGN.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="IMPLEMENTATION.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="sync-builds.ps1" />
-    <None Include="DUAL_BUILD_MAINTENANCE.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="BOUNDS_HYBRID_NAMING_COMPLETE.md">
       <Filter>Documentation</Filter>
     </None>
-    <None Include="CONSERVATIVE_ROI_DECISION.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="COORDINATE_SYSTEM_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ELLIPSE_TESTS_ALL_PASSING.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ELLIPSE_TEST_FIX_ROTATION.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="packages.config" />
-    <None Include="PHASE4_PROGRESS.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE4_STEP2_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE4_STEP3_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_PLAN.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_PROGRESS_UPDATE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_READY.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_STEP1.2_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_STEP1_PROGRESS.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ROI_FEATURE_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="SHAPE_CONSTRUCTOR_UPDATE_GUIDE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="VISIBILITY_IMPLEMENTATION_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="VISIBILITY_LOGIC_FIX.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="VISIBILITY_QUICK_REFERENCE.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="configure-vs-encoding.ps1" />
-    <None Include="VS_ENCODING_BUG_GUIDE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ENCODING_FIX_QUICKSTART.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="restore-unicode.ps1" />
     <None Include="quick-fix-unicode.ps1" />
-    <None Include="UNICODE_FIX_SUMMARY.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_STEP1.3_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="PHASE5_STEP1.4_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ELLIPSE_FITTING_FEATURE.md">
-      <Filter>Documentation</Filter>
-    </None>
-    <None Include="ELLIPSE_FITTING_BUG_FIXES.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="commit-ellipse-fitting.ps1" />
-    <None Include="PHASE5_STEP1.6_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="commit-rectangle-docs.bat">
       <Filter>Source Files</Filter>
-    </None>
-    <None Include="PHASE5_STEP1.7_COMPLETE.md">
-      <Filter>Documentation</Filter>
     </None>
     <None Include="commit-polygon-docs.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="PHASE5_STEP1.5_COMPLETE.md">
-      <Filter>Documentation</Filter>
-    </None>
     <None Include="commit-ellipse-complete.bat">
       <Filter>Source Files</Filter>
-    </None>
-    <None Include="PHASE5_COMPLETE.md">
-      <Filter>Documentation</Filter>
     </None>
     <None Include="commit-phase5-complete.bat">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="PHASE6_INTEGRATION_PLAN.md">
+    <None Include="Docs\CONSERVATIVE_ROI_DECISION.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\COORDINATE_SYSTEM_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\COORDINATE_SYSTEM_SUPPORT.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\CURRENT_STATUS_AND_ISSUES.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\DESIGN.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\DUAL_BUILD_MAINTENANCE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ELLIPSE_FITTING_BUG_FIXES.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ELLIPSE_FITTING_FEATURE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ELLIPSE_TEST_FIX_ROTATION.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ELLIPSE_TESTS_ALL_PASSING.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ENCODING_FIX_QUICKSTART.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\FILTERS_SYNC_ENHANCEMENT.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\IMPLEMENTATION.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\INTEGRATION_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ISSUE_RESOLUTION_SUMMARY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE1_DAY1_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE1_PROGRESS.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE2_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE3_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE4_PROGRESS.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE4_STEP2_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE4_STEP3_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_PLAN.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_PROGRESS_UPDATE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_READY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.2_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.3_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.4_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.5_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.6_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1.7_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE5_STEP1_PROGRESS.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PHASE6_INTEGRATION_PLAN.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PROJECT_SUMMARY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\QUICK_REFERENCE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\README.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\ROI_FEATURE_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\SHAPE_CONSTRUCTOR_UPDATE_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\SYNC_BUILDS_BUG_FIXES.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\UNICODE_FIX_SUMMARY.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\VISIBILITY_IMPLEMENTATION_COMPLETE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\VISIBILITY_LOGIC_FIX.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\VISIBILITY_QUICK_REFERENCE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\VS_ENCODING_BUG_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\VS_TEST_INTEGRATION_GUIDE.md">
+      <Filter>Documentation</Filter>
+    </None>
+    <None Include="Docs\PROJECT_STATUS.md">
       <Filter>Documentation</Filter>
     </None>
   </ItemGroup>

@@ -1,12 +1,13 @@
-#!/usr/bin/env powershell
+﻿#!/usr/bin/env powershell
 # Build script for ApertureCore library
-# Usage: .\build.ps1 [Debug|Release] [--clean] [--test] [--install]
+# Usage: .\build.ps1 [Debug|Release] [--clean] [--test] [--install] [--docs]
 
 param(
     [string]$BuildType = "Debug",
     [switch]$Clean,
     [switch]$Test,
     [switch]$Install,
+    [switch]$Docs,
     [string]$InstallPrefix = ""
 )
 
@@ -40,7 +41,7 @@ Write-Info ""
 if ($Clean -and (Test-Path $BuildDir)) {
     Write-Info "Cleaning build directory..."
     Remove-Item -Recurse -Force $BuildDir
-    Write-Success "? Clean complete"
+    Write-Success "✓ Clean complete"
     Write-Info ""
 }
 
@@ -48,7 +49,7 @@ if ($Clean -and (Test-Path $BuildDir)) {
 if (-not (Test-Path $BuildDir)) {
     Write-Info "Creating build directory..."
     New-Item -ItemType Directory -Path $BuildDir | Out-Null
-    Write-Success "? Build directory created"
+    Write-Success "✓ Build directory created"
 }
 
 # Configure CMake
@@ -60,6 +61,7 @@ try {
         "-DCMAKE_BUILD_TYPE=$BuildType"
         "-DAPERTURE_BUILD_TESTS=ON"
         "-DAPERTURE_BUILD_LEGACY=ON"
+        "-DAPERTURE_BUILD_DOCS=ON"
     )
     
     if ($InstallPrefix) {
@@ -70,7 +72,7 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "CMake configuration failed"
     }
-    Write-Success "? CMake configuration complete"
+    Write-Success "✓ CMake configuration complete"
     Write-Info ""
 } catch {
     Write-Error "Configuration failed: $_"
@@ -85,12 +87,38 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Build failed"
     }
-    Write-Success "? Build complete"
+    Write-Success "✓ Build complete"
     Write-Info ""
 } catch {
     Write-Error "Build failed: $_"
     Pop-Location
     exit 1
+}
+
+# Build documentation if requested
+if ($Docs) {
+    Write-Info "Building documentation..."
+    try {
+        & cmake --build . --target docs
+        if ($LASTEXITCODE -ne 0) {
+            throw "Documentation build failed"
+        }
+        
+        # FIX: Documentation is in PROJECT_ROOT/docs, not build/docs
+        $DocsPath = Join-Path $ProjectRoot "docs\html\index.html"
+        if (Test-Path $DocsPath) {
+            Write-Success "✓ Documentation built successfully"
+            Write-Info "  Documentation: $DocsPath"
+        } else {
+            Write-Warning "Documentation built but index.html not found at expected location"
+            Write-Warning "  Expected: $DocsPath"
+        }
+        Write-Info ""
+    } catch {
+        Write-Error "Documentation build failed: $_"
+        Pop-Location
+        exit 1
+    }
 }
 
 # Test if requested
@@ -101,7 +129,7 @@ if ($Test) {
         if ($LASTEXITCODE -ne 0) {
             throw "Tests failed"
         }
-        Write-Success "? All tests passed"
+        Write-Success "✓ All tests passed"
         Write-Info ""
     } catch {
         Write-Error "Tests failed: $_"
@@ -118,7 +146,7 @@ if ($Install) {
         if ($LASTEXITCODE -ne 0) {
             throw "Installation failed"
         }
-        Write-Success "? Installation complete"
+        Write-Success "✓ Installation complete"
         Write-Info ""
     } catch {
         Write-Error "Installation failed: $_"
@@ -132,16 +160,19 @@ Pop-Location
 # Summary
 Write-Info "Build Summary"
 Write-Info "============="
-Write-Success "? Configuration: $BuildType"
-Write-Success "? Build:         Success"
+Write-Success "✓ Configuration: $BuildType"
+Write-Success "✓ Build:         Success"
+if ($Docs) {
+    Write-Success "✓ Docs:          Generated"
+}
 if ($Test) {
-    Write-Success "? Tests:         Passed"
+    Write-Success "✓ Tests:         Passed"
 }
 if ($Install) {
-    Write-Success "? Install:       Complete"
+    Write-Success "✓ Install:       Complete"
 }
 
 Write-Info ""
 Write-Info "Build artifacts in: $BuildDir"
 Write-Info ""
-Write-Success "Build script completed successfully! ??"
+Write-Success "Build script completed successfully! 🎉"
