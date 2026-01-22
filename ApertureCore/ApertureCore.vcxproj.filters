@@ -129,22 +129,6 @@
       <Filter>Documentation</Filter>
     </None>
     <None Include="packages.config" />
-    <None Include="configure-vs-encoding.ps1" />
-    <None Include="restore-unicode.ps1" />
-    <None Include="quick-fix-unicode.ps1" />
-    <None Include="commit-ellipse-fitting.ps1" />
-    <None Include="commit-rectangle-docs.bat">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="commit-polygon-docs.bat">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="commit-ellipse-complete.bat">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="commit-phase5-complete.bat">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="Docs\CONSERVATIVE_ROI_DECISION.md">
       <Filter>Documentation</Filter>
     </None>

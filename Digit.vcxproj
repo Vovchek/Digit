@@ -250,6 +250,11 @@
   <ItemGroup>
     <None Include=".vsconfig" />
     <None Include="ApertureCore\.gitignore" />
+    <None Include="DIGITINFO_DEPENDENCY_ANALYSIS.md" />
+    <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
+    <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
+    <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
+    <None Include="README_DIGITINFO_ANALYSIS.md" />
     <None Include="VISUAL_STUDIO_SETUP.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
@@ -264,5 +269,8 @@
     <None Include="glut32.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
   </ItemGroup>
 </Project>

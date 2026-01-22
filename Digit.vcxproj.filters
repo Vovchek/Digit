@@ -328,5 +328,13 @@
     <None Include=".vsconfig" />
     <None Include="export-vs-config.ps1" />
     <None Include="VISUAL_STUDIO_SETUP.md" />
+    <None Include="DIGITINFO_DEPENDENCY_ANALYSIS.md" />
+    <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
+    <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
+    <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
+    <None Include="README_DIGITINFO_ANALYSIS.md" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
   </ItemGroup>
 </Project>

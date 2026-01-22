@@ -166,12 +166,6 @@
   <ItemGroup>
     <!-- Documentation -->
     <None Include="BOUNDS_HYBRID_NAMING_COMPLETE.md" />
-    <None Include="commit-ellipse-complete.bat" />
-    <None Include="commit-ellipse-fitting.ps1" />
-    <None Include="commit-phase5-complete.bat" />
-    <None Include="commit-polygon-docs.bat" />
-    <None Include="commit-rectangle-docs.bat" />
-    <None Include="configure-vs-encoding.ps1" />
     <None Include="Docs\CONSERVATIVE_ROI_DECISION.md" />
     <None Include="Docs\COORDINATE_SYSTEM_COMPLETE.md" />
     <None Include="Docs\COORDINATE_SYSTEM_SUPPORT.md" />
@@ -220,8 +214,6 @@
     <None Include="Docs\VS_ENCODING_BUG_GUIDE.md" />
     <None Include="Docs\VS_TEST_INTEGRATION_GUIDE.md" />
     <None Include="packages.config" />
-    <None Include="quick-fix-unicode.ps1" />
-    <None Include="restore-unicode.ps1" />
     <None Include="sync-builds.ps1" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

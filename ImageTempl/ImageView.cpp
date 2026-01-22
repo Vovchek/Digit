@@ -776,24 +776,24 @@ void CImageView::DragDot(CPoint P, BOOL newPos)
 	int DotSide12 = DotSide/2;
     CClientDC dc(this);
     OnPrepareDC(&dc);
+
+    // Save DC state so selections and mapping are restored safely
+    int nSave = dc.SaveDC();
+
     CPen pen;
     pen.CreatePen(PS_SOLID, 0, InvColor);
-    CPen* open = dc.SelectObject(&pen);
-    int orop = dc.SetROP2(R2_XORPEN);
     CBrush br;
-    CBrush* obr;
     br.CreateSolidBrush(InvColor);
-    obr = dc.SelectObject(&br);
+    
+    dc.SelectObject(&pen);
+    dc.SelectObject(&br);
 
-	CPoint P1;
-    CRect dotR;
+    int orop = dc.SetROP2(R2_XORPEN);
+    
+    CPoint P1;
 	
 	pDoc->GetLockedDotPos(P1);
-    dotR.left = P1.x - DotSide12; 
-    dotR.right = P1.x + DotSide12; 
-    dotR.top = P1.y - DotSide12; 
-    dotR.bottom = P1.y + DotSide12; 
-    dc.Ellipse(&dotR);
+    dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
 
 	if(pCtrls->ViewState & V_ZAPSECTIONS){
 		P.y = P1.y;
@@ -802,16 +802,12 @@ void CImageView::DragDot(CPoint P, BOOL newPos)
 	pDoc->SetLockedDotPos(P);
 	if(newPos){
 		pDoc->GetLockedDotPos(P1);
-        dotR.left = P1.x - DotSide12; 
-        dotR.right = P1.x + DotSide12; 
-        dotR.top = P1.y - DotSide12; 
-        dotR.bottom = P1.y + DotSide12; 
-        dc.Ellipse(&dotR);
-	}
+        dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
+    }
     dc.SetROP2(orop);
-	CPen* retPen = dc.SelectObject(open);
-    if(retPen)
-        retPen->DeleteObject();
+
+    // restore the DC (reselects previous pen/brush, clip, mapping, etc.)
+    dc.RestoreDC(nSave);
   }
 }
 

@@ -1300,7 +1300,7 @@ bool CDigitInfo::GetFringeDots(double Number, CArray<CDPoint>& adP)
 			adP.Add(Dots[iD].P);
 		}
 	}
-	SortDots(adP, 2);
+	//SortDots(adP, 2);
 	return true;
 }
 
