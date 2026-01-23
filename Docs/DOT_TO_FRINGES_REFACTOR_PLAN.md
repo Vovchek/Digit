@@ -1,40 +1,45 @@
-﻿Fringe Architecture Refactoring Plan
-Project: Digit - Interferometry Analysis Application
-Document Version: 1.0
-Date: 2025-01-XX
-Author: Architecture Review Team
-Status: Proposal - Awaiting Approval
+﻿Fringe Architecture Refactoring Plan   
+Project: Digit - Interferometry Analysis Application   
+Document Version: 1.0   
+Date: 2026-01-21   
+Author: Architecture Review Team   
+Status: Proposal - Awaiting Approval   
+
 ---
-Executive Summary
-This document outlines a comprehensive plan to refactor the CDigitInfo class from a flat array-based architecture (CArray<CDotInfo> Dots) to a topology-aware fringe-based polyline model. The current architecture fundamentally misrepresents the domain model where fringes are continuous curves, not collections of independent points.
+Executive Summary   
+This document outlines a comprehensive plan to refactor the CDigitInfo class from a flat array-based architecture (`CArray<CDotInfo> Dots`) to a topology-aware fringe-based polyline model. The current architecture fundamentally misrepresents the domain model where fringes are continuous curves, not collections of independent points.
+
 Key Findings:
-•	Current flat array loses topological information (point ordering, fringe continuity)
-•	Many operations require expensive O(N) scans and sorting
-•	File I/O does repeated reconstruction of structure already present in file format
-•	Critical operations (insert point between existing points, split/merge fringes) are impossible
-Recommendation: Proceed with phased migration to CArray<CFringePolyline> Fringes architecture.
+* Current flat array loses topological information (point ordering, fringe continuity)
+* Many operations require expensive O(N) scans and sorting
+* File I/O does repeated reconstruction of structure already present in file format
+* Critical operations (insert point between existing points, split/merge fringes) are impossible
+Recommendation: Proceed with phased migration to `CArray<CFringePolyline> Fringes` architecture.
 Estimated Timeline: 9 weeks (2 months)
 Risk Level: Medium (mitigated by parallel storage during transition)
 Impact: High positive impact on code clarity, performance, and feature extensibility
 ---
-Table of Contents
-1.	#1-problem-analysis
-2.	#2-proposed-architecture
-3.	#3-migration-strategy
-4.	#4-detailed-phase-breakdown
-5.	#5-benefits-analysis
-6.	#6-risk-assessment--mitigation
-7.	#7-testing-strategy
-8.	#8-success-criteria
-9.	#9-appendix
+
+## Table of Contents
+1.	-problem-analysis
+2.	-proposed-architecture
+3.	-migration-strategy
+4.	-detailed-phase-breakdown
+5.	-benefits-analysis
+6.	-risk-assessment--mitigation
+7.	-testing-strategy
+8.	-success-criteria
+9.	-appendix
+
 ---
-1. Problem Analysis
-1.1 Semantic Mismatch
+### 1. Problem Analysis  
+#### 1.1 Semantic Mismatch   
+
 Physical Reality:
 ```
 Fringe = continuous curve (ordered polyline)
          with spatial coherence and topological structure
-``` 
+```
 Current Model: 
  ```cpp
  CArray<CDotInfo> Dots;  // Flat array of independent points
@@ -44,8 +49,8 @@ struct CDotInfo {
     int iZapSec;       // Section index
 };
 ```
-
 Problem: Topology (point ordering, curve continuity) must be reconstructed from metadata on every operation.
+
 ---
 1.2 Operation Complexity Examples
 Drawing a Fringe (Current)
@@ -123,13 +128,17 @@ bool CFringePolyline::GetNextPoint(int currentIdx, int direction, int& nextIdx) 
 }
 ```
 ---
+
 1.3 Impossible Operations
-Operation |	Current Status |	Impact
-Insert point between two existing points	❌ Impossible	Cannot refine fringe interactively
-Split fringe at discontinuity	❌ Impossible	Cannot handle broken fringes
-Merge two fringe segments	❌ Impossible	Manual workarounds only
-Detect fringe gaps	❌ Unreliable	Must scan and compare distances
-Reorder points in fringe	❌ No structure	No concept of order exists
+
+| Operation |	Current Status |	Impact |   
+|---|---|---|
+| Insert point between two existing points	| ❌ Impossible	| Cannot refine fringe interactively |   
+| Split fringe at discontinuity	| ❌ Impossible	| Cannot handle broken fringes |   
+| Merge two fringe segments	| ❌ Impossible	| Manual workarounds only |   
+| Detect fringe gaps | ❌ Unreliable| Must scan and compare distances |   
+| Reorder points in fringe | ❌ No structure | No concept of order exists |   
+
 ---
 1.4 File I/O Impedance Mismatch
 ZAP/FRN File Format (from ReadWriteData.cpp):
@@ -154,6 +163,7 @@ Bln.Arrange();  // EXPENSIVE SORT to order points
 WriteFringe(Fl, Sampl);
 ```
 Problem: File already has structure → flatten to Dots → reconstruct structure on save.
+
 ---
 2. Proposed Architecture
 2.1 Core Data Structures
@@ -166,13 +176,12 @@ Problem: File already has structure → flatten to Dots → reconstruct structur
 class CFringePolyline {
 private:
     double m_Number;              // Fringe number (e.g., 0, 0.5, 1.0, ...)
-    int m_iZapSec;                // ZAP section index (-1 if multi-section)
     CArray<CDPoint> m_Points;     // ORDERED sequence of points
     BOOL m_bClosed;               // Is this a closed loop?
     
 public:
     // ===== Construction =====
-    CFringePolyline(double number = 0.0, int zapSec = -1);
+    CFringePolyline(double number = 0.0);
     CFringePolyline(const CFringePolyline& other);
     CFringePolyline& operator=(const CFringePolyline& other);
     
@@ -199,9 +208,6 @@ public:
     
     double GetNumber() const { return m_Number; }
     void SetNumber(double n) { m_Number = n; }
-    
-    int GetZapSec() const { return m_iZapSec; }
-    void SetZapSec(int sec) { m_iZapSec = sec; }
     
     BOOL IsClosed() const { return m_bClosed; }
     void SetClosed(BOOL closed) { m_bClosed = closed; }
@@ -254,7 +260,7 @@ public:
     
     // ===== Fringe-Level Operations =====
     /// Create new fringe and return its index
-    int CreateFringe(double number, int zapSec = -1);
+    int CreateFringe(double number);
     
     /// Delete fringe by index
     void DeleteFringe(int iFringe);
@@ -334,29 +340,36 @@ SelectedPoint idxMainPoint;     // Replaces idxMainDot
 ```
 ---
 
-3. Migration Strategy
+3. Migration Strategy   
+
 3.1 Guiding Principles
-1.	No Big Bang: Incremental migration with continuous testing
-2.	Parallel Storage: Maintain both models during transition
-3.	Backward Compatibility: Old files must load correctly
-4.	Feature Parity: New model matches all old features before switchover
-5.	Safety Nets: Extensive unit tests, visual regression tests
+   1.	No Big Bang: Incremental migration with continuous testing
+   2.	Parallel Storage: Maintain both models during transition
+   3.	Backward Compatibility: Old files must load correctly
+   4.	Feature Parity: New model matches all old features before switchover
+   5.	Safety Nets: Extensive unit tests, visual regression tests     
 ---
 3.2 Phase Overview
-Phase	Duration	Goal	Deliverable
-1. Foundation	2 weeks	Create CFringePolyline class	Tested class, no behavior change
-2. File I/O	1 week	Load/save using fringes	Round-trip file compatibility
-3. Drawing	1 week	Render from fringes	Visual parity verified
-4. Editing	2 weeks	All operations use fringes	Full feature parity
-5. Advanced	2 weeks	New capabilities	Split/merge/interpolate
-6. Cleanup	1 week	Remove legacy code	Clean codebase
+
+|Phase	|Duration	|Goal	|Deliverable|
+|---|---|---|---|
+|1. Foundation	|2 weeks	|Create CFringePolyline class	|Tested class, no behavior change|
+|2. File I/O	|1 week	|Load/save using fringes	|Round-trip file compatibility|
+|3. Drawing	|1 week	|Render from fringes	|Visual parity verified|
+|4. Editing	|2 weeks	|All operations use fringes	|Full feature parity|
+|5. Advanced	|2 weeks	|New capabilities	|Split/merge/interpolate|
+|6. Cleanup	|1 week	|Remove legacy code	|Clean codebase|
+
 ---
 4. Detailed Phase Breakdown
-Phase 1: Foundation (Weeks 1-2)
+
+Phase 1: Foundation (Weeks 1-2)   
 1.1 Create CFringePolyline Class
+
 Files:
-•	H (NEW)
-•	DigitMode/FringePolyline.cpp (NEW)
+*	FringePolyline.h (NEW)
+*	DigitMode/FringePolyline.cpp (NEW)
+
 Implementation:
 ```cpp
 // FringePolyline.h
@@ -366,13 +379,12 @@ Implementation:
 class CFringePolyline {
 private:
     double m_Number;
-    int m_iZapSec;
     CArray<CDPoint> m_Points;
     BOOL m_bClosed;
     
 public:
     CFringePolyline(double number = 0.0, int zapSec = -1)
-        : m_Number(number), m_iZapSec(zapSec), m_bClosed(FALSE) {}
+        : m_Number(number), m_bClosed(FALSE) {}
     
     // Point management
     int AddPoint(CDPoint p) {
@@ -402,9 +414,6 @@ public:
     
     double GetNumber() const { return m_Number; }
     void SetNumber(double n) { m_Number = n; }
-    
-    int GetZapSec() const { return m_iZapSec; }
-    void SetZapSec(int sec) { m_iZapSec = sec; }
     
     // Hit testing
     int FindNearestPoint(CPoint screenP, int tolerance);
@@ -654,9 +663,12 @@ namespace DigitModeTests {
 }
 ```
 Deliverable: CFringePolyline class fully tested, integrated into CDigitInfo with no behavior change to existing features.
+
 ---
-Phase 2: File I/O Migration (Week 3)
-2.1 Update Load Operations
+Phase 2: File I/O Migration (Week 3)   
+
+2.1 Update Load Operations   
+
 DigitMode/DigitInfo.cpp - ExamineNumberingInterferogramInfo:
 
 ```cpp
@@ -717,6 +729,7 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 ```
 ---
 2.2 Update Save Operations
+
 DigitMode/DigitInfo.cpp - CollectNumberingInterferogramInfo:
 
 ```cpp
@@ -773,6 +786,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 ```
 ---
 2.3 Simplified WriteFRNData
+
 InterfSolver/Tools/ReadWriteData.cpp - WriteFRNData:
 
 ```cpp
@@ -800,6 +814,7 @@ void WriteFRNData(LPCTSTR fname, NUMBERING_INTERFEROGRAM_INFO& IntInfo) {
 ```
 ---
 2.4 Conversion Utilities
+
 ```cpp
 void CDigitInfo::ConvertDotsToFringes() {
     Fringes.RemoveAll();
@@ -816,7 +831,7 @@ void CDigitInfo::ConvertDotsToFringes() {
     // Create fringes
     for (auto& kv : groups) {
         double number = kv.first.first;
-        CFringePolyline fringe(number, -1);
+        CFringePolyline fringe(number);
         
         // Sort indices by X coordinate
         std::vector<int>& indices = kv.second;
@@ -953,6 +968,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide) {
 ```
 ---
 3.2 UI Toggle for Testing
+
 ImageTempl/ImageView.h:
 ```cpp
 class CImageView : public CBaseImageView {
@@ -1031,9 +1047,11 @@ TEST_METHOD(TestDrawingParity) {
 }
 ```
 Deliverable: Both drawing modes produce visually identical output. Toggle works seamlessly.
+
 ---
 Phase 4: Editing Operations (Weeks 5-6)
 4.1 Update Selection Model
+
 DigitMode/DigitInfo.h:
 ```cpp
 // NEW selection structure
@@ -1066,6 +1084,7 @@ class CDigitInfo {
 ```
 ---
 4.2 Update Dragging
+
 DigitMode/DigitInfo.cpp:
 ```cpp
 BOOL CDigitInfo::LockDot(CPoint P, int dotSide, BOOL Enable) {
@@ -1139,12 +1158,10 @@ void CDigitInfo::GetLockedDotPos(CPoint& P1) {
 void CDigitInfo::AddDot(CPoint P, int dotSide) {
     CControls* pCtrls = GetControls();
     double num = CurrentNumber;
-    int zapSec = -1;
     
     if (pCtrls->ViewState & V_ZAPSECTIONS) {
         int idx;
         if (GetNearestZapSection(P, idx)) {
-            zapSec = idx;
             P.y = (int)ZapLines[idx].L.P1.y;
         }
     }
@@ -1153,15 +1170,14 @@ void CDigitInfo::AddDot(CPoint P, int dotSide) {
         // NEW: Find or create fringe with same Number and ZapSec
         int targetFringe = -1;
         for (int iF = 0; iF < Fringes.GetSize(); iF++) {
-            if (Fringes[iF].GetNumber() == num && 
-                Fringes[iF].GetZapSec() == zapSec) {
+            if (Fringes[iF].GetNumber() == num) {
                 targetFringe = iF;
                 break;
             }
         }
         
         if (targetFringe < 0) {
-            targetFringe = CreateFringe(num, zapSec);
+            targetFringe = CreateFringe(num);
         }
         
         // Smart insert: find position to maintain X ordering
@@ -1337,12 +1353,13 @@ int CDigitInfo::FindNextFringeWithNumber(int startIdx, double number, int direct
 ---
 4.6 Testing
 Manual Tests:
-•	[ ] Drag dot: works in both models, position updates correctly
-•	[ ] Add dot: creates new fringe or appends to existing
-•	[ ] Remove dot: removes from fringe, deletes empty fringes
-•	[ ] Remove fringe: deletes all segments with same number
-•	[ ] Renumber fringe: updates all segments
-•	[ ] Keyboard navigation: LEFT/RIGHT moves within fringe, UP/DOWN jumps fringes
+*	[ ] Drag dot: works in both models, position updates correctly
+*	[ ] Add dot: creates new fringe or appends to existing
+*	[ ] Remove dot: removes from fringe, deletes empty fringes
+*	[ ] Remove fringe: deletes all segments with same number
+*	[ ] Renumber fringe: updates all segments
+*	[ ] Keyboard navigation: LEFT/RIGHT moves within fringe, UP/DOWN jumps fringes
+
 Automated Tests:
 ```cpp
 TEST_METHOD(TestAddDotCreatesNewFringe) {
@@ -1372,10 +1389,13 @@ TEST_METHOD(TestAddDotInsertsInOrder) {
 }
 ```
 Deliverable: All editing operations functional with fringe model. Extensive manual and automated tests pass.
+
 ---
 Phase 5: Advanced Features (Weeks 7-8)
-These are new capabilities unlocked by the fringe model.
-5.1 Fringe Splitting
+These are new capabilities unlocked by the fringe model.   
+
+5.1 Fringe Splitting   
+
 Use Case: User detects a gap in fringe and wants to split it into two segments.
 ```cpp
 void CDigitInfo::SplitFringeAtPoint(int iFringe, int iPoint) {
@@ -1403,7 +1423,7 @@ void CDigitInfo::SplitFringeAtPoint(int iFringe, int iPoint) {
 CFringePolyline.cpp (alternative: method within class):
 ```cpp
 CFringePolyline CFringePolyline::Split(int atIndex) {
-    CFringePolyline newFringe(m_Number, m_iZapSec);
+    CFringePolyline newFringe(m_Number);
     
     if (atIndex <= 0 || atIndex >= m_Points.GetSize()) {
         return newFringe;  // Invalid, return empty
@@ -1423,7 +1443,8 @@ CFringePolyline CFringePolyline::Split(int atIndex) {
 }
 ```
 ---
-5.2 Fringe Merging
+5.2 Fringe Merging   
+
 Use Case: Two fringe segments should be combined into one continuous curve.
 ```cpp
 void CDigitInfo::MergeFringes(int iF1, int iF2) {
@@ -1451,7 +1472,8 @@ void CDigitInfo::MergeFringes(int iF1, int iF2) {
 // UI: Select two fringes → Right-click → "Merge Fringes"
 ```
 ---
-5.3 Auto-Interpolation
+5.3 Auto-Interpolation   
+
 Use Case: Fill gaps in a sparse fringe by interpolating intermediate points.
 ```cpp
 void CFringePolyline::SubdivideSegments(double maxGap) {
@@ -1493,7 +1515,8 @@ void CDigitInfo::InterpolateFringe(int iFringe, double maxGap) {
 // UI: Right-click fringe → "Interpolate Points (max gap: __)"
 ```
 -
-5.4 Fringe Simplification (Douglas-Peucker)
+5.4 Fringe Simplification (Douglas-Peucker)   
+
 Use Case: Remove redundant points from over-sampled fringe.
 ```cpp
 void CFringePolyline::Simplify(double epsilon) {
@@ -1571,7 +1594,8 @@ double CFringePolyline::PointToLineDistance(CDPoint p, CDPoint lineStart, CDPoin
 }
 ```
 ---
-5.5 Gap Detection
+5.5 Gap Detection   
+
 Use Case: Identify discontinuities in fringes (missing data).
 ```cpp
 struct FringeGap {
@@ -1611,13 +1635,17 @@ void CDigitInfo::DetectFringeGaps(double threshold, CArray<FringeGap>& gaps) {
 // Shows list of gaps with options: Interpolate, Split, Ignore
 ```
 Deliverable: Power-user features for fringe manipulation. Comprehensive testing on real data.
+
 ---
-Phase 6: Cleanup & Finalization (Week 9)
-6.1 Remove Legacy Code
+Phase 6: Cleanup & Finalization (Week 9)   
+
+6.1 Remove Legacy Code   
+
 Files to Modify:
-•	DigitInfo.h
-•	DigitInfo.cpp
-•	ImageView.cpp
+*	DigitInfo.h
+*	DigitInfo.cpp
+*	ImageView.cpp   
+   
 Changes:
 ```cpp
 // DigitMode/DigitInfo.h
@@ -1639,15 +1667,16 @@ public:
 };
 ```
 Cleanup Checklist:
-•	[x] Remove Dots array
-•	[x] Remove m_bUseFringeModel flag
-•	[x] Remove all if (m_bUseFringeModel) { ... } else { ... } branches
-•	[x] Remove conversion utilities
-•	[x] Remove debug toggle UI
-•	[x] Update all call sites to use fringe API directly
-•	[x] Remove unused CDotInfo class (if no other use)
+*	[x] Remove Dots array
+*	[x] Remove m_bUseFringeModel flag
+*	[x] Remove all if (m_bUseFringeModel) { ... } else { ... } branches
+*	[x] Remove conversion utilities
+*	[x] Remove debug toggle UI
+*	[x] Update all call sites to use fringe API directly
+*	[x] Remove unused CDotInfo class (if no other use)
 ---
-6.2 Update Documentation
+6.2 Update Documentation   
+
 DigitMode/README.md (NEW):
 ```markdown
 # DigitMode Module: Fringe Analysis
@@ -1667,7 +1696,6 @@ Represents a single continuous fringe curve.
 
 **Key Members**:
 - `double m_Number`: Fringe number (e.g., 0, 0.5, 1.0, ...)
-- `int m_iZapSec`: ZAP section index (-1 if multi-section)
 - `CArray<CDPoint> m_Points`: ORDERED point sequence
 - `BOOL m_bClosed`: Closed loop flag
 
@@ -1678,7 +1706,12 @@ Represents a single continuous fringe curve.
 ### SelectedPoint
 Identifies a specific point within a fringe.
 ```
-struct SelectedPoint { int iFringe;  // Index into Fringes array int iPoint;   // Index into Points array within fringe };
+```cpp
+struct SelectedPoint 
+{ 
+    int iFringe;  // Index into Fringes array 
+    int iPoint;   // Index into Points array within fringe 
+};
 ```
 
 ## File Format
@@ -1725,6 +1758,7 @@ class CDigitInfo {
 ---
 6.4 Performance Validation
 Benchmark Tests:
+```cpp
 TEST_METHOD(BenchmarkDrawing) {
     LoadZAP("large_file.zap");  // 1000+ fringes
     
@@ -1759,21 +1793,26 @@ TEST_METHOD(BenchmarkHitTesting) {
 }
 ```
 Optimization (if needed):
-•	Spatial indexing (R-tree) for large files
-•	Cache bounding boxes per fringe
-•	Use vector instead of CArray for points (profile first!)
+*	Spatial indexing (R-tree) for large files
+*	Cache bounding boxes per fringe
+*	Use vector instead of CArray for points (profile first!)
 ---
 Deliverable: Clean codebase with single data model, comprehensive documentation, validated performance.
+
 ---
-5. Benefits Analysis
-5.1 Performance
-Operation	Before (Dots)	After (Fringes)	Improvement
-Draw polyline	O(N) scan + sort	O(1) access	~100x faster
-Navigate to next point	O(N) linear search	O(1) array index	~1000x faster
-Insert point in fringe	Impossible	O(N) insert	∞ (new capability)
-Save to file	O(N²) grouping/sorting	O(N) direct write	~10x faster
-Hit test point	O(N) scan all dots	O(F×P) scan fringes	~10x faster*
-* With spatial indexing: ~100x faster
+5. Benefits Analysis   
+5.1 Performance   
+ 
+|Operation|Before (Dots)|After (Fringes)|Improvement|
+| --- | --- | --- | --- |   
+|Draw polyline|O(N) scan + sort|O(1) access|~100x faster|
+|Navigate to next point|O(N) linear search|O(1) array index|~1000x faster|   
+|Insert point in fringe|Impossible|O(N) insert|∞ (new capability)|
+|Save to file|O(N²) grouping/sorting|O(N) direct write|~10x faster|
+|Hit test point|O(N) scan all dots|O(F×P) scan fringes|~10x faster\*|
+
+\* With spatial indexing: ~100x faster
+
 ---
 5.2 Code Clarity
 Before:
@@ -1791,53 +1830,66 @@ After:
 Fringes[iF].DrawPolyline(pDC);
 ```
 ---
-5.3 New Capabilities
-Feature	Dots Model	Fringe Model
-Insert point between existing	❌	✅
-Split discontinuous fringe	❌	✅
-Merge fringe segments	❌	✅
-Detect gaps	❌ Unreliable	✅ Reliable
-Interpolate missing points	❌	✅
-Simplify (Douglas-Peucker)	❌	✅
-Arc length computation	❌	✅
-Fringe-aware undo/redo	❌	✅
+
+5.3 New Capabilities   
+
+|Feature	|Dots Model	|Fringe Model|
+| --- | --- | --- |
+|Insert point between existing	|❌	|✅|
+|Split discontinuous fringe	|❌	|✅|
+|Merge fringe segments	|❌	|✅|
+|Detect gaps	|❌ Unreliable	|✅ Reliable|
+|Interpolate missing points	|❌	|✅|
+|Simplify (Douglas-Peucker)	|❌	|✅|
+|Arc length computation	|❌	|✅|
+|Fringe-aware undo/redo	|❌	|✅|
+
 ---
-5.4 Maintainability
-Bugs Prevented:
-•	Drawing connects wrong points (topology assumed incorrectly)
-•	Navigation skips points or loops infinitely
-•	File save loses point ordering
-•	Operations fail when multiple fringes have same number
-Easier Debugging:
-•	Inspect Fringes[3].GetPoint(5) instead of scanning array for (Number=X, iZapSec=Y)
-•	Visualize fringe structure directly (one object = one curve)
+5.4 Maintainability   
+Bugs Prevented:   
+*	Drawing connects wrong points (topology assumed incorrectly)
+*	Navigation skips points or loops infinitely
+*	File save loses point ordering
+*	Operations fail when multiple fringes have same number
+
+  * Easier Debugging:   
+-	Inspect Fringes[3].GetPoint(5) instead of scanning array for (Number=X, iZapSec=Y)
+-	Visualize fringe structure directly (one object = one curve)
+
 ---
-6. Risk Assessment & Mitigation
-6.1 Risk Matrix
-Risk	Likelihood	Impact	Mitigation	Status
-Break existing files	Medium	High	Parallel storage, extensive testing	✅ Mitigated
-Performance regression	Low	Medium	Profiling, benchmarks	✅ Mitigated
-Incomplete migration	Medium	High	Phased approach, feature flag	✅ Mitigated
-User confusion	Low	Low	No UI changes during transition	✅ Mitigated
-Bugs in new code	Medium	Medium	Unit tests, manual testing	⚠️ Ongoing
+6. Risk Assessment & Mitigation   
+6.1 Risk Matrix   
+
+|Risk	|Likelihood	|Impact	|Mitigation	|Status|
+| --- | --- | --- | --- | --- |
+|Break existing files	|Medium	|High	|Parallel storage, extensive testing	|✅ Mitigated|
+|Performance regression	|Low	|Medium	|Profiling, benchmarks	|✅ Mitigated|
+|Incomplete migration	|Medium	|High	Phased approach, feature flag	✅ Mitigated|
+|User confusion	|Low	|Low	|No UI changes during transition	|✅ Mitigated|
+|Bugs in new code	|Medium	|Medium	|Unit tests, manual testing	|⚠️ Ongoing|
+
 ---
 6.2 Mitigation Strategies
 Backward Compatibility
-•	Strategy: Keep Dots array during transition (Phases 1-5)
-•	Validation: Round-trip tests on entire corpus (500+ files)
-•	Rollback: Feature flag allows instant revert
+*	Strategy: Keep Dots array during transition (Phases 1-5)
+*	Validation: Round-trip tests on entire corpus (500+ files)
+*	Rollback: Feature flag allows instant revert
+
 Performance
-•	Strategy: Benchmark before/after on large files
-•	Target: <5% regression (expect 2-10x improvement)
-•	Contingency: Spatial indexing (R-tree) if needed
+*	Strategy: Benchmark before/after on large files
+*	Target: <5% regression (expect 2-10x improvement)
+*	Contingency: Spatial indexing (R-tree) if needed
+
 Testing
-•	Strategy: Parallel execution (old vs new model)
-•	Coverage: Unit tests (80%+), integration tests, manual testing
-•	Tools: CppUnit, visual regression tests
+*	Strategy: Parallel execution (old vs new model)
+*	Coverage: Unit tests (80%+), integration tests, manual testing
+*	Tools: CppUnit, visual regression tests
+
 Training
-•	Strategy: No user-facing changes until Phase 6
-•	Documentation: In-code comments, technical docs
-•	Review: Architecture review before Phase 1 start
+*	Strategy: No user-facing changes until Phase 6
+*	Documentation: In-code comments, technical docs
+*	Review: Architecture review before Phase 1 start
+
 ---
 7. Testing Strategy
 7.1 Test Pyramid
@@ -1857,23 +1909,26 @@ Training
   CDigitInfo methods
   ```
 ---
-7.2 Unit Tests (80% coverage target)
+7.2 Unit Tests (80% coverage target)   
+
 CFringePolyline (Tests/DigitMode/FringePolylineTest.cpp):
-•	[x] Construction, copy, assignment
-•	[x] Add/Insert/Remove/Move points
-•	[x] Hit testing (FindNearestPoint, IsPointOnPolyline)
-•	[x] Drawing (no crashes, GDI cleanup)
-•	[x] Edge cases (empty fringe, single point, duplicate points)
-•	[x] Advanced (Split, Subdivide, Simplify)
+*	[x] Construction, copy, assignment
+*	[x] Add/Insert/Remove/Move points
+*	[x] Hit testing (FindNearestPoint, IsPointOnPolyline)
+*	[x] Drawing (no crashes, GDI cleanup)
+*	[x] Edge cases (empty fringe, single point, duplicate points)
+*	[x] Advanced (Split, Subdivide, Simplify)
+
 CDigitInfo (Tests/DigitMode/DigitInfoTest.cpp):
-•	[x] CreateFringe, DeleteFringe, GetFringe
-•	[x] AddPointToFringe, InsertPointInFringe, RemovePointFromFringe
-•	[x] FindPointUnderCursor
-•	[x] Selection (LockDot, SetLockedDotPos, GetLockedDotPos)
-•	[x] Bulk operations (RemoveFringe, RenumFringe)
-•	[x] Conversion (ConvertDotsToFringes, ConvertFringesToDots)
+*	[x] CreateFringe, DeleteFringe, GetFringe
+*	[x] AddPointToFringe, InsertPointInFringe, RemovePointFromFringe
+*	[x] FindPointUnderCursor
+*	[x] Selection (LockDot, SetLockedDotPos, GetLockedDotPos)
+*	[x] Bulk operations (RemoveFringe, RenumFringe)
+*	[x] Conversion (ConvertDotsToFringes, ConvertFringesToDots)
+
 ---
-7.3 Integration Tests
+7.3 Integration Tests   
 File I/O (Tests/DigitMode/FileIOTest.cpp):
 
 ```cpp
@@ -1936,7 +1991,8 @@ TEST_METHOD(TestCompleteEditingWorkflow) {
 }
 ```
 ---
-7.4 Manual Testing
+7.4 Manual Testing   
+
 Visual Regression:
 ```
 1. Load test_complex.zap
@@ -1947,14 +2003,16 @@ Visual Regression:
 6. Use image diff tool → verify identical (tolerance: 0.1%)
 ```
 Exploratory Testing Scenarios:
-•	[ ] Large file (1000+ fringes): performance acceptable?
-•	[ ] Sparse fringe (2 points): no crash on operations?
-•	[ ] Overlapping fringes: hit testing selects correct one?
-•	[ ] Rapid add/remove cycles: memory stable?
-•	[ ] Keyboard navigation: reaches all points?
-•	[ ] Undo/redo (if implemented): correct state restoration?
+*	[ ] Large file (1000+ fringes): performance acceptable?
+*	[ ] Sparse fringe (2 points): no crash on operations?
+*	[ ] Overlapping fringes: hit testing selects correct one?
+*	[ ] Rapid add/remove cycles: memory stable?
+*	[ ] Keyboard navigation: reaches all points?
+*	[ ] Undo/redo (if implemented): correct state restoration?
+
 ---
-7.5 Performance Tests
+7.5 Performance Tests   
+
 Benchmark Suite (Tests/Performance/BenchmarkTests.cpp):
 ```cpp
 TEST_METHOD(BenchmarkSuite) {
@@ -2006,31 +2064,38 @@ TEST_METHOD(BenchmarkSuite) {
 }
 ```
 ---
-8. Success Criteria
-8.1 Phase Completion Criteria
-Phase	Exit Criteria
-1. Foundation	• CFringePolyline class complete<br>• All unit tests pass (80%+ coverage)<br>• Integrated into CDigitInfo without breaking builds
-2. File I/O	• Round-trip test: Load ZAP → Save → Load → identical data<br>• All corpus files (500+) load successfully<br>• FRN files: polyline write code simplified
-3. Drawing	• Visual regression: old vs new identical (0.1% tolerance)<br>• Toggle works seamlessly<br>• No GDI leaks (check with GDIView)
-4. Editing	• All operations (add/remove/drag/renumber) work with fringes<br>• Manual test checklist 100% pass<br>• Automated workflow tests pass
-5. Advanced	• Split/Merge/Interpolate/Simplify functional<br>• Gap detection reliable<br>• Power-user testing complete
-6. Cleanup	• Legacy code removed<br>• Documentation complete<br>• Performance validated (no regressions)
+8. Success Criteria   
+8.1 Phase Completion Criteria   
+
+|Phase	|Exit Criteria|
+| --- | --- |
+|1. Foundation	|• CFringePolyline class complete<br>• All unit tests pass (80%+ coverage)<br>• Integrated into CDigitInfo without breaking builds|
+|2. File I/O	|• Round-trip test: Load ZAP → Save → Load → identical data<br>• All corpus files (500+) load successfully<br>• FRN files: polyline write code simplified|
+|3. Drawing	|• Visual regression: old vs new identical (0.1% tolerance)<br>• Toggle works seamlessly<br>• No GDI leaks (check with GDIView)|
+|4. Editing	|• All operations (add/remove/drag/renumber) work with fringes<br>• Manual test checklist 100% pass<br>• Automated workflow tests pass|
+|5. Advanced	|• Split/Merge/Interpolate/Simplify functional<br>• Gap detection reliable<br>• Power-user testing complete|
+|6. Cleanup	|• Legacy code removed<br>• Documentation complete<br>• Performance validated (no regressions)|
+
 ---
-8.2 Overall Success Metrics
-Must Have (Go/No-Go):
-•	✅ All existing files load correctly
-•	✅ Save → Load round-trip preserves data
-•	✅ No visual regressions
-•	✅ All editing operations functional
-•	✅ Performance ≥ old model (no >5% regressions)
+8.2 Overall Success Metrics   
+
+Must Have (Go/No-Go):   
+*	✅ All existing files load correctly
+*	✅ Save → Load round-trip preserves data
+*	✅ No visual regressions
+*	✅ All editing operations functional
+*	✅ Performance ≥ old model (no >5% regressions)
+
 Should Have (Defer if needed):
-•	🎯 80%+ unit test coverage
-•	🎯 Advanced features (split/merge)
-•	🎯 Documentation complete
+*	🎯 80%+ unit test coverage
+*	🎯 Advanced features (split/merge)
+*	🎯 Documentation complete
+
 Nice to Have (Future):
-•	💡 Spatial indexing for large files
-•	💡 Undo/redo fringe-aware
-•	💡 Animation (fringe growth playback)
+*	💡 Spatial indexing for large files
+*	💡 Undo/redo fringe-aware
+*	💡 Animation (fringe growth playback)
+
 ---
 9. Appendix
 9.1 File Inventory
@@ -2054,6 +2119,7 @@ Docs/
   FRINGE_REFACTORING_PLAN.md (THIS FILE)
 ```
 
+```
 Modified Files:
 DigitMode/
   DigitInfo.h               (UPDATE) - Add Fringes array, SelectedPoint
@@ -2067,70 +2133,85 @@ ImageTempl/
 ```
 ---
 9.2 Glossary
-Term	Definition
-Fringe	Continuous curve in interferogram with constant phase number
-Polyline	Ordered sequence of connected points
-ZAP Section	Horizontal slice through interferogram (constant Y)
-Dot	Single point in old flat-array model
-Fringe Number	Numerical identifier (e.g., 0, 0.5, 1.0) assigned to fringe
-Topology	Spatial relationships (ordering, connectivity) between points
-Hit Testing	Finding which fringe/point is under mouse cursor
-Round-trip	Load file → Save file → Load again (should be identical)
+
+|Term	|Definition|
+| --- | --- |
+|Fringe	|Continuous curve in interferogram with constant phase number|
+|Polyline	|Ordered sequence of connected points|
+|ZAP Section	|Horizontal slice through interferogram (constant Y)|
+|Dot	|Single point in old flat-array model|
+|Fringe Number	|Numerical identifier (e.g., 0, 0.5, 1.0) assigned to fringe|
+|Topology	|Spatial relationships (ordering, connectivity) between points|
+|Hit Testing	|Finding which fringe/point is under mouse cursor|
+|Round-trip	|Load file → Save file → Load again (should be identical)|
+
 ---
 9.3 References
+
 Codebase:
-•	DigitInfo.cpp (current implementation)
-•	ReadWriteData.cpp (file I/O)
-•	ImageView.cpp (UI interactions)
+*	DigitInfo.cpp (current implementation)
+*	ReadWriteData.cpp (file I/O)
+*	ImageView.cpp (UI interactions)
+
 Algorithms:
-•	Douglas-Peucker simplification: Wikipedia
-•	R-tree spatial indexing: Wikipedia
+*	Douglas-Peucker simplification: Wikipedia
+*	R-tree spatial indexing: Wikipedia
+
 Testing:
-•	CppUnit documentation: SourceForge
-•	Visual regression testing: Percy.io concepts
+*	CppUnit documentation: SourceForge
+*	Visual regression testing: Percy.io concepts
+
 ---
 9.4 Decision Log
-Date	Decision	Rationale
-2025-01-XX	Use CArray<CDPoint> for fringe points	Consistency with existing codebase (MFC-style)
-2025-01-XX	Parallel storage during transition	Risk mitigation: allows instant rollback
-2025-01-XX	Introduce SelectedPoint struct	Cleaner than separate iFringe/iPoint variables
-2025-01-XX	Defer spatial indexing to Phase 5+	Premature optimization; profile first
-2025-01-XX	Keep ZAP/FRN file format unchanged	No need to break compatibility
+
+|Date	|Decision	|Rationale|
+| --- | --- | --- |
+|2026-01-21	|Use CArray<CDPoint> for fringe points	|Consistency with existing codebase (MFC-style)|
+|2026-01-21	|Parallel storage during transition	|Risk mitigation: allows instant rollback|
+|2026-01-21	|Introduce SelectedPoint struct	|Cleaner than separate iFringe/iPoint variables|
+|2026-01-21	|Defer spatial indexing to Phase 5+	|Premature optimization; profile first|
+|2026-01-21	|Keep ZAP/FRN file format unchanged	|No need to break compatibility
+
 ---
 9.5 Open Questions
 For Architecture Review:
 1.	Should CFringePolyline be a class or struct?
-•	Recommendation: Class (has behavior, not just data)
+-	Recommendation: Class (has behavior, not just data)
 2.	Use vector or CArray for points?
-•	Recommendation: CArray for consistency (entire codebase uses MFC)
+-	Recommendation: CArray for consistency (entire codebase uses MFC)
 3.	Add undo/redo in Phase 4 or defer to Phase 5?
-•	Recommendation: Defer to Phase 5 (complex, not critical path)
+-	Recommendation: Defer to Phase 5 (complex, not critical path)
 4.	Introduce C++11 features (Map, vector) or stick to MFC?
-•	Recommendation: Hybrid (C++11 for algorithms, MFC for data structures)
+-	Recommendation: Hybrid (C++11 for algorithms, MFC for data structures)
 5.	Spatial indexing: R-tree or grid?
-•	Recommendation: Start with grid (simpler), upgrade if needed
+-	Recommendation: Start with grid (simpler), upgrade if needed
 ---
 9.6 Contact & Approval
-Document Owner: Architecture Team
-Reviewers: Senior Developers, QA Lead
-Approval Required: Tech Lead, Project Manager
+
+Document Owner: Architecture Team   
+Reviewers: Senior Developers, QA Lead   
+Approval Required: Tech Lead, Project Manager   
+
 Review Checklist:
-•	[ ] Technical approach sound?
-•	[ ] Risk mitigation adequate?
-•	[ ] Timeline realistic?
-•	[ ] Resource allocation (9 weeks developer time)?
-•	[ ] Testing strategy comprehensive?
+-	[ ] Technical approach sound?
+-	[ ] Risk mitigation adequate?
+-	[ ] Timeline realistic?
+-	[ ] Resource allocation (9 weeks developer time)?
+-	[ ] Testing strategy comprehensive?
 Approval Signatures:
 ```
 Tech Lead: ________________  Date: _______
 Project Manager: __________  Date: _______
 ```
 ---
-Conclusion
+Conclusion   
 The migration from a flat Dots array to a structured Fringes model represents a fundamental correction of the domain model. While requiring significant effort (9 weeks), the benefits—in code clarity, performance, and extensibility—are substantial and permanent.
-Recommendation: Approve and proceed with Phase 1 as proof-of-concept.
+
+Recommendation:    
+Approve and proceed with Phase 1 as proof-of-concept.
 After Phase 1-2 success (3 weeks), reassess and commit to full migration.
+
 ---
-Document Version: 1.0
-Last Updated: 2025-01-XX
+Document Version: 1.0   
+Last Updated: 2026-01-21   
 Next Review: After Phase 1 completion

@@ -1,4 +1,4 @@
-#if !defined(AFX_DIGIT_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
+﻿#if !defined(AFX_DIGIT_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_DIGIT_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 //C:\Ilya\Programming\cpp\Numbering\DigitMode\DigitInfo.h
 #include "MGTools\StdAfx.h"
@@ -9,10 +9,30 @@
 #include "DigitMode\SectionInfo.h"
 #include "DigitMode\DotInfo.h"
 #include "DigitMode\ZapLineInfo.h"
+#include "DigitMode\CFringe.h"  // NEW: Fringe-based model
 
 #include "InterfSolver\Tools\ReadWriteData.h"
 
 class CImageCtrls;  // Forward declaration
+
+/// <summary>
+/// Selection point structure for fringe-based model.
+/// Identifies a specific point within a fringe using (iFringe, iPoint) coordinates.
+/// </summary>
+struct SelectedPoint {
+    int iFringe;  ///< Index into Fringes array
+    int iPoint;   ///< Index into Points array within fringe
+    
+    SelectedPoint() : iFringe(-1), iPoint(-1) {}
+    SelectedPoint(int f, int p) : iFringe(f), iPoint(p) {}
+    
+    BOOL IsValid() const { return iFringe >= 0 && iPoint >= 0; }
+    void Clear() { iFringe = iPoint = -1; }
+    
+    BOOL operator==(const SelectedPoint& other) const {
+        return iFringe == other.iFringe && iPoint == other.iPoint;
+    }
+};
 
 class CDigitInfo
 {
@@ -21,12 +41,22 @@ class CDigitInfo
    int ny_buf_line;
    CArray<CSectionInfo> Sections;
    CArray<CZapLineInfo> ZapLines;
+   
+   // ===== OLD: Flat array model (keep during transition) =====
    CArray<CDotInfo> Dots;
+   int idxDragDot;
+   int idxMainDot;
+   
+   // ===== NEW: Fringe-based model =====
+   CArray<CFringe> Fringes;
+   BOOL m_bUseFringeModel;  ///< Transition flag (default FALSE)
+   SelectedPoint idxDraggedPoint;  ///< Replaces idxDragDot in fringe model
+   SelectedPoint idxMainPoint;     ///< Replaces idxMainDot in fringe model
+   
+   // ===== Common properties =====
    BOOL HandSetZapLines;
    int idxDragZapLine;
-   int idxDragDot;
    int idxMainSection;
-   int idxMainDot;
    double MainFringeNumber;
    double CurrentNumber;
    double SecSegm;
@@ -135,6 +165,59 @@ class CDigitInfo
 	  BOOL LoadFRN(LPCTSTR fname); // TODO: remove file dependency
 	  BOOL SaveZAP(LPCTSTR fname, int extIdx); // TODO: remove file dependency
 	  BOOL SaveFRN(LPCTSTR fname); // TODO: remove file dependency
+
+  // ===== NEW: Fringe-based interface =====
+  public:
+	  /// Create new fringe and return its index
+	  int CreateFringe(double number);
+	  
+	  /// Delete fringe by index
+	  void DeleteFringe(int iFringe);
+	  
+	  /// Get fringe by index
+	  CFringe* GetFringe(int i);
+	  const CFringe* GetFringe(int i) const;
+	  
+	  /// Find all fringes with given number
+	  void FindFringesByNumber(double number, CArray<int>& indices);
+	  
+	  /// Add point to end of fringe
+	  void AddPointToFringe(int iFringe, CDPoint p);
+	  
+	  /// Insert point at specific position in fringe
+	  void InsertPointInFringe(int iFringe, int iPoint, CDPoint p);
+	  
+	  /// Remove point from fringe
+	  void RemovePointFromFringe(int iFringe, int iPoint);
+	  
+	  /// Move point within fringe
+	  void MovePointInFringe(int iFringe, int iPoint, CDPoint newP);
+	  
+	  /// Find point under cursor (returns fringe and point indices)
+	  BOOL FindPointUnderCursor(CPoint P, int tolerance, int& outFringe, int& outPoint);
+	  
+	  /// Find fringe under cursor
+	  BOOL FindFringeUnderCursor(CPoint P, int tolerance, int& outFringe);
+	  
+	  /// Renumber all fringes with oldNumber to newNumber
+	  void RenumberFringes(double oldNumber, double newNumber);
+	  
+	  /// Delete all fringes with given number
+	  void DeleteFringesByNumber(double number);
+	  
+	  /// Merge two fringes (must have same number)
+	  BOOL MergeFringes(int iFringe1, int iFringe2);
+	  
+	  // ===== Conversion utilities (Transition only) =====
+	  
+	  /// Convert Dots array to Fringes
+	  void ConvertDotsToFringes();
+	  
+	  /// Convert Fringes to Dots array
+	  void ConvertFringesToDots();
+	  
+	  /// Synchronize Fringes to Dots (maintains both models)
+	  void SyncFringesToDots();
 
   protected:
 	  void ProcessSectionPropagation(int sectionIndex, int direction, 
