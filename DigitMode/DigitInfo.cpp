@@ -802,14 +802,204 @@ void CDigitInfo::SyncFringesToDots()
 	ConvertFringesToDots();
 }
 
+// ===== File I/O methods =====
 
-BOOL CDigitInfo::SaveFRN(LPCTSTR fname)
+BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
-	CString FileName = fname;
+	Comments = IntInfo.Title;
+	ScaleFactor = IntInfo.ScaleFactor;
+	Rotation = IntInfo.FiScan;
+
+	CDocument* pDoc = GetWIActiveDocument();
+	CImageCtrls* pIm = GetImageCtrls();
+	CBoundCtrls* pB = GetBoundCtrls();
+
+	pB->ArrEll.RemoveAll();
+	pB->ArrEll.Append(IntInfo.ArrEll);
+	pB->ArrRect.RemoveAll();
+	pB->ArrRect.Append(IntInfo.ArrRect);
+	pB->ArrPlg.RemoveAll();
+	pB->ArrPlg.Append(IntInfo.ArrPlg);
+	pB->FormBoundsOnLoadFile();
+
+	pIm->ImageSize.cx = IntInfo.ImageSize[0];
+	pIm->ImageSize.cy = IntInfo.ImageSize[1];
+
+	int nD = IntInfo.DigitDat.XPnt.GetSize();
+	if (nD == 0)
+		return FALSE;
+
+	if (m_bUseFringeModel) {
+		// NEW: Group into fringes by (Number, Y coordinate)
+		Fringes.RemoveAll();
+		
+		// Build grouping: (Number, Y) -> points
+		// Using simple linear search approach (MFC-compatible)
+		for (int i = 0; i < nD; i++) {
+			double num = IntInfo.DigitDat.FPnt[i];
+			double y = IntInfo.DigitDat.YPnt[i];
+			double x = IntInfo.DigitDat.XPnt[i];
+			
+			// Find or create fringe for this (Number, Y) combination
+			int targetFringe = -1;
+			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+				if (Fringes[iF].GetNumber() == num) {
+					if (Fringes[iF].GetPointCount() > 0) {
+						double fringeY = Fringes[iF].GetPoint(0).y;
+						if (fabs(fringeY - y) < 0.5) {  // Same Y line (horizontal slice)
+							targetFringe = iF;
+							break;
+						}
+					}
+				}
+			}
+			
+			if (targetFringe < 0) {
+				// Create new fringe segment
+				targetFringe = CreateFringe(num);
+			}
+			
+			// Add point to fringe
+			Fringes[targetFringe].AddPoint(CDPoint(x, y));
+		}
+		
+		// Sort points within each fringe by X coordinate
+		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			int n = Fringes[iF].GetPointCount();
+			for (int i = 0; i < n - 1; i++) {
+				for (int j = 0; j < n - i - 1; j++) {
+					if (Fringes[iF].GetPoint(j).x > Fringes[iF].GetPoint(j + 1).x) {
+						CDPoint temp = Fringes[iF].GetPoint(j);
+						Fringes[iF].SetPoint(j, Fringes[iF].GetPoint(j + 1));
+						Fringes[iF].SetPoint(j + 1, temp);
+					}
+				}
+			}
+		}
+		
+		// Maintain Dots for compatibility during transition
+		ConvertFringesToDots();
+	}
+	else {
+		// OLD: Flat loading into Dots array
+		Dots.SetSize(nD);
+		for (int i = 0; i < nD; i++) {
+			Dots[i].P.x = IntInfo.DigitDat.XPnt[i];
+			Dots[i].P.y = IntInfo.DigitDat.YPnt[i];
+			Dots[i].Number = IntInfo.DigitDat.FPnt[i];
+			Dots[i].iZapSec = -1;
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO& IntInfo)
+{
+	IntInfo.Clear();
+	IntInfo.Title = Comments;
+	IntInfo.ScaleFactor = ScaleFactor;
+	IntInfo.FiScan = Rotation;
+
+	CBoundCtrls* pB = GetBoundCtrls();
+	CImageCtrls* pIm = GetImageCtrls();
+
+	IntInfo.ArrEll.RemoveAll();
+	IntInfo.ArrEll.Append(pB->ArrEll);
+	IntInfo.ArrRect.RemoveAll();
+	IntInfo.ArrRect.Append(pB->ArrRect);
+	IntInfo.ArrPlg.RemoveAll();
+	IntInfo.ArrPlg.Append(pB->ArrPlg);
+
+	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
+	IntInfo.ImageSize[1] = pIm->ImageSize.cy;
+	IntInfo.ImageFileName = pIm->ImageFileName;
+
+	if (m_bUseFringeModel) {
+		// NEW: Direct fringe iteration
+		int totalPoints = 0;
+		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			totalPoints += Fringes[iF].GetPointCount();
+		}
+
+		if (totalPoints == 0)
+			return FALSE;
+
+		IntInfo.DigitDat.XPnt.SetSize(totalPoints);
+		IntInfo.DigitDat.YPnt.SetSize(totalPoints);
+		IntInfo.DigitDat.FPnt.SetSize(totalPoints);
+		IntInfo.DigitDat.Properties.SetSize(totalPoints);
+
+		int idx = 0;
+		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			double number = Fringes[iF].GetNumber();
+			for (int iP = 0; iP < Fringes[iF].GetPointCount(); iP++) {
+				CDPoint p = Fringes[iF].GetPoint(iP);
+				IntInfo.DigitDat.XPnt[idx] = p.x;
+				IntInfo.DigitDat.YPnt[idx] = p.y;
+				IntInfo.DigitDat.FPnt[idx] = number;
+				IntInfo.DigitDat.Properties[idx] = 0.;
+				idx++;
+			}
+		}
+	}
+	else {
+		// OLD: Existing Dots iteration
+		int nD = Dots.GetSize();
+		if (nD == 0)
+			return FALSE;
+
+		IntInfo.DigitDat.XPnt.SetSize(nD);
+		IntInfo.DigitDat.YPnt.SetSize(nD);
+		IntInfo.DigitDat.FPnt.SetSize(nD);
+		IntInfo.DigitDat.Properties.SetSize(nD);
+
+		for (int i = 0; i < nD; i++) {
+			IntInfo.DigitDat.XPnt[i] = Dots[i].P.x;
+			IntInfo.DigitDat.YPnt[i] = Dots[i].P.y;
+			IntInfo.DigitDat.FPnt[i] = Dots[i].Number;
+			IntInfo.DigitDat.Properties[i] = 0.;
+		}
+	}
+
+	return TRUE;
+}
+
+BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
+{
+	NUMBERING_INTERFEROGRAM_INFO IntInfo;
+	if (!ReadZAPData(fname, IntInfo))
+		return FALSE;
+	return ExamineNumberingInterferogramInfo(IntInfo);
+}
+
+BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
+{
+	NUMBERING_INTERFEROGRAM_INFO IntInfo;
+	if (!ReadFRNData(fname, IntInfo))
+		return FALSE;
+	return ExamineNumberingInterferogramInfo(IntInfo);
+}
+
+BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)
+{
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!CollectNumberingInterferogramInfo(IntInfo))
 		return FALSE;
-	WriteFRNData(FileName, IntInfo);
-	return TRUE;
+	
+	if (extIdx == 2)
+		return WriteWinZAPData(fname, IntInfo);
+	else if (extIdx == 3)
+		return WriteDosZAPData(fname, IntInfo);
+	
+	return FALSE;
+}
+
+BOOL CDigitInfo::SaveFRN(LPCTSTR fname)
+{
+	NUMBERING_INTERFEROGRAM_INFO IntInfo;
+	if (!CollectNumberingInterferogramInfo(IntInfo))
+		return FALSE;
+	return WriteFRNData(fname, IntInfo);
 }
 

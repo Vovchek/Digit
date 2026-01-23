@@ -160,6 +160,7 @@
   <ItemGroup>
     <ClCompile Include="DigitMode\CFringe.cpp" />
     <ClCompile Include="EngLangD.cpp" />
+    <ClCompile Include="Tests\DigitModeTests\CFringeFileIOTest.cpp" />
     <ClCompile Include="Tests\DigitModeTests\CFringeTest.cpp" />
   </ItemGroup>
   <ItemGroup>

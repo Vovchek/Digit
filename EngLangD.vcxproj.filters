@@ -24,6 +24,9 @@
     <ClCompile Include="Tests\DigitModeTests\CFringeTest.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Tests\DigitModeTests\CFringeFileIOTest.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="EngLangD.rc">
