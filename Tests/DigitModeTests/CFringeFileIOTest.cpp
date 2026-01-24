@@ -4,8 +4,41 @@
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>
 
+// Extract from DigitInfo for testing
+#include "../DigitMode/DigitInfoFringe.cxx"
+void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
+{
+    HidenDots.RemoveAll();
+    Sections.RemoveAll();
+    Dots.RemoveAll();
+    Fringes.RemoveAll();  // NEW: Clear fringes
+
+    if (AllZAPSections) {
+        ZapLines.RemoveAll();
+        HandSetZapLines = FALSE;
+        idxDragZapLine = -1;
+    }
+
+    idxDragDot = -1;
+    idxMainDot = -1;
+    idxMainSection = -1;
+    MainFringeNumber = -1000.;
+
+    // NEW: Clear fringe selection
+    idxDraggedPoint.Clear();
+    idxMainPoint.Clear();
+}
+
+
 // Mock implementations of required global functions for testing
 // These would normally come from the application framework
+class CBoundCtrls {};  // Mock class
+class CControls {};     // Mock class
+class CImageCtrls {
+public:
+    CSize ImageSize;
+	CString ImageFileName;
+};  // Mock class
 
 static CDocument* g_pMockDoc = nullptr;
 static CImageCtrls* g_pMockImageCtrls = nullptr;

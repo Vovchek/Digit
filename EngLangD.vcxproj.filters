@@ -18,15 +18,6 @@
     <ClCompile Include="EngLangD.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\CFringe.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\DigitModeTests\CFringeTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Tests\DigitModeTests\CFringeFileIOTest.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="EngLangD.rc">
@@ -38,9 +29,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\CFringe.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

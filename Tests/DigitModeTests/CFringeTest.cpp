@@ -1,4 +1,5 @@
-﻿#include "gtest/gtest.h"
+﻿#include "stdafx.h"
+#include "gtest/gtest.h"
 #include "../DigitMode/CFringe.h"
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>

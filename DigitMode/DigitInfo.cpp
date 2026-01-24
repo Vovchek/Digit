@@ -567,18 +567,19 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 	Dots.RemoveAll();
 	Fringes.RemoveAll();  // NEW: Clear fringes
 	
-	if (AllZAPSections) {
+	if (AllZAPSections)
 		ZapLines.RemoveAll();
-		HandSetZapLines = FALSE;
-		idxDragZapLine = -1;
-	}
-	
+	else if (!HandSetZapLines)
+		ZapLines.RemoveAll();
+
+	idxMainSection = -1;
+	idxDragZapLine = -1;
 	idxDragDot = -1;
 	idxMainDot = -1;
-	idxMainSection = -1;
-	MainFringeNumber = -1000.;
-	
+	HandSetZapLines = FALSE;
+
 	// NEW: Clear fringe selection
+	MainFringeNumber = -1000.;
 	idxDraggedPoint.Clear();
 	idxMainPoint.Clear();
 }
@@ -913,7 +914,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
 	IntInfo.ImageSize[1] = pIm->ImageSize.cy;
-	IntInfo.ImageFileName = pIm->ImageFileName;
+	IntInfo.ImageFileName = pIm->FileImagePic;
 
 	if (m_bUseFringeModel) {
 		// NEW: Direct fringe iteration
@@ -964,7 +965,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 	return TRUE;
 }
-
+/*
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 {
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
@@ -980,7 +981,7 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		return FALSE;
 	return ExamineNumberingInterferogramInfo(IntInfo);
 }
-
+*/
 BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)
 {
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
@@ -988,18 +989,26 @@ BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)
 		return FALSE;
 	
 	if (extIdx == 2)
-		return WriteWinZAPData(fname, IntInfo);
+	{
+		WriteWinZAPData(fname, IntInfo);
+		return true;
+	}
 	else if (extIdx == 3)
-		return WriteDosZAPData(fname, IntInfo);
-	
-	return FALSE;
+	{
+		WriteDosZAPData(fname, IntInfo);
+		return true;
+	}
+
+	return false;
 }
 
 BOOL CDigitInfo::SaveFRN(LPCTSTR fname)
 {
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!CollectNumberingInterferogramInfo(IntInfo))
-		return FALSE;
-	return WriteFRNData(fname, IntInfo);
+		return false;
+	WriteFRNData(fname, IntInfo);
+	return true;
 }
 
+#include "digitInfoExt.cxx"

@@ -1,4 +1,4 @@
-; InterfSolver.def : Declares the module parameters for the DLL.
+﻿; InterfSolver.def : Declares the module parameters for the DLL.
 
 LIBRARY      "InterfSolver"
 ;DESCRIPTION  'InterfSolver Windows Dynamic Link Library'
@@ -7,8 +7,6 @@ EXPORTS
     ; Explicit exports can go here
 ?CalcCircleLimits@@YA_NABUXYBounds@@HAAVXYEllipse@@AAU1@@Z
 ;?WriteWinZAPData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
-??0NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
-??1NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
 ??1XYBrokenLine@@QAE@XZ
 
 ; XYShape base class exports
@@ -64,15 +62,24 @@ EXPORTS
 ?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
 ?isPupil@@YA_NABUXYPoint@@ABV?$CArray@VXYEllipse@@ABV1@@@ABV?$CArray@VXYRect@@ABV1@@@ABV?$CArray@VXYPolygon@@ABV1@@@@Z
 
-; Other exports
+; NUMBERING_INTERFEROGRAM_INFO
+??0NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
+??1NUMBERING_INTERFEROGRAM_INFO@@QAE@XZ
+?CalcPolAprImageMatr@@YAHAAUNUMBERING_INTERFEROGRAM_INFO@@HNAAVMatrix@@@Z
+?GetFringeNumbers@NUMBERING_INTERFEROGRAM_INFO@@QAEXAAV?$CArray@NN@@@Z
+?Clear@NUMBERING_INTERFEROGRAM_INFO@@QAEXXZ
+
 ;?ReadZAPData@@YAHABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ;?ReadFRNData@@YAHABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
 ;?WriteFRNData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
+;?WriteDosZAPData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
+
+; SAMPLE_DATA
 ??0SAMPLE_DATA@@QAE@XZ
 ?Clear@SAMPLE_DATA@@QAEXXZ
-??1Matrix@@QAE@XZ
-?CalcPolAprImageMatr@@YAHAAUNUMBERING_INTERFEROGRAM_INFO@@HNAAVMatrix@@@Z
-??0Matrix@@QAE@XZ
-?GetFringeNumbers@NUMBERING_INTERFEROGRAM_INFO@@QAEXAAV?$CArray@NN@@@Z
-;?WriteDosZAPData@@YAXABVCString@@AAUNUMBERING_INTERFEROGRAM_INFO@@@Z
+?GetSize@SAMPLE_DATA@@QAEHXZ
 ?ShiftY@SAMPLE_DATA@@QAEXN@Z
+
+; Matrix class
+??1Matrix@@QAE@XZ
+??0Matrix@@QAE@XZ

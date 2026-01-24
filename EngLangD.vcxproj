@@ -158,10 +158,7 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DigitMode\CFringe.cpp" />
     <ClCompile Include="EngLangD.cpp" />
-    <ClCompile Include="Tests\DigitModeTests\CFringeFileIOTest.cpp" />
-    <ClCompile Include="Tests\DigitModeTests\CFringeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="EngLangD.def" />
@@ -190,7 +187,6 @@
     <ResourceCompile Include="EngLangD.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DigitMode\CFringe.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>

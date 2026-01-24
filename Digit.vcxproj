@@ -157,6 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="DigitMode\CFringe.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
     <ClCompile Include="Controls\BoundCtrls.cpp" />
@@ -204,6 +205,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppDef.h" />
+    <ClInclude Include="DigitMode\CFringe.h" />
     <ClInclude Include="FileUtils.h" />
     <ClInclude Include="MainFrame\CommentsFileDlg.h" />
     <ClInclude Include="MainFrame\MainFrm.h" />
