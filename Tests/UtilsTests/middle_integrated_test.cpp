@@ -1,40 +1,40 @@
-#include "stdafx.h" // или "pch.h", как у вашего тест-проекта
+п»ї#include "stdafx.h" // РёР»Рё "pch.h", РєР°Рє Сѓ РІР°С€РµРіРѕ С‚РµСЃС‚-РїСЂРѕРµРєС‚Р°
 #include <gtest/gtest.h>
 #include <cmath>
 
-// Подключаем оригинальный заголовок — он объявляет все функции, которые мы тестируем
-#include "Utils/middle.h" // путь относительно Tests; скорректируйте при необходимости
+// РџРѕРґРєР»СЋС‡Р°РµРј РѕСЂРёРіРёРЅР°Р»СЊРЅС‹Р№ Р·Р°РіРѕР»РѕРІРѕРє вЂ” РѕРЅ РѕР±СЉСЏРІР»СЏРµС‚ РІСЃРµ С„СѓРЅРєС†РёРё, РєРѕС‚РѕСЂС‹Рµ РјС‹ С‚РµСЃС‚РёСЂСѓРµРј
+#include "Utils/middle.h" // РїСѓС‚СЊ РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ Tests; СЃРєРѕСЂСЂРµРєС‚РёСЂСѓР№С‚Рµ РїСЂРё РЅРµРѕР±С…РѕРґРёРјРѕСЃС‚Рё
 
-// Тест для функции middle: создаём простой сигнал с одним локальным пиком и проверяем,
-// что в CenterFrg добавлен центр пика и nnpolos увеличен.
+// РўРµСЃС‚ РґР»СЏ С„СѓРЅРєС†РёРё middle: СЃРѕР·РґР°С‘Рј РїСЂРѕСЃС‚РѕР№ СЃРёРіРЅР°Р» СЃ РѕРґРЅРёРј Р»РѕРєР°Р»СЊРЅС‹Рј РїРёРєРѕРј Рё РїСЂРѕРІРµСЂСЏРµРј,
+// С‡С‚Рѕ РІ CenterFrg РґРѕР±Р°РІР»РµРЅ С†РµРЅС‚СЂ РїРёРєР° Рё nnpolos СѓРІРµР»РёС‡РµРЅ.
 TEST(MiddleIntegrated, FindsCenterOfSimple3PixelPeak)
 {
     const int LEN = 40;
     unsigned char line[LEN] = {0};
 
-    // поместим пик на позициях 10,11,12: values {1,3,1}
+    // РїРѕРјРµСЃС‚РёРј РїРёРє РЅР° РїРѕР·РёС†РёСЏС… 10,11,12: values {1,3,1}
     line[10] = 1;
     line[11] = 3;
     line[12] = 1;
 
-    // Подготовим buf_line: одна строка y=0, buf_line[0] = {left, right, excl_left, excl_right}
+    // РџРѕРґРіРѕС‚РѕРІРёРј buf_line: РѕРґРЅР° СЃС‚СЂРѕРєР° y=0, buf_line[0] = {left, right, excl_left, excl_right}
     int* row0 = new int[4];
     row0[0] = 9;   // left boundary (buf_line[y][0])
     row0[1] = 13;  // right boundary (buf_line[y][1])
-    row0[2] = -1;  // exclusion left (buf_line[y][2]) - отключено
+    row0[2] = -1;  // exclusion left (buf_line[y][2]) - РѕС‚РєР»СЋС‡РµРЅРѕ
     row0[3] = 0;   // exclusion right (buf_line[y][3])
     int** buf_line = new int*[1];
     buf_line[0] = row0;
 
-    // CArray из вашего проекта
+    // CArray РёР· РІР°С€РµРіРѕ РїСЂРѕРµРєС‚Р°
     CArray<double, double> CenterFrg;
     int nnpolos = 0;
 
-    // вызов реальной функции
+    // РІС‹Р·РѕРІ СЂРµР°Р»СЊРЅРѕР№ С„СѓРЅРєС†РёРё
     middle(line, /*nx*/ 0, /*ny*/ 1, /*y*/ 0, buf_line, CenterFrg, nnpolos);
 
-    // ожидания:
-    // Для симметричного пика максимальный элемент в позиции 11 -> tmpf будет half + 0.5 => 11.5
+    // РѕР¶РёРґР°РЅРёСЏ:
+    // Р”Р»СЏ СЃРёРјРјРµС‚СЂРёС‡РЅРѕРіРѕ РїРёРєР° РјР°РєСЃРёРјР°Р»СЊРЅС‹Р№ СЌР»РµРјРµРЅС‚ РІ РїРѕР·РёС†РёРё 11 -> tmpf Р±СѓРґРµС‚ half + 0.5 => 11.5
     ASSERT_EQ(nnpolos, 1);
     ASSERT_EQ(CenterFrg.GetSize(), 1);
     double center = CenterFrg[0];
@@ -44,27 +44,27 @@ TEST(MiddleIntegrated, FindsCenterOfSimple3PixelPeak)
     delete[] row0;
 }
 
-// Интеграционные тесты для прочих функций (approx, delet_u, invert_line, fon_del, SortDouble)
+// РРЅС‚РµРіСЂР°С†РёРѕРЅРЅС‹Рµ С‚РµСЃС‚С‹ РґР»СЏ РїСЂРѕС‡РёС… С„СѓРЅРєС†РёР№ (approx, delet_u, invert_line, fon_del, SortDouble)
 
-// approx: простая симметрия (максимум в центре)
+// approx: РїСЂРѕСЃС‚Р°СЏ СЃРёРјРјРµС‚СЂРёСЏ (РјР°РєСЃРёРјСѓРј РІ С†РµРЅС‚СЂРµ)
 TEST(MiddleIntegrated, ApproxReturnsCenterForSymmetricTriplet)
 {
     int xs[3] = {0, 1, 2};
-    int ys[3] = {3, 4, 3}; // максимум при x=1
+    int ys[3] = {3, 4, 3}; // РјР°РєСЃРёРјСѓРј РїСЂРё x=1
     int n = 3;
     double res = approx(&n, xs, ys);
     EXPECT_GT(res, 1.0);
     EXPECT_LT(res, 2.0);
 }
 
-// delet_u: проверяем обнуление значений <= фон
+// delet_u: РїСЂРѕРІРµСЂСЏРµРј РѕР±РЅСѓР»РµРЅРёРµ Р·РЅР°С‡РµРЅРёР№ <= С„РѕРЅ
 TEST(MiddleIntegrated, DeletUZeroesValuesBelowBackground)
 {
     const int LEN = 10;
     unsigned char line[LEN];
     for (int i = 0; i < LEN; ++i) line[i] = static_cast<unsigned char>(i + 1); // 1..10
 
-    // фон = 5 -> все значения <=5 обнуляются
+    // С„РѕРЅ = 5 -> РІСЃРµ Р·РЅР°С‡РµРЅРёСЏ <=5 РѕР±РЅСѓР»СЏСЋС‚СЃСЏ
     delet_u(line, 0, LEN, 0.0, 5.0);
 
     for (int i = 0; i < LEN; ++i)
@@ -74,7 +74,7 @@ TEST(MiddleIntegrated, DeletUZeroesValuesBelowBackground)
     }
 }
 
-// invert_line: инверсия байтов
+// invert_line: РёРЅРІРµСЂСЃРёСЏ Р±Р°Р№С‚РѕРІ
 TEST(MiddleIntegrated, InvertLineInvertsBytes)
 {
     const int LEN = 6;
@@ -85,14 +85,14 @@ TEST(MiddleIntegrated, InvertLineInvertsBytes)
         EXPECT_EQ(line[i], expected[i]);
 }
 
-// fon_del: короткий сегмент -> используется средний фон
+// fon_del: РєРѕСЂРѕС‚РєРёР№ СЃРµРіРјРµРЅС‚ -> РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ СЃСЂРµРґРЅРёР№ С„РѕРЅ
 TEST(MiddleIntegrated, FonDelShortSegmentUsesMean)
 {
     const int LEN = 8;
     unsigned char line[LEN] = {0, 10, 20, 30, 0, 5, 15, 25};
     // mean non-zero = (10+20+30+5+15+25)/6 = 17.5 -> rounded 18
     fon_del(line, 0, LEN - 1);
-    // ожидаем, что значения <= 18 обнулены (10,5,15)
+    // РѕР¶РёРґР°РµРј, С‡С‚Рѕ Р·РЅР°С‡РµРЅРёСЏ <= 18 РѕР±РЅСѓР»РµРЅС‹ (10,5,15)
     EXPECT_EQ(line[1], 0);   // 10 -> 0
     EXPECT_EQ(line[2], 20);  // 20 > 18
     EXPECT_EQ(line[3], 30);
@@ -100,7 +100,7 @@ TEST(MiddleIntegrated, FonDelShortSegmentUsesMean)
     EXPECT_EQ(line[6], 0);   // 15 -> 0
 }
 
-// SortDouble: используем CArray (оригинал)
+// SortDouble: РёСЃРїРѕР»СЊР·СѓРµРј CArray (РѕСЂРёРіРёРЅР°Р»)
 TEST(MiddleIntegrated, SortDoubleSortsArray)
 {
     CArray<double, double> arr;
@@ -108,15 +108,8 @@ TEST(MiddleIntegrated, SortDoubleSortsArray)
     arr.Add(1.0);
     arr.Add(-2.0);
     arr.Add(3.5);
-    // вызываем функцию SortDouble (реальная)
+    // РІС‹Р·С‹РІР°РµРј С„СѓРЅРєС†РёСЋ SortDouble (СЂРµР°Р»СЊРЅР°СЏ)
     SortDouble(arr);
     for (int i = 1; i < arr.GetSize(); ++i)
         EXPECT_LE(arr[i - 1], arr[i]);
-}
-
-// main GoogleTest (если в проекте уже есть main для тестов — удалите/замените)
-int main(int argc, char** argv)
-{
-    ::testing::InitGoogleTest(&argc, argv);
-    return RUN_ALL_TESTS();
 }

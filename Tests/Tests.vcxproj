@@ -25,6 +25,8 @@
     <ConfigurationType>Application</ConfigurationType>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
+    <EnableGoogleTestAdapter>true</EnableGoogleTestAdapter>
+    <TestAdapter>GoogleTestAdapter</TestAdapter>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
@@ -51,6 +53,9 @@
       <AdditionalDependencies>MGTools.lib;InterfSolver.lib;$(CoreLibraryDependencies);%(AdditionalDependencies);$(SolutionDir)Build\Debug\DigitTemp\middle.obj</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Build\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y $(SolutionDir)Build\$(Configuration)\InterfSolver.dll $(OutDir)*.*</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -86,6 +91,9 @@
       <AdditionalDependencies>MGTools.lib;InterfSolver.lib;$(CoreLibraryDependencies);%(AdditionalDependencies);</AdditionalDependencies>
       <AdditionalLibraryDirectories>$(SolutionDir)Build\$(Configuration)</AdditionalLibraryDirectories>
     </Link>
+    <PostBuildEvent>
+      <Command>xcopy /Y $(SolutionDir)Build\$(Configuration)\InterfSolver.dll $(OutDir)*.*</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
@@ -160,6 +168,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="gtest_main.cpp" />
     <ClCompile Include="InterfSolver\Tools\CalcContourClassificationBugTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>

@@ -3,15 +3,50 @@
 #include "../InterfSolver/Tools/ReadWriteData.h"
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>
+#include <vector>
 
-// Extract from DigitInfo for testing
-#include "../DigitMode/DigitInfoFringe.cxx"
+// Mock implementations of required global functions for testing
+// These would normally come from the application framework
+
+// Minimal mock classes with fields used by DigitInfoFringe methods
+class CBoundCtrls {
+public:
+    CArrayXYEllipse ArrEll;
+    CArrayXYRect ArrRect;
+    CArrayXYPolygon ArrPlg;
+    CArrayXYPolygon ArrContour;
+    int ExtBoundType = -1;
+    int InsBoundType = -1;
+
+    void FormBoundsOnLoadFile() {}
+};
+
+class CControls {};
+
+class CImageCtrls {
+public:
+    CSize ImageSize;
+    CString ImageFileName;
+    CString OriginalPath;
+};
+
+static CDocument* g_pMockDoc = nullptr;
+static CImageCtrls* g_pMockImageCtrls = nullptr;
+static CBoundCtrls* g_pMockBoundCtrls = nullptr;
+static CControls* g_pMockControls = nullptr;
+
+CDocument* GetWIActiveDocument() { return g_pMockDoc; }
+CImageCtrls* GetImageCtrls() { return g_pMockImageCtrls; }
+CBoundCtrls* GetBoundCtrls() { return g_pMockBoundCtrls; }
+CControls* GetControls() { return g_pMockControls; }
+
+// Provide Clear definition for CDigitInfo (not linked from app binary in tests)
 void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 {
     HidenDots.RemoveAll();
     Sections.RemoveAll();
     Dots.RemoveAll();
-    Fringes.RemoveAll();  // NEW: Clear fringes
+    Fringes.RemoveAll();
 
     if (AllZAPSections) {
         ZapLines.RemoveAll();
@@ -24,31 +59,19 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
     idxMainSection = -1;
     MainFringeNumber = -1000.;
 
-    // NEW: Clear fringe selection
     idxDraggedPoint.Clear();
     idxMainPoint.Clear();
 }
 
+// Pull in fringe-related DigitInfo implementations for tests
+#include "../DigitMode/DigitInfoFringe.cxx"
 
-// Mock implementations of required global functions for testing
-// These would normally come from the application framework
-class CBoundCtrls {};  // Mock class
-class CControls {};     // Mock class
-class CImageCtrls {
-public:
-    CSize ImageSize;
-	CString ImageFileName;
-};  // Mock class
-
-static CDocument* g_pMockDoc = nullptr;
-static CImageCtrls* g_pMockImageCtrls = nullptr;
-static CBoundCtrls* g_pMockBoundCtrls = nullptr;
-static CControls* g_pMockControls = nullptr;
-
-CDocument* GetWIActiveDocument() { return g_pMockDoc; }
-CImageCtrls* GetImageCtrls() { return g_pMockImageCtrls; }
-CBoundCtrls* GetBoundCtrls() { return g_pMockBoundCtrls; }
-CControls* GetControls() { return g_pMockControls; }
+// Stub for ZapSection lookup used during conversion
+bool CDigitInfo::GetNearestZapSection(CPoint, int& idx)
+{
+    idx = -1;
+    return false;
+}
 
 // ===== Test Fixture =====
 
@@ -68,6 +91,7 @@ protected:
         imageCtrls.ImageSize.cx = 512;
         imageCtrls.ImageSize.cy = 512;
         imageCtrls.ImageFileName = _T("test.bmp");
+        imageCtrls.OriginalPath = _T("test.bmp");
         
         digitInfo.Init();
     }
@@ -173,8 +197,10 @@ TEST_F(CFringeFileIOTest, CollectFromDotsWorksAsOld) {
     CDotInfo dot1, dot2;
     dot1.P = CDPoint(10, 100);
     dot1.Number = 0.5;
+    dot1.segIdx = -1;
     dot2.P = CDPoint(20, 200);
     dot2.Number = 1.5;
+    dot2.segIdx = -1;
     
     digitInfo.Dots.Add(dot1);
     digitInfo.Dots.Add(dot2);
@@ -205,39 +231,19 @@ TEST_F(CFringeFileIOTest, ExamineCreatesCorrectNumberOfFringes) {
     EXPECT_EQ(2, digitInfo.Fringes.GetSize());
 }
 
-TEST_F(CFringeFileIOTest, ExamineSortsPointsByX) {
+TEST_F(CFringeFileIOTest, ExamineSeparatesFringesBySegmentIndex) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     
-    // Add points in reverse X order
-    intInfo.DigitDat.Add(30, 100, 0.0);
-    intInfo.DigitDat.Add(10, 100, 0.0);
-    intInfo.DigitDat.Add(20, 100, 0.0);
+    // Same fringe number, different segment indices -> separate fringes
+    intInfo.DigitDat.Add(10, 100, 0.5, 0.0, 0);
+    intInfo.DigitDat.Add(20, 100, 0.5, 0.0, 0);
+    intInfo.DigitDat.Add(10, 200, 0.5, 0.0, 1);
+    intInfo.DigitDat.Add(20, 200, 0.5, 0.0, 1);
     
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
-    ASSERT_EQ(1, digitInfo.Fringes.GetSize());
-    ASSERT_EQ(3, digitInfo.Fringes[0].GetPointCount());
-    
-    // Should be sorted by X
-    EXPECT_EQ(10.0, digitInfo.Fringes[0].GetPoint(0).x);
-    EXPECT_EQ(20.0, digitInfo.Fringes[0].GetPoint(1).x);
-    EXPECT_EQ(30.0, digitInfo.Fringes[0].GetPoint(2).x);
-}
-
-TEST_F(CFringeFileIOTest, ExamineSeparatesFringesByY) {
-    NUMBERING_INTERFEROGRAM_INFO intInfo;
-    
-    // Same fringe number, different Y coordinates -> separate fringes
-    intInfo.DigitDat.Add(10, 100, 0.5);
-    intInfo.DigitDat.Add(20, 100, 0.5);
-    intInfo.DigitDat.Add(10, 200, 0.5);
-    intInfo.DigitDat.Add(20, 200, 0.5);
-    
-    digitInfo.m_bUseFringeModel = TRUE;
-    digitInfo.ExamineNumberingInterferogramInfo(intInfo);
-    
-    // Should create 2 separate fringe segments (different Y)
+    // Should create 2 separate fringe segments (different Index)
     EXPECT_EQ(2, digitInfo.Fringes.GetSize());
     
     EXPECT_EQ(0.5, digitInfo.Fringes[0].GetNumber());
@@ -298,10 +304,7 @@ TEST_F(CFringeFileIOTest, RoundTripPreservesCoordinates) {
     digitInfo.CollectNumberingInterferogramInfo(intInfo1);
     
     // Store original data
-    CArrayDouble origX, origY, origF;
-    origX.Copy(intInfo1.DigitDat.XPnt);
-    origY.Copy(intInfo1.DigitDat.YPnt);
-    origF.Copy(intInfo1.DigitDat.FPnt);
+    std::vector<DOT_DATA> originalDots = intInfo1.DigitDat.Dots;
     
     // Clear and reload
     digitInfo.Clear();
@@ -312,20 +315,20 @@ TEST_F(CFringeFileIOTest, RoundTripPreservesCoordinates) {
     NUMBERING_INTERFEROGRAM_INFO intInfo2;
     digitInfo.CollectNumberingInterferogramInfo(intInfo2);
     
-    // Compare (order might differ, so check all values exist)
-    ASSERT_EQ(origX.GetSize(), intInfo2.DigitDat.GetSize());
+    ASSERT_EQ(originalDots.size(), intInfo2.DigitDat.Dots.size());
     
-    for (int i = 0; i < origX.GetSize(); i++) {
+    for (const auto& orig : originalDots) {
         bool found = false;
-        for (int j = 0; j < intInfo2.DigitDat.GetSize(); j++) {
-            if (fabs(origX[i] - intInfo2.DigitDat[j].X) < 0.01 &&
-                fabs(origY[i] - intInfo2.DigitDat[j].Y) < 0.01 &&
-                fabs(origF[i] - intInfo2.DigitDat[j].F.Number) < 0.01) {
+        for (const auto& d : intInfo2.DigitDat.Dots) {
+            if (fabs(orig.X - d.X) < 0.01 &&
+                fabs(orig.Y - d.Y) < 0.01 &&
+                fabs(orig.F.Number - d.F.Number) < 0.01 &&
+                orig.F.Index == d.F.Index) {
                 found = true;
                 break;
             }
         }
-        EXPECT_TRUE(found) << "Point (" << origX[i] << "," << origY[i] << ") with F=" << origF[i] << " not found after round-trip";
+        EXPECT_TRUE(found) << "Point (" << orig.X << "," << orig.Y << ") with F=" << orig.F.Number << " not found after round-trip";
     }
 }
 
@@ -393,6 +396,7 @@ TEST_F(CFringeFileIOTest, DotsModelCollectStillWorks) {
     CDotInfo dot;
     dot.P = CDPoint(50, 150);
     dot.Number = 1.5;
+    dot.segIdx = -1;
     digitInfo.Dots.Add(dot);
     
     NUMBERING_INTERFEROGRAM_INFO intInfo;
