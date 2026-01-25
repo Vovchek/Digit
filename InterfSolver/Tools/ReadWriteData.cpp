@@ -1,4 +1,4 @@
-#include <math.h>
+﻿#include <math.h>
 #include "Include\Int_Cons.h"
 #include "GetTimeDate.h"
 #include "CalcLimits.h"
@@ -134,9 +134,9 @@ BOOL ReadWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 		Sampl.SetSize(NSampl);
 		for (int i = 0; i < NSampl; i++)
 		{
-			Sampl.YPnt[i] = Buf[0];
-			Sampl.FPnt[i] = Buf[2 * i + 1];
-			Sampl.XPnt[i] = Buf[2 * i + 2];
+			Sampl[i].Y = Buf[0];
+			Sampl[i].F.Number = Buf[2 * i + 1];
+			Sampl[i].X = Buf[2 * i + 2];
 		}
 		IntInfo.DigitDat.Append(Sampl);
 	}
@@ -232,9 +232,9 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 		Sampl.SetSize(NSampl);
 		for (i = 0; i < NSampl; i++)
 		{
-			Sampl.YPnt[i] = Buf[0];
-			Sampl.FPnt[i] = Buf[2 * i + 1];
-			Sampl.XPnt[i] = Buf[2 * i + 2];
+			Sampl[i].Y = Buf[0];
+			Sampl[i].F.Number = Buf[2 * i + 1];
+			Sampl[i].X = Buf[2 * i + 2];
 		}
 		IntInfo.DigitDat.Append(Sampl);
 	}
@@ -375,7 +375,8 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		return FALSE;
 	SAMPLE_DATA Sampl;
 	int NSampl, NBuf;
-	double Fr;
+	double CurFringeNumber = E18; // TODO: rename E18 to MIN_VALUE or similar (E18 = 1e-18)
+	int segmentIndex = 0; // TODO: consider segments numbering rules
 	while (Fl.ReadStringInSection(Str))
 	{
 		if (Str.IsEmpty())
@@ -384,19 +385,28 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				break;
 		}
 		Str = GetStringFragment(Str, 2, '=');
-		Fr = atof(Str);
-		if (!Fl.ReadStringWithEnd("E", Str))
+		double FringeNumber = atof(Str);
+		if (!Fl.ReadStringWithEnd("E", Str)) 
+		{
+			// no more fringes, stop reading
 			break;
+		}
 		FormArrFromString(Str, Buf);
 		NBuf = Buf.GetSize();
 		NSampl = NBuf / 2;
 		Sampl.Clear();
-		Sampl.SetSize(NSampl);
+		if(fabs(FringeNumber - CurFringeNumber) < PRECISION) {
+			// start a new segment of the same fringe
+			segmentIndex++;
+		}
+		else {
+			// new fringe number - start a new fringe
+			CurFringeNumber = FringeNumber;
+			segmentIndex = 0; // TODO: consider segments numbering rules
+		}
 		for (int i = 0; i < NSampl; i++)
 		{
-			Sampl.XPnt[i] = Buf[2 * i];
-			Sampl.YPnt[i] = Buf[2 * i + 1];
-			Sampl.FPnt[i] = Fr;
+			Sampl.Add(Buf[2 * i], Buf[2 * i + 1], FringeNumber, 0.0, segmentIndex);
 		}
 		IntInfo.DigitDat.Append(Sampl);
 	}
@@ -496,9 +506,9 @@ void WriteWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 	IntInfo.DigitDat.SortIncreaseY();
 
 	Sampl.Clear();
-	X = IntInfo.DigitDat.XPnt[0];
-	Y = IntInfo.DigitDat.YPnt[0];
-	F = IntInfo.DigitDat.FPnt[0];
+	X = IntInfo.DigitDat[0].X;
+	Y = IntInfo.DigitDat[0].Y;
+	F = IntInfo.DigitDat[0].F.Number;
 	YCurSec = Y;
 	Sampl.Add(X, Y, F);
 	isUse[0] = true;
@@ -510,11 +520,11 @@ void WriteWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 		{
 			if (isUse[i])
 				continue;
-			Y = IntInfo.DigitDat.YPnt[i];
+			Y = IntInfo.DigitDat[i].Y;
 			if (fabs(YCurSec - Y) < EpsY)
 			{
-				X = IntInfo.DigitDat.XPnt[i];
-				F = IntInfo.DigitDat.FPnt[i];
+				X = IntInfo.DigitDat[i].X;
+				F = IntInfo.DigitDat[i].F.Number;
 				Sampl.Add(X, Y, F);
 				isUse[i] = true;
 			}
@@ -531,9 +541,9 @@ void WriteWinZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 			else
 			{
 				Sampl.Clear();
-				X = IntInfo.DigitDat.XPnt[i];
-				Y = IntInfo.DigitDat.YPnt[i];
-				F = IntInfo.DigitDat.FPnt[i];
+				X = IntInfo.DigitDat[i].X;
+				Y = IntInfo.DigitDat[i].Y;
+				F = IntInfo.DigitDat[i].F.Number;
 				YCurSec = Y;
 				Sampl.Add(X, Y, F);
 				isUse[i] = true;
@@ -631,9 +641,9 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 	IntInfo.DigitDat.SortIncreaseY();
 
 	Sampl.Clear();
-	X = IntInfo.DigitDat.XPnt[0];
-	Y = IntInfo.DigitDat.YPnt[0];
-	F = IntInfo.DigitDat.FPnt[0];
+	X = IntInfo.DigitDat[0].X;
+	Y = IntInfo.DigitDat[0].Y;
+	F = IntInfo.DigitDat[0].F.Number;
 	YCurSec = Y;
 	Sampl.Add(X, Y, F);
 	isUse[0] = true;
@@ -645,11 +655,11 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 		{
 			if (isUse[i])
 				continue;
-			Y = IntInfo.DigitDat.YPnt[i];
+			Y = IntInfo.DigitDat[i].Y;
 			if (fabs(YCurSec - Y) < EpsY)
 			{
-				X = IntInfo.DigitDat.XPnt[i];
-				F = IntInfo.DigitDat.FPnt[i];
+				X = IntInfo.DigitDat[i].X;
+				F = IntInfo.DigitDat[i].F.Number;
 				Sampl.Add(X, Y, F);
 				isUse[i] = true;
 			}
@@ -666,9 +676,9 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 			else
 			{
 				Sampl.Clear();
-				X = IntInfo.DigitDat.XPnt[i];
-				Y = IntInfo.DigitDat.YPnt[i];
-				F = IntInfo.DigitDat.FPnt[i];
+				X = IntInfo.DigitDat[i].X;
+				Y = IntInfo.DigitDat[i].Y;
+				F = IntInfo.DigitDat[i].F.Number;
 				YCurSec = Y;
 				Sampl.Add(X, Y, F);
 				isUse[i] = true;
@@ -757,73 +767,52 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	Fl.WriteStringWithEnd("");
 
 	Fl.WriteStringWithEnd("[FRINGES]");
-	double EpsF = PRECISION;
-	double X, Y, F, FCur;
-	SAMPLE_DATA Sampl;
-	XYBrokenLine Bln;
-	CArrayBool isUse;
-	bool isFinish;
-	int in;
 
 	NPnt = IntInfo.DigitDat.GetSize();
 
-	isUse.SetSize(NPnt);
-	for (i = 0; i < NPnt; i++)
-		isUse[i] = false;
+	// TODO: provide needed sorting in CollectionSampleData()
+	// IntInfo.DigitDat.SortIncreaseF();
 
-	IntInfo.DigitDat.SortIncreaseF();
-
+	SAMPLE_DATA Sampl;
 	Sampl.Clear();
-	X = IntInfo.DigitDat.XPnt[0];
-	Y = IntInfo.DigitDat.YPnt[0];
-	F = IntInfo.DigitDat.FPnt[0];
-	FCur = F;
-	Sampl.Add(X, Y, F);
-	isUse[0] = true;
-	in = 1;
-	isFinish = false;
-	while (!isFinish)
+
+	double X = IntInfo.DigitDat[0].X;
+	double Y = IntInfo.DigitDat[0].Y;
+	double F = IntInfo.DigitDat[0].F.Number;
+	int I = IntInfo.DigitDat[0].F.Index;
+
+	Sampl.Add(X, Y, F, 0.0, I);
+
+	double FCur = F;
+	int ICur = I;
+
+	// TODO: review fringe writing using CFringe structure
+	for (auto i = 1; i < NPnt; i++)
 	{
-		for (i = in; i < NPnt; i++)
+		X = IntInfo.DigitDat[i].X;
+		Y = IntInfo.DigitDat[i].Y;
+		F = IntInfo.DigitDat[i].F.Number;
+		I = IntInfo.DigitDat[i].F.Index;
+		
+		// Check if new fringe or segment
+		if (fabs(FCur - F) > PRECISION || ICur != I)
 		{
-			if (isUse[i])
-				continue;
-			F = IntInfo.DigitDat.FPnt[i];
-			if (fabs(FCur - F) < EpsF)
+			if (Sampl.GetSize() > 0)
 			{
-				X = IntInfo.DigitDat.XPnt[i];
-				Y = IntInfo.DigitDat.YPnt[i];
-				Sampl.Add(X, Y, F);
-				isUse[i] = true;
+				WriteFringe(Fl, Sampl);
 			}
+			FCur = F;
+			ICur = I;
+			Sampl.Clear();
 		}
-		if (Sampl.GetSize() > 0)
-		{
-			Bln = XYBrokenLine(Sampl.XPnt, Sampl.YPnt);
-			Bln.Arrange();
-			Bln.GetArrX(Sampl.XPnt);
-			Bln.GetArrY(Sampl.YPnt);
-			WriteFringe(Fl, Sampl);
-		}
-		for (i = 0; i < NPnt; i++)
-		{
-			if (isUse[i])
-				isFinish = true;
-			else
-			{
-				Sampl.Clear();
-				X = IntInfo.DigitDat.XPnt[i];
-				Y = IntInfo.DigitDat.YPnt[i];
-				F = IntInfo.DigitDat.FPnt[i];
-				FCur = F;
-				Sampl.Add(X, Y, F);
-				isUse[i] = true;
-				in = i + 1;
-				isFinish = false;
-				break;
-			}
-		}
+		Sampl.Add(X, Y, F, 0.0, I);
 	}
+	// Flush last fringe
+	if (Sampl.GetSize() > 0)
+	{
+		WriteFringe(Fl, Sampl);
+	}
+
 	Fl.WriteStringWithEnd("");
 
 	Fl.WriteStringWithEnd("[IMAGE]");
@@ -887,52 +876,50 @@ void WritePolygon(CTextIOFile& Fl, XYPolygon& Plg, int NPntInStr)
 void WriteSection(CTextIOFile& Fl, SAMPLE_DATA& Sampl, int NPntInStr)
 {
 	CString Str, S;
-	int  m, iPnt, NPnt;
-	bool isBeg;
-	double YSec;
-	XYPoint P;
 
-	YSec = Sampl.YPnt[0];
-	NPnt = Sampl.FPnt.GetSize();
-	m = 0;
-	isBeg = true;
+	int NPnt = Sampl.GetSize();
 	Str.Empty();
-	for (iPnt = 0; iPnt < NPnt; iPnt++)
+
+	double YSec = Sampl[0].Y;
+
+	int DotsInLine = 0;
+	bool isSectionBeginning = true;
+	for (int iPnt = 0; iPnt < NPnt; iPnt++)
 	{
-		P.X = Sampl.FPnt[iPnt];
-		P.Y = Sampl.XPnt[iPnt];
-		if (isBeg)
+		double F = Sampl[iPnt].F.Number;
+		double X = Sampl[iPnt].X;
+		if (isSectionBeginning)
 		{
-			S.Format(" %1.3lf %1.1lf %1.3lf", YSec, P.X, P.Y);
-			isBeg = false;
+			S.Format(" %1.3lf %1.1lf %1.3lf", YSec, F, X); // Y F X
+			isSectionBeginning = false;
 			Str += S;
-			m++;
+			DotsInLine++;
 		}
-		else if (m == 0)
+		else if (DotsInLine == 0)
 		{
-			S.Format("        %1.1lf %1.3lf", P.X, P.Y);
+			S.Format("        %1.1lf %1.3lf", F, X); //    F X
 			Str += S;
-			m++;
+			DotsInLine++;
 		}
-		else if (m == NPntInStr - 1)
+		else if (DotsInLine == NPntInStr - 1)
 		{
-			S.Format(" %1.1lf %1.3lf", P.X, P.Y);
+			S.Format(" %1.1lf %1.3lf", F, X);
 			Str += S;
 			if (iPnt == NPnt - 1)
 				Fl.WriteStringWithEnd(Str, " E\n");
 			else
 				Fl.WriteStringWithEnd(Str);
 			Str.Empty();
-			m = 0;
+			DotsInLine = 0;
 		}
-		else if (m < NPntInStr - 1)
+		else if (DotsInLine < NPntInStr - 1)
 		{
-			S.Format(" %1.1lf %1.3lf", P.X, P.Y);
+			S.Format(" %1.1lf %1.3lf", F, X);
 			Str += S;
-			m++;
+			DotsInLine++;
 		}
 	}
-	if (m > 0)
+	if (DotsInLine > 0)
 		Fl.WriteStringWithEnd(Str, " E\n");
 }
 //=========================================================================
@@ -943,16 +930,16 @@ void WriteFringe(CTextIOFile& Fl, SAMPLE_DATA& Sampl)
 	double Fr;
 	XYPoint P;
 
-	NPnt = Sampl.FPnt.GetSize();
+	NPnt = Sampl.GetSize();
 
-	Fr = Sampl.FPnt[0];
+	Fr = Sampl[0].F.Number;
 	Str.Format("%1.1lf", Fr);
 	Fl.WriteStringAfter("NFringe", "=", Str);
 
 	for (iPnt = 0; iPnt < NPnt; iPnt++)
 	{
-		P.X = Sampl.XPnt[iPnt];
-		P.Y = Sampl.YPnt[iPnt];
+		P.X = Sampl[iPnt].X;
+		P.Y = Sampl[iPnt].Y;
 		Str.Format(" %1.3lf %1.3lf", P.X, P.Y);
 		Fl.WriteStringWithEnd(Str);
 	}

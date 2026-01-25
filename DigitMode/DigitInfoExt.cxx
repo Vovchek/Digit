@@ -272,29 +272,20 @@ void CDigitInfo::SortZapLines()
 	}
 }
 
-void CDigitInfo::SortDots(CArray<CDPoint>& adP, int XY)
+void CDigitInfo::SortDotsFY()
 {
-	int swapAt;
-	int begIdx = 0;
-	int endIdx = adP.GetSize();
-	double d_swapAt;
-	double d_k;
-	for (int j = begIdx; j < endIdx - 1; j++) {
-		swapAt = j;
-		for (int k = j + 1; k < endIdx; k++) {
-			if (XY == 1) {
-				d_swapAt = adP[swapAt].x;
-				d_k = adP[k].x;
-			}
-			else if (XY == 2) {
-				d_swapAt = adP[swapAt].y;
-				d_k = adP[k].y;
-			}
-			if (d_swapAt > d_k)
-				swapAt = k;
-		}
-		Swap(adP[j], adP[swapAt]);
-	}
+	int NArr = Dots.GetSize();
+	if (NArr <= 1)
+		return;
+
+	CDotInfo* DotsData = Dots.GetData();
+	std::sort(DotsData, DotsData+NArr, [](const CDotInfo& a, const CDotInfo& b) {
+		if (a.Number != b.Number)
+			return a.Number < b.Number;
+		if (a.segIdx != b.segIdx)
+			return a.segIdx < b.segIdx;
+		return a.P.y < b.P.y;
+		});
 }
 
 void CDigitInfo::PutDotsOnZAPSections(int iZAPSec)
@@ -1152,6 +1143,9 @@ BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int he
 
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 {
+	// TODO: switch to CFringe array latter
+	m_bUseFringeModel = false;
+
 	CString FileName = fname;
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!ReadZAPData(FileName, IntInfo))
@@ -1245,6 +1239,9 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 
 BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 {
+	// Load FRN into CFringe array, create legacy Dots from it
+	m_bUseFringeModel = true;
+
 	CString FileName = fname;
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!ReadFRNData(FileName, IntInfo))

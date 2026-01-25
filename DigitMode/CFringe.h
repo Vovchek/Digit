@@ -14,12 +14,14 @@
 class CFringe {
 private:
     double m_Number;              ///< Fringe number (e.g., 0, 0.5, 1.0, ...)
+    int m_Index;                  ///< Segment index for this fringe Number 
+                                  ///< (to distinguish discontinuous parts)
     CArray<CDPoint> m_Points;     ///< ORDERED sequence of points forming the polyline
     BOOL m_bClosed;               ///< Is this a closed loop?
     
 public:
     // ===== Construction =====
-    CFringe(double number = 0.0);
+    CFringe(double number = 0.0, int index = -1);
     CFringe(const CFringe& other);
     CFringe& operator=(const CFringe& other);
     ~CFringe();
@@ -60,7 +62,14 @@ public:
     /// @param idx Point index (0-based)
     /// @param p New point coordinates
     void SetPoint(int idx, CDPoint p);
-    
+
+    /// Get fringe id
+    int GetIndex() const { return m_Index; }
+
+    /// Set fringe number
+    /// @param n New fringe number
+    void SetIndex(int index) { m_Index = index; }
+
     /// Get fringe number
     double GetNumber() const { return m_Number; }
     

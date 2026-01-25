@@ -1,4 +1,4 @@
-#include "Sort.h"
+﻿#include "Sort.h"
 #include "NunberInfo.h"
 
 //============================================================================
@@ -70,31 +70,29 @@ void NUMBERING_INTERFEROGRAM_INFO :: GetFringeNumbers(CArrayDouble &ArrFNumbers)
   int i, k;
   ArrFNumbers.RemoveAll();
 
-  int NPnt = DigitDat.XPnt.GetSize();
+  int NPnt = DigitDat.GetSize();
 
   CArrayInt Ind;
   Ind.SetSize(NPnt);
   for (i = 0; i < NPnt; i++)
     Ind[i] = 1;
 
-  double Fo;
-  int in;
-  Fo = DigitDat.FPnt[0];
-  in = 1;
+  double Fo = DigitDat[0].F.Number;
+  int in = 1;
   while (in < NPnt)
     {
     for (i = in; i < NPnt; i++)
       {
       if (Ind[i] == 0)
         continue;
-      if (fabs(Fo - DigitDat.FPnt[i]) < PRECISION)
+      if (fabs(Fo - DigitDat[1].F.Number) < PRECISION)
         Ind[i] = 0;
       }
     for (i = in; i < NPnt; i++)
       {
       if (Ind[i] == 0)
         continue;
-      Fo = DigitDat.FPnt[i];
+      Fo = DigitDat[i].F.Number;
       in = i + 1;
       break;
       }
@@ -115,7 +113,7 @@ void NUMBERING_INTERFEROGRAM_INFO :: GetFringeNumbers(CArrayDouble &ArrFNumbers)
     {
     if (Ind[i] == 0)
       continue;
-    ArrFNumbers[k++] = DigitDat.FPnt[i];
+    ArrFNumbers[k++] = DigitDat[i].F.Number;
     }
   SortIncrease(ArrFNumbers);
   }

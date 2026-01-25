@@ -1,4 +1,4 @@
-#include "DotInfo.h"
+﻿#include "DotInfo.h"
 
 #include "Utils\mutils.h"
 #include "Utils\middle.h"
@@ -17,6 +17,7 @@ void CDotInfo::Init()
 {
   iZapSec = -1;
   Number = -1000.;
+  segIdx = -1;
   P.x = P.y = 0.;
 }
 
@@ -25,6 +26,7 @@ CDotInfo& CDotInfo::operator=(const CDotInfo& rhs)
   if(this==&rhs) return *this;
     iZapSec = rhs.iZapSec;
     Number = rhs.Number;
+	segIdx = rhs.segIdx;
     P = rhs.P;
   return *this;
 }
@@ -67,5 +69,3 @@ void CDotInfo::Draw(CDC* pDC, int dotSide, BOOL mainDot/*FALSE*/)
    if(retBr)
       retBr->DeleteObject();
 }
-
-

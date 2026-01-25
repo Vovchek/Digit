@@ -1,4 +1,4 @@
-#include <math.h>
+﻿#include <math.h>
 #include "PolApproximation.h"
 //============================================================================
 PolApproximation :: PolApproximation ()
@@ -104,13 +104,13 @@ void PolApproximation::CreateMaxMatr()
         lp++;
         if (i + j + 2 <= PH2)
           {   //PH2 - matrix power + 2
-          SumFXY[lh] += (Ts * Sampl.FPnt[k]);
+          SumFXY[lh] += (Ts * Sampl[k].F.Number);
           lh++;
           }
-        Ys *= Sampl.YPnt[k];
+        Ys *= Sampl[k].Y;
         }
       jk--;
-      Xs *= Sampl.XPnt[k];
+      Xs *= Sampl[k].X;
       }
     }
   }
@@ -187,7 +187,7 @@ void PolApproximation :: CalcRMSDisp(double &RMS, double &Disp)
   double Sum = 0.;
   for (i = 0; i < NPnt; i++)
     {
-    dW = Sampl.FPnt[i] - CurPol.CalcValue(Sampl.XPnt[i], Sampl.YPnt[i]);
+    dW = Sampl[i].F.Number - CurPol.CalcValue(Sampl[i].X, Sampl[i].Y);
     Sum += (dW * dW);
     }
   RMS = sqrt(Sum / double(NPnt));

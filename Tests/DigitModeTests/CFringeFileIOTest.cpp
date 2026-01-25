@@ -123,14 +123,14 @@ TEST_F(CFringeFileIOTest, CollectPreservesAllPoints) {
     digitInfo.CollectNumberingInterferogramInfo(intInfo);
     
     // Verify all X coordinates present
-    EXPECT_TRUE(intInfo.DigitDat.XPnt.GetSize() == 9);
+    EXPECT_TRUE(intInfo.DigitDat.GetSize() == 9);
     
     // Check some specific values
     bool found10 = false, found20 = false, found30 = false;
-    for (int i = 0; i < intInfo.DigitDat.XPnt.GetSize(); i++) {
-        if (fabs(intInfo.DigitDat.XPnt[i] - 10.0) < 0.01) found10 = true;
-        if (fabs(intInfo.DigitDat.XPnt[i] - 20.0) < 0.01) found20 = true;
-        if (fabs(intInfo.DigitDat.XPnt[i] - 30.0) < 0.01) found30 = true;
+    for (int i = 0; i < intInfo.DigitDat.GetSize(); i++) {
+        if (fabs(intInfo.DigitDat[i].X - 10.0) < 0.01) found10 = true;
+        if (fabs(intInfo.DigitDat[i].X - 20.0) < 0.01) found20 = true;
+        if (fabs(intInfo.DigitDat[i].X - 30.0) < 0.01) found30 = true;
     }
     
     EXPECT_TRUE(found10);
@@ -146,10 +146,10 @@ TEST_F(CFringeFileIOTest, CollectPreservesFringeNumbers) {
     
     // Count points per fringe number
     int count0 = 0, count1 = 0, count2 = 0;
-    for (int i = 0; i < intInfo.DigitDat.FPnt.GetSize(); i++) {
-        if (fabs(intInfo.DigitDat.FPnt[i] - 0.0) < 0.01) count0++;
-        if (fabs(intInfo.DigitDat.FPnt[i] - 1.0) < 0.01) count1++;
-        if (fabs(intInfo.DigitDat.FPnt[i] - 2.0) < 0.01) count2++;
+    for (int i = 0; i < intInfo.DigitDat.GetSize(); i++) {
+        if (fabs(intInfo.DigitDat[i].F.Number - 0.0) < 0.01) count0++;
+        if (fabs(intInfo.DigitDat[i].F.Number - 1.0) < 0.01) count1++;
+        if (fabs(intInfo.DigitDat[i].F.Number - 2.0) < 0.01) count2++;
     }
     
     EXPECT_EQ(3, count0);
@@ -192,12 +192,11 @@ TEST_F(CFringeFileIOTest, ExamineCreatesCorrectNumberOfFringes) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     
     // Create test data: 3 points at y=100 (fringe 0), 2 points at y=200 (fringe 1)
-    intInfo.DigitDat.XPnt.Add(10); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(20); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(30); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(15); intInfo.DigitDat.YPnt.Add(200); intInfo.DigitDat.FPnt.Add(1.0);
-    intInfo.DigitDat.XPnt.Add(25); intInfo.DigitDat.YPnt.Add(200); intInfo.DigitDat.FPnt.Add(1.0);
-    intInfo.DigitDat.Properties.SetSize(5);
+    intInfo.DigitDat.Add(10, 100, 0.0);
+    intInfo.DigitDat.Add(20, 100, 0.0);
+    intInfo.DigitDat.Add(30, 100, 0.0);
+    intInfo.DigitDat.Add(15, 200, 1.0);
+    intInfo.DigitDat.Add(25, 200, 1.0);
     
     digitInfo.m_bUseFringeModel = TRUE;
     BOOL result = digitInfo.ExamineNumberingInterferogramInfo(intInfo);
@@ -210,10 +209,9 @@ TEST_F(CFringeFileIOTest, ExamineSortsPointsByX) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     
     // Add points in reverse X order
-    intInfo.DigitDat.XPnt.Add(30); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(10); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(20); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.Properties.SetSize(3);
+    intInfo.DigitDat.Add(30, 100, 0.0);
+    intInfo.DigitDat.Add(10, 100, 0.0);
+    intInfo.DigitDat.Add(20, 100, 0.0);
     
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
@@ -231,11 +229,10 @@ TEST_F(CFringeFileIOTest, ExamineSeparatesFringesByY) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     
     // Same fringe number, different Y coordinates -> separate fringes
-    intInfo.DigitDat.XPnt.Add(10); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.5);
-    intInfo.DigitDat.XPnt.Add(20); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.5);
-    intInfo.DigitDat.XPnt.Add(10); intInfo.DigitDat.YPnt.Add(200); intInfo.DigitDat.FPnt.Add(0.5);
-    intInfo.DigitDat.XPnt.Add(20); intInfo.DigitDat.YPnt.Add(200); intInfo.DigitDat.FPnt.Add(0.5);
-    intInfo.DigitDat.Properties.SetSize(4);
+    intInfo.DigitDat.Add(10, 100, 0.5);
+    intInfo.DigitDat.Add(20, 100, 0.5);
+    intInfo.DigitDat.Add(10, 200, 0.5);
+    intInfo.DigitDat.Add(20, 200, 0.5);
     
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
@@ -250,9 +247,8 @@ TEST_F(CFringeFileIOTest, ExamineSeparatesFringesByY) {
 TEST_F(CFringeFileIOTest, ExamineSyncsToDots) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     
-    intInfo.DigitDat.XPnt.Add(10); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.XPnt.Add(20); intInfo.DigitDat.YPnt.Add(100); intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.Properties.SetSize(2);
+    intInfo.DigitDat.Add(10, 100, 0.0);
+    intInfo.DigitDat.Add(20, 100, 0.0);
     
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
@@ -317,14 +313,14 @@ TEST_F(CFringeFileIOTest, RoundTripPreservesCoordinates) {
     digitInfo.CollectNumberingInterferogramInfo(intInfo2);
     
     // Compare (order might differ, so check all values exist)
-    ASSERT_EQ(origX.GetSize(), intInfo2.DigitDat.XPnt.GetSize());
+    ASSERT_EQ(origX.GetSize(), intInfo2.DigitDat.GetSize());
     
     for (int i = 0; i < origX.GetSize(); i++) {
         bool found = false;
-        for (int j = 0; j < intInfo2.DigitDat.XPnt.GetSize(); j++) {
-            if (fabs(origX[i] - intInfo2.DigitDat.XPnt[j]) < 0.01 &&
-                fabs(origY[i] - intInfo2.DigitDat.YPnt[j]) < 0.01 &&
-                fabs(origF[i] - intInfo2.DigitDat.FPnt[j]) < 0.01) {
+        for (int j = 0; j < intInfo2.DigitDat.GetSize(); j++) {
+            if (fabs(origX[i] - intInfo2.DigitDat[j].X) < 0.01 &&
+                fabs(origY[i] - intInfo2.DigitDat[j].Y) < 0.01 &&
+                fabs(origF[i] - intInfo2.DigitDat[j].F.Number) < 0.01) {
                 found = true;
                 break;
             }
@@ -408,10 +404,7 @@ TEST_F(CFringeFileIOTest, DotsModelCollectStillWorks) {
 
 TEST_F(CFringeFileIOTest, DotsModelExamineStillWorks) {
     NUMBERING_INTERFEROGRAM_INFO intInfo;
-    intInfo.DigitDat.XPnt.Add(25);
-    intInfo.DigitDat.YPnt.Add(75);
-    intInfo.DigitDat.FPnt.Add(2.5);
-    intInfo.DigitDat.Properties.Add(0.0);
+    intInfo.DigitDat.Add(25, 75, 2.5, 0.0, -1);
     
     digitInfo.m_bUseFringeModel = FALSE;
     BOOL result = digitInfo.ExamineNumberingInterferogramInfo(intInfo);
@@ -444,10 +437,7 @@ TEST_F(CFringeFileIOTest, ExamineRestoresMetadata) {
     intInfo.Title = _T("Loaded data");
     intInfo.ScaleFactor = 1.25;
     intInfo.FiScan = 90.0;
-    intInfo.DigitDat.XPnt.Add(10);
-    intInfo.DigitDat.YPnt.Add(10);
-    intInfo.DigitDat.FPnt.Add(0.0);
-    intInfo.DigitDat.Properties.Add(0.0);
+    intInfo.DigitDat.Add(10, 10, 0.0, 0.0, -1);
     
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);

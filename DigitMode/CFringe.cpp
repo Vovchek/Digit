@@ -5,13 +5,13 @@
 
 // ===== Construction =====
 
-CFringe::CFringe(double number)
-    : m_Number(number), m_bClosed(FALSE)
+CFringe::CFringe(double number, int index)
+    : m_Number(number), m_Index(index), m_bClosed(FALSE)
 {
 }
 
 CFringe::CFringe(const CFringe& other)
-    : m_Number(other.m_Number), m_bClosed(other.m_bClosed)
+    : m_Number(other.m_Number), m_Index(other.m_Index), m_bClosed(other.m_bClosed)
 {
     m_Points.Copy(other.m_Points);
 }
@@ -20,6 +20,7 @@ CFringe& CFringe::operator=(const CFringe& other)
 {
     if (this != &other) {
         m_Number = other.m_Number;
+		m_Index = other.m_Index;
         m_bClosed = other.m_bClosed;
         m_Points.RemoveAll();
         m_Points.Copy(other.m_Points);

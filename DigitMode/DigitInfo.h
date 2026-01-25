@@ -116,7 +116,7 @@ class CDigitInfo
 	  void CreateZAPSections();
 	  void CreateZAPSectionsOnLoadZAPFile();
  	  void SortZapLines();  
-      void SortDots(CArray<CDPoint>& adP, int XY);
+      void SortDotsFY();
       void PutDotsOnZAPSections(int iZAPSec);
 
 	  void SelectMainDot(CPoint P, int dotSide);
@@ -168,10 +168,10 @@ class CDigitInfo
 
   // ===== NEW: Fringe-based interface =====
   public:
-	  /// Create new fringe and return its index
-	  int CreateFringe(double number);
+	  /// Create new fringe and return its index in Fringes array
+	  int CreateFringe(double number, int segment = -1);
 	  
-	  /// Delete fringe by index
+	  /// Delete fringe by index in Fringes array
 	  void DeleteFringe(int iFringe);
 	  
 	  /// Get fringe by index
