@@ -1,4 +1,5 @@
 ﻿
+
 void CDigitInfo::SelectFringeStep()
 {
 	CArray<double, double> SortedSteps;
@@ -70,7 +71,7 @@ void CDigitInfo::SelectMainSection()
 	}
 }
 
-#include "DigitMode\CreateNumLines.cxx"
+#include "DigitMode\CreateNumLines.hxx"
 
 void CDigitInfo::SelectMainFringe()
 {
@@ -123,7 +124,7 @@ void CDigitInfo::SelectMainFringe()
 	MainFringeNumber = mainNum;
 }
 
-#include "DigitMode\SelectNumber.cxx"
+#include "DigitMode\SelectNumber.hxx"
 
 void CDigitInfo::CorrectNumbers()
 {
@@ -487,6 +488,24 @@ void CDigitInfo::RemoveDotZAPSection(int iSec)
 
 void CDigitInfo::AddDot(CPoint P, int dotSide)
 {
+	if (m_bUseFringeModel) {
+		int targetFringe = -1;
+		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			if (Fringes[iF].GetNumber() == CurrentNumber) {
+				targetFringe = iF;
+				break;
+			}
+		}
+		if (targetFringe < 0) {
+			targetFringe = CreateFringe(CurrentNumber);
+		}
+		AddPointToFringe(targetFringe, CDPoint(P.x, P.y));
+		SyncFringesToDots();
+		idxMainPoint = SelectedPoint(targetFringe, Fringes[targetFringe].GetPointCount() - 1);
+		CurrentNumber = Fringes[targetFringe].GetNumber();
+		return;
+	}
+
 	int idx;
 	CControls* pCtrls = GetControls();
 	CDotInfo dot;
@@ -510,6 +529,16 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 
 void CDigitInfo::RemoveDot(CPoint P, int dotSide)
 {
+	if (m_bUseFringeModel) {
+		int tol = dotSide / 2;
+		int fIdx, pIdx;
+		if (FindPointUnderCursor(P, tol, fIdx, pIdx)) {
+			RemovePointFromFringe(fIdx, pIdx);
+			SyncFringesToDots();
+		}
+		return;
+	}
+
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
 		Dots.RemoveAt(idx);
@@ -518,6 +547,21 @@ void CDigitInfo::RemoveDot(CPoint P, int dotSide)
 
 void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 {
+	if (m_bUseFringeModel) {
+		int tol = dotSide / 2;
+		int fIdx, pIdx;
+		if (FindPointUnderCursor(P, tol, fIdx, pIdx)) {
+			double Number = Fringes[fIdx].GetNumber();
+			for (int i = Fringes.GetSize() - 1; i >= 0; i--) {
+				if (Fringes[i].GetNumber() == Number) {
+					Fringes.RemoveAt(i);
+				}
+			}
+			SyncFringesToDots();
+		}
+		return;
+	}
+
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
 		double Number = Dots[idx].Number;
@@ -568,6 +612,22 @@ bool CDigitInfo::IsLockedDot()
 
 bool CDigitInfo::LockDot(CPoint P, int dotSide, BOOL Enable)
 {
+	if (m_bUseFringeModel) {
+		if (!Enable) {
+			idxDraggedPoint.Clear();
+			return true;
+		}
+		int tol = dotSide / 2;
+		int fIdx, pIdx;
+		if (FindPointUnderCursor(P, tol, fIdx, pIdx)) {
+			idxDraggedPoint = SelectedPoint(fIdx, pIdx);
+			idxMainPoint = idxDraggedPoint;
+			CurrentNumber = Fringes[fIdx].GetNumber();
+			return true;
+		}
+		return false;
+	}
+
 	if (Dots.GetSize() == 0)
 		return false;
 
@@ -587,18 +647,50 @@ bool CDigitInfo::LockDot(CPoint P, int dotSide, BOOL Enable)
 
 void CDigitInfo::SetLockedDotPos(CPoint P)
 {
+	if (m_bUseFringeModel) {
+		if (idxDraggedPoint.IsValid()) {
+			MovePointInFringe(idxDraggedPoint.iFringe, idxDraggedPoint.iPoint, CDPoint(P.x, P.y));
+			SyncFringesToDots();
+		}
+		return;
+	}
+
 	Dots[idxDragDot].P.x = P.x;
 	Dots[idxDragDot].P.y = P.y;
 }
 
 void CDigitInfo::GetLockedDotPos(CPoint& P1)
 {
+	if (m_bUseFringeModel) {
+		if (idxDraggedPoint.IsValid()) {
+			const CFringe* pFr = GetFringe(idxDraggedPoint.iFringe);
+			if (pFr && idxDraggedPoint.iPoint >= 0 && idxDraggedPoint.iPoint < pFr->GetPointCount()) {
+				CDPoint d = pFr->GetPoint(idxDraggedPoint.iPoint);
+				P1.x = (int)d.x;
+				P1.y = (int)d.y;
+				return;
+			}
+		}
+		P1.x = P1.y = 0;
+		return;
+	}
+
 	P1.x = Dots[idxDragDot].P.x;
 	P1.y = Dots[idxDragDot].P.y;
 }
 
 void CDigitInfo::SelectMainDot(CPoint P, int dotSide)
 {
+	if (m_bUseFringeModel) {
+		int tol = dotSide / 2;
+		int fIdx, pIdx;
+		if (FindPointUnderCursor(P, tol, fIdx, pIdx)) {
+			idxMainPoint = SelectedPoint(fIdx, pIdx);
+			CurrentNumber = Fringes[fIdx].GetNumber();
+		}
+		return;
+	}
+
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
 		idxMainDot = idx;
@@ -608,6 +700,20 @@ void CDigitInfo::SelectMainDot(CPoint P, int dotSide)
 
 void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 {
+	if (m_bUseFringeModel) {
+		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			if (Number == INT_MIN || fabs(Fringes[iF].GetNumber() - Number) < 1e-6) {
+				if (Fringes[iF].GetPointCount() > 0) {
+					idxMainPoint = SelectedPoint(iF, 0);
+					CurrentNumber = Fringes[iF].GetNumber();
+					return;
+				}
+			}
+		}
+		idxMainPoint.Clear();
+		return;
+	}
+
 	if (iZapSec == -1 && Number == INT_MIN && Dots.GetSize()) {
 		idxMainDot = 0;
 		CurrentNumber = Dots[0].Number;
@@ -879,79 +985,7 @@ void CDigitInfo::NumberPlus()
 		SelectMainDot(iZapSec, CurrentNumber);
 	}
 }
-/*
-BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO& IntInfo)
-{
-	IntInfo.Title = Comments;
-	IntInfo.ScaleFactor = ScaleFactor;
-	IntInfo.FiScan = Rotation;
 
-	CImageCtrls* pIm = GetImageCtrls();
-	CBoundCtrls* pB = GetBoundCtrls();
-	CDocument* pDoc = GetWIActiveDocument();
-
-	IntInfo.ArrEll.RemoveAll();
-	IntInfo.ArrEll.Append(pB->ArrEll);
-	IntInfo.ArrRect.RemoveAll();
-	IntInfo.ArrRect.Append(pB->ArrRect);
-	IntInfo.ArrPlg.RemoveAll();
-	IntInfo.ArrPlg.Append(pB->ArrPlg);
-	SAMPLE_DATA DigitDat;
-	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
-	IntInfo.ImageSize[1] = pIm->ImageSize.cy;
-	IntInfo.ImageFileName = pIm->OriginalPath;
-
-	int nD = Dots.GetSize();
-	if (nD == 0)
-		return FALSE;
-	IntInfo.DigitDat.Properties.SetSize(nD);
-	IntInfo.DigitDat.XPnt.SetSize(nD);
-	IntInfo.DigitDat.YPnt.SetSize(nD);
-	IntInfo.DigitDat.FPnt.SetSize(nD);
-	for (int i = 0; i < nD; i++) {
-		IntInfo.DigitDat.XPnt[i] = Dots[i].P.x;
-		IntInfo.DigitDat.YPnt[i] = Dots[i].P.y;
-		IntInfo.DigitDat.FPnt[i] = Dots[i].Number;
-		IntInfo.DigitDat.Properties[i] = 0.;
-	}
-
-	return TRUE;
-}
-
-BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO& IntInfo)
-{
-	Comments = IntInfo.Title;
-	ScaleFactor = IntInfo.ScaleFactor;
-	Rotation = IntInfo.FiScan;
-
-	CDocument* pDoc = GetWIActiveDocument();
-	CImageCtrls* pIm = GetImageCtrls();
-	CBoundCtrls* pB = GetBoundCtrls();
-
-	pB->ArrEll.RemoveAll();
-	pB->ArrEll.Append(IntInfo.ArrEll);
-	pB->ArrRect.RemoveAll();
-	pB->ArrRect.Append(IntInfo.ArrRect);
-	pB->ArrPlg.RemoveAll();
-	pB->ArrPlg.Append(IntInfo.ArrPlg);
-	pB->FormBoundsOnLoadFile();
-
-	SAMPLE_DATA DigitDat;
-	pIm->ImageSize.cx = IntInfo.ImageSize[0];
-	pIm->ImageSize.cy = IntInfo.ImageSize[1];
-
-	int nD = IntInfo.DigitDat.XPnt.GetSize();
-	if (nD == 0)
-		return FALSE;
-	Dots.SetSize(nD);
-	for (int i = 0; i < nD; i++) {
-		Dots[i].P.x = IntInfo.DigitDat.XPnt[i];
-		Dots[i].P.y = IntInfo.DigitDat.YPnt[i];
-		Dots[i].Number = IntInfo.DigitDat.FPnt[i];
-	}
-	return TRUE;
-}
-*/
 BOOL CDigitInfo::Load(LPCTSTR fname)
 {
 	if (!IsFileExist(fname, FALSE))

@@ -81,6 +81,33 @@ void CDigitInfo::Init_buf_line(int ny, int n)
 
 void CDigitInfo::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+	if (m_bUseFringeModel) {
+		if (!idxMainPoint.IsValid()) return;
+		CFringe* pFr = GetFringe(idxMainPoint.iFringe);
+		if (!pFr) return;
+		int currentIdx = idxMainPoint.iPoint;
+		int nextIdx = -1;
+
+		if (nChar == VK_LEFT) {
+			nextIdx = currentIdx - 1;
+		}
+		else if (nChar == VK_RIGHT) {
+			nextIdx = currentIdx + 1;
+		}
+		else if (nChar == VK_UP) {
+			nextIdx = currentIdx - 1;
+		}
+		else if (nChar == VK_DOWN) {
+			nextIdx = currentIdx + 1;
+		}
+
+		if (nextIdx >= 0 && nextIdx < pFr->GetPointCount()) {
+			idxMainPoint.iPoint = nextIdx;
+			CurrentNumber = pFr->GetNumber();
+		}
+		return;
+	}
+
 	int idx;
 	CDPoint dP;
 	if (idxMainDot != -1) {
@@ -105,7 +132,7 @@ void CDigitInfo::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		}
 		else if (nChar == VK_DOWN) {
 			if (GetNextDotInFringe(Dots[idxMainDot].Number, 1, idx, dP)) {
-				idxMainDot = idx;
+			 idxMainDot = idx;
 				CurrentNumber = Dots[idx].Number;
 			}
 		}
@@ -526,39 +553,76 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 	}
 
 	if (pCtrls->ViewState & V_DOTLINES) {
-		CList<double, double> Numbers;
-		CArray<CDPoint> adP;
-		GetDotNumbers(Numbers);
-		POSITION pos = Numbers.GetHeadPosition();
-		double Num;
-		CDPoint dP;
-		CPoint wP;
-		for (int i = 0; i < Numbers.GetCount(); i++) {
-			Num = Numbers.GetNext(pos);
-			pCtrls->GetIndexColor(Num, Color);
-			CPen pen1;
-			pen1.CreatePen(PS_SOLID, 0, Color);
-			CPen* open1 = pDC->SelectObject(&pen1);
-			GetFringeDots(Num, adP);
-			for (int ii = 0; ii < adP.GetSize(); ii++) {
-				wP.x = adP[ii].x; wP.y = adP[ii].y;
-				if (ii == 0) pDC->MoveTo(wP);
-				else      pDC->LineTo(wP);
+		if (m_bUseFringeModel) {
+			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+				double num = Fringes[iF].GetNumber();
+				pCtrls->GetIndexColor(num, Color);
+				CPen pen1;
+				pen1.CreatePen(PS_SOLID, 0, Color);
+				CPen* open1 = pDC->SelectObject(&pen1);
+				Fringes[iF].DrawPolyline(pDC, Color);
+				CPen* retPen1 = pDC->SelectObject(open1);
+				if (retPen1)
+					retPen1->DeleteObject();
 			}
-			CPen* retPen1 = pDC->SelectObject(open1);
-			if (retPen1)
-				retPen1->DeleteObject();
+		}
+		else {
+			CList<double, double> Numbers;
+			CArray<CDPoint> adP;
+			GetDotNumbers(Numbers);
+			POSITION pos = Numbers.GetHeadPosition();
+			double Num;
+			CDPoint dP;
+			CPoint wP;
+			for (int i = 0; i < Numbers.GetCount(); i++) {
+				Num = Numbers.GetNext(pos);
+				pCtrls->GetIndexColor(Num, Color);
+				CPen pen1;
+				pen1.CreatePen(PS_SOLID, 0, Color);
+				CPen* open1 = pDC->SelectObject(&pen1);
+				GetFringeDots(Num, adP);
+				for (int ii = 0; ii < adP.GetSize(); ii++) {
+					wP.x = adP[ii].x; wP.y = adP[ii].y;
+					if (ii == 0) pDC->MoveTo(wP);
+					else      pDC->LineTo(wP);
+				}
+				CPen* retPen1 = pDC->SelectObject(open1);
+				if (retPen1)
+					retPen1->DeleteObject();
+			}
 		}
 	}
 
 	if (pCtrls->ViewState & V_DOTS) {
-		for (int iD = 0; iD < Dots.GetSize(); iD++) {
-			if (idxDragDot == iD)
-				continue;
-			if (idxMainDot == iD)
-				Dots[iD].Draw(pDC, DotSide, Color);
-			else
-				Dots[iD].Draw(pDC, DotSide);
+		if (m_bUseFringeModel) {
+			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+				double num = Fringes[iF].GetNumber();
+				pCtrls->GetIndexColor(num, Color);
+				Fringes[iF].DrawDots(pDC, DotSide, Color);
+			}
+
+			// Highlight main selected point if any
+			if (idxMainPoint.IsValid()) {
+				const CFringe* pFr = GetFringe(idxMainPoint.iFringe);
+				if (pFr && idxMainPoint.iPoint >= 0 && idxMainPoint.iPoint < pFr->GetPointCount()) {
+					CDPoint sel = pFr->GetPoint(idxMainPoint.iPoint);
+					int half = (DotSide + 2) / 2;
+					CBrush brush(RGB(255, 0, 0));
+					CBrush* oldBr = pDC->SelectObject(&brush);
+					pDC->Ellipse((int)sel.x - half, (int)sel.y - half, (int)sel.x + half, (int)sel.y + half);
+					pDC->SelectObject(oldBr);
+				}
+			}
+		}
+		else {
+			for (int iD = 0; iD < Dots.GetSize(); iD++) {
+				if (idxDragDot == iD)
+					continue;
+				if (idxMainDot == iD)
+					Dots[iD].Draw(pDC, DotSide, Color);
+				else
+					Dots[iD].Draw(pDC, DotSide, Color);
+			}
 		}
 	}
 }
@@ -587,25 +651,7 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 	idxMainPoint.Clear();
 }
 
-#include "digitInfoFringe.cxx" // extracted for testing purposes
 
-/*
-BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
-{
-	NUMBERING_INTERFEROGRAM_INFO IntInfo;
-	if (!ReadZAPData(fname, IntInfo))
-		return FALSE;
-	return ExamineNumberingInterferogramInfo(IntInfo);
-}
-
-BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
-{
-	NUMBERING_INTERFEROGRAM_INFO IntInfo;
-	if (!ReadFRNData(fname, IntInfo))
-		return FALSE;
-	return ExamineNumberingInterferogramInfo(IntInfo);
-}
-*/
 BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)
 {
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
@@ -635,4 +681,6 @@ BOOL CDigitInfo::SaveFRN(LPCTSTR fname)
 	return true;
 }
 
-#include "digitInfoExt.cxx" // returned back the stuff copilot recklessly removed
+#include "digitInfoFringe.hxx" // extracted for testing purposes
+
+#include "digitInfoExt.hxx" // returned back the stuff copilot recklessly removed

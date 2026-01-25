@@ -176,8 +176,8 @@ void CDigitInfo::Delete_buf_line() {
 
 // ============================================================================
 // Production Code to be tested Inclusion
-#include "DigitMode\SelectNumber.cxx"
-#include "DigitMode\CreateNumLines.cxx"
+#include "DigitMode\SelectNumber.hxx"
+#include "DigitMode\CreateNumLines.hxx"
 
 // ============================================================================
 // END MOCK IMPLEMENTATIONS

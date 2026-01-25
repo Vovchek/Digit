@@ -323,6 +323,18 @@
     <ClInclude Include="DigitMode\CFringe.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\DigitInfoExt.hxx">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\DigitInfoFringe.hxx">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\CreateNumLines.hxx">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\SelectNumber.hxx">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />

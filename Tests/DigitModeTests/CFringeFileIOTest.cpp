@@ -64,7 +64,7 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 }
 
 // Pull in fringe-related DigitInfo implementations for tests
-#include "../DigitMode/DigitInfoFringe.cxx"
+#include "../DigitMode/DigitInfoFringe.hxx"
 
 // Stub for ZapSection lookup used during conversion
 bool CDigitInfo::GetNearestZapSection(CPoint, int& idx)
