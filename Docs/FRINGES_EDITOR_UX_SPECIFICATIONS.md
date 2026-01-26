@@ -566,3 +566,455 @@ This keeps feedback immediate.
 
 ---
 
+Perfect — I’ll execute **steps 1–4 fully**, still staying at **UX/spec level**, and keeping everything consistent with frozen **UX v1.0**.
+
+---
+
+# UX v1.0 — Validation & Refinement Pass
+
+## Step 1 — Conflict Audit (Modifiers, Modes, Gestures)
+
+Goal: identify **collisions, ambiguities, or overloads** and resolve them explicitly.
+
+### 1.1 Modifier Conflicts Review
+
+| Context            | Potential Conflict                 | Resolution                                                                                                      |
+| ------------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Ctrl in Draw       | Add-to-selection vs Connect curves | **Resolved**: In Draw mode, Ctrl is contextually *Connect* when clicking curve end; selection is locked in Draw |
+| Shift in Selection | Range select vs Promote            | **Resolved**: Shift+Click promotes only when click target is curve body; on dot/edge it remains range           |
+| Alt in Selection   | Fringe-select vs Delete dot        | **Resolved**: Alt+Click deletes dot only in Draw/Dot Edit; in Navigate it promotes to Fringe                    |
+| Right-click        | Context menu vs End drawing        | **Resolved**: In Draw mode, right-click = End drawing; elsewhere = context menu                                 |
+
+### 1.2 Mode Boundary Conflicts
+
+| Case                    | Risk                            | UX Rule                                                      |
+| ----------------------- | ------------------------------- | ------------------------------------------------------------ |
+| Selection while drawing | Accidental deselection          | Selection is locked during Draw                              |
+| Delete in Draw          | Remove whole curve accidentally | Del deletes only last dot; full delete requires leaving Draw |
+| Box select in Draw      | Unclear meaning                 | Box select disabled in Draw                                  |
+
+**Conclusion:**
+No unresolved conflicts. Mode-scoped meanings are acceptable and standard in CAD tools.
+
+---
+
+## Step 2 — Icon Sketch Sheet (Conceptual, Not Visual Assets)
+
+Below are **semantic icon definitions**, sufficient for designers or Copilot later.
+
+### 2.1 Mode Icons (Latchable)
+
+| Tool     | Icon Concept     | Visual Meaning       |
+| -------- | ---------------- | -------------------- |
+| Navigate | Arrow cursor     | Selection & movement |
+| Draw     | Polyline + dot   | Construct curve      |
+| Dot Edit | Dot with handles | Edit geometry        |
+
+---
+
+### 2.2 Command Icons (Momentary)
+
+#### Selection / Structure
+
+| Command           | Icon Concept       |
+| ----------------- | ------------------ |
+| Select Fringe     | Stacked polylines  |
+| Promote to Curve  | Polyline highlight |
+| Promote to Fringe | Polyline → stack   |
+
+---
+
+#### Geometry Operations
+
+| Command      | Icon Concept          |
+| ------------ | --------------------- |
+| Split Curve  | Scissors cutting line |
+| Merge Curves | Two lines joining     |
+| Simplify     | Smooth wave           |
+| Subdivide    | Dots added on line    |
+
+---
+
+#### Number Operations
+
+| Command     | Icon Concept |
+| ----------- | ------------ |
+| Number +    | `# +`        |
+| Number −    | `# −`        |
+| Auto-number | `# → #`      |
+
+---
+
+### 2.3 Icon Rules (Frozen)
+
+* No text inside icons
+* Stroke-based, not filled shapes
+* Same icon language across modes & commands
+* Color indicates state, not meaning
+
+---
+
+## Step 3 — User Muscle-Memory Walkthrough (10-Minute Scenario)
+
+This is a **realistic first-session flow** to validate UX learnability.
+
+---
+
+### Minute 0–1: Orientation
+
+* Default tool = Navigate
+* Cursor shows selection intent
+* Hover tooltips explain entities clearly
+
+User intuition: “This behaves like CAD / vector editor”
+
+---
+
+### Minute 1–4: First Fringe Digitization
+
+1. Select **Draw tool**
+2. Left-click empty space → first dot appears
+3. Rubber-band visible
+4. Continue clicking to add dots
+5. Right-click → curve ends
+6. New left-click → next fringe starts automatically (number increments)
+
+✔ No keyboard required
+✔ No modal confusion
+
+---
+
+### Minute 4–6: Refinement
+
+1. Switch to **Dot Edit**
+2. Drag dot → curve updates live
+3. Click edge → insert dot
+4. Alt+Click dot → remove mistake
+
+✔ Direct manipulation, no commands needed
+
+---
+
+### Minute 6–8: Connection
+
+1. Back to **Draw**
+2. Click end of curve A
+3. Ctrl+Click end of curve B → connect
+4. Drawing continues from free end of B
+
+✔ Mental model holds: “always continue from open end”
+
+---
+
+### Minute 8–10: Global Editing
+
+1. Navigate mode
+2. Box-select multiple curves
+3. Alt+Click one → promote to Fringe
+4. Press `+` → change number
+5. Press `S` → simplify
+
+✔ Power-user flow achievable quickly
+
+---
+
+### Walkthrough Verdict
+
+* Discoverable without manual
+* No dead ends
+* No hidden state surprises
+* Keyboard accelerators feel natural
+
+---
+
+## Step 4 — Context Menu Specification (Often Overlooked, Now Fixed)
+
+Context menus are **selection-sensitive** and **mode-aware**.
+
+---
+
+### 4.1 Empty Space
+
+* Navigate:
+
+  * Start Draw
+  * Select All
+* Draw:
+
+  * End Curve
+  * Cancel Draw
+
+---
+
+### 4.2 Dot Context Menu
+
+* Delete Dot
+* Insert Dot Before / After
+* Select Curve
+* Select Fringe
+
+---
+
+### 4.3 Edge Context Menu
+
+* Insert Dot
+* Split Curve Here
+* Select Curve
+* Simplify Curve
+
+---
+
+### 4.4 Curve Context Menu
+
+* Select Curve
+* Select Fringe
+* Split Curve
+* Simplify
+* Subdivide
+
+---
+
+### 4.5 Fringe Context Menu
+
+* Select Fringe
+* Change Number…
+* Auto-number
+* Delete Fringe
+
+---
+
+### 4.6 Mixed Selection
+
+* Delete Selection
+* Change Number (if applicable)
+* Clear Selection
+
+Menu never shows invalid actions.
+
+---
+
+## Final Validation Summary
+
+✔ Modifiers conflict-free
+✔ Icons semantically consistent
+✔ First-time workflow smooth
+✔ Context menus complete & safe
+✔ UX v1.0 is **internally consistent and CAD-grade**
+
+---
+
+Excellent — I’ll deliver **all four artifacts** I proposed, cleanly and concisely, as **UX v1.0 handoff material**.
+These are meant to be *authoritative*, readable by humans **and** usable by Copilot / developers.
+
+---
+
+# 1. UX v1.0 — One-Page Cheat Sheet
+
+## Modes
+
+| Mode     | Purpose                                |
+| -------- | -------------------------------------- |
+| Navigate | Select, move, delete, multi-object ops |
+| Draw     | Create, continue, connect curves       |
+| Dot Edit | Fine geometry editing                  |
+
+---
+
+## Objects
+
+| Level  | Meaning                          |
+| ------ | -------------------------------- |
+| Dot    | Control point                    |
+| Edge   | Line between dots                |
+| Curve  | Continuous polyline              |
+| Fringe | Group of curves with same Number |
+| Other  | Apertures, obstructions, zap     |
+
+---
+
+## Core Rules
+
+* Selection is persistent
+* One mode active at a time
+* Commands act on selection
+* Esc always cancels
+
+---
+
+## Modifiers
+
+| Modifier | Meaning                |
+| -------- | ---------------------- |
+| Ctrl     | Add / Connect          |
+| Shift    | Range / Constrain      |
+| Alt      | Structural / Alternate |
+
+---
+
+## Essential Keys
+
+| Key        | Action           |
+| ---------- | ---------------- |
+| Esc        | Cancel           |
+| Del        | Delete selection |
+| + / -      | Change Number    |
+| Ctrl+Z / Y | Undo / Redo      |
+| Tab        | Cycle selection  |
+
+---
+
+## Draw Mode Quick Flow
+
+1. Left-click empty → start curve (new fringe)
+2. Left-click end → continue curve
+3. Ctrl+Click other curve end → connect
+4. Right-click → end curve
+
+---
+
+# 2. Event → Command → Undo Mapping
+
+This ensures **undo predictability**.
+
+| User Action      | Command       | Undo Scope          |
+| ---------------- | ------------- | ------------------- |
+| Add dot          | AddDot        | Single step         |
+| Remove last dot  | RemoveDot     | Single step         |
+| Insert dot       | InsertDot     | Single step         |
+| Move dot(s)      | MoveGeometry  | One drag = one undo |
+| Split curve      | SplitCurve    | Atomic              |
+| Merge curves     | MergeCurves   | Atomic              |
+| Change Number    | Renumber      | Atomic              |
+| Simplify         | Simplify      | Atomic              |
+| Subdivide        | Subdivide     | Atomic              |
+| Delete selection | DeleteObjects | Atomic              |
+
+**Rule:**
+One user intent = one undo step.
+
+---
+
+# 3. Selection State Diagram (Textual)
+
+```
+[None]
+  |
+  v
+[Dot] ----Shift----> [Dot Range]
+  |                     |
+  | Promote             | Promote
+  v                     v
+[Edge] ------------> [Curve]
+                          |
+                       Alt Promote
+                          v
+                       [Fringe]
+```
+
+### Notes
+
+* Promotion never loses information
+* Demotion is explicit (Alt or command)
+* Mixed selection allowed only via Ctrl
+
+---
+
+# 4. Formal UX v1.0 Acceptance Checklist
+
+This is what implementation must satisfy before sign-off.
+
+## Selection
+
+* [ ] Dot, Edge, Curve, Fringe selectable
+* [ ] Box selection obeys inclusion rules
+* [ ] Ctrl adds, Shift ranges, Alt promotes
+* [ ] Selection persists across modes
+
+## Draw Mode
+
+* [ ] Start new curve on empty click
+* [ ] Continue from curve ends
+* [ ] Connect curves with Ctrl
+* [ ] Free end becomes active after connect
+* [ ] Right-click ends curve
+* [ ] Backspace removes last dot
+
+## Dot Edit
+
+* [ ] Move dots with drag
+* [ ] Insert dot on edge
+* [ ] Delete dot with Alt+Click
+* [ ] Edge drag moves its dots
+
+## Navigate
+
+* [ ] Multi-select drag
+* [ ] Multi-delete
+* [ ] Mixed object selection safe
+
+## Commands
+
+* [ ] Number +/- works on selection
+* [ ] Auto-number respects order
+* [ ] Simplify / Subdivide work on curves
+* [ ] Merge / Split atomic & undoable
+
+## Feedback
+
+* [ ] Cursor reflects action
+* [ ] Tooltips follow spec
+* [ ] Icons reflect modes/commands
+* [ ] Invalid actions disabled
+
+---
+
+# Status
+
+✅ UX v1.0 **fully specified**
+✅ Ready for:
+
+* Copilot instruction derivation
+* UI mockups
+* Implementation planning
+* Test-case writing
+
+---
+
+Perfect. Here is the **distilled Copilot system prompt**, optimized to be **short, strict, and enforce UX v1.0 correctly**.
+This is meant to be pasted **verbatim** at the top of Copilot Chat or as a project AI instruction.
+
+---
+
+## Copilot System Prompt — **MFringe UX v1.0**
+
+You are working on **MFringe**, a scientific CAD-like editor for interferogram fringes.
+
+Follow **UX v1.0 strictly**:
+
+• **Terminology is fixed**: Dot (point), Edge (between dots), Curve (continuous polyline), Fringe (group of curves with same Number). Do not use “segment” in UX or logic.
+• **Modes are limited**: Navigate, Draw, Dot Edit. Only these change mouse behavior.
+• **Selection is persistent and hierarchical**: Dot → Edge → Curve → Fringe. No implicit promotion.
+• **Modifiers are global**:
+Ctrl = add / connect
+Shift = range / constrain
+Alt = structural / alternate
+• **Draw mode**:
+– Left-click empty → start new curve (new fringe, Number += step)
+– Left-click curve end → continue curve
+– Ctrl+Click other curve end → connect; **free end becomes active**
+– Right-click ends current curve
+– Backspace removes last dot
+• **Dot Edit mode**: move/insert/delete dots and edges only; no creation or numbering.
+• **Navigate mode**: full selection, box select, multi-object drag/delete.
+• **Box selection rules**:
+– Edge if intersects or inside
+– Curve only if *all* edges included (unless Curve-select modifier)
+– Fringe only via Fringe-select modifier
+• **Commands (not modes)** act on selection: Number +/−, auto-number, simplify, subdivide, split, merge.
+• **One user intent = one undo step.**
+• **Never reintroduce flat-dot logic or topology reconstruction.**
+
+If behavior is ambiguous, choose predictability over cleverness and follow CAD conventions.
+
+---
+
