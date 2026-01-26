@@ -985,9 +985,9 @@ This is meant to be pasted **verbatim** at the top of Copilot Chat or as a proje
 
 ---
 
-## Copilot System Prompt — **MFringe UX v1.0**
+## Copilot System Prompt — **Digit/MFringe UX v1.0**
 
-You are working on **MFringe**, a scientific CAD-like editor for interferogram fringes.
+You are working on **Digit**, a scientific CAD-like editor for interferogram fringes.
 
 Follow **UX v1.0 strictly**:
 
