@@ -604,10 +604,11 @@ bool CDigitInfo::IsDotUnderCursor(CPoint P, int dotSide, int& idx)
 
 bool CDigitInfo::IsLockedDot()
 {
-	if (idxDragDot == -1)
-		return false;
-	else
-		return true;
+	if (m_bUseFringeModel) {
+		return idxDraggedPoint.IsValid();
+	}
+
+	return idxDragDot != -1;
 }
 
 bool CDigitInfo::LockDot(CPoint P, int dotSide, BOOL Enable)
