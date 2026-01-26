@@ -537,9 +537,9 @@ Example tooltip:
 
 ### Styling
 
-* Monochrome
+* Color reflects fringe number (applicable for dots, edges, curves, fringes) or denotes object type (apertures, obstuctions)
 * No text inside icons
-* Color reflects state (hover / active)
+* Color accent (brightness, glow) reflects state (hover / active)
 
 ---
 
