@@ -8,10 +8,10 @@
 /// ARCHITECTURE NOTES:
 /// - Points are stored in ORDERED sequence (spatial coherence preserved)
 /// - NO section information stored here (sections are horizontal slices across ALL fringes)
-/// - Multiple CFringe objects can share the same Number (discontinuous segments)
+/// - Multiple CFringeSegment objects can share the same Number (discontinuous segments)
 /// - Sections can be reconstructed from Y-coordinates of all fringes when needed
 /// </summary>
-class CFringe {
+class CFringeSegment {
 private:
     double m_Number;              ///< Fringe number (e.g., 0, 0.5, 1.0, ...)
     int m_Index;                  ///< Segment index for this fringe Number 
@@ -21,10 +21,10 @@ private:
     
 public:
     // ===== Construction =====
-    CFringe(double number = 0.0, int index = -1);
-    CFringe(const CFringe& other);
-    CFringe& operator=(const CFringe& other);
-    ~CFringe();
+    CFringeSegment(double number = 0.0, int index = -1);
+    CFringeSegment(const CFringeSegment& other);
+    CFringeSegment& operator=(const CFringeSegment& other);
+    ~CFringeSegment();
     
     // ===== Point Management =====
     /// Add point to end of polyline
@@ -47,7 +47,7 @@ public:
     
     /// Append all points from another fringe
     /// @param other Source fringe to append from
-    void AppendPoints(const CFringe& other);
+    void AppendPoints(const CFringeSegment& other);
     
     // ===== Queries =====
     /// Get total number of points in fringe
@@ -125,7 +125,7 @@ public:
     /// Split this fringe at given point index (returns new fringe)
     /// @param atIndex Index where to split (point becomes first of new fringe)
     /// @return New fringe containing points from atIndex onward
-    CFringe Split(int atIndex);
+    CFringeSegment Split(int atIndex);
     
     /// Compute total arc length
     /// @return Total length of polyline

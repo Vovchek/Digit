@@ -181,7 +181,7 @@
     <ClCompile Include="StdAfx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\CFringe.cpp">
+    <ClCompile Include="DigitMode\CFringeSegment.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
@@ -320,9 +320,6 @@
     <ClInclude Include="MFringe\Resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\CFringe.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\DigitInfoExt.hxx">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
@@ -333,6 +330,9 @@
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\SelectNumber.hxx">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\CFringeSegment.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
   </ItemGroup>
@@ -354,6 +354,7 @@
     <None Include="Docs\IMPLEMENT_UX.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
+    <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />

@@ -1,4 +1,4 @@
-п»ї
+
 
 void CDigitInfo::SelectFringeStep()
 {
@@ -664,7 +664,7 @@ void CDigitInfo::GetLockedDotPos(CPoint& P1)
 {
 	if (m_bUseFringeModel) {
 		if (idxDraggedPoint.IsValid()) {
-			const CFringe* pFr = GetFringe(idxDraggedPoint.iFringe);
+			const CFringeSegment* pFr = GetFringe(idxDraggedPoint.iFringe);
 			if (pFr && idxDraggedPoint.iPoint >= 0 && idxDraggedPoint.iPoint < pFr->GetPointCount()) {
 				CDPoint d = pFr->GetPoint(idxDraggedPoint.iPoint);
 				P1.x = (int)d.x;
@@ -1178,7 +1178,7 @@ BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int he
 
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 {
-	// TODO: switch to CFringe array latter
+	// TODO: switch to CFringeSegment array latter
 	m_bUseFringeModel = false;
 
 	CString FileName = fname;
@@ -1195,7 +1195,7 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		TRACE("LoadZAP: Image path resolved to: %s\n", resolved.c_str());
 	}
 
-	//Р’С‹Р·РѕРІ LoadImage РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё m_pDIB
+	//Вызов LoadImage для инициализации m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
 	BOOL imageLoaded = FALSE;
 
@@ -1212,11 +1212,11 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		TRACE("LoadZAP: Creating fake gray image as fallback\n");
 		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
 			imageLoaded = TRUE; // Treat as successful load for processing
-			AfxMessageBox(_T("РР·РѕР±СЂР°Р¶РµРЅРёРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚. РЎРѕР·РґР°РЅ СЃРµСЂС‹Р№ С„РѕРЅ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
+			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
 			TRACE("LoadZAP: Fake image created successfully\n");
 		}
 		else {
-			AfxMessageBox(_T("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
+			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
 			TRACE("LoadZAP: Failed to create fake image\n");
 		}
 	}
@@ -1274,7 +1274,7 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 
 BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 {
-	// Load FRN into CFringe array, create legacy Dots from it
+	// Load FRN into CFringeSegment array, create legacy Dots from it
 	m_bUseFringeModel = true;
 
 	CString FileName = fname;
@@ -1291,7 +1291,7 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		TRACE("LoadFRN: Image path resolved to: %s\n", resolved.c_str());
 	}
 
-	//Р’С‹Р·РѕРІ LoadImage РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё m_pDIB
+	//Вызов LoadImage для инициализации m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
 	BOOL imageLoaded = FALSE;
 
@@ -1307,11 +1307,11 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		TRACE("LoadFRN: Creating fake gray image as fallback\n");
 		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
 			imageLoaded = TRUE; // Treat as successful load
-			AfxMessageBox(_T("РР·РѕР±СЂР°Р¶РµРЅРёРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚. РЎРѕР·РґР°РЅ СЃРµСЂС‹Р№ С„РѕРЅ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
+			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
 			TRACE("LoadFRN: Fake image created successfully\n");
 		}
 		else {
-			AfxMessageBox(_T("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
+			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
 			TRACE("LoadFRN: Failed to create fake image\n");
 		}
 	}

@@ -83,7 +83,7 @@ void CDigitInfo::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
 	if (m_bUseFringeModel) {
 		if (!idxMainPoint.IsValid()) return;
-		CFringe* pFr = GetFringe(idxMainPoint.iFringe);
+		CFringeSegment* pFr = GetFringe(idxMainPoint.iFringe);
 		if (!pFr) return;
 		int currentIdx = idxMainPoint.iPoint;
 		int nextIdx = -1;
@@ -603,7 +603,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 
 			// Highlight main selected point if any
 			if (idxMainPoint.IsValid()) {
-				const CFringe* pFr = GetFringe(idxMainPoint.iFringe);
+				const CFringeSegment* pFr = GetFringe(idxMainPoint.iFringe);
 				if (pFr && idxMainPoint.iPoint >= 0 && idxMainPoint.iPoint < pFr->GetPointCount()) {
 					CDPoint sel = pFr->GetPoint(idxMainPoint.iPoint);
 					int half = (DotSide + 2) / 2;

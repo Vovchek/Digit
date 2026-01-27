@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -157,7 +157,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DigitMode\CFringe.cpp" />
+    <ClCompile Include="DigitMode\CFringeSegment.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
     <ClCompile Include="Controls\BoundCtrls.cpp" />
@@ -205,7 +205,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppDef.h" />
-    <ClInclude Include="DigitMode\CFringe.h" />
+    <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
@@ -264,6 +264,7 @@
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
     <None Include="README_DIGITINFO_ANALYSIS.md" />
+    <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1" />
     <None Include="VISUAL_STUDIO_SETUP.md" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

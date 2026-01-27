@@ -1,22 +1,22 @@
 ﻿#include "stdafx.h"
-#include "CFringe.h"
+#include "CFringeSegment.h"
 #include <cmath>
 #include <float.h>
 
 // ===== Construction =====
 
-CFringe::CFringe(double number, int index)
+CFringeSegment::CFringeSegment(double number, int index)
     : m_Number(number), m_Index(index), m_bClosed(FALSE)
 {
 }
 
-CFringe::CFringe(const CFringe& other)
+CFringeSegment::CFringeSegment(const CFringeSegment& other)
     : m_Number(other.m_Number), m_Index(other.m_Index), m_bClosed(other.m_bClosed)
 {
     m_Points.Copy(other.m_Points);
 }
 
-CFringe& CFringe::operator=(const CFringe& other)
+CFringeSegment& CFringeSegment::operator=(const CFringeSegment& other)
 {
     if (this != &other) {
         m_Number = other.m_Number;
@@ -28,37 +28,37 @@ CFringe& CFringe::operator=(const CFringe& other)
     return *this;
 }
 
-CFringe::~CFringe()
+CFringeSegment::~CFringeSegment()
 {
 }
 
 // ===== Point Management =====
 
-int CFringe::AddPoint(CDPoint p)
+int CFringeSegment::AddPoint(CDPoint p)
 {
     m_Points.Add(p);
     return m_Points.GetSize() - 1;
 }
 
-void CFringe::InsertPoint(int idx, CDPoint p)
+void CFringeSegment::InsertPoint(int idx, CDPoint p)
 {
     if (idx < 0 || idx > m_Points.GetSize()) return;
     m_Points.InsertAt(idx, p);
 }
 
-void CFringe::RemovePoint(int idx)
+void CFringeSegment::RemovePoint(int idx)
 {
     if (idx < 0 || idx >= m_Points.GetSize()) return;
     m_Points.RemoveAt(idx);
 }
 
-void CFringe::MovePoint(int idx, CDPoint newP)
+void CFringeSegment::MovePoint(int idx, CDPoint newP)
 {
     if (idx < 0 || idx >= m_Points.GetSize()) return;
     m_Points[idx] = newP;
 }
 
-void CFringe::AppendPoints(const CFringe& other)
+void CFringeSegment::AppendPoints(const CFringeSegment& other)
 {
     for (int i = 0; i < other.m_Points.GetSize(); i++) {
         m_Points.Add(other.m_Points[i]);
@@ -67,7 +67,7 @@ void CFringe::AppendPoints(const CFringe& other)
 
 // ===== Queries =====
 
-CDPoint CFringe::GetPoint(int idx) const
+CDPoint CFringeSegment::GetPoint(int idx) const
 {
     if (idx >= 0 && idx < m_Points.GetSize()) {
         return m_Points[idx];
@@ -75,7 +75,7 @@ CDPoint CFringe::GetPoint(int idx) const
     return CDPoint(0, 0);
 }
 
-void CFringe::SetPoint(int idx, CDPoint p)
+void CFringeSegment::SetPoint(int idx, CDPoint p)
 {
     if (idx >= 0 && idx < m_Points.GetSize()) {
         m_Points[idx] = p;
@@ -84,7 +84,7 @@ void CFringe::SetPoint(int idx, CDPoint p)
 
 // ===== Hit Testing =====
 
-int CFringe::FindNearestPoint(CPoint screenP, int tolerance)
+int CFringeSegment::FindNearestPoint(CPoint screenP, int tolerance)
 {
     int nearestIdx = -1;
     double minDist = DBL_MAX;
@@ -103,13 +103,13 @@ int CFringe::FindNearestPoint(CPoint screenP, int tolerance)
     return nearestIdx;
 }
 
-BOOL CFringe::IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx)
+BOOL CFringeSegment::IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx)
 {
     nearestIdx = FindNearestPoint(P, tolerance);
     return (nearestIdx >= 0);
 }
 
-CRect CFringe::GetBoundingRect() const
+CRect CFringeSegment::GetBoundingRect() const
 {
     if (m_Points.GetSize() == 0) {
         return CRect(0, 0, 0, 0);
@@ -130,7 +130,7 @@ CRect CFringe::GetBoundingRect() const
 
 // ===== Drawing =====
 
-void CFringe::DrawDots(CDC* pDC, int dotSize, COLORREF color)
+void CFringeSegment::DrawDots(CDC* pDC, int dotSize, COLORREF color)
 {
     int half = dotSize / 2;
     CBrush brush(color);
@@ -144,7 +144,7 @@ void CFringe::DrawDots(CDC* pDC, int dotSize, COLORREF color)
     pDC->SelectObject(oldBrush);
 }
 
-void CFringe::DrawPolyline(CDC* pDC, COLORREF color)
+void CFringeSegment::DrawPolyline(CDC* pDC, COLORREF color)
 {
     if (m_Points.GetSize() < 2) return;
     
@@ -166,7 +166,7 @@ void CFringe::DrawPolyline(CDC* pDC, COLORREF color)
     pDC->SelectObject(oldPen);
 }
 
-void CFringe::DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotColor)
+void CFringeSegment::DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotColor)
 {
     DrawPolyline(pDC, lineColor);
     DrawDots(pDC, dotSize, dotColor);
@@ -174,9 +174,9 @@ void CFringe::DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotCo
 
 // ===== Advanced Operations (Phase 5) =====
 
-CFringe CFringe::Split(int atIndex)
+CFringeSegment CFringeSegment::Split(int atIndex)
 {
-    CFringe newFringe(m_Number);
+    CFringeSegment newFringe(m_Number);
     
     if (atIndex <= 0 || atIndex >= m_Points.GetSize()) {
         return newFringe;  // Invalid, return empty
@@ -195,7 +195,7 @@ CFringe CFringe::Split(int atIndex)
     return newFringe;
 }
 
-double CFringe::GetArcLength() const
+double CFringeSegment::GetArcLength() const
 {
     double length = 0.0;
     
@@ -214,7 +214,7 @@ double CFringe::GetArcLength() const
     return length;
 }
 
-void CFringe::SubdivideSegments(double maxGap)
+void CFringeSegment::SubdivideSegments(double maxGap)
 {
     int originalCount = m_Points.GetSize();
     
@@ -244,7 +244,7 @@ void CFringe::SubdivideSegments(double maxGap)
     }
 }
 
-void CFringe::Simplify(double epsilon)
+void CFringeSegment::Simplify(double epsilon)
 {
     if (m_Points.GetSize() <= 2) return;
     
@@ -267,7 +267,7 @@ void CFringe::Simplify(double epsilon)
     }
 }
 
-void CFringe::SimplifyRecursive(int start, int end, double epsilon, CArray<BOOL>& keep)
+void CFringeSegment::SimplifyRecursive(int start, int end, double epsilon, CArray<BOOL>& keep)
 {
     if (end - start <= 1) return;
     
@@ -293,7 +293,7 @@ void CFringe::SimplifyRecursive(int start, int end, double epsilon, CArray<BOOL>
     }
 }
 
-double CFringe::PointToLineDistance(CDPoint p, CDPoint lineStart, CDPoint lineEnd)
+double CFringeSegment::PointToLineDistance(CDPoint p, CDPoint lineStart, CDPoint lineEnd)
 {
     double A = p.x - lineStart.x;
     double B = p.y - lineStart.y;

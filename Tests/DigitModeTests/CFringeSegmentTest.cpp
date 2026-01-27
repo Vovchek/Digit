@@ -1,32 +1,32 @@
 ﻿#include "stdafx.h"
 #include "gtest/gtest.h"
-#include "../DigitMode/CFringe.h"
+#include "../DigitMode/CFringeSegment.h"
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>
 
 // ===== Construction Tests =====
 
 TEST(CFringeTest, DefaultConstruction) {
-    CFringe fringe;
+    CFringeSegment fringe;
     EXPECT_EQ(0.0, fringe.GetNumber());
     EXPECT_EQ(0, fringe.GetPointCount());
     EXPECT_FALSE(fringe.IsClosed());
 }
 
 TEST(CFringeTest, ConstructionWithNumber) {
-    CFringe fringe(2.5);
+    CFringeSegment fringe(2.5);
     EXPECT_EQ(2.5, fringe.GetNumber());
     EXPECT_EQ(0, fringe.GetPointCount());
     EXPECT_FALSE(fringe.IsClosed());
 }
 
 TEST(CFringeTest, CopyConstruction) {
-    CFringe original(1.5);
+    CFringeSegment original(1.5);
     original.AddPoint(CDPoint(10, 20));
     original.AddPoint(CDPoint(30, 40));
     original.SetClosed(TRUE);
     
-    CFringe copy(original);
+    CFringeSegment copy(original);
     
     EXPECT_EQ(1.5, copy.GetNumber());
     EXPECT_EQ(2, copy.GetPointCount());
@@ -38,11 +38,11 @@ TEST(CFringeTest, CopyConstruction) {
 }
 
 TEST(CFringeTest, AssignmentOperator) {
-    CFringe original(2.0);
+    CFringeSegment original(2.0);
     original.AddPoint(CDPoint(5, 10));
     original.SetClosed(TRUE);
     
-    CFringe assigned(3.0);
+    CFringeSegment assigned(3.0);
     assigned = original;
     
     EXPECT_EQ(2.0, assigned.GetNumber());
@@ -52,7 +52,7 @@ TEST(CFringeTest, AssignmentOperator) {
 }
 
 TEST(CFringeTest, SelfAssignment) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 20));
     
     fringe = fringe;
@@ -64,7 +64,7 @@ TEST(CFringeTest, SelfAssignment) {
 // ===== Point Management Tests =====
 
 TEST(CFringeTest, AddPoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     int idx0 = fringe.AddPoint(CDPoint(10, 20));
     EXPECT_EQ(0, idx0);
@@ -81,7 +81,7 @@ TEST(CFringeTest, AddPoint) {
 }
 
 TEST(CFringeTest, InsertPointAtBeginning) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(20, 20));
     fringe.AddPoint(CDPoint(30, 30));
     
@@ -94,7 +94,7 @@ TEST(CFringeTest, InsertPointAtBeginning) {
 }
 
 TEST(CFringeTest, InsertPointInMiddle) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(30, 30));
     
@@ -107,7 +107,7 @@ TEST(CFringeTest, InsertPointInMiddle) {
 }
 
 TEST(CFringeTest, InsertPointAtEnd) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(20, 20));
     
@@ -118,7 +118,7 @@ TEST(CFringeTest, InsertPointAtEnd) {
 }
 
 TEST(CFringeTest, InsertPointInvalidIndex) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     int originalCount = fringe.GetPointCount();
@@ -133,7 +133,7 @@ TEST(CFringeTest, InsertPointInvalidIndex) {
 }
 
 TEST(CFringeTest, RemovePoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(20, 20));
     fringe.AddPoint(CDPoint(30, 30));
@@ -146,7 +146,7 @@ TEST(CFringeTest, RemovePoint) {
 }
 
 TEST(CFringeTest, RemoveFirstPoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(20, 20));
     
@@ -157,7 +157,7 @@ TEST(CFringeTest, RemoveFirstPoint) {
 }
 
 TEST(CFringeTest, RemoveLastPoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(20, 20));
     
@@ -168,7 +168,7 @@ TEST(CFringeTest, RemoveLastPoint) {
 }
 
 TEST(CFringeTest, RemovePointInvalidIndex) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     int originalCount = fringe.GetPointCount();
@@ -181,7 +181,7 @@ TEST(CFringeTest, RemovePointInvalidIndex) {
 }
 
 TEST(CFringeTest, MovePoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     fringe.AddPoint(CDPoint(20, 20));
     
@@ -193,7 +193,7 @@ TEST(CFringeTest, MovePoint) {
 }
 
 TEST(CFringeTest, MovePointInvalidIndex) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     fringe.MovePoint(5, CDPoint(50, 50));
@@ -204,7 +204,7 @@ TEST(CFringeTest, MovePointInvalidIndex) {
 }
 
 TEST(CFringeTest, SetPointAndGetPoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     fringe.SetPoint(0, CDPoint(25, 35));
@@ -215,7 +215,7 @@ TEST(CFringeTest, SetPointAndGetPoint) {
 }
 
 TEST(CFringeTest, GetPointInvalidIndex) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     CDPoint p = fringe.GetPoint(5);
@@ -224,11 +224,11 @@ TEST(CFringeTest, GetPointInvalidIndex) {
 }
 
 TEST(CFringeTest, AppendPoints) {
-    CFringe fringe1(1.0);
+    CFringeSegment fringe1(1.0);
     fringe1.AddPoint(CDPoint(10, 10));
     fringe1.AddPoint(CDPoint(20, 20));
     
-    CFringe fringe2(1.0);
+    CFringeSegment fringe2(1.0);
     fringe2.AddPoint(CDPoint(30, 30));
     fringe2.AddPoint(CDPoint(40, 40));
     
@@ -244,7 +244,7 @@ TEST(CFringeTest, AppendPoints) {
 // ===== Property Tests =====
 
 TEST(CFringeTest, GetSetNumber) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     EXPECT_EQ(1.0, fringe.GetNumber());
     
     fringe.SetNumber(2.5);
@@ -252,7 +252,7 @@ TEST(CFringeTest, GetSetNumber) {
 }
 
 TEST(CFringeTest, GetSetClosed) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     EXPECT_FALSE(fringe.IsClosed());
     
     fringe.SetClosed(TRUE);
@@ -265,7 +265,7 @@ TEST(CFringeTest, GetSetClosed) {
 // ===== Hit Testing Tests =====
 
 TEST(CFringeTest, FindNearestPointWithinTolerance) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     fringe.AddPoint(CDPoint(200, 100));
     fringe.AddPoint(CDPoint(300, 100));
@@ -275,7 +275,7 @@ TEST(CFringeTest, FindNearestPointWithinTolerance) {
 }
 
 TEST(CFringeTest, FindNearestPointExactMatch) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     fringe.AddPoint(CDPoint(200, 200));
     
@@ -284,7 +284,7 @@ TEST(CFringeTest, FindNearestPointExactMatch) {
 }
 
 TEST(CFringeTest, FindNearestPointOutsideTolerance) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     fringe.AddPoint(CDPoint(200, 100));
     
@@ -293,14 +293,14 @@ TEST(CFringeTest, FindNearestPointOutsideTolerance) {
 }
 
 TEST(CFringeTest, FindNearestPointEmptyFringe) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     int idx = fringe.FindNearestPoint(CPoint(100, 100), 10);
     EXPECT_EQ(-1, idx);
 }
 
 TEST(CFringeTest, FindNearestPointSelectsClosest) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     fringe.AddPoint(CDPoint(110, 100));
     fringe.AddPoint(CDPoint(105, 100));
@@ -310,7 +310,7 @@ TEST(CFringeTest, FindNearestPointSelectsClosest) {
 }
 
 TEST(CFringeTest, IsPointOnPolyline) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     fringe.AddPoint(CDPoint(200, 100));
     
@@ -322,7 +322,7 @@ TEST(CFringeTest, IsPointOnPolyline) {
 }
 
 TEST(CFringeTest, IsPointOnPolylineOutsideTolerance) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 100));
     
     int nearestIdx = -1;
@@ -333,7 +333,7 @@ TEST(CFringeTest, IsPointOnPolylineOutsideTolerance) {
 }
 
 TEST(CFringeTest, GetBoundingRectEmpty) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     CRect rect = fringe.GetBoundingRect();
     
@@ -344,7 +344,7 @@ TEST(CFringeTest, GetBoundingRectEmpty) {
 }
 
 TEST(CFringeTest, GetBoundingRectSinglePoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 200));
     
     CRect rect = fringe.GetBoundingRect();
@@ -356,7 +356,7 @@ TEST(CFringeTest, GetBoundingRectSinglePoint) {
 }
 
 TEST(CFringeTest, GetBoundingRectMultiplePoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(50, 30));
     fringe.AddPoint(CDPoint(150, 20));
     fringe.AddPoint(CDPoint(100, 80));
@@ -372,13 +372,13 @@ TEST(CFringeTest, GetBoundingRectMultiplePoints) {
 // ===== Advanced Operations Tests =====
 
 TEST(CFringeTest, SplitAtMiddle) {
-    CFringe original(1.5);
+    CFringeSegment original(1.5);
     original.AddPoint(CDPoint(10, 10));
     original.AddPoint(CDPoint(20, 20));
     original.AddPoint(CDPoint(30, 30));
     original.AddPoint(CDPoint(40, 40));
     
-    CFringe newFringe = original.Split(2);
+    CFringeSegment newFringe = original.Split(2);
     
     EXPECT_EQ(2, original.GetPointCount());
     EXPECT_EQ(10.0, original.GetPoint(0).x);
@@ -391,17 +391,17 @@ TEST(CFringeTest, SplitAtMiddle) {
 }
 
 TEST(CFringeTest, SplitInvalidIndexReturnsEmpty) {
-    CFringe original(1.0);
+    CFringeSegment original(1.0);
     original.AddPoint(CDPoint(10, 10));
     original.AddPoint(CDPoint(20, 20));
     
-    CFringe empty1 = original.Split(0);
+    CFringeSegment empty1 = original.Split(0);
     EXPECT_EQ(0, empty1.GetPointCount());
     
-    CFringe empty2 = original.Split(2);
+    CFringeSegment empty2 = original.Split(2);
     EXPECT_EQ(0, empty2.GetPointCount());
     
-    CFringe empty3 = original.Split(-1);
+    CFringeSegment empty3 = original.Split(-1);
     EXPECT_EQ(0, empty3.GetPointCount());
     
     // Original should be unchanged
@@ -409,14 +409,14 @@ TEST(CFringeTest, SplitInvalidIndexReturnsEmpty) {
 }
 
 TEST(CFringeTest, GetArcLengthEmpty) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     double length = fringe.GetArcLength();
     EXPECT_EQ(0.0, length);
 }
 
 TEST(CFringeTest, GetArcLengthSinglePoint) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10, 10));
     
     double length = fringe.GetArcLength();
@@ -424,7 +424,7 @@ TEST(CFringeTest, GetArcLengthSinglePoint) {
 }
 
 TEST(CFringeTest, GetArcLengthTwoPoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(3, 4)); // Distance = 5
     
@@ -433,7 +433,7 @@ TEST(CFringeTest, GetArcLengthTwoPoints) {
 }
 
 TEST(CFringeTest, GetArcLengthMultiplePoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(10, 0)); // Distance = 10
     fringe.AddPoint(CDPoint(10, 10)); // Distance = 10
@@ -443,7 +443,7 @@ TEST(CFringeTest, GetArcLengthMultiplePoints) {
 }
 
 TEST(CFringeTest, GetArcLengthClosedLoop) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(10, 0));
     fringe.AddPoint(CDPoint(10, 10));
@@ -455,7 +455,7 @@ TEST(CFringeTest, GetArcLengthClosedLoop) {
 }
 
 TEST(CFringeTest, SubdivideSegmentsNoSubdivisionNeeded) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(5, 0));
     
@@ -465,7 +465,7 @@ TEST(CFringeTest, SubdivideSegmentsNoSubdivisionNeeded) {
 }
 
 TEST(CFringeTest, SubdivideSegmentsCreatesIntermediatePoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(30, 0));
     
@@ -483,7 +483,7 @@ TEST(CFringeTest, SubdivideSegmentsCreatesIntermediatePoints) {
 }
 
 TEST(CFringeTest, SimplifyRemovesRedundantPoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(5, 0));  // On line
     fringe.AddPoint(CDPoint(10, 0)); // On line
@@ -499,7 +499,7 @@ TEST(CFringeTest, SimplifyRemovesRedundantPoints) {
 }
 
 TEST(CFringeTest, SimplifyKeepsSignificantPoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(10, 10)); // Significant deviation
     fringe.AddPoint(CDPoint(20, 0));
@@ -511,7 +511,7 @@ TEST(CFringeTest, SimplifyKeepsSignificantPoints) {
 }
 
 TEST(CFringeTest, SimplifyHandlesEmptyFringe) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     fringe.Simplify(1.0);
     
@@ -519,7 +519,7 @@ TEST(CFringeTest, SimplifyHandlesEmptyFringe) {
 }
 
 TEST(CFringeTest, SimplifyHandlesTwoPoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(0, 0));
     fringe.AddPoint(CDPoint(10, 10));
     
@@ -531,7 +531,7 @@ TEST(CFringeTest, SimplifyHandlesTwoPoints) {
 // ===== Edge Cases =====
 
 TEST(CFringeTest, EmptyFringeOperations) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     EXPECT_EQ(0, fringe.GetPointCount());
     EXPECT_EQ(0.0, fringe.GetArcLength());
@@ -542,7 +542,7 @@ TEST(CFringeTest, EmptyFringeOperations) {
 }
 
 TEST(CFringeTest, LargeNumberOfPoints) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     
     for (int i = 0; i < 1000; i++) {
         fringe.AddPoint(CDPoint(i, i * 2));
@@ -554,7 +554,7 @@ TEST(CFringeTest, LargeNumberOfPoints) {
 }
 
 TEST(CFringeTest, NegativeCoordinates) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(-10, -20));
     fringe.AddPoint(CDPoint(-5, -10));
     
@@ -567,7 +567,7 @@ TEST(CFringeTest, NegativeCoordinates) {
 }
 
 TEST(CFringeTest, FractionalCoordinates) {
-    CFringe fringe(1.0);
+    CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(10.5, 20.75));
     
     EXPECT_NEAR(10.5, fringe.GetPoint(0).x, 0.001);
@@ -575,11 +575,11 @@ TEST(CFringeTest, FractionalCoordinates) {
 }
 
 TEST(CFringeTest, NegativeFringeNumber) {
-    CFringe fringe(-2.5);
+    CFringeSegment fringe(-2.5);
     EXPECT_EQ(-2.5, fringe.GetNumber());
 }
 
 TEST(CFringeTest, ZeroFringeNumber) {
-    CFringe fringe(0.0);
+    CFringeSegment fringe(0.0);
     EXPECT_EQ(0.0, fringe.GetNumber());
 }

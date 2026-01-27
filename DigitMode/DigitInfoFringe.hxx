@@ -2,7 +2,7 @@
 
 int CDigitInfo::CreateFringe(double number, int segment)
 {
-	CFringe fringe(number, segment);
+	CFringeSegment fringe(number, segment);
 	Fringes.Add(fringe);
 	return Fringes.GetSize() - 1;
 }
@@ -14,7 +14,7 @@ void CDigitInfo::DeleteFringe(int iFringe)
 	}
 }
 
-CFringe* CDigitInfo::GetFringe(int i)
+CFringeSegment* CDigitInfo::GetFringe(int i)
 {
 	if (i >= 0 && i < Fringes.GetSize()) {
 		return &Fringes[i];
@@ -22,7 +22,7 @@ CFringe* CDigitInfo::GetFringe(int i)
 	return NULL;
 }
 
-const CFringe* CDigitInfo::GetFringe(int i) const
+const CFringeSegment* CDigitInfo::GetFringe(int i) const
 {
 	if (i >= 0 && i < Fringes.GetSize()) {
 		return &Fringes[i];

@@ -9,7 +9,7 @@
 #include "DigitMode\SectionInfo.h"
 #include "DigitMode\DotInfo.h"
 #include "DigitMode\ZapLineInfo.h"
-#include "DigitMode\CFringe.h"  // NEW: Fringe-based model
+#include "DigitMode\CFringeSegment.h"  // NEW: Fringe-based model
 
 #include "InterfSolver\Tools\ReadWriteData.h"
 
@@ -48,7 +48,7 @@ class CDigitInfo
    int idxMainDot;
    
    // ===== NEW: Fringe-based model =====
-   CArray<CFringe> Fringes;
+   CArray<CFringeSegment> Fringes;
    BOOL m_bUseFringeModel;  ///< Transition flag (default FALSE)
    SelectedPoint idxDraggedPoint;  ///< Replaces idxDragDot in fringe model
    SelectedPoint idxMainPoint;     ///< Replaces idxMainDot in fringe model
@@ -175,8 +175,8 @@ class CDigitInfo
 	  void DeleteFringe(int iFringe);
 	  
 	  /// Get fringe by index
-	  CFringe* GetFringe(int i);
-	  const CFringe* GetFringe(int i) const;
+	  CFringeSegment* GetFringe(int i);
+	  const CFringeSegment* GetFringe(int i) const;
 	  
 	  /// Find all fringes with given number
 	  void FindFringesByNumber(double number, CArray<int>& indices);
