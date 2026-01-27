@@ -32,7 +32,7 @@ public:
     AddDotCommand(CDigitInfo* pD, int iSeg, int iD, CDPoint p)
         : pDigit(pD), iSegment(iSeg), iDot(iD), point(p) {
         ASSERT(pD != nullptr);
-        ASSERT(iSeg >= 0 && iSeg < pD->Fringes.GetSize());
+        ASSERT(iSeg >= 0 && iSeg < pD->Fringes.size());
     }
 
     void Execute() override {

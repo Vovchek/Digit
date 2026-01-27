@@ -138,7 +138,7 @@ CDigitInfo::~CDigitInfo() {
 void CDigitInfo::Init() {
     Sections.RemoveAll();
     ZapLines.RemoveAll();
-    Dots.RemoveAll();
+    Dots.clear();
     HidenDots.RemoveAll();
     
     HandSetZapLines = FALSE;

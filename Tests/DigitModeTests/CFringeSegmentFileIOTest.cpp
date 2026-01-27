@@ -45,8 +45,8 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 {
     HidenDots.RemoveAll();
     Sections.RemoveAll();
-    Dots.RemoveAll();
-    Fringes.RemoveAll();
+    Dots.clear();
+    Fringes.clear();
 
     if (AllZAPSections) {
         ZapLines.RemoveAll();
@@ -106,7 +106,7 @@ protected:
     // Helper: Create test data with known structure
     void CreateTestFringes() {
         digitInfo.m_bUseFringeModel = TRUE;
-        digitInfo.Fringes.RemoveAll();
+        digitInfo.Fringes.clear();
         
         // Fringe 0.0: horizontal line at y=100
         int iF0 = digitInfo.CreateFringe(0.0);
@@ -183,7 +183,7 @@ TEST_F(CFringeFileIOTest, CollectPreservesFringeNumbers) {
 
 TEST_F(CFringeFileIOTest, CollectEmptyFringesReturnsFalse) {
     digitInfo.m_bUseFringeModel = TRUE;
-    digitInfo.Fringes.RemoveAll();
+    digitInfo.Fringes.clear();
     
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     BOOL result = digitInfo.CollectNumberingInterferogramInfo(intInfo);
@@ -202,8 +202,8 @@ TEST_F(CFringeFileIOTest, CollectFromDotsWorksAsOld) {
     dot2.Number = 1.5;
     dot2.segIdx = -1;
     
-    digitInfo.Dots.Add(dot1);
-    digitInfo.Dots.Add(dot2);
+    digitInfo.Dots.emplace_back(dot1);
+    digitInfo.Dots.emplace_back(dot2);
     
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     BOOL result = digitInfo.CollectNumberingInterferogramInfo(intInfo);
@@ -228,7 +228,7 @@ TEST_F(CFringeFileIOTest, ExamineCreatesCorrectNumberOfFringes) {
     BOOL result = digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
     EXPECT_TRUE(result);
-    EXPECT_EQ(2, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(2, digitInfo.Fringes.size());
 }
 
 TEST_F(CFringeFileIOTest, ExamineSeparatesFringesBySegmentIndex) {
@@ -244,7 +244,7 @@ TEST_F(CFringeFileIOTest, ExamineSeparatesFringesBySegmentIndex) {
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
     // Should create 2 separate fringe segments (different Index)
-    EXPECT_EQ(2, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(2, digitInfo.Fringes.size());
     
     EXPECT_EQ(0.5, digitInfo.Fringes[0].GetNumber());
     EXPECT_EQ(0.5, digitInfo.Fringes[1].GetNumber());
@@ -260,7 +260,7 @@ TEST_F(CFringeFileIOTest, ExamineSyncsToDots) {
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
     // Should also populate Dots for backward compatibility
-    EXPECT_EQ(2, digitInfo.Dots.GetSize());
+    EXPECT_EQ(2, digitInfo.Dots.size());
     EXPECT_EQ(10.0, digitInfo.Dots[0].P.x);
     EXPECT_EQ(0.0, digitInfo.Dots[0].Number);
 }
@@ -334,7 +334,7 @@ TEST_F(CFringeFileIOTest, RoundTripPreservesCoordinates) {
 
 TEST_F(CFringeFileIOTest, RoundTripPreservesFringeStructure) {
     CreateTestFringes();
-    int originalFringeCount = digitInfo.Fringes.GetSize();
+    int originalFringeCount = digitInfo.Fringes.size();
     
     // Collect
     NUMBERING_INTERFEROGRAM_INFO intInfo;
@@ -345,7 +345,7 @@ TEST_F(CFringeFileIOTest, RoundTripPreservesFringeStructure) {
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
-    EXPECT_EQ(originalFringeCount, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(originalFringeCount, digitInfo.Fringes.size());
 }
 
 TEST_F(CFringeFileIOTest, RoundTripWithSinglePoint) {
@@ -360,7 +360,7 @@ TEST_F(CFringeFileIOTest, RoundTripWithSinglePoint) {
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo1);
     
-    EXPECT_EQ(1, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(1, digitInfo.Fringes.size());
     EXPECT_EQ(1, digitInfo.Fringes[0].GetPointCount());
     EXPECT_EQ(100.0, digitInfo.Fringes[0].GetPoint(0).x);
 }
@@ -376,7 +376,7 @@ TEST_F(CFringeFileIOTest, RoundTripWithManyFringes) {
         }
     }
     
-    int originalFringeCount = digitInfo.Fringes.GetSize();
+    int originalFringeCount = digitInfo.Fringes.size();
     
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     digitInfo.CollectNumberingInterferogramInfo(intInfo);
@@ -385,7 +385,7 @@ TEST_F(CFringeFileIOTest, RoundTripWithManyFringes) {
     digitInfo.m_bUseFringeModel = TRUE;
     digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
-    EXPECT_EQ(originalFringeCount, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(originalFringeCount, digitInfo.Fringes.size());
 }
 
 // ===== Dots Model Compatibility Tests =====
@@ -397,7 +397,7 @@ TEST_F(CFringeFileIOTest, DotsModelCollectStillWorks) {
     dot.P = CDPoint(50, 150);
     dot.Number = 1.5;
     dot.segIdx = -1;
-    digitInfo.Dots.Add(dot);
+    digitInfo.Dots.emplace_back(dot);
     
     NUMBERING_INTERFEROGRAM_INFO intInfo;
     BOOL result = digitInfo.CollectNumberingInterferogramInfo(intInfo);
@@ -414,7 +414,7 @@ TEST_F(CFringeFileIOTest, DotsModelExamineStillWorks) {
     BOOL result = digitInfo.ExamineNumberingInterferogramInfo(intInfo);
     
     EXPECT_TRUE(result);
-    EXPECT_EQ(1, digitInfo.Dots.GetSize());
+    EXPECT_EQ(1, digitInfo.Dots.size());
     EXPECT_EQ(25.0, digitInfo.Dots[0].P.x);
     EXPECT_EQ(2.5, digitInfo.Dots[0].Number);
 }

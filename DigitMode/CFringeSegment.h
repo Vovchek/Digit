@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "MGTools/Include/Utils/BaseDataType.h"
 #include <vector>
+#include <afxwin.h>  // Include for MFC types like CDC, CPoint, CRect, BOOL
 
 /// <summary>
 /// Represents a single fringe as an ordered polyline of points.

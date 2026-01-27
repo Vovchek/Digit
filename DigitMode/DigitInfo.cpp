@@ -554,7 +554,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 
 	if (pCtrls->ViewState & V_DOTLINES) {
 		if (m_bUseFringeModel) {
-			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			for (int iF = 0; iF < Fringes.size(); iF++) {
 				double num = Fringes[iF].GetNumber();
 				pCtrls->GetIndexColor(num, Color);
 				CPen pen1;
@@ -595,7 +595,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 
 	if (pCtrls->ViewState & V_DOTS) {
 		if (m_bUseFringeModel) {
-			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			for (int iF = 0; iF < Fringes.size(); iF++) {
 				double num = Fringes[iF].GetNumber();
 				pCtrls->GetIndexColor(num, Color);
 				Fringes[iF].DrawDots(pDC, DotSide, Color);
@@ -615,7 +615,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 			}
 		}
 		else {
-			for (int iD = 0; iD < Dots.GetSize(); iD++) {
+			for (int iD = 0; iD < Dots.size(); iD++) {
 				if (idxDragDot == iD)
 					continue;
 				if (idxMainDot == iD)
@@ -631,8 +631,8 @@ void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)
 {
 	HidenDots.RemoveAll();
 	Sections.RemoveAll();
-	Dots.RemoveAll();
-	Fringes.RemoveAll();  // NEW: Clear fringes
+	Dots.clear();
+	Fringes.clear();  // NEW: Clear fringes
 	
 	if (AllZAPSections)
 		ZapLines.RemoveAll();

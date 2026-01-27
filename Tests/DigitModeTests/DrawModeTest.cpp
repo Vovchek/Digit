@@ -32,18 +32,18 @@ protected:
     }
 
     void TearDown() override {
-        digitInfo.Fringes.RemoveAll();
+        digitInfo.Fringes.clear();
     }
 };
 
 // ===== Basic Draw Operations =====
 
 TEST_F(DrawModeTest, StartNewSegmentCreatesSegment) {
-    int initialCount = digitInfo.Fringes.GetSize();
+    int initialCount = digitInfo.Fringes.size();
     
     inputHandler.StartNewSegment(CPoint(100, 100), &digitInfo);
     
-    EXPECT_EQ(initialCount + 1, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(initialCount + 1, digitInfo.Fringes.size());
     EXPECT_GE(inputHandler.GetActiveSegment(), 0);
     
     // Verify new segment has correct number
@@ -326,7 +326,7 @@ TEST_F(DrawModeTest, NumberingSequenceAutoIncrements) {
     }
     
     // Verify numbering: 1.0, 2.0, 3.0, 4.0, 5.0
-    EXPECT_EQ(5, digitInfo.Fringes.GetSize());
+    EXPECT_EQ(5, digitInfo.Fringes.size());
     for (int i = 0; i < 5; i++) {
         EXPECT_DOUBLE_EQ(1.0 + i, digitInfo.Fringes[i].GetNumber());
     }

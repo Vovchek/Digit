@@ -10,6 +10,7 @@
 #include "DigitMode\DotInfo.h"
 #include "DigitMode\ZapLineInfo.h"
 #include "DigitMode\CFringeSegment.h"  // NEW: Fringe-based model
+#include "DigitMode/SelectionManager.h"  // Include for SelectionManager
 
 #include "InterfSolver\Tools\ReadWriteData.h"
 
@@ -43,12 +44,12 @@ class CDigitInfo
    CArray<CZapLineInfo> ZapLines;
    
    // ===== OLD: Flat array model (keep during transition) =====
-   CArray<CDotInfo> Dots;
+   std::vector<CDotInfo> Dots;
    int idxDragDot;
    int idxMainDot;
    
    // ===== NEW: Fringe-based model =====
-   CArray<CFringeSegment> Fringes;
+   std::vector<CFringeSegment> Fringes;  ///< Replace CArray with std::vector for modern C++ compliance
    BOOL m_bUseFringeModel;  ///< Transition flag (default FALSE)
    SelectedPoint idxDraggedPoint;  ///< Replaces idxDragDot in fringe model
    SelectedPoint idxMainPoint;     ///< Replaces idxMainDot in fringe model
@@ -69,7 +70,7 @@ class CDigitInfo
    CString Comments;
    double ScaleFactor;
    double Rotation;
-	  
+	  	
   public:
 	  CDigitInfo();
 	  virtual ~CDigitInfo();
@@ -77,7 +78,7 @@ class CDigitInfo
 
 	  void Init_buf_line(int ny, int n);
       void Delete_buf_line();
-	  
+	  	
 	  BOOL IsDigiting();
 	  void Auto();
 	  void Clear(BOOL AllZAPSections=TRUE);
@@ -121,7 +122,7 @@ class CDigitInfo
 
 	  void SelectMainDot(CPoint P, int dotSide);
       void SelectMainDot(int iSec=-1, double Number=INT_MIN);
-	  
+	  	
       bool IsDots();
       bool IsLockedDot();
       bool LockDot(CPoint P, int dotSide, BOOL Enable);
@@ -170,52 +171,52 @@ class CDigitInfo
   public:
 	  /// Create new fringe and return its index in Fringes array
 	  int CreateFringe(double number, int segment = -1);
-	  
+	  	
 	  /// Delete fringe by index in Fringes array
 	  void DeleteFringe(int iFringe);
-	  
+	  	
 	  /// Get fringe by index
 	  CFringeSegment* GetFringe(int i);
 	  const CFringeSegment* GetFringe(int i) const;
-	  
+	  	
 	  /// Find all fringes with given number
-	  void FindFringesByNumber(double number, CArray<int>& indices);
-	  
+	  void FindFringesByNumber(double number, std::vector<int>& indices);
+	  	
 	  /// Add point to end of fringe
 	  void AddPointToFringe(int iFringe, CDPoint p);
-	  
+	  	
 	  /// Insert point at specific position in fringe
 	  void InsertPointInFringe(int iFringe, int iPoint, CDPoint p);
-	  
+	  	
 	  /// Remove point from fringe
 	  void RemovePointFromFringe(int iFringe, int iPoint);
-	  
+	  	
 	  /// Move point within fringe
 	  void MovePointInFringe(int iFringe, int iPoint, CDPoint newP);
-	  
+	  	
 	  /// Find point under cursor (returns fringe and point indices)
 	  BOOL FindPointUnderCursor(CPoint P, int tolerance, int& outFringe, int& outPoint);
-	  
+	  	
 	  /// Find fringe under cursor
 	  BOOL FindFringeUnderCursor(CPoint P, int tolerance, int& outFringe);
-	  
+	  	
 	  /// Renumber all fringes with oldNumber to newNumber
 	  void RenumberFringes(double oldNumber, double newNumber);
-	  
+	  	
 	  /// Delete all fringes with given number
 	  void DeleteFringesByNumber(double number);
-	  
+	  	
 	  /// Merge two fringes (must have same number)
 	  BOOL MergeFringes(int iFringe1, int iFringe2);
-	  
+	  	
 	  // ===== Conversion utilities (Transition only) =====
-	  
+	  	
 	  /// Convert Dots array to Fringes
 	  void ConvertDotsToFringes();
-	  
+	  	
 	  /// Convert Fringes to Dots array
 	  void ConvertFringesToDots();
-	  
+	  	
 	  /// Synchronize Fringes to Dots (maintains both models)
 	  void SyncFringesToDots();
 
@@ -229,5 +230,8 @@ private:
     
     // Helper method to create a fake gray image when actual image is missing
     static BOOL CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int height);
+    
+  public:
+    DigitMode::SelectionManager selectionManager;  ///< Manages selection state
 };
 #endif // !defined(AFX_DIGIT_INFO_DEFS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)

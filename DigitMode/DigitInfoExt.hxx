@@ -1,4 +1,4 @@
-
+п»ї
 
 void CDigitInfo::SelectFringeStep()
 {
@@ -211,7 +211,7 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 
 	CList<double, double> YLines;
 	double y;
-	for (i = 0; i < Dots.GetSize(); i++) {
+	for (i = 0; i < Dots.size(); i++) {
 		y = Dots[i].P.y;
 		if (!YLines.Find(y))
 			YLines.AddTail(y);
@@ -239,7 +239,7 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 
 	CPoint P;
 	int idx;
-	for (i = 0; i < Dots.GetSize(); i++) {
+	for (i = 0; i < Dots.size(); i++) {
 		P.x = Dots[i].P.x; P.y = Dots[i].P.y;
 		if (GetNearestZapSection(P, idx)) {
 			Dots[i].iZapSec = idx;
@@ -275,12 +275,10 @@ void CDigitInfo::SortZapLines()
 
 void CDigitInfo::SortDotsFY()
 {
-	int NArr = Dots.GetSize();
-	if (NArr <= 1)
+	if (Dots.empty())
 		return;
 
-	CDotInfo* DotsData = Dots.GetData();
-	std::sort(DotsData, DotsData+NArr, [](const CDotInfo& a, const CDotInfo& b) {
+	std::sort(Dots.begin(), Dots.end(), [](const CDotInfo& a, const CDotInfo& b) {
 		if (a.Number != b.Number)
 			return a.Number < b.Number;
 		if (a.segIdx != b.segIdx)
@@ -301,7 +299,7 @@ void CDigitInfo::PutDotsOnZAPSections(int iZAPSec)
 			Dot.P.y = ZapLines[iZAPSec].L.P1.y;
 			Dot.Number = Sections[iy].NumLines[i].Number;
 			Dot.iZapSec = iZAPSec;
-			Dots.Add(Dot);
+			Dots.emplace_back(Dot);
 		}
 	}
 }
@@ -435,7 +433,7 @@ void CDigitInfo::AddZapSection(int iy)
 void CDigitInfo::SectionLeft(CPoint P, int dotSide)
 {
 	int idx;
-	if (idxMainDot < Dots.GetSize()) {
+	if (idxMainDot < Dots.size()) {
 		if (IsDotUnderCursor(P, dotSide, idx) && idxMainDot != -1) {
 			int iZapSec = Dots[idx].iZapSec;
 			double Number = Dots[idxMainDot].Number + numStep;
@@ -452,7 +450,7 @@ void CDigitInfo::SectionLeft(CPoint P, int dotSide)
 void CDigitInfo::SectionRight(CPoint P, int dotSide)
 {
 	int idx;
-	if (idxMainDot < Dots.GetSize()) {
+	if (idxMainDot < Dots.size()) {
 		if (IsDotUnderCursor(P, dotSide, idx) && idxMainDot != -1) {
 			int iZapSec = Dots[idx].iZapSec;
 			double Number = Dots[idxMainDot].Number - numStep;
@@ -478,9 +476,9 @@ void CDigitInfo::DeleteZapSection(int iy)
 
 void CDigitInfo::RemoveDotZAPSection(int iSec)
 {
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iSec) {
-			Dots.RemoveAt(iD);
+			Dots.erase(Dots.begin()+iD);
 			iD--;
 		}
 	}
@@ -490,7 +488,7 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 {
 	if (m_bUseFringeModel) {
 		int targetFringe = -1;
-		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+		for (int iF = 0; iF < Fringes.size(); iF++) {
 			if (Fringes[iF].GetNumber() == CurrentNumber) {
 				targetFringe = iF;
 				break;
@@ -524,7 +522,7 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 		   dot.P.x = x;
 	   }
 	}*/
-	Dots.Add(dot);
+	Dots.emplace_back(dot);
 }
 
 void CDigitInfo::RemoveDot(CPoint P, int dotSide)
@@ -541,7 +539,7 @@ void CDigitInfo::RemoveDot(CPoint P, int dotSide)
 
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
-		Dots.RemoveAt(idx);
+		Dots.erase(Dots.begin()+idx);
 	}
 }
 
@@ -552,9 +550,9 @@ void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 		int fIdx, pIdx;
 		if (FindPointUnderCursor(P, tol, fIdx, pIdx)) {
 			double Number = Fringes[fIdx].GetNumber();
-			for (int i = Fringes.GetSize() - 1; i >= 0; i--) {
+			for (int i = Fringes.size() - 1; i >= 0; i--) { // TODO: modernize with erase-remove idiom
 				if (Fringes[i].GetNumber() == Number) {
-					Fringes.RemoveAt(i);
+					Fringes.erase(Fringes.begin()+i);
 				}
 			}
 			SyncFringesToDots();
@@ -565,9 +563,9 @@ void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
 		double Number = Dots[idx].Number;
-		for (int i = 0; i < Dots.GetSize(); i++) {
+		for (int i = 0; i < Dots.size(); i++) {
 			if (Dots[i].Number == Number) {
-				Dots.RemoveAt(i);
+				Dots.erase(Dots.begin()+i);
 				i--;
 			}
 		}
@@ -576,7 +574,7 @@ void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 
 bool CDigitInfo::IsDots()
 {
-	if (Dots.GetSize())
+	if (Dots.size())
 		return true;
 	else
 		return false;
@@ -587,7 +585,7 @@ bool CDigitInfo::IsDotUnderCursor(CPoint P, int dotSide, int& idx)
 	int DotSide12 = dotSide / 2;
 	CPoint lP;
 	CRect dotR;
-	for (int i = 0; i < Dots.GetSize(); i++) {
+	for (int i = 0; i < Dots.size(); i++) {
 		lP.x = int(Dots[i].P.x);
 		lP.y = int(Dots[i].P.y);
 		dotR.left = lP.x - DotSide12;
@@ -629,7 +627,7 @@ bool CDigitInfo::LockDot(CPoint P, int dotSide, BOOL Enable)
 		return false;
 	}
 
-	if (Dots.GetSize() == 0)
+	if (Dots.size() == 0)
 		return false;
 
 	if (!Enable) {
@@ -702,7 +700,7 @@ void CDigitInfo::SelectMainDot(CPoint P, int dotSide)
 void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 {
 	if (m_bUseFringeModel) {
-		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+		for (int iF = 0; iF < Fringes.size(); iF++) {
 			if (Number == INT_MIN || fabs(Fringes[iF].GetNumber() - Number) < 1e-6) {
 				if (Fringes[iF].GetPointCount() > 0) {
 					idxMainPoint = SelectedPoint(iF, 0);
@@ -715,7 +713,7 @@ void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 		return;
 	}
 
-	if (iZapSec == -1 && Number == INT_MIN && Dots.GetSize()) {
+	if (iZapSec == -1 && Number == INT_MIN && Dots.size()) {
 		idxMainDot = 0;
 		CurrentNumber = Dots[0].Number;
 		return;
@@ -734,7 +732,7 @@ void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 
 bool CDigitInfo::GetDot(int iZapSec, double Number, int& idx, CDPoint& dP)
 {
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec && Dots[iD].Number == Number) {
 			idx = iD;
 			dP = Dots[iD].P;
@@ -748,7 +746,7 @@ bool CDigitInfo::GetDotNumbers(CList<double, double>& Numbers)
 {
 	double Num;
 	POSITION Pos;
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		Num = Dots[iD].Number;
 		Pos = Numbers.Find(Num);
 		if (!Pos)
@@ -761,7 +759,7 @@ bool CDigitInfo::GetFirstDotInSection(int iZapSec, int& idx, CDPoint& dP)
 {
 	int minidx = -1;
 	double minx = INT_MAX;
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec) {
 			if (Dots[iD].P.x < minx) {
 				minx = Dots[iD].P.x;
@@ -783,7 +781,7 @@ bool CDigitInfo::GetNextDotInSection(int iZapSec, int direct, int& idx, CDPoint&
 	int minidx = -1;
 	double minx = INT_MAX;
 	double dif;
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec) {
 			dif = 0.;
 			if (direct > 0 && Dots[iD].P.x > dP.x)
@@ -810,7 +808,7 @@ bool CDigitInfo::GetNextDotInSection(int iZapSec, int direct, int& idx, CDPoint&
 bool CDigitInfo::GetFringeDots(double Number, CUIntArray& idxDots)
 {
 	idxDots.RemoveAll();
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Number == Dots[iD].Number) {
 			idxDots.Add(iD);
 		}
@@ -821,7 +819,7 @@ bool CDigitInfo::GetFringeDots(double Number, CUIntArray& idxDots)
 bool CDigitInfo::GetFringeDots(double Number, CArray<CDPoint>& adP)
 {
 	adP.RemoveAll();
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Number == Dots[iD].Number) {
 			adP.Add(Dots[iD].P);
 		}
@@ -834,7 +832,7 @@ bool CDigitInfo::GetFirstDotInFringe(double Number, int& idx, CDPoint& dP)
 {
 	int minidx = -1;
 	double minx = INT_MAX;
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].Number == Number) {
 			if (Dots[iD].P.x < minx) {
 				minx = Dots[iD].P.x;
@@ -856,7 +854,7 @@ bool CDigitInfo::GetNextDotInFringe(double Number, int direct, int& idx, CDPoint
 	int minidx = -1;
 	double minx = INT_MAX;
 	double dif;
-	for (int iD = 0; iD < Dots.GetSize(); iD++) {
+	for (int iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].Number == Number) {
 			dif = 0.;
 			if (direct > 0 && Dots[iD].P.y > dP.y)
@@ -1195,7 +1193,7 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		TRACE("LoadZAP: Image path resolved to: %s\n", resolved.c_str());
 	}
 
-	//Вызов LoadImage для инициализации m_pDIB
+	//Р’С‹Р·РѕРІ LoadImage РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
 	BOOL imageLoaded = FALSE;
 
@@ -1212,11 +1210,11 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		TRACE("LoadZAP: Creating fake gray image as fallback\n");
 		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
 			imageLoaded = TRUE; // Treat as successful load for processing
-			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
+			AfxMessageBox(_T("РР·РѕР±СЂР°Р¶РµРЅРёРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚. РЎРѕР·РґР°РЅ СЃРµСЂС‹Р№ С„РѕРЅ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
 			TRACE("LoadZAP: Fake image created successfully\n");
 		}
 		else {
-			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
+			AfxMessageBox(_T("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
 			TRACE("LoadZAP: Failed to create fake image\n");
 		}
 	}
@@ -1291,7 +1289,7 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		TRACE("LoadFRN: Image path resolved to: %s\n", resolved.c_str());
 	}
 
-	//Вызов LoadImage для инициализации m_pDIB
+	//Р’С‹Р·РѕРІ LoadImage РґР»СЏ РёРЅРёС†РёР°Р»РёР·Р°С†РёРё m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
 	BOOL imageLoaded = FALSE;
 
@@ -1307,11 +1305,11 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		TRACE("LoadFRN: Creating fake gray image as fallback\n");
 		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
 			imageLoaded = TRUE; // Treat as successful load
-			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
+			AfxMessageBox(_T("РР·РѕР±СЂР°Р¶РµРЅРёРµ РѕС‚СЃСѓС‚СЃС‚РІСѓРµС‚. РЎРѕР·РґР°РЅ СЃРµСЂС‹Р№ С„РѕРЅ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
 			TRACE("LoadFRN: Fake image created successfully\n");
 		}
 		else {
-			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
+			AfxMessageBox(_T("РќРµ СѓРґР°Р»РѕСЃСЊ СЃРѕР·РґР°С‚СЊ РёР·РѕР±СЂР°Р¶РµРЅРёРµ РґР»СЏ РѕС‚РѕР±СЂР°Р¶РµРЅРёСЏ РІРµРєС‚РѕСЂРЅС‹С… РґР°РЅРЅС‹С…."));
 			TRACE("LoadFRN: Failed to create fake image\n");
 		}
 	}

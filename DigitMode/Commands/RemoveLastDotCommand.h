@@ -33,7 +33,7 @@ public:
     RemoveLastDotCommand(CDigitInfo* pD, int iSeg)
         : pDigit(pD), iSegment(iSeg) {
         ASSERT(pD != nullptr);
-        ASSERT(iSeg >= 0 && iSeg < pD->Fringes.GetSize());
+        ASSERT(iSeg >= 0 && iSeg < pD->Fringes.size());
         
         CFringeSegment& segment = pD->Fringes[iSeg];
         ASSERT(segment.GetPointCount() > 0 && "Cannot remove dot from empty segment");

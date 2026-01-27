@@ -76,7 +76,7 @@ enum class EditMode {
  */
 class InputHandler {
 private:
-    EditMode currentMode = EditMode::Navigate;
+    EditMode currentMode = EditMode::Navigate;  ///< Initialize currentMode to Navigate
 
     // Draw mode state
     int iActiveSegment = -1;  ///< Index of segment being drawn (-1 = none)
@@ -143,6 +143,22 @@ public:
      * @return Segment index, or -1 if no active segment
      */
     int GetActiveSegment() const { return iActiveSegment; }
+
+    /**
+     * @brief Handle mouse drag for box selection in Navigate mode
+     * @param start Start point of drag (screen coordinates)
+     * @param end End point of drag (screen coordinates)
+     * @param pDigit Pointer to DigitInfo (for accessing segments)
+     */
+    void HandleBoxSelection(CPoint start, CPoint end, class CDigitInfo* pDigit);
+
+    /**
+     * @brief Handle mouse drag events
+     * @param start Starting point of the drag
+     * @param end Ending point of the drag
+     * @param pDigit Pointer to the digit information
+     */
+    void OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit);
 };
 
 } // namespace DigitMode

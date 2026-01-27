@@ -21,14 +21,14 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
     double newNumber = pDigit->CurrentNumber + pDigit->numStep;
     
     // Create new segment with incremented number
-    CFringeSegment newSegment(newNumber, pDigit->Fringes.GetSize());
-    pDigit->Fringes.Add(newSegment);
+    CFringeSegment newSegment(newNumber, pDigit->Fringes.size());
+    pDigit->Fringes.emplace_back(newSegment);
     
     // Update CurrentNumber for next segment
     pDigit->CurrentNumber = newNumber;
     
     // Set as active segment
-    iActiveSegment = pDigit->Fringes.GetSize() - 1;
+    iActiveSegment = pDigit->Fringes.size() - 1;
     
     // Add first dot to segment (done via AddDotCommand in caller)
     
@@ -38,7 +38,7 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
 
 void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
-    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.GetSize());
+    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
     
     CFringeSegment& segment = pDigit->Fringes[iSegment];
     int dotCount = segment.GetPointCount();
@@ -54,7 +54,7 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
 
 void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
-    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.GetSize());
+    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
     
     // TODO: Phase 2.2 - Implement segment connection logic
     // For now, just transfer drawing to the free end of target segment
@@ -76,6 +76,24 @@ void InputHandler::EndCurrentSegment() {
     if (iActiveSegment >= 0) {
         TRACE("InputHandler::EndCurrentSegment: segment=%d\n", iActiveSegment);
         iActiveSegment = -1;
+    }
+}
+
+void InputHandler::HandleBoxSelection(CPoint start, CPoint end, CDigitInfo* pDigit) {
+    ASSERT(pDigit != nullptr);
+
+    CRect box;
+    box.SetRect(start, end);
+    box.NormalizeRect();
+
+    size_t count = pDigit->selectionManager.SelectBox(box, pDigit->Fringes);
+
+    TRACE("InputHandler::HandleBoxSelection: Selected %zu objects\n", count);
+}
+
+void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
+    if (currentMode == EditMode::Navigate) {
+        HandleBoxSelection(start, end, pDigit);
     }
 }
 

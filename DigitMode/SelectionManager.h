@@ -95,6 +95,18 @@ public:
      */
     void SelectFringe(double number, const std::vector<::CFringeSegment>& segments);
 
+    /**
+     * @brief Select all objects within a rectangular box
+     * @param box Selection box in screen coordinates
+     * @param segments Reference to segment array for querying
+     * @return Number of objects selected
+     * 
+     * Rules:
+     * - Selects all objects intersecting the box
+     * - Selection level depends on current mode (Dot, Edge, Segment)
+     */
+    size_t SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments);
+
     // ===== Multi-Selection =====
 
     /**
@@ -149,6 +161,13 @@ public:
      * @brief Check if selection is empty
      */
     bool IsEmpty() const { return selection.empty(); }
+
+    /**
+     * @brief Draw visual feedback for current selection
+     * @param pDC Pointer to device context
+     * @param segments Reference to segment array for querying
+     */
+    void DrawSelection(CDC* pDC, const std::vector<::CFringeSegment>& segments);
 
 private:
     /**

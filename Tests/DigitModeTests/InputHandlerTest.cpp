@@ -1,6 +1,9 @@
 ﻿#include "stdafx.h"
 #include "gtest/gtest.h"
 #include "DigitMode/InputHandler.h"
+#include "DigitMode/CFringeSegment.h"  // Include for CFringeSegment
+#include "DigitMode/DigitInfo.h"      // Include for CDigitInfo
+#include "MGTools/Include/Utils/BaseDataType.h"  // Include for CDPoint
 
 using namespace DigitMode;
 
@@ -252,3 +255,52 @@ TEST_F(InputHandlerTest, ConnectSegmentsFreeEndBecomesActive) {
     // Create two segments, connect them, verify free end is active
 }
 */
+
+using namespace DigitMode;
+
+TEST_F(InputHandlerTest, NavigateModeBoxSelection) {
+    // Setup DigitInfo with test segments
+    CDigitInfo digitInfo;
+    digitInfo.Init();
+
+    CFringeSegment seg1(1.0, 0);
+    seg1.AddPoint(CDPoint(10, 10));
+    seg1.AddPoint(CDPoint(20, 20));
+    digitInfo.Fringes.push_back(seg1);
+
+    CFringeSegment seg2(2.0, 1);
+    seg2.AddPoint(CDPoint(30, 30));
+    seg2.AddPoint(CDPoint(40, 40));
+    digitInfo.Fringes.push_back(seg2);
+
+    // Simulate box selection drag
+    CPoint start(5, 5);
+    CPoint end(25, 25);
+    inputHandler.SetMode(EditMode::Navigate);
+    inputHandler.OnMouseDrag(start, end, &digitInfo);
+
+    // Verify selection
+    EXPECT_EQ(2, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(SelectionLevel::Dot, digitInfo.selectionManager.GetLevel());
+}
+
+// Mock implementation of CDigitInfo to avoid full dependency
+class MockDigitInfo : public CDigitInfo {
+public:
+    MockDigitInfo() {
+        CurrentNumber = 0.0;
+        numStep = 1.0;
+    }
+};
+
+TEST_F(InputHandlerTest, StartNewSegmentInitializesCorrectly) {
+    MockDigitInfo mockDigit;
+    CPoint startPoint(10, 10);
+
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(startPoint, &mockDigit);
+
+    EXPECT_EQ(mockDigit.CurrentNumber, 1.0);
+    EXPECT_EQ(mockDigit.Fringes.size(), 1);
+    EXPECT_EQ(inputHandler.GetActiveSegment(), 0);
+}

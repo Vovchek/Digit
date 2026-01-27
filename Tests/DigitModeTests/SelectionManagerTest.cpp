@@ -306,3 +306,38 @@ TEST_F(SelectionManagerTest, LargeSelectionPerformance) {
 
     EXPECT_EQ(1000, selectionMgr.GetCount());
 }
+
+// ===== Box Selection Tests =====
+
+TEST_F(SelectionManagerTest, BoxSelectionSelectsDots) {
+    // Setup test segments
+    std::vector<CFringeSegment> segments;
+    CFringeSegment seg1(1.0, 0);
+    seg1.AddPoint(CDPoint(10, 10));
+    seg1.AddPoint(CDPoint(20, 20));
+    segments.push_back(seg1);
+
+    CFringeSegment seg2(2.0, 1);
+    seg2.AddPoint(CDPoint(30, 30));
+    seg2.AddPoint(CDPoint(40, 40));
+    segments.push_back(seg2);
+
+    // Define selection box
+    CRect box(5, 5, 25, 25);
+
+    // Perform box selection
+    size_t count = selectionMgr.SelectBox(box, segments);
+
+    // Verify selection
+    EXPECT_EQ(2, count);
+    EXPECT_EQ(SelectionLevel::Dot, selectionMgr.GetLevel());
+    EXPECT_EQ(2, selectionMgr.GetCount());
+
+    const auto& obj1 = selectionMgr.GetAt(0);
+    EXPECT_EQ(0, obj1.iSegment);
+    EXPECT_EQ(0, obj1.iDot);
+
+    const auto& obj2 = selectionMgr.GetAt(1);
+    EXPECT_EQ(0, obj2.iSegment);
+    EXPECT_EQ(1, obj2.iDot);
+}

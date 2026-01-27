@@ -1,7 +1,8 @@
-#if !defined(AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_)
+﻿#if !defined(AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_)
 #define AFX_DATA_TYPE_H__D9193454_4B82_410B_84DF_87251FB1CA1D__INCLUDED_
 
 #include "MGToolsExport.h"
+#include <afxwin.h>  // Include for MFC types like BOOL, CPoint, CRect
 
 const double pi=3.1415926535897932;
 const int DIGIT_PRECISION = 3;

@@ -104,6 +104,46 @@ void SelectionManager::PromoteToFringe(const std::vector<CFringeSegment>& segmen
     }
 }
 
+size_t SelectionManager::SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments) {
+    selection.clear();
+
+    for (size_t i = 0; i < segments.size(); i++) {
+        const auto& segment = segments[i];
+
+        for (int j = 0; j < segment.GetPointCount(); j++) {
+            CDPoint point = segment.GetPoint(j);
+            CPoint screenPoint(static_cast<int>(point.x), static_cast<int>(point.y));
+
+            if (box.PtInRect(screenPoint)) {
+                SelectedObject obj;
+                obj.level = SelectionLevel::Dot;
+                obj.iSegment = static_cast<int>(i);
+                obj.iDot = j;
+                selection.push_back(obj);
+            }
+        }
+    }
+
+    return selection.size();
+}
+
+// ===== Drawing =====
+
+void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegment>& segments) {
+    for (const auto& obj : selection) {
+        if (obj.level == SelectionLevel::Dot) {
+            const auto& segment = segments[obj.iSegment];
+            CDPoint point = segment.GetPoint(obj.iDot);
+            CPoint screenPoint(static_cast<int>(point.x), static_cast<int>(point.y));
+
+            CBrush brush(RGB(255, 0, 0));  // Red highlight
+            CBrush* oldBrush = pDC->SelectObject(&brush);
+            pDC->Ellipse(screenPoint.x - 3, screenPoint.y - 3, screenPoint.x + 3, screenPoint.y + 3);
+            pDC->SelectObject(oldBrush);
+        }
+    }
+}
+
 // ===== Private Helpers =====
 
 bool SelectionManager::IsSameObject(const SelectedObject& a, const SelectedObject& b) const {

@@ -3,20 +3,20 @@
 int CDigitInfo::CreateFringe(double number, int segment)
 {
 	CFringeSegment fringe(number, segment);
-	Fringes.Add(fringe);
-	return Fringes.GetSize() - 1;
+	Fringes.push_back(fringe);
+	return static_cast<int>(Fringes.size()) - 1;
 }
 
 void CDigitInfo::DeleteFringe(int iFringe)
 {
-	if (iFringe >= 0 && iFringe < Fringes.GetSize()) {
-		Fringes.RemoveAt(iFringe);
+	if (iFringe >= 0 && iFringe < static_cast<int>(Fringes.size())) {
+		Fringes.erase(Fringes.begin() + iFringe);
 	}
 }
 
 CFringeSegment* CDigitInfo::GetFringe(int i)
 {
-	if (i >= 0 && i < Fringes.GetSize()) {
+	if (i >= 0 && i < static_cast<int>(Fringes.size())) {
 		return &Fringes[i];
 	}
 	return NULL;
@@ -24,56 +24,56 @@ CFringeSegment* CDigitInfo::GetFringe(int i)
 
 const CFringeSegment* CDigitInfo::GetFringe(int i) const
 {
-	if (i >= 0 && i < Fringes.GetSize()) {
+	if (i >= 0 && i < static_cast<int>(Fringes.size())) {
 		return &Fringes[i];
 	}
 	return NULL;
 }
 
-void CDigitInfo::FindFringesByNumber(double number, CArray<int>& indices)
+void CDigitInfo::FindFringesByNumber(double number, std::vector<int>& indices)
 {
-	indices.RemoveAll();
-	for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+	indices.clear();
+	for (size_t iF = 0; iF < Fringes.size(); iF++) {
 		if (Fringes[iF].GetNumber() == number) {
-			indices.Add(iF);
+			indices.push_back(static_cast<int>(iF));
 		}
 	}
 }
 
 void CDigitInfo::AddPointToFringe(int iFringe, CDPoint p)
 {
-	if (iFringe >= 0 && iFringe < Fringes.GetSize()) {
+	if (iFringe >= 0 && iFringe < static_cast<int>(Fringes.size())) {
 		Fringes[iFringe].AddPoint(p);
 	}
 }
 
 void CDigitInfo::InsertPointInFringe(int iFringe, int iPoint, CDPoint p)
 {
-	if (iFringe >= 0 && iFringe < Fringes.GetSize()) {
+	if (iFringe >= 0 && iFringe < static_cast<int>(Fringes.size())) {
 		Fringes[iFringe].InsertPoint(iPoint, p);
 	}
 }
 
 void CDigitInfo::RemovePointFromFringe(int iFringe, int iPoint)
 {
-	if (iFringe >= 0 && iFringe < Fringes.GetSize()) {
+	if (iFringe >= 0 && iFringe < static_cast<int>(Fringes.size())) {
 		Fringes[iFringe].RemovePoint(iPoint);
 	}
 }
 
 void CDigitInfo::MovePointInFringe(int iFringe, int iPoint, CDPoint newP)
 {
-	if (iFringe >= 0 && iFringe < Fringes.GetSize()) {
+	if (iFringe >= 0 && iFringe < static_cast<int>(Fringes.size())) {
 		Fringes[iFringe].MovePoint(iPoint, newP);
 	}
 }
 
 BOOL CDigitInfo::FindPointUnderCursor(CPoint P, int tolerance, int& outFringe, int& outPoint)
 {
-	for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+	for (size_t iF = 0; iF < Fringes.size(); iF++) {
 		int iPt = Fringes[iF].FindNearestPoint(P, tolerance);
 		if (iPt >= 0) {
-			outFringe = iF;
+			outFringe = static_cast<int>(iF);
 			outPoint = iPt;
 			return TRUE;
 		}
@@ -90,26 +90,28 @@ BOOL CDigitInfo::FindFringeUnderCursor(CPoint P, int tolerance, int& outFringe)
 
 void CDigitInfo::RenumberFringes(double oldNumber, double newNumber)
 {
-	for (int iF = 0; iF < Fringes.GetSize(); iF++) {
-		if (Fringes[iF].GetNumber() == oldNumber) {
-			Fringes[iF].SetNumber(newNumber);
+	for (auto& fringe : Fringes) {
+		if (fringe.GetNumber() == oldNumber) {
+			fringe.SetNumber(newNumber);
 		}
 	}
 }
 
 void CDigitInfo::DeleteFringesByNumber(double number)
 {
-	for (int iF = Fringes.GetSize() - 1; iF >= 0; iF--) {
-		if (Fringes[iF].GetNumber() == number) {
-			Fringes.RemoveAt(iF);
+	for (auto it = Fringes.begin(); it != Fringes.end(); ) {
+		if (it->GetNumber() == number) {
+			it = Fringes.erase(it);
+		} else {
+			++it;
 		}
 	}
 }
 
 BOOL CDigitInfo::MergeFringes(int iFringe1, int iFringe2)
 {
-	if (iFringe1 < 0 || iFringe1 >= Fringes.GetSize()) return FALSE;
-	if (iFringe2 < 0 || iFringe2 >= Fringes.GetSize()) return FALSE;
+	if (iFringe1 < 0 || iFringe1 >= static_cast<int>(Fringes.size())) return FALSE;
+	if (iFringe2 < 0 || iFringe2 >= static_cast<int>(Fringes.size())) return FALSE;
 	if (iFringe1 == iFringe2) return FALSE;
 
 	// Only merge fringes with same number
@@ -121,7 +123,7 @@ BOOL CDigitInfo::MergeFringes(int iFringe1, int iFringe2)
 	Fringes[iFringe1].AppendPoints(Fringes[iFringe2]);
 
 	// Delete iFringe2
-	Fringes.RemoveAt(iFringe2);
+	Fringes.erase(Fringes.begin() + iFringe2);
 
 	return TRUE;
 }
@@ -130,66 +132,60 @@ BOOL CDigitInfo::MergeFringes(int iFringe1, int iFringe2)
 
 void CDigitInfo::ConvertDotsToFringes()
 {
-	Fringes.RemoveAll();
+	Fringes.clear();
 
-	if (Dots.GetSize() == 0) return;
+	if (Dots.empty()) return;
 
 	// Group by (Number, segment) using a map-like structure
 	// Build a simple grouping structure
-	for (int i = 0; i < Dots.GetSize(); i++) {
-		double num = Dots[i].Number;
-		int segment = Dots[i].segIdx;
+	for (const auto& dot : Dots) {
+		double num = dot.Number;
+		int segment = dot.segIdx;
 
 		// Find or create fringe for this (Number, segment index)
-		int targetFringe = -1;
-		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
-			// Check if fringe has same number and segment
-			if (Fringes[iF].GetNumber() == num && Fringes[iF].GetIndex() == segment) {
-				targetFringe = iF;
-				break;
-			}
+		auto it = std::find_if(Fringes.begin(), Fringes.end(), [&](const CFringeSegment& fringe) {
+			return fringe.GetNumber() == num && fringe.GetIndex() == segment;
+		});
+
+		if (it == Fringes.end()) {
+			Fringes.emplace_back(num, segment);
+			it = std::prev(Fringes.end());
 		}
 
-		if (targetFringe < 0) {
-			// Create new fringe
-			targetFringe = CreateFringe(num);
-		}
-
-		// Add point to fringe
-		Fringes[targetFringe].AddPoint(Dots[i].P);
+		it->AddPoint(dot.P);
 	}
 }
 
 void CDigitInfo::ConvertFringesToDots()
 {
-	Dots.RemoveAll();
+    Dots.clear();
 
-	for (int iF = 0; iF < Fringes.GetSize(); iF++) {
-		double number = Fringes[iF].GetNumber();
-		int segment = Fringes[iF].GetIndex();
+    for (const auto& fringe : Fringes) {
+        double number = fringe.GetNumber();
+        int segment = fringe.GetIndex();
 
-		for (int iP = 0; iP < Fringes[iF].GetPointCount(); iP++) {
-			CDotInfo dot;
-			dot.P = Fringes[iF].GetPoint(iP);
-			dot.Number = number;
-			dot.segIdx = segment;
-			dot.iZapSec = -1;  // Will be set later if needed
-			Dots.Add(dot);
-		}
-	}
+        for (int iP = 0; iP < fringe.GetPointCount(); iP++) {
+            CDotInfo dot;
+            dot.P = fringe.GetPoint(iP);
+            dot.Number = number;
+            dot.segIdx = segment;
+            dot.iZapSec = -1;  // Will be set later if needed
+            Dots.push_back(dot);
+        }
+    }
 
-	// Assign iZapSec based on ZapLines if they exist
-	if (ZapLines.GetSize() > 0) {
-		CPoint P;
-		int idx;
-		for (int i = 0; i < Dots.GetSize(); i++) {
-			P.x = (int)Dots[i].P.x;
-			P.y = (int)Dots[i].P.y;
-			if (GetNearestZapSection(P, idx)) {
-				Dots[i].iZapSec = idx;
-			}
-		}
-	}
+    // Assign iZapSec based on ZapLines if they exist
+    if (!ZapLines.IsEmpty()) {
+        CPoint P;
+        int idx;
+        for (auto& dot : Dots) {
+            P.x = static_cast<int>(dot.P.x);
+            P.y = static_cast<int>(dot.P.y);
+            if (GetNearestZapSection(P, idx)) {
+                dot.iZapSec = idx;
+            }
+        }
+    }
 }
 
 void CDigitInfo::SyncFringesToDots()
@@ -230,7 +226,7 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 	if (m_bUseFringeModel) {
 		// NEW: Group into fringes by (Number, segment index)
-		Fringes.RemoveAll();
+		Fringes.clear();
 
 		// Build grouping: (Number, Index) -> points
 		// Using simple linear search approach (MFC-compatible)
@@ -242,7 +238,7 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 			// Find or create fringe for this (Number, id) combination
 			int targetFringe = -1;
-			for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+			for (int iF = 0; iF < Fringes.size(); iF++) {
 				if (Fringes[iF].GetNumber() == num && Fringes[iF].GetIndex() == id) {
 					targetFringe = iF;
 					break;
@@ -263,13 +259,15 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	}
 	else {
 		// OLD: Flat loading into Dots array
-		Dots.SetSize(nD);
+		//Dots.SetSize(nD);
 		for (int i = 0; i < nD; i++) {
-			Dots[i].P.x = IntInfo.DigitDat[i].X;
-			Dots[i].P.y = IntInfo.DigitDat[i].Y;
-			Dots[i].Number = IntInfo.DigitDat[i].F.Number;
-			Dots[i].segIdx = IntInfo.DigitDat[i].F.Index;
-			Dots[i].iZapSec = -1;
+			CDotInfo dot;
+			dot.P.x = IntInfo.DigitDat[i].X;
+			dot.P.y = IntInfo.DigitDat[i].Y;
+			dot.Number = IntInfo.DigitDat[i].F.Number;
+			dot.segIdx = IntInfo.DigitDat[i].F.Index;
+			dot.iZapSec = -1;
+			Dots.emplace_back(dot);
 		}
 	}
 
@@ -302,7 +300,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	if (m_bUseFringeModel) {
 		// NEW: Direct fringe iteration
 		int totalPoints = 0;
-		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+		for (int iF = 0; iF < Fringes.size(); iF++) {
 			totalPoints += Fringes[iF].GetPointCount();
 		}
 
@@ -312,7 +310,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 		IntInfo.DigitDat.SetSize(totalPoints);
 
 		int idx = 0;
-		for (int iF = 0; iF < Fringes.GetSize(); iF++) {
+		for (int iF = 0; iF < Fringes.size(); iF++) {
 			double number = Fringes[iF].GetNumber();
 			int index = Fringes[iF].GetIndex();
 			for (int iP = 0; iP < Fringes[iF].GetPointCount(); iP++) {
@@ -328,7 +326,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	}
 	else {
 		// OLD: Existing Dots iteration
-		int nD = Dots.GetSize();
+		int nD = Dots.size();
 		if (nD == 0)
 			return FALSE;
 
