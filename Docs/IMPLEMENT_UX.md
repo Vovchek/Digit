@@ -40,9 +40,9 @@ Three modes, mutually exclusive, state-driven.
 
 ```mermaid
 graph TD
-    NAVIGATE["NAVIGATE<br/>(default)"] -->|mode switch| DRAW["DRAW<br/>(curve creation)"]
-    DRAW -->|mode switch| DOTEDIT["DOT EDIT<br/>(geometry only)"]
-    DOTEDIT -->|mode switch| NAVIGATE
+    NAVIGATE["NAVIGATE<br/>(default)"] <-->|mode switch| DRAW["DRAW<br/>(curve creation)"]
+    DRAW <-->|mode switch| DOTEDIT["DOT EDIT<br/>(geometry only)"]
+    DOTEDIT <-->|mode switch| NAVIGATE
     
     classDef state fill:#e1f5fe,stroke:#01579b,stroke-width:2px
     class NAVIGATE,DRAW,DOTEDIT state```
