@@ -381,11 +381,11 @@ TEST(HitTester, DotDistanceCorrect) {
 
 ### Deliverables (Phase 1)
 
-- ? All core classes created with public interfaces
-- ? SelectionManager, HitTester fully implemented + unit tested
-- ? InputHandler, CommandDispatcher stubbed + wired into ImageView
-- ? Basic TRACE logging for debugging
-- ? No functional UI yet, but architecture in place
+- ✅ All core classes created with public interfaces
+- ✅ SelectionManager, HitTester fully implemented + unit tested
+- ✅ InputHandler, CommandDispatcher stubbed + wired into ImageView
+- ✅ Basic TRACE logging for debugging
+- ✅ No functional UI yet, but architecture in place
 
 ### Success Criteria
 

@@ -1211,7 +1211,7 @@ Use this to verify architecture completeness before implementation:
 - [x] Drag edge to move its dots
 
 ### Commands
-- [x] Number +/?
+- [x] Number +/-
 - [x] Simplify
 - [x] Split curve
 - [x] Merge curves
