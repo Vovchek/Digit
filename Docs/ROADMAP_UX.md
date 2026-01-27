@@ -1,9 +1,13 @@
-﻿# Phase 3: Implementation Roadmap — UX v1.0 to Code
+﻿# Phase 3: Implementation Roadmap — UX v1.0 to Code (Segment-Primary Model)
 
 **Status**: Detailed step-by-step development plan  
 **Date**: 2026-01-26  
-**Purpose**: Guide developers from architecture (IMPLEMENT_UX.md) ? working UI with full UX v1.0 compliance  
+**Purpose**: Guide developers from architecture (IMPLEMENT_UX.md) → working UI with full UX v1.0 compliance  
 **Audience**: Developers, QA, project leads
+
+**Model**: Segment-primary architecture. Fringes are logical groupings, not containers.
+
+**Modernization**: Uses STL (std::vector, std::string, std::unique_ptr) instead of MFC auxiliary types.
 
 ---
 
@@ -37,7 +41,7 @@ This roadmap converts the **architecture design** into a **phased, testable impl
 | Phase | Focus | Weeks | Deliverable | Risk |
 |-------|-------|-------|-------------|------|
 | **1** | Core classes + basic infrastructure | 1–2 | InputHandler, ModifierState, basic drawing | Low |
-| **2** | Draw mode (create/continue curves) | 3–4 | Full Draw workflow tested | Medium |
+| **2** | Draw mode (create/continue/connect segments) | 3–4 | Full Draw workflow tested | Medium |
 | **3** | Selection + Navigate mode | 5–6 | Selection state machine, hit testing, Navigation | Medium |
 | **4** | Dot Edit mode (move/insert/delete dots) | 7 | Geometry editing tested | Medium |
 | **5** | Command pattern + Undo/Redo | 8–9 | All commands implemented + atomic transactions | High |
@@ -53,6 +57,8 @@ This roadmap converts the **architecture design** into a **phased, testable impl
 
 ```
 DigitMode/
+├── CFringeSegment.h            (RENAME from CFringe.h)
+├── CFringeSegment.cpp          (RENAME from CFringe.cpp)
 ├── InputHandler.h              (NEW)
 ├── InputHandler.cpp            (NEW)
 ├── SelectionManager.h          (NEW)
@@ -67,9 +73,11 @@ DigitMode/
 ├── CursorManager.h             (NEW)
 ├── CursorManager.cpp           (NEW)
 ├── TooltipGenerator.h          (NEW)
-└── TooltipGenerator.cpp       (NEW)
+└── TooltipGenerator.cpp        (NEW)
 
 Tests/DigitMode/
+├── CFringeSegmentTest.cpp      (RENAME from CFringeTest.cpp)
+├── CFringeSegmentFileIOTest.cpp (RENAME from CFringeFileIOTest.cpp)
 ├── InputHandlerTest.cpp        (NEW)
 ├── SelectionManagerTest.cpp    (NEW)
 ├── HitTesterTest.cpp           (NEW)
@@ -92,56 +100,56 @@ private:
     EditMode currentMode = EditMode::Navigate;
     
     // Draw mode state
-    int iActiveFringe = -1;  // Current fringe being drawn
-    int iActiveCurve = -1;   // Current curve being drawn
+    int iActiveSegment = -1;  // Current segment being drawn
     
 public:
     void SetMode(EditMode newMode);
     EditMode GetMode() const { return currentMode; }
     bool IsInDrawMode() const { return currentMode == EditMode::Draw; }
     
-    void StartNewCurve(CPoint P);
-    void ContinueCurve(int iFringe, int iCurve, int iDot);
-    void ConnectCurves(int iFringe, int iCurve, int iDot);
-    void EndCurrentCurve();
+    void StartNewSegment(CPoint P);
+    void ContinueSegment(int iSegment, int iDot);
+    void ConnectSegments(int iSegment, int iDot);
+    void EndCurrentSegment();
 };
 ```
 
 **SelectionManager.h**
 ```cpp
 #pragma once
+#include <vector>
 
-enum class SelectionLevel { None, Dot, Edge, Curve, Fringe };
+enum class SelectionLevel { None, Dot, Edge, Segment, Fringe };
 
 class SelectionManager {
 public:
     struct SelectedObject {
         SelectionLevel level = SelectionLevel::None;
-        int iFringe = -1;
-        int iCurve = -1;
+        int iSegment = -1;
         int iDot = -1;
         int iEdge = -1;
+        double Number = 0.0;  // For Fringe-level selection
         
         bool IsValid() const { return level != SelectionLevel::None; }
     };
     
 private:
-    CArray<SelectedObject> selection;
+    std::vector<SelectedObject> selection;
     
 public:
-    void SelectDot(int iFringe, int iCurve, int iDot);
-    void SelectEdge(int iFringe, int iCurve, int iEdge);
-    void SelectCurve(int iFringe, int iCurve);
-    void SelectFringe(int iFringe);
+    void SelectDot(int iSegment, int iDot);
+    void SelectEdge(int iSegment, int iEdge);
+    void SelectSegment(int iSegment);
+    void SelectFringe(double number);  // Selects all segments with this Number
     
     bool AddToSelection(const SelectedObject& obj);
     void PromoteToFringe();
     
     SelectionLevel GetLevel() const;
-    int GetCount() const { return selection.GetSize(); }
-    const SelectedObject& GetAt(int i) const { return selection[i]; }
-    void Clear() { selection.RemoveAll(); }
-    bool IsEmpty() const { return selection.GetSize() == 0; }
+    size_t GetCount() const { return selection.size(); }
+    const SelectedObject& GetAt(size_t i) const { return selection[i]; }
+    void Clear() { selection.clear(); }
+    bool IsEmpty() const { return selection.empty(); }
 };
 ```
 
@@ -152,10 +160,10 @@ public:
 
 class HitTester {
 private:
-    static const int HIT_TOLERANCE = 5;
+    static constexpr int HIT_TOLERANCE = 5;
     
 public:
-    SelectionLevel HitTest(CPoint P, int& outFringe, int& outCurve, int& outDot);
+    SelectionLevel HitTest(CPoint P, int& outSegment, int& outDot);
     
 private:
     double DotDistance(CPoint P, CDPoint dot) const;
@@ -166,14 +174,15 @@ private:
 **Command.h**
 ```cpp
 #pragma once
+#include <string>
 
 class Command {
 public:
     virtual void Execute() = 0;
     virtual void Undo() = 0;
     virtual void Redo() { Execute(); }
-    virtual CString GetName() const { return "Command"; }
-    virtual ~Command() {}
+    virtual std::string GetName() const { return "Command"; }
+    virtual ~Command() = default;
 };
 ```
 
@@ -181,24 +190,26 @@ public:
 ```cpp
 #pragma once
 #include "Commands/Command.h"
+#include <vector>
+#include <memory>
 
 class CommandDispatcher {
 private:
-    CArray<Command*> undoStack;
-    CArray<Command*> redoStack;
+    std::vector<std::unique_ptr<Command>> undoStack;
+    std::vector<std::unique_ptr<Command>> redoStack;
     
 public:
-    ~CommandDispatcher();
+    ~CommandDispatcher() = default;
     
-    void Execute(Command* cmd);
+    void Execute(std::unique_ptr<Command> cmd);
     void Undo();
     void Redo();
     
-    bool CanUndo() const { return undoStack.GetSize() > 0; }
-    bool CanRedo() const { return redoStack.GetSize() > 0; }
+    bool CanUndo() const { return !undoStack.empty(); }
+    bool CanRedo() const { return !redoStack.empty(); }
     
-    CString GetUndoLabel() const;
-    CString GetRedoLabel() const;
+    std::string GetUndoLabel() const;
+    std::string GetRedoLabel() const;
 };
 ```
 
@@ -241,10 +252,11 @@ public:
 ```cpp
 #pragma once
 #include "SelectionManager.h"
+#include <string>
 
 class TooltipGenerator {
 public:
-    CString GetTooltip(const SelectionManager::SelectedObject& obj, const CDigitInfo& digit);
+    std::string GetTooltip(const SelectionManager::SelectedObject& obj, const CDigitInfo& digit);
 };
 ```
 
@@ -257,34 +269,39 @@ public:
 ```cpp
 void InputHandler::SetMode(EditMode newMode) {
     if (currentMode == EditMode::Draw && newMode != EditMode::Draw) {
-        EndCurrentCurve();
+        EndCurrentSegment();
     }
     currentMode = newMode;
     // TODO: Update cursor
 }
 
-void InputHandler::StartNewCurve(CPoint P) {
+void InputHandler::StartNewSegment(CPoint P) {
     // TODO: Implement
-    TRACE("StartNewCurve at (%d, %d)\n", P.x, P.y);
+    // Log or TRACE for debugging
 }
 
-void InputHandler::EndCurrentCurve() {
+void InputHandler::EndCurrentSegment() {
     // TODO: Implement
-    TRACE("EndCurrentCurve\n");
 }
 // ... etc
 ```
 
 **SelectionManager.cpp** - Full implementation (straightforward):
 ```cpp
-void SelectionManager::SelectDot(int iFringe, int iCurve, int iDot) {
-    selection.RemoveAll();
+void SelectionManager::SelectDot(int iSegment, int iDot) {
+    selection.clear();
     SelectedObject obj;
     obj.level = SelectionLevel::Dot;
-    obj.iFringe = iFringe;
-    obj.iCurve = iCurve;
+    obj.iSegment = iSegment;
     obj.iDot = iDot;
-    selection.Add(obj);
+    selection.push_back(obj);
+}
+
+void SelectionManager::SelectFringe(double number) {
+    selection.clear();
+    // Query digitInfo for all segments with this Number
+    // For each matching segment, add to selection
+    // (Implementation requires access to digitInfo, pass as parameter or make member)
 }
 
 // ... etc (from IMPLEMENT_UX.md)
@@ -292,7 +309,7 @@ void SelectionManager::SelectDot(int iFringe, int iCurve, int iDot) {
 
 **HitTester.cpp** - Full implementation:
 ```cpp
-SelectionLevel HitTester::HitTest(CPoint P, int& outFringe, int& outCurve, int& outDot) {
+SelectionLevel HitTester::HitTest(CPoint P, int& outSegment, int& outDot) {
     // Implementation from IMPLEMENT_UX.md
     return SelectionLevel::None;  // Stub for now
 }
@@ -322,10 +339,10 @@ private:
 afx_msg void CImageView::OnLButtonDown(UINT nFlags, CPoint point) {
     ModifierState mods = ModifierState::FromKeyboard();
     
-    int iFringe, iCurve, iDot;
-    SelectionLevel hitLevel = hitTester.HitTest(point, iFringe, iCurve, iDot);
+    int iSegment, iDot;
+    SelectionLevel hitLevel = hitTester.HitTest(point, iSegment, iDot);
     
-    TRACE("LButtonDown at (%d, %d), mode=%d, hit=%d\n", point.x, point.y, currentMode, hitLevel);
+    // Log or TRACE for debugging
     
     // TODO: Route to handlers
     Invalidate(FALSE);
@@ -344,23 +361,23 @@ afx_msg void CImageView::OnMouseMove(UINT nFlags, CPoint point) {
 ```cpp
 TEST(SelectionManager, SelectDotWorks) {
     SelectionManager sel;
-    sel.SelectDot(0, 0, 5);
+    sel.SelectDot(0, 5);
     
     EXPECT_EQ(SelectionLevel::Dot, sel.GetLevel());
     EXPECT_EQ(1, sel.GetCount());
-    EXPECT_EQ(0, sel.GetAt(0).iFringe);
+    EXPECT_EQ(0, sel.GetAt(0).iSegment);
     EXPECT_EQ(5, sel.GetAt(0).iDot);
 }
 
-TEST(SelectionManager, PromoteToCurve) {
+TEST(SelectionManager, SelectFringeSelectsAllMatchingSegments) {
     SelectionManager sel;
-    sel.SelectDot(0, 0, 5);
-    sel.SelectDot(0, 1, 2);  // Add another dot in different curve
+    CDigitInfo digitInfo;
+    // Create test data: 3 segments with Number=1.0, 2 with Number=2.0
     
-    // Promote should group by curve
-    sel.PromoteToFringe();
+    sel.SelectFringe(1.0);
+    
     EXPECT_EQ(SelectionLevel::Fringe, sel.GetLevel());
-    EXPECT_EQ(1, sel.GetCount());  // Only one fringe
+    EXPECT_EQ(3, sel.GetCount());  // All 3 segments with Number=1.0
 }
 
 // ... etc
@@ -384,7 +401,8 @@ TEST(HitTester, DotDistanceCorrect) {
 - ✅ All core classes created with public interfaces
 - ✅ SelectionManager, HitTester fully implemented + unit tested
 - ✅ InputHandler, CommandDispatcher stubbed + wired into ImageView
-- ✅ Basic TRACE logging for debugging
+- ✅ Basic logging for debugging
+- ✅ CFringe renamed to CFringeSegment
 - ✅ No functional UI yet, but architecture in place
 
 ### Success Criteria
@@ -392,13 +410,14 @@ TEST(HitTester, DotDistanceCorrect) {
 - [ ] Project compiles without errors
 - [ ] InputHandler, SelectionManager, HitTester unit tests pass
 - [ ] CImageView initializes new components without crashing
-- [ ] Can turn on/off trace logging
+- [ ] Can turn on/off logging
+- [ ] CFringeSegment class exists and works with existing tests
 
 ---
 
 ## Phase 2: Draw Mode (Weeks 3–4)
 
-**Goal**: Implement full Draw workflow (create ? continue ? connect ? end curves).
+**Goal**: Implement full Draw workflow (create → continue → connect → end segments).
 
 ### Tasks
 
@@ -406,38 +425,34 @@ TEST(HitTester, DotDistanceCorrect) {
 
 **InputHandler.cpp** - Full Draw mode logic:
 ```cpp
-void InputHandler::StartNewCurve(CPoint P) {
-    // Create new fringe with next number
+void InputHandler::StartNewSegment(CPoint P) {
+    // Create new segment with next number
     double newNumber = digitInfo.GetNextNumber();
-    iActiveFringe = digitInfo.CreateFringe(newNumber);
-    iActiveCurve = 0;
+    iActiveSegment = digitInfo.CreateSegment(newNumber);
     
     // Add first dot
-    digitInfo.AddDotToFringe(iActiveFringe, iActiveCurve, CDPoint(P.x, P.y));
-    TRACE("Started new curve: fringe=%d, dot=0\n", iActiveFringe);
+    digitInfo.AddDotToSegment(iActiveSegment, CDPoint(P.x, P.y));
+    // Log: "Started new segment: segment=%d, dot=0\n", iActiveSegment
 }
 
-void InputHandler::ContinueCurve(int iFringe, int iCurve, int iDot) {
-    iActiveFringe = iFringe;
-    iActiveCurve = iCurve;
-    TRACE("Continuing curve: fringe=%d, curve=%d\n", iFringe, iCurve);
+void InputHandler::ContinueSegment(int iSegment, int iDot) {
+    iActiveSegment = iSegment;
+    // Log: "Continuing segment: segment=%d\n", iSegment
 }
 
-void InputHandler::ConnectCurves(int iFringe, int iCurve, int iDot) {
-    // Connect iActiveCurve to the specified curve
-    // Transfer drawing to the free end of the target curve
-    TRACE("Connecting curves\n");
+void InputHandler::ConnectSegments(int iSegment, int iDot) {
+    // Connect iActiveSegment to the specified segment
+    // Transfer drawing to the free end of the target segment
+    // Log: "Connecting segments\n"
     
-    iActiveFringe = iFringe;
-    iActiveCurve = iCurve;
-    // TODO: Mark curves as connected
+    iActiveSegment = iSegment;
+    // TODO: Mark segments as connected
 }
 
-void InputHandler::EndCurrentCurve() {
-    if (iActiveFringe >= 0) {
-        TRACE("Ended curve: fringe=%d, curve=%d\n", iActiveFringe, iActiveCurve);
-        iActiveFringe = -1;
-        iActiveCurve = -1;
+void InputHandler::EndCurrentSegment() {
+    if (iActiveSegment >= 0) {
+        // Log: "Ended segment: segment=%d\n", iActiveSegment
+        iActiveSegment = -1;
     }
 }
 ```
@@ -448,15 +463,15 @@ void InputHandler::EndCurrentCurve() {
 ```cpp
 class AddDotCommand : public Command {
 private:
-    int iFringe, iCurve, iDot;
+    int iSegment, iDot;
     CDPoint point;
     CDigitInfo* pDigit;
     
 public:
-    AddDotCommand(CDigitInfo* pD, int iF, int iC, int iD_idx, CDPoint p);
-    void Execute() override { pDigit->InsertDot(iFringe, iCurve, iDot, point); }
-    void Undo() override { pDigit->RemoveDot(iFringe, iCurve, iDot); }
-    CString GetName() const override { return "Add Dot"; }
+    AddDotCommand(CDigitInfo* pD, int iSeg, int iD_idx, CDPoint p);
+    void Execute() override { pDigit->InsertDot(iSegment, iDot, point); }
+    void Undo() override { pDigit->RemoveDot(iSegment, iDot); }
+    std::string GetName() const override { return "Add Dot"; }
 };
 ```
 
@@ -467,26 +482,25 @@ public:
 **ImageView.cpp** - OnLButtonDown for Draw mode:
 ```cpp
 void CImageView::OnLButtonDownDraw(CPoint P, ModifierState mods, SelectionLevel hitLevel,
-                                   int iFringe, int iCurve, int iDot) {
+                                   int iSegment, int iDot) {
     if (mods.None()) {
         if (hitLevel == SelectionLevel::None) {
-            // Start new curve
-            inputHandler.StartNewCurve(P);
+            // Start new segment
+            inputHandler.StartNewSegment(P);
             // Execute command
-            AddDotCommand* pCmd = new AddDotCommand(&digitInfo, 
-                inputHandler.iActiveFringe, 
-                inputHandler.iActiveCurve, 0, 
+            auto pCmd = std::make_unique<AddDotCommand>(&digitInfo, 
+                inputHandler.iActiveSegment, 0, 
                 CDPoint(P.x, P.y));
-            cmdDispatcher.Execute(pCmd);
+            cmdDispatcher.Execute(std::move(pCmd));
         }
         else if (hitLevel == SelectionLevel::Dot) {
-            // Continue from curve end
-            inputHandler.ContinueCurve(iFringe, iCurve, iDot);
+            // Continue from segment end
+            inputHandler.ContinueSegment(iSegment, iDot);
         }
     }
-    else if (mods.Ctrl() && hitLevel == SelectionLevel::Dot) {
-        // Connect curves
-        inputHandler.ConnectCurves(iFringe, iCurve, iDot);
+    else if (mods.ctrl && hitLevel == SelectionLevel::Dot) {
+        // Connect segments
+        inputHandler.ConnectSegments(iSegment, iDot);
     }
 }
 ```
@@ -495,7 +509,7 @@ void CImageView::OnLButtonDownDraw(CPoint P, ModifierState mods, SelectionLevel 
 ```cpp
 afx_msg void CImageView::OnRButtonDown(UINT nFlags, CPoint point) {
     if (currentMode == EditMode::Draw) {
-        inputHandler.EndCurrentCurve();
+        inputHandler.EndCurrentSegment();
     }
 }
 ```
@@ -504,8 +518,8 @@ afx_msg void CImageView::OnRButtonDown(UINT nFlags, CPoint point) {
 ```cpp
 case VK_BACK:
     if (currentMode == EditMode::Draw) {
-        RemoveLastDotCommand* pCmd = new RemoveLastDotCommand(&digitInfo);
-        cmdDispatcher.Execute(pCmd);
+        auto pCmd = std::make_unique<RemoveLastDotCommand>(&digitInfo);
+        cmdDispatcher.Execute(std::move(pCmd));
     }
     break;
 ```
@@ -525,21 +539,20 @@ protected:
     }
 };
 
-TEST_F(DrawModeTest, StartNewCurveCreatesNewFringe) {
-    inputHandler.StartNewCurve(CPoint(100, 100));
+TEST_F(DrawModeTest, StartNewSegmentCreatesNewSegment) {
+    inputHandler.StartNewSegment(CPoint(100, 100));
     
-    EXPECT_GE(inputHandler.iActiveFringe, 0);
-    EXPECT_EQ(0, inputHandler.iActiveCurve);
+    EXPECT_GE(inputHandler.iActiveSegment, 0);
 }
 
 TEST_F(DrawModeTest, AddDotCommandWorksWithUndo) {
-    // Create fringe
-    inputHandler.StartNewCurve(CPoint(100, 100));
+    // Create segment
+    inputHandler.StartNewSegment(CPoint(100, 100));
     
     // Add first dot via command
-    AddDotCommand* pCmd = new AddDotCommand(&digitInfo,
-        inputHandler.iActiveFringe, 0, 0, CDPoint(100, 100));
-    cmdDispatcher.Execute(pCmd);
+    auto pCmd = std::make_unique<AddDotCommand>(&digitInfo,
+        inputHandler.iActiveSegment, 0, CDPoint(100, 100));
+    cmdDispatcher.Execute(std::move(pCmd));
     
     EXPECT_TRUE(cmdDispatcher.CanUndo());
     EXPECT_FALSE(cmdDispatcher.CanRedo());
@@ -550,17 +563,17 @@ TEST_F(DrawModeTest, AddDotCommandWorksWithUndo) {
     EXPECT_TRUE(cmdDispatcher.CanRedo());
 }
 
-TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
-    inputHandler.StartNewCurve(CPoint(100, 100));
-    int iF1 = inputHandler.iActiveFringe;
+TEST_F(DrawModeTest, ContinueSegmentTransfersDrawing) {
+    inputHandler.StartNewSegment(CPoint(100, 100));
+    int iSeg1 = inputHandler.iActiveSegment;
     
-    // End first curve
-    inputHandler.EndCurrentCurve();
+    // End first segment
+    inputHandler.EndCurrentSegment();
     
     // Continue from a dot (simulated)
-    inputHandler.ContinueCurve(iF1, 0, 0);
+    inputHandler.ContinueSegment(iSeg1, 0);
     
-    EXPECT_EQ(iF1, inputHandler.iActiveFringe);
+    EXPECT_EQ(iSeg1, inputHandler.iActiveSegment);
 }
 ```
 
@@ -570,13 +583,13 @@ TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
 - ✅ AddDotCommand, RemoveLastDotCommand working
 - ✅ ImageView mouse handlers route to Draw logic
 - ✅ Draw mode unit tests pass
-- ✅ Can draw curves interactively (no visual feedback yet, just commands execute)
+- ✅ Can draw segments interactively (no visual feedback yet, just commands execute)
 
 ### Success Criteria
 
 - [ ] All Draw mode tests pass
 - [ ] Backspace removes dots correctly
-- [ ] Right-click ends curves
+- [ ] Right-click ends segments
 - [ ] Can add dots to undo/redo stack
 - [ ] No crashes with empty/complex drawings
 
@@ -584,7 +597,7 @@ TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
 
 ## Phase 3: Selection & Navigate (Weeks 5–6)
 
-**Goal**: Implement Navigate mode with full selection (Dot ? Edge ? Curve ? Fringe hierarchy).
+**Goal**: Implement Navigate mode with full selection (Dot → Edge → Segment → Fringe hierarchy).
 
 ### Tasks
 
@@ -592,9 +605,9 @@ TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
 
 **HitTester.cpp**:
 ```cpp
-SelectionLevel HitTester::HitTest(CPoint P, int& outFringe, int& outCurve, int& outDot) {
-    // Iterate fringes in reverse (top to bottom z-order)
-    for (int iF = digitInfo.Fringes.GetSize() - 1; iF >= 0; iF--) {
+SelectionLevel HitTester::HitTest(CPoint P, int& outSegment, int& outDot) {
+    // Iterate segments in reverse (top to bottom z-order)
+    for (int iSeg = static_cast<int>(digitInfo.Segments.size()) - 1; iSeg >= 0; iSeg--) {
         // Check dots first (highest priority)
         // Check edges
         // Return SelectionLevel::None if nothing found
@@ -607,7 +620,7 @@ SelectionLevel HitTester::HitTest(CPoint P, int& outFringe, int& outCurve, int& 
 **ImageView.cpp** - OnLButtonDownNavigate:
 ```cpp
 void CImageView::OnLButtonDownNavigate(CPoint P, ModifierState mods, SelectionLevel hitLevel,
-                                       int iFringe, int iCurve, int iDot) {
+                                       int iSegment, int iDot) {
     SelectionManager::SelectedObject obj;
     
     if (hitLevel == SelectionLevel::None) {
@@ -616,19 +629,18 @@ void CImageView::OnLButtonDownNavigate(CPoint P, ModifierState mods, SelectionLe
         }
     }
     else {
-        obj.iFringe = iFringe;
-        obj.iCurve = iCurve;
+        obj.iSegment = iSegment;
         obj.iDot = iDot;
         obj.level = hitLevel;
         
         if (mods.None()) {
-            selectionMgr.SelectDot(iFringe, iCurve, iDot);
+            selectionMgr.SelectDot(iSegment, iDot);
         }
-        else if (mods.Ctrl()) {
+        else if (mods.ctrl) {
             selectionMgr.AddToSelection(obj);
         }
-        else if (mods.Alt()) {
-            selectionMgr.SelectFringe(iFringe);
+        else if (mods.alt) {
+            selectionMgr.SelectFringe();  // No segment, selects all with same Number
         }
     }
 }
@@ -638,18 +650,18 @@ void CImageView::OnLButtonDownNavigate(CPoint P, ModifierState mods, SelectionLe
 
 **SelectionManager.h** - Add:
 ```cpp
-void BoxSelect(CRect box, BOOL bAddToSelection = FALSE);
+void BoxSelect(CRect box, bool bAddToSelection = false);
 ```
 
 **SelectionManager.cpp**:
 ```cpp
-void SelectionManager::BoxSelect(CRect box, BOOL bAddToSelection) {
-    CArray<SelectedObject> boxSelection;
+void SelectionManager::BoxSelect(CRect box, bool bAddToSelection) {
+    std::vector<SelectedObject> boxSelection;
     
-    // Hit test all dots/edges/curves in box
-    // Apply inclusion rules (Edge if intersects or inside, Curve if ALL edges, etc.)
+    // Hit test all dots/edges/segments in box
+    // Apply inclusion rules (Edge if intersects or inside, Segment if ALL edges, etc.)
     
-    if (!bAddToSelection) selection.RemoveAll();
+    if (!bAddToSelection) selection.clear();
     for (auto& obj : boxSelection) {
         AddToSelection(obj);
     }
@@ -665,7 +677,7 @@ void CImageView::OnPaint() {
     
     // Draw selection highlights
     SelectionLevel level = selectionMgr.GetLevel();
-    for (int i = 0; i < selectionMgr.GetCount(); i++) {
+    for (size_t i = 0; i < selectionMgr.GetCount(); i++) {
         auto& obj = selectionMgr.GetAt(i);
         DrawSelectionHighlight(pDC, obj);
     }
@@ -673,7 +685,7 @@ void CImageView::OnPaint() {
 
 void CImageView::DrawSelectionHighlight(CDC* pDC, const SelectionManager::SelectedObject& obj) {
     // Draw colored outline or crosshair at selected dot
-    // Draw thicker edge or curve outline
+    // Draw thicker edge or segment outline
     // TODO: Color scheme for selection
 }
 ```
@@ -690,16 +702,16 @@ protected:
     
     void SetUp() override {
         digitInfo.Init();
-        // Create test fringe with 3 curves, 5 dots each
+        // Create test fringe with 3 segments, 5 dots each
     }
 };
 
 TEST_F(SelectionWorkflowTest, SelectDotViaMouse) {
-    int iF, iC, iD;
-    SelectionLevel hit = hitTester.HitTest(CPoint(100, 100), iF, iC, iD);
+    int iSeg, iD;
+    SelectionLevel hit = hitTester.HitTest(CPoint(100, 100), iSeg, iD);
     
     if (hit == SelectionLevel::Dot) {
-        selectionMgr.SelectDot(iF, iC, iD);
+        selectionMgr.SelectDot(iSeg, iD);
         EXPECT_EQ(SelectionLevel::Dot, selectionMgr.GetLevel());
         EXPECT_EQ(1, selectionMgr.GetCount());
     }
@@ -707,13 +719,12 @@ TEST_F(SelectionWorkflowTest, SelectDotViaMouse) {
 
 TEST_F(SelectionWorkflowTest, CtrlClickAddsToSelection) {
     // Select first dot
-    selectionMgr.SelectDot(0, 0, 0);
+    selectionMgr.SelectDot(0, 0);
     
     // Ctrl+click second dot
     SelectionManager::SelectedObject obj;
     obj.level = SelectionLevel::Dot;
-    obj.iFringe = 0;
-    obj.iCurve = 0;
+    obj.iSegment = 0;
     obj.iDot = 1;
     
     bool success = selectionMgr.AddToSelection(obj);
@@ -721,14 +732,21 @@ TEST_F(SelectionWorkflowTest, CtrlClickAddsToSelection) {
     EXPECT_EQ(2, selectionMgr.GetCount());
 }
 
-TEST_F(SelectionWorkflowTest, AltClickPromotesToFringe) {
-    selectionMgr.SelectDot(0, 0, 0);
-    selectionMgr.SelectDot(0, 1, 0);  // Two different curves, same fringe
+TEST_F(SelectionWorkflowTest, AltClickSelectsAllWithSameNumber) {
+    // Segments 0, 1, 2 have Number=1.0; 3, 4 have Number=2.0
+    selectionMgr.SelectDot(0, 0);
     
-    selectionMgr.PromoteToFringe();
+    // Alt+click on first dot
+    ModifierState mods;
+    mods.alt = true;
+    HitTester tester;
+    int iSeg, iD;
+    tester.HitTest(CPoint(100, 100), iSeg, iD);  // Assume hits segment 0
+    
+    selectionMgr.OnLButtonDown(CPoint(100, 100), mods);
     
     EXPECT_EQ(SelectionLevel::Fringe, selectionMgr.GetLevel());
-    EXPECT_EQ(1, selectionMgr.GetCount());  // Only one fringe
+    EXPECT_EQ(3, selectionMgr.GetCount());  // All segments with Number=1.0
 }
 ```
 
@@ -742,9 +760,9 @@ TEST_F(SelectionWorkflowTest, AltClickPromotesToFringe) {
 
 ### Success Criteria
 
-- [ ] Can click to select dots/curves/fringes
+- [ ] Can click to select dots/segments/fringes
 - [ ] Ctrl+Click adds to selection
-- [ ] Alt+Click promotes to fringe
+- [ ] Alt+Click selects all with same Number
 - [ ] Box select works with inclusion rules
 - [ ] Selection highlights visible on screen
 
@@ -752,7 +770,7 @@ TEST_F(SelectionWorkflowTest, AltClickPromotesToFringe) {
 
 ## Phase 4: Dot Edit Mode (Week 7)
 
-**Goal**: Implement Dot Edit mode (move/insert/delete dots, drag edges).
+**Goal**: Implement Dot Edit mode (move/insert/delete dots, drag segments).
 
 ### Tasks
 
@@ -760,9 +778,9 @@ TEST_F(SelectionWorkflowTest, AltClickPromotesToFringe) {
 
 **ImageView.h**:
 ```cpp
-BOOL bDragging = FALSE;
+bool bDragging = false;
 CPoint dragStart;
-MoveGeometryCommand* pMoveCmd = NULL;
+std::unique_ptr<MoveGeometryCommand> pMoveCmd;
 ```
 
 #### 4.2 Implement OnLButtonDownDotEdit
@@ -770,26 +788,26 @@ MoveGeometryCommand* pMoveCmd = NULL;
 **ImageView.cpp**:
 ```cpp
 void CImageView::OnLButtonDownDotEdit(CPoint P, ModifierState mods, SelectionLevel hitLevel,
-                                      int iFringe, int iCurve, int iDot) {
+                                      int iSegment, int iDot) {
     if (hitLevel == SelectionLevel::Dot) {
-        if (mods.Alt()) {
+        if (mods.alt) {
             // Delete dot
-            RemoveDotCommand* pCmd = new RemoveDotCommand(&digitInfo, iFringe, iCurve, iDot);
-            cmdDispatcher.Execute(pCmd);
+            auto pCmd = std::make_unique<RemoveDotCommand>(&digitInfo, iSegment, iDot);
+            cmdDispatcher.Execute(std::move(pCmd));
         }
         else {
             // Start drag to move
-            bDragging = TRUE;
+            bDragging = true;
             dragStart = P;
-            pMoveCmd = new MoveGeometryCommand(&digitInfo);
-            CDPoint oldPos = digitInfo.GetDot(iFringe, iCurve, iDot);
-            pMoveCmd->AddPoint(iFringe, iCurve, iDot, oldPos, CDPoint(P.x, P.y));
+            pMoveCmd = std::make_unique<MoveGeometryCommand>(&digitInfo);
+            CDPoint oldPos = digitInfo.GetDot(iSegment, iDot);
+            pMoveCmd->AddPoint(iSegment, iDot, oldPos, CDPoint(P.x, P.y));
         }
     }
     else if (hitLevel == SelectionLevel::Edge) {
         // Insert dot on edge
-        InsertDotCommand* pCmd = new InsertDotCommand(&digitInfo, iFringe, iCurve, iDot, CDPoint(P.x, P.y));
-        cmdDispatcher.Execute(pCmd);
+        auto pCmd = std::make_unique<InsertDotCommand>(&digitInfo, iSegment, iDot, CDPoint(P.x, P.y));
+        cmdDispatcher.Execute(std::move(pCmd));
     }
 }
 ```
@@ -801,7 +819,7 @@ void CImageView::OnLButtonDownDotEdit(CPoint P, ModifierState mods, SelectionLev
 afx_msg void CImageView::OnMouseMove(UINT nFlags, CPoint point) {
     // ... existing cursor/tooltip code ...
     
-    if (bDragging && pMoveCmd != NULL) {
+    if (bDragging && pMoveCmd) {
         // Update move command with current position
         pMoveCmd->UpdatePreviewPosition(point);
         Invalidate(FALSE);  // Live preview
@@ -814,13 +832,12 @@ afx_msg void CImageView::OnMouseMove(UINT nFlags, CPoint point) {
 **ImageView.cpp**:
 ```cpp
 afx_msg void CImageView::OnLButtonUp(UINT nFlags, CPoint point) {
-    if (bDragging && pMoveCmd != NULL) {
+    if (bDragging && pMoveCmd) {
         // Finalize and execute
         pMoveCmd->FinalizePosition(point);
-        cmdDispatcher.Execute(pMoveCmd);
-        pMoveCmd = NULL;
+        cmdDispatcher.Execute(std::move(pMoveCmd));
     }
-    bDragging = FALSE;
+    bDragging = false;
 }
 ```
 
@@ -830,15 +847,15 @@ afx_msg void CImageView::OnLButtonUp(UINT nFlags, CPoint point) {
 ```cpp
 class RemoveDotCommand : public Command {
 private:
-    int iFringe, iCurve, iDot;
+    int iSegment, iDot;
     CDPoint savedPoint;
     CDigitInfo* pDigit;
     
 public:
-    RemoveDotCommand(CDigitInfo* pD, int iF, int iC, int iD);
+    RemoveDotCommand(CDigitInfo* pD, int iSeg, int iD);
     void Execute() override;
     void Undo() override;
-    CString GetName() const override { return "Remove Dot"; }
+    std::string GetName() const override { return "Remove Dot"; }
 };
 ```
 
@@ -859,7 +876,7 @@ public:
 - [ ] Can drag dots smoothly
 - [ ] Live preview visible
 - [ ] Inserting dots works
-- [ ] Alt+Click deletes
+- [ ] Alt+Click deletes dots
 - [ ] All operations undoable
 
 ---
@@ -908,18 +925,18 @@ case 'X':
 ```cpp
 void CImageView::OnKeyNumberIncrement() {
     if (selectionMgr.GetLevel() == SelectionLevel::Fringe ||
-        selectionMgr.GetLevel() == SelectionLevel::Curve) {
+        selectionMgr.GetLevel() == SelectionLevel::Segment) {
         
-        CArray<int> fringes;
-        for (int i = 0; i < selectionMgr.GetCount(); i++) {
-            fringes.Add(selectionMgr.GetAt(i).iFringe);
+        std::vector<int> fringes;
+        for (size_t i = 0; i < selectionMgr.GetCount(); i++) {
+            fringes.push_back(selectionMgr.GetAt(i).iSegment);
         }
         
-        double currentNum = digitInfo.GetFringe(fringes[0]).GetNumber();
+        double currentNum = digitInfo.GetSegment(fringes[0]).GetNumber();
         double step = digitInfo.GetNumberStep();
         
-        RenumberCommand* pCmd = new RenumberCommand(&digitInfo, fringes, currentNum + step);
-        cmdDispatcher.Execute(pCmd);
+        auto pCmd = std::make_unique<RenumberCommand>(&digitInfo, fringes, currentNum + step);
+        cmdDispatcher.Execute(std::move(pCmd));
     }
 }
 ```
@@ -940,28 +957,28 @@ protected:
 };
 
 TEST_F(CommandsTest, RenumberCommand) {
-    CArray<int> fringes = { 0 };
-    RenumberCommand cmd(&digitInfo, fringes, 2.5);
+    std::vector<int> fringes = { 0 };
+    auto cmd = std::make_unique<RenumberCommand>(&digitInfo, fringes, 2.5);
     
-    double oldNum = digitInfo.GetFringe(0).GetNumber();
-    cmd.Execute();
-    EXPECT_EQ(2.5, digitInfo.GetFringe(0).GetNumber());
+    double oldNum = digitInfo.GetSegment(0).GetNumber();
+    cmd->Execute();
+    EXPECT_EQ(2.5, digitInfo.GetSegment(0).GetNumber());
     
-    cmd.Undo();
-    EXPECT_EQ(oldNum, digitInfo.GetFringe(0).GetNumber());
+    cmd->Undo();
+    EXPECT_EQ(oldNum, digitInfo.GetSegment(0).GetNumber());
 }
 
 TEST_F(CommandsTest, SimplifyCommand) {
-    SimplifyCommand cmd(&digitInfo, 0, 0, 1.0);
-    int dotsBefore = digitInfo.GetFringe(0).DotCount(0);
+    auto cmd = std::make_unique<SimplifyCommand>(&digitInfo, 0, 0, 1.0);
+    int dotsBefore = digitInfo.GetSegment(0).DotCount(0);
     
-    cmd.Execute();
-    int dotsAfter = digitInfo.GetFringe(0).DotCount(0);
+    cmd->Execute();
+    int dotsAfter = digitInfo.GetSegment(0).DotCount(0);
     
     EXPECT_LE(dotsAfter, dotsBefore);
     
-    cmd.Undo();
-    EXPECT_EQ(dotsBefore, digitInfo.GetFringe(0).DotCount(0));
+    cmd->Undo();
+    EXPECT_EQ(dotsBefore, digitInfo.GetSegment(0).DotCount(0));
 }
 
 // ... etc for Split, Merge, Subdivide
@@ -996,13 +1013,13 @@ TEST_F(CommandsTest, SimplifyCommand) {
 
 **CursorManager.cpp** - Full implementation:
 - Mode-based cursors (Arrow, Crosshair, Vertex)
-- Modifier overlays (+ for Ctrl, ? for Shift, ! for Alt)
+- Modifier overlays (+ for Ctrl, ↕ for Shift, ! for Alt)
 - Composite cursor generation
 
 **TooltipGenerator.cpp** - Full implementation:
 - Format: `#2.5 / 1(1) / 12` for dots
-- Format: `Curve – 34 dots` for curves
-- Format: `Fringe #2.5 (3 curves)` for fringes
+- Format: `Segment – 34 dots` for segments
+- Format: `Fringe #2.5 (3 segments)` for fringes
 
 #### 6.2 Context Menus
 
@@ -1015,11 +1032,11 @@ void CImageView::OnContextMenu(CPoint P) {
     if (selectionMgr.GetLevel() == SelectionLevel::Dot) {
         menu.AppendMenu(MF_STRING, ID_MENU_DELETE, "Delete Dot");
         menu.AppendMenu(MF_STRING, ID_MENU_INSERT, "Insert Dot");
-        menu.AppendMenu(MF_STRING, ID_MENU_SELECT_CURVE, "Select Curve");
+        menu.AppendMenu(MF_STRING, ID_MENU_SELECT_SEGMENT, "Select Segment");
     }
-    else if (selectionMgr.GetLevel() == SelectionLevel::Curve) {
-        menu.AppendMenu(MF_STRING, ID_MENU_DELETE, "Delete Curve");
-        menu.AppendMenu(MF_STRING, ID_MENU_SPLIT, "Split Curve");
+    else if (selectionMgr.GetLevel() == SelectionLevel::Segment) {
+        menu.AppendMenu(MF_STRING, ID_MENU_DELETE, "Delete Segment");
+        menu.AppendMenu(MF_STRING, ID_MENU_SPLIT, "Split Segment");
         menu.AppendMenu(MF_STRING, ID_MENU_SIMPLIFY, "Simplify");
     }
     // ... etc
@@ -1034,24 +1051,24 @@ void CImageView::OnContextMenu(CPoint P) {
 
 **Tests/DigitMode/EdgeCaseTest.cpp** (NEW):
 ```cpp
-TEST(EdgeCases, EmptyFringeCanBeDeleted) {
-    // Create and delete empty fringe
+TEST(EdgeCases, EmptySegmentCanBeDeleted) {
+    // Create and delete empty segment
 }
 
-TEST(EdgeCases, SinglePointFringeWorks) {
-    // Create fringe with 1 dot, all operations
+TEST(EdgeCases, SinglePointSegmentWorks) {
+    // Create segment with 1 dot, all operations
 }
 
 TEST(EdgeCases, ConnectSelfDoesNotCrash) {
-    // Try to connect curve to itself
+    // Try to connect segment to itself
 }
 
-TEST(EdgeCases, DeleteAllDotsRemovesFringe) {
-    // Delete all dots in fringe
+TEST(EdgeCases, DeleteAllDotsRemovesSegment) {
+    // Delete all dots in segment
 }
 
 TEST(EdgeCases, RenumberToSameNumberWorks) {
-    // Renumber fringe to its current number (no-op)
+    // Renumber segment to its current number (no-op)
 }
 
 TEST(EdgeCases, UndoRedoStackLimits) {
@@ -1072,7 +1089,7 @@ protected:
 };
 
 TEST_F(RegressionTest, LoadSaveRoundTrip) {
-    // Load ? modify ? save ? load ? verify
+    // Load → modify → save → load → verify
 }
 
 TEST_F(RegressionTest, ComplexEditingWorkflow) {
@@ -1080,20 +1097,20 @@ TEST_F(RegressionTest, ComplexEditingWorkflow) {
 }
 
 TEST_F(RegressionTest, LargeFilePerformance) {
-    // 1000+ fringes: draw, hit-test, select, command speed
+    // 1000+ segments: draw, hit-test, select, command speed
 }
 ```
 
 #### 6.5 Visual Testing
 
 **Manual Test Protocol**:
-1. **Draw**: Click to draw curves, Shift for range, Ctrl to connect
+1. **Draw**: Click to draw segments, Shift for range, Ctrl to connect
 2. **Edit**: Switch to Dot Edit, drag points, insert/delete
 3. **Renumber**: Select fringe, press +/-, verify tooltip updates
-4. **Simplify**: Select curve, press S, verify dots reduced
+4. **Simplify**: Select segment, press S, verify dots reduced
 5. **Undo/Redo**: Ctrl+Z/Y through entire workflow
 6. **Cursors**: Verify cursor changes with mode + modifiers
-7. **Tooltips**: Hover over dots/curves, verify format
+7. **Tooltips**: Hover over dots/segments, verify format
 
 #### 6.6 Documentation
 
@@ -1116,208 +1133,9 @@ TEST_F(RegressionTest, LargeFilePerformance) {
 - [ ] All regression tests pass
 - [ ] No crashes on edge cases
 - [ ] Cursors update correctly
-- [ ] Tooltips display correctly
+- [ ] Tooltips display correctly (std::string format)
 - [ ] Context menus show correct options
 - [ ] Can complete 10-minute user walkthrough (from UX spec) without issues
 
 ---
-
-## File Organization
-
-### Directory Structure
-
-```
-Digit/
-├── DigitMode/
-│   ├── DigitInfo.h
-│   ├── DigitInfo.cpp
-│   ├── CFringe.h
-│   ├── CFringe.cpp
-│   ├── InputHandler.h                (Phase 1)
-│   ├── InputHandler.cpp              (Phase 1)
-│   ├── SelectionManager.h            (Phase 1)
-│   ├── SelectionManager.cpp          (Phase 1)
-│   ├── HitTester.h                   (Phase 1)
-│   ├── HitTester.cpp                 (Phase 1)
-│   ├── CursorManager.h               (Phase 1)
-│   ├── CursorManager.cpp             (Phase 1)
-│   ├── TooltipGenerator.h            (Phase 1)
-│   ├── TooltipGenerator.cpp          (Phase 1)
-│   ├── CommandDispatcher.h           (Phase 1)
-│   ├── CommandDispatcher.cpp         (Phase 1)
-│   └── Commands/                     (Phase 2+)
-│       ├── Command.h                 (Phase 1)
-│       ├── AddDotCommand.h/.cpp      (Phase 2)
-│       ├── RemoveDotCommand.h/.cpp   (Phase 2)
-│       ├── MoveGeometryCommand.h/.cpp(Phase 4)
-│       ├── RenumberCommand.h/.cpp    (Phase 5)
-│       ├── SimplifyCommand.h/.cpp    (Phase 5)
-│       ├── SplitCurveCommand.h/.cpp  (Phase 5)
-│       ├── MergeCurvesCommand.h/.cpp (Phase 5)
-│       ├── SubdivideCommand.h/.cpp   (Phase 5)
-│       └── DeleteSelectionCommand.h/.cpp (Phase 5)
-├── Tests/DigitMode/                  (New test files)
-│   ├── InputHandlerTest.cpp          (Phase 1)
-│   ├── SelectionManagerTest.cpp      (Phase 1)
-│   ├── HitTesterTest.cpp             (Phase 1)
-│   ├── DrawModeTest.cpp              (Phase 2)
-│   ├── SelectionWorkflowTest.cpp     (Phase 3)
-│   ├── CommandsTest.cpp              (Phase 5)
-│   ├── EdgeCaseTest.cpp              (Phase 6)
-│   └── RegressionTest.cpp            (Phase 6)
-└── Docs/
-    ├── FRINGES_EDITOR_UX_SPECIFICATIONS.md
-    ├── IMPLEMENT_UX.md
-    ├── ROADMAP_UX.md                 (this file)
-    └── UX_IMPLEMENTATION.md          (Phase 6)
-```
-
-### Compilation Order
-
-1. **Core Data Model**: CFringe.h/.cpp (already done)
-2. **Core Infrastructure**: InputHandler, SelectionManager, HitTester, CommandDispatcher
-3. **Commands**: Base Command class, then specific commands as phases add them
-4. **UI Integration**: CursorManager, TooltipGenerator, ImageView modifications
-5. **Tests**: Corresponding unit tests for each component
-
----
-
-## Testing Strategy
-
-### Unit Testing (By Phase)
-
-| Phase | Component | Test File | Coverage Goal |
-|-------|-----------|-----------|---------------|
-| 1 | SelectionManager | SelectionManagerTest.cpp | 95%+ |
-| 1 | HitTester | HitTesterTest.cpp | 90%+ |
-| 2 | InputHandler (Draw) | DrawModeTest.cpp | 85%+ |
-| 2 | AddDotCommand | CommandsTest.cpp | 95%+ |
-| 3 | HitTester (full) | SelectionWorkflowTest.cpp | 90%+ |
-| 4 | Move/Insert/Delete | DotEditModeTest.cpp | 85%+ |
-| 5 | All Commands | CommandsTest.cpp | 90%+ |
-| 6 | Edge Cases | EdgeCaseTest.cpp | 80%+ |
-| 6 | Regressions | RegressionTest.cpp | 80%+ |
-
-### Integration Testing (By Phase)
-
-| Phase | Scenario | Success Criteria |
-|-------|----------|-----------------|
-| 2 | Draw 3 curves | Can add dots, undo, redo |
-| 3 | Select dots | Ctrl+Click adds, Alt+Click promotes |
-| 4 | Edit geometry | Drag, insert, delete all work |
-| 5 | Renumber selection | +/- updates all fringes |
-| 6 | Complete workflow | 10-min user scenario works |
-
-### Manual Testing (Phase 6)
-
-**Test Matrix**:
-- 3 modes × 4 modifier combinations × 5 object types = 60 basic interactions
-- Each interaction: click, drag, keyboard, right-click
-- Undo/Redo for each: forward + backward
-- Large file (1000+ fringes) performance check
-
----
-
-## Success Criteria & Sign-Off
-
-### Phase 1 Success Criteria
-- [ ] All core classes compile without errors
-- [ ] SelectionManager, HitTester unit tests 100% pass
-- [ ] ImageView initializes without crashing
-- [ ] TRACE logging shows expected flow
-
-### Phase 2 Success Criteria
-- [ ] Can draw curves interactively
-- [ ] Backspace removes last dot
-- [ ] Right-click ends curve
-- [ ] All Draw mode tests pass
-- [ ] Undo/Redo works for drawing
-
-### Phase 3 Success Criteria
-- [ ] Can select dots/curves/fringes by clicking
-- [ ] Ctrl+Click adds to selection
-- [ ] Alt+Click promotes to Fringe
-- [ ] Box selection works with inclusion rules
-- [ ] Hit testing tests pass
-
-### Phase 4 Success Criteria
-- [ ] Can drag dots to move them
-- [ ] Can insert dots on edges
-- [ ] Alt+Click deletes dots
-- [ ] Live preview visible during drag
-- [ ] All Dot Edit tests pass
-
-### Phase 5 Success Criteria
-- [ ] +/? changes fringe numbers
-- [ ] S simplifies curves
-- [ ] Shift+S subdivides
-- [ ] M merges curves
-- [ ] X splits curves
-- [ ] All command tests pass
-
-### Phase 6 Success Criteria (Sign-Off)
-- [ ] All regression tests pass
-- [ ] No crashes on edge cases
-- [ ] Cursors update correctly
-- [ ] Tooltips display correctly
-- [ ] Manual test protocol completed
-- [ ] User walkthrough (10-min from UX spec) successful
-- [ ] Code review approved
-- [ ] Integration tests green
-
-### Final Acceptance (UX v1.0)
-
-Project sign-off when:
-1. **All phases complete**: Features 1–6 working
-2. **All tests pass**: Unit + Integration + Regression + Manual
-3. **UX v1.0 checklist**: All items in IMPLEMENT_UX.md Appendix checked
-4. **Performance acceptable**: <5% regression vs baseline
-5. **Documentation complete**: User guide + Developer guide
-6. **Code review passed**: Senior developer approval
-
----
-
-## Estimated Timeline
-
-```
-Week 1-2:  Phase 1 (Foundation)
-Week 3-4:  Phase 2 (Draw Mode)
-Week 5-6:  Phase 3 (Navigation)
-Week 7:    Phase 4 (Dot Edit)
-Week 8-9:  Phase 5 (Commands)
-Week 10:   Phase 6 (Polish & Testing)
-
-Total: 10 weeks (2.5 months)
-Can be done incrementally: Each phase deliverable independently
-```
-
----
-
-## Risks & Mitigation
-
-| Risk | Likelihood | Mitigation |
-|------|-----------|-----------|
-| **Mode dispatch bugs** | Medium | Early testing, TRACE logging |
-| **Hit testing accuracy** | Medium | Extensive geometry tests |
-| **Performance regression** | Low | Benchmark early + often |
-| **Undo/Redo consistency** | Medium | Command pattern discipline |
-| **Selection state bugs** | High | Comprehensive state tests |
-| **Integration complexity** | Medium | Phased approach, integration tests |
-
----
-
-## Next Steps
-
-1. **Start Phase 1**: Create core classes (Week 1)
-2. **Daily builds**: Ensure no compilation errors
-3. **Weekly reviews**: Check progress against milestones
-4. **Continuous testing**: Run unit tests after each phase
-5. **User feedback**: Manual testing with real workflows
-6. **Documentation**: Update as you go, consolidate at end
-
----
-
-**End of Implementation Roadmap**
-
-**Ready to start Phase 1? Begin with InputHandler, SelectionManager core classes.**
 

@@ -1,41 +1,42 @@
-﻿
----
+﻿---
 
-# Digit/MFringe UX Specification — **Frozen v1.0**
+# Digit/MFringe UX Specification — **Frozen v1.0 (Segment-Primary)**
 
 This version is considered **baseline-stable** for implementation and iteration.
+
+**Model**: Segment-primary architecture. Fringes are logical groupings, not containers.
 
 ---
 
 ## Amendment Applied (4.3 – Clarified)
 
-### 4.3 Connecting Curves (Final)
+### 4.3 Connecting Segments (Final)
 
-* **Click with Connect modifier on an end of another curve**
+* **Click with Connect modifier on an end of another segment**
 
-  * Current curve connects to the target curve
-  * **The free (non-connected) end of the second curve becomes the new active end**
+  * Current segment connects to the target segment
+  * **The free (non-connected) end of the second segment becomes the new active end**
   * Drawing continues seamlessly from that free end
 
 This ensures:
 
 * predictable continuation
-* no “dead-end” after connection
+* no "dead-end" after connection
 * consistent mental model: *you always continue from the open end*
 
 ---
 
 ## 1. Canonical Terminology (Frozen)
 
-| Term   | Meaning                                                     |
-| ------ | ----------------------------------------------------------- |
-| Dot    | Single control point                                        |
-| Edge   | Straight line between two adjacent dots                     |
-| Curve  | Continuous ordered polyline                                 |
-| Fringe | Logical group of one or more curves sharing the same Number |
-| Number | Constant height value assigned to a fringe                  |
+| Term    | Meaning                                                        |
+| ------- | -------------------------------------------------------------- |
+| Dot     | Single control point                                           |
+| Edge    | Straight line between two adjacent dots                        |
+| Segment | Continuous ordered polyline (primary geometric object)         |
+| Number  | Constant height value assigned to a segment                    |
+| Fringe  | Logical grouping of all segments sharing the same Number value |
 
-The word **“segment” is not used** in UX.
+**Key Principle**: Segments exist. Fringes are computed from segments by Number.
 
 ---
 
@@ -43,11 +44,11 @@ The word **“segment” is not used** in UX.
 
 Only modes that *fundamentally change mouse behavior* exist.
 
-| Mode     | Purpose                                   |
-| -------- | ----------------------------------------- |
-| Navigate | Selection, move, delete, multi-object ops |
-| Draw     | Create / continue / connect curves        |
-| Dot Edit | Fine geometry editing (dots & edges)      |
+| Mode     | Purpose                                      |
+| -------- | -------------------------------------------- |
+| Navigate | Selection, move, delete, multi-object ops    |
+| Draw     | Create / continue / connect segments         |
+| Dot Edit | Fine geometry editing (dots & edges)         |
 
 All other operations are **commands**, not modes.
 
@@ -59,8 +60,8 @@ All other operations are **commands**, not modes.
 
 * Dot
 * Edge
-* Curve
-* Fringe
+* Segment
+* Fringe (set of segments with same Number)
 * Other object (aperture, obstruction, zap…)
 
 Selection is:
@@ -80,22 +81,23 @@ Selection is:
 | ------------- | ------------------------------ |
 | Dot           | Inside box                     |
 | Edge          | Intersects **or** fully inside |
-| Curve         | **All edges included**         |
+| Segment       | **All edges included**         |
 | Fringe        | Never                          |
 | Other objects | Bounding-box based             |
 
 ---
 
-### Curve-Select Modifier
+### Segment-Select Modifier
 
-* Curve included if **any part intersects box**
+* Segment included if **any part intersects box**
 
 ---
 
 ### Fringe-Select Modifier
 
-* Entire fringe selected if **any curve intersects box**
+* Entire fringe selected if **any segment intersects box**
 * Multiple fringes allowed
+* Selects **all segments with the same Number**
 
 ---
 
@@ -105,33 +107,33 @@ Selection is:
 
 * **Left-click empty space**
 
-  * Starts new curve
-  * New fringe created
-  * Number increases by `NumberStep`
+  * Starts new segment
+  * Segment receives Number = last Number + step
+  * New fringe membership (if Number is unique)
 
 * **Right-click** (mouse counterpart of Enter)
 
-  * Ends current curve
+  * Ends current segment
   * Remains in Draw mode
 
 ---
 
-### Continue Existing Curve
+### Continue Existing Segment
 
-* **Left-click on either end of a curve**
+* **Left-click on either end of a segment**
 
-  * Activates that curve
+  * Activates that segment
   * Clicked end becomes active
   * Drawing continues
 
 ---
 
-### Connect Curves (Final)
+### Connect Segments (Final)
 
-* **Connect modifier + click curve end**
+* **Connect modifier + click segment end**
 
-  * Curves are connected
-  * **Free end of second curve becomes active**
+  * Segments are connected
+  * **Free end of second segment becomes active**
   * Drawing continues from that end
 
 ---
@@ -174,14 +176,16 @@ All command-based edits are issued from here.
 
 One-shot commands operating on selection:
 
-* Number + / –
+* Number + / – (renumber segments, changes fringe membership)
 * Auto-number (from selection)
 * Simplify
 * Subdivide
-* Split curve
-* Merge curves
+* Split segment
+* Merge segments
 
 Always undoable.
+
+**Note**: Renumbering a segment changes which fringe it belongs to.
 
 ---
 
@@ -190,13 +194,12 @@ Always undoable.
 ### Dot Tooltip
 
 ```
-#2.5 / 1(1) / 12
+#2.5 / 1(3) / 12
 ```
 
 * Fringe Number = 2.5
-* Curve index = 1
-* Total curves in fringe = 1
-* Dot index = 12
+* Segment index = 1 of 3 segments in this fringe
+* Dot index = 12 within this segment
 
 ---
 
@@ -204,8 +207,8 @@ Always undoable.
 
 Only relevant identifiers shown:
 
-* `Curve – 34 dots`
-* `Fringe #2.5 (3 curves)`
+* `Segment – 34 dots`
+* `Fringe #2.5 (3 segments)`
 * `Aperture`
 * `Obstruction`
 
@@ -238,28 +241,28 @@ This table is intentionally **small, memorable, and non-overloaded**.
 
 ## Selection & Navigation
 
-| Input                  | Action                      |
-| ---------------------- | --------------------------- |
-| Left-click             | Select                      |
-| Ctrl+Click             | Add / toggle selection      |
-| Shift+Click            | Range select (dots / edges) |
-| Drag empty space       | Box select                  |
-| Ctrl+Drag              | Add box selection           |
-| Curve-select modifier  | Promote to curve            |
-| Fringe-select modifier | Promote to fringe           |
+| Input                    | Action                      |
+| ------------------------ | --------------------------- |
+| Left-click               | Select                      |
+| Ctrl+Click               | Add / toggle selection      |
+| Shift+Click              | Range select (dots / edges) |
+| Drag empty space         | Box select                  |
+| Ctrl+Drag                | Add box selection           |
+| Segment-select modifier  | Promote to segment          |
+| Fringe-select modifier   | Promote to fringe           |
 
 ---
 
 ## Draw Mode
 
-| Input                    | Action          |
-| ------------------------ | --------------- |
-| Left-click empty         | Start new curve |
-| Left-click curve end     | Continue curve  |
-| Connect modifier + click | Connect curves  |
-| Right-click / Enter      | End curve       |
-| Backspace                | Remove last dot |
-| Delete modifier + click  | Remove dot      |
+| Input                    | Action            |
+| ------------------------ | ----------------- |
+| Left-click empty         | Start new segment |
+| Left-click segment end   | Continue segment  |
+| Connect modifier + click | Connect segments  |
+| Right-click / Enter      | End segment       |
+| Backspace                | Remove last dot   |
+| Delete modifier + click  | Remove dot        |
 
 ---
 
@@ -276,14 +279,14 @@ This table is intentionally **small, memorable, and non-overloaded**.
 
 ## Fringe Edit Commands (Navigate Mode)
 
-| Key             | Action           |
-| --------------- | ---------------- |
-| F               | Select fringe    |
-| Ctrl++ / Ctrl+- | Auto-number step |
-| S               | Simplify         |
-| Shift+S         | Subdivide        |
-| M               | Merge curves     |
-| X               | Split curve      |
+| Key             | Action            |
+| --------------- | ----------------- |
+| F               | Select fringe     |
+| Ctrl++ / Ctrl+- | Auto-number step  |
+| S               | Simplify          |
+| Shift+S         | Subdivide         |
+| M               | Merge segments    |
+| X               | Split segment     |
 
 (Exact letters adjustable, semantics frozen.)
 
@@ -291,21 +294,12 @@ This table is intentionally **small, memorable, and non-overloaded**.
 
 ## Final Status
 
-✅ Terminology frozen
+✅ Terminology frozen (segment-primary)
 ✅ Modes minimized and clear
 ✅ Mouse & keyboard balanced
 ✅ Draw workflow continuous and predictable
 ✅ Selection rules precise
 ✅ Ready for implementation & testing
-
----
-
-Great, this is the right sequencing. Below is a **clean UX-level spec pass** that:
-
-1. **freezes Ctrl / Shift / Alt semantics** (no ambiguity, CAD-consistent)
-2. defines a **minimal, coherent icon / tool palette**
-
-Still **spec only**, no implementation detail.
 
 ---
 
@@ -380,30 +374,30 @@ Used for:
 
 ### 2.2 Selection Promotion
 
-| Input             | Result                           |
-| ----------------- | -------------------------------- |
-| Click curve       | Select curve                     |
-| Shift+Click curve | Promote to curve (from dot/edge) |
-| Alt+Click curve   | Promote to fringe                |
-| Alt+Drag box      | Box-select fringes               |
+| Input               | Result                             |
+| ------------------- | ---------------------------------- |
+| Click segment       | Select segment                     |
+| Shift+Click segment | Promote to segment (from dot/edge) |
+| Alt+Click segment   | Promote to fringe                  |
+| Alt+Drag box        | Box-select fringes                 |
 
 Rationale:
 
 * **Shift = bigger within same structure**
-* **Alt = semantic jump (curve → fringe)**
+* **Alt = semantic jump (segment → fringe)**
 
 ---
 
 ### 2.3 Draw Mode
 
-| Input                | Action               |
-| -------------------- | -------------------- |
-| Left-click empty     | Start new curve      |
-| Left-click curve end | Continue curve       |
-| Ctrl+Click curve end | **Connect curves**   |
-| Right-click          | End curve            |
-| Backspace            | Remove last dot      |
-| Alt+Click dot        | Delete arbitrary dot |
+| Input                  | Action                 |
+| ---------------------- | ---------------------- |
+| Left-click empty       | Start new segment      |
+| Left-click segment end | Continue segment       |
+| Ctrl+Click segment end | **Connect segments**   |
+| Right-click            | End segment            |
+| Backspace              | Remove last dot        |
+| Alt+Click dot          | Delete arbitrary dot   |
 
 Here:
 
@@ -515,12 +509,12 @@ Momentary actions (do not latch).
 
   * action
   * shortcut
-  * scope (Dot / Curve / Fringe)
+  * scope (Dot / Segment / Fringe)
 
 Example tooltip:
 
-> **Simplify Curve**
-> Applies to selected curves
+> **Simplify Segment**
+> Applies to selected segments
 > Shortcut: `S`
 
 ---
@@ -531,13 +525,13 @@ Example tooltip:
 
 * Dot → filled circle
 * Edge → short line
-* Curve → polyline
-* Fringe → stacked polylines
+* Segment → polyline
+* Fringe → stacked polylines (multiple segments)
 * Number → `#`
 
 ### Styling
 
-* Color reflects fringe number (applicable for dots, edges, curves, fringes) or denotes object type (apertures, obstuctions)
+* Color reflects fringe number (applicable for dots, edges, segments, fringes) or denotes object type (apertures, obstructions)
 * No text inside icons
 * Color accent (brightness, glow) reflects state (hover / active)
 
@@ -628,8 +622,8 @@ Below are **semantic icon definitions**, sufficient for designers or Copilot lat
 
 | Command      | Icon Concept          |
 | ------------ | --------------------- |
-| Split Curve  | Scissors cutting line |
-| Merge Curves | Two lines joining     |
+| Split Segment  | Scissors cutting line |
+| Merge segments | Two lines joining     |
 | Simplify     | Smooth wave           |
 | Subdivide    | Dots added on line    |
 
@@ -741,7 +735,7 @@ Context menus are **selection-sensitive** and **mode-aware**.
   * Select All
 * Draw:
 
-  * End Curve
+  * End Segment
   * Cancel Draw
 
 ---
@@ -750,7 +744,7 @@ Context menus are **selection-sensitive** and **mode-aware**.
 
 * Delete Dot
 * Insert Dot Before / After
-* Select Curve
+* Select Segment
 * Select Fringe
 
 ---
@@ -758,17 +752,17 @@ Context menus are **selection-sensitive** and **mode-aware**.
 ### 4.3 Edge Context Menu
 
 * Insert Dot
-* Split Curve Here
-* Select Curve
-* Simplify Curve
+* Split Segment Here
+* Select Segment
+* Simplify Segment
 
 ---
 
-### 4.4 Curve Context Menu
+### 4.4 Segment Context Menu
 
-* Select Curve
+* Select Segment
 * Select Fringe
-* Split Curve
+* Split Segment
 * Simplify
 * Subdivide
 
@@ -776,10 +770,10 @@ Context menus are **selection-sensitive** and **mode-aware**.
 
 ### 4.5 Fringe Context Menu
 
-* Select Fringe
+* Select Fringe (selects all segments with same Number)
 * Change Number…
 * Auto-number
-* Delete Fringe
+* Delete Fringe (deletes all segments with this Number)
 
 ---
 
@@ -812,23 +806,23 @@ These are meant to be *authoritative*, readable by humans **and** usable by Copi
 
 ## Modes
 
-| Mode     | Purpose                                |
-| -------- | -------------------------------------- |
-| Navigate | Select, move, delete, multi-object ops |
-| Draw     | Create, continue, connect curves       |
-| Dot Edit | Fine geometry editing                  |
+| Mode     | Purpose                                   |
+| -------- | ----------------------------------------- |
+| Navigate | Select, move, delete, multi-object ops    |
+| Draw     | Create, continue, connect segments        |
+| Dot Edit | Fine geometry editing                     |
 
 ---
 
 ## Objects
 
-| Level  | Meaning                          |
-| ------ | -------------------------------- |
-| Dot    | Control point                    |
-| Edge   | Line between dots                |
-| Curve  | Continuous polyline              |
-| Fringe | Group of curves with same Number |
-| Other  | Apertures, obstructions, zap     |
+| Level   | Meaning                                 |
+| ------- | --------------------------------------- |
+| Dot     | Control point                           |
+| Edge    | Line between dots                       |
+| Segment | Continuous polyline (primary object)    |
+| Fringe  | Logical group of segments with same Number |
+| Other   | Apertures, obstructions, zap            |
 
 ---
 
@@ -838,6 +832,7 @@ These are meant to be *authoritative*, readable by humans **and** usable by Copi
 * One mode active at a time
 * Commands act on selection
 * Esc always cancels
+* **Segments exist, fringes are computed**
 
 ---
 
@@ -865,10 +860,10 @@ These are meant to be *authoritative*, readable by humans **and** usable by Copi
 
 ## Draw Mode Quick Flow
 
-1. Left-click empty → start curve (new fringe)
-2. Left-click end → continue curve
-3. Ctrl+Click other curve end → connect
-4. Right-click → end curve
+1. Left-click empty → start segment (Number increments)
+2. Left-click end → continue segment
+3. Ctrl+Click other segment end → connect
+4. Right-click → end segment
 
 ---
 
@@ -882,8 +877,8 @@ This ensures **undo predictability**.
 | Remove last dot  | RemoveDot     | Single step         |
 | Insert dot       | InsertDot     | Single step         |
 | Move dot(s)      | MoveGeometry  | One drag = one undo |
-| Split curve      | SplitCurve    | Atomic              |
-| Merge curves     | MergeCurves   | Atomic              |
+| Split segment    | SplitSegment  | Atomic              |
+| Merge segments   | MergeSegments | Atomic              |
 | Change Number    | Renumber      | Atomic              |
 | Simplify         | Simplify      | Atomic              |
 | Subdivide        | Subdivide     | Atomic              |
@@ -904,11 +899,11 @@ One user intent = one undo step.
   |                     |
   | Promote             | Promote
   v                     v
-[Edge] ------------> [Curve]
+[Edge] ------------> [Segment]
                           |
                        Alt Promote
                           v
-                       [Fringe]
+                    [Fringe (all segments with same Number)]
 ```
 
 ### Notes
@@ -916,6 +911,7 @@ One user intent = one undo step.
 * Promotion never loses information
 * Demotion is explicit (Alt or command)
 * Mixed selection allowed only via Ctrl
+* Fringe selection = selecting all segments with matching Number
 
 ---
 
@@ -925,18 +921,18 @@ This is what implementation must satisfy before sign-off.
 
 ## Selection
 
-* [ ] Dot, Edge, Curve, Fringe selectable
+* [ ] Dot, Edge, Segment, Fringe selectable
 * [ ] Box selection obeys inclusion rules
 * [ ] Ctrl adds, Shift ranges, Alt promotes
 * [ ] Selection persists across modes
 
 ## Draw Mode
 
-* [ ] Start new curve on empty click
-* [ ] Continue from curve ends
-* [ ] Connect curves with Ctrl
+* [ ] Start new segment on empty click
+* [ ] Continue from segment ends
+* [ ] Connect segments with Ctrl
 * [ ] Free end becomes active after connect
-* [ ] Right-click ends curve
+* [ ] Right-click ends segment
 * [ ] Backspace removes last dot
 
 ## Dot Edit
@@ -954,9 +950,9 @@ This is what implementation must satisfy before sign-off.
 
 ## Commands
 
-* [ ] Number +/- works on selection
+* [ ] Number +/- works on selection (changes fringe membership)
 * [ ] Auto-number respects order
-* [ ] Simplify / Subdivide work on curves
+* [ ] Simplify / Subdivide work on segments
 * [ ] Merge / Split atomic & undoable
 
 ## Feedback
@@ -970,7 +966,7 @@ This is what implementation must satisfy before sign-off.
 
 # Status
 
-✅ UX v1.0 **fully specified**
+✅ UX v1.0 **fully specified** (segment-primary model)
 ✅ Ready for:
 
 * Copilot instruction derivation
@@ -980,39 +976,36 @@ This is what implementation must satisfy before sign-off.
 
 ---
 
-Perfect. Here is the **distilled Copilot system prompt**, optimized to be **short, strict, and enforce UX v1.0 correctly**.
-This is meant to be pasted **verbatim** at the top of Copilot Chat or as a project AI instruction.
-
----
-
-## Copilot System Prompt — **Digit/MFringe UX v1.0**
+## Copilot System Prompt — **Digit/MFringe UX v1.0 (Segment-Primary)**
 
 You are working on **Digit**, a scientific CAD-like editor for interferogram fringes.
 
-Follow **UX v1.0 strictly**:
+Follow **UX v1.0 strictly** (segment-primary model):
 
-• **Terminology is fixed**: Dot (point), Edge (between dots), Curve (continuous polyline), Fringe (group of curves with same Number). Do not use “segment” in UX or logic.
+• **Terminology is fixed**: Dot (point), Edge (between dots), Segment (continuous polyline), Fringe (logical grouping of segments with same Number). 
+• **Segments are primary objects**. Fringes are computed groupings, not containers.
 • **Modes are limited**: Navigate, Draw, Dot Edit. Only these change mouse behavior.
-• **Selection is persistent and hierarchical**: Dot → Edge → Curve → Fringe. No implicit promotion.
+• **Selection is persistent and hierarchical**: Dot → Edge → Segment → Fringe. No implicit promotion.
 • **Modifiers are global**:
 Ctrl = add / connect
 Shift = range / constrain
 Alt = structural / alternate
 • **Draw mode**:
-– Left-click empty → start new curve (new fringe, Number += step)
-– Left-click curve end → continue curve
-– Ctrl+Click other curve end → connect; **free end becomes active**
-– Right-click ends current curve
+– Left-click empty → start new segment (Number += step)
+– Left-click segment end → continue segment
+– Ctrl+Click other segment end → connect; **free end becomes active**
+– Right-click ends current segment
 – Backspace removes last dot
 • **Dot Edit mode**: move/insert/delete dots and edges only; no creation or numbering.
 • **Navigate mode**: full selection, box select, multi-object drag/delete.
 • **Box selection rules**:
 – Edge if intersects or inside
-– Curve only if *all* edges included (unless Curve-select modifier)
-– Fringe only via Fringe-select modifier
+– Segment only if *all* edges included (unless Segment-select modifier)
+– Fringe only via Fringe-select modifier (selects all segments with same Number)
 • **Commands (not modes)** act on selection: Number +/−, auto-number, simplify, subdivide, split, merge.
 • **One user intent = one undo step.**
-• **Never reintroduce flat-dot logic or topology reconstruction.**
+• **Renumbering a segment changes which fringe it belongs to.**
+• **Never store fringes as containers. Compute them on-demand from segment Number values.**
 
 If behavior is ambiguous, choose predictability over cleverness and follow CAD conventions.
 

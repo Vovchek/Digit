@@ -353,6 +353,7 @@
     <None Include="README_DIGITINFO_ANALYSIS.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
     <None Include="Docs\ROADMAP_UX.md" />
+    <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
