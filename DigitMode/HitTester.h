@@ -21,7 +21,7 @@ namespace DigitMode {
  */
 class HitTester {
 private:
-    static constexpr int HIT_TOLERANCE = 5;  ///< Hit tolerance in pixels
+    static constexpr int HIT_TOLERANCE = 5;  ///< Hit tolerance in pixels (INCLUSIVE: distance <= 5)
 
 public:
     /**
@@ -36,6 +36,11 @@ public:
      * 1. Dots (highest priority)
      * 2. Edges
      * 3. Nothing (SelectionLevel::None)
+     * 
+     * Tolerance Policy:
+     * - Uses INCLUSIVE tolerance (distance <= HIT_TOLERANCE)
+     * - Standard CAD convention: "within 5 pixels" includes exactly 5 pixels
+     * - Objects at exactly tolerance boundary are selectable
      * 
      * Note: Segments in reverse order (top-to-bottom z-order)
      */

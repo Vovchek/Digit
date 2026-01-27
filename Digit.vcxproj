@@ -273,10 +273,14 @@
     <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
     <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
     <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
+    <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
+    <None Include="Docs\HitTester_Tolerance_Fix.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
     <None Include="README_DIGITINFO_ANALYSIS.md" />
+    <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
+    <None Include="Scripts\Add_Phase1_Tests.ps1" />
     <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1" />
     <None Include="VISUAL_STUDIO_SETUP.md" />
   </ItemGroup>

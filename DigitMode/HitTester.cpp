@@ -26,7 +26,7 @@ SelectionLevel HitTester::HitTest(
         // 1. Check dots (highest priority)
         for (int iD = 0; iD < dotCount; iD++) {
             CDPoint dot = segment.GetPoint(iD);
-            if (DotDistance(P, dot) < HIT_TOLERANCE) {
+            if (DotDistance(P, dot) <= HIT_TOLERANCE) {  // Inclusive tolerance
                 outSegment = iSeg;
                 outDot = iD;
                 return SelectionLevel::Dot;
@@ -39,7 +39,7 @@ SelectionLevel HitTester::HitTest(
             CDPoint B = segment.GetPoint(iE + 1);
             double dist = DistanceToSegment(P, A, B);
 
-            if (dist < HIT_TOLERANCE) {
+            if (dist <= HIT_TOLERANCE) {  // Inclusive tolerance
                 outSegment = iSeg;
                 outDot = iE;  // Edge start index
                 return SelectionLevel::Edge;

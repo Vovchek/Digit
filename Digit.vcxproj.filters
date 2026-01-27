@@ -394,6 +394,10 @@
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
     <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1" />
+    <None Include="Scripts\Add_Phase1_Tests.ps1" />
+    <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
+    <None Include="Docs\HitTester_Tolerance_Fix.md" />
+    <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />

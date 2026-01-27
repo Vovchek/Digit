@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="..\InterfSolver\Tools\Matrix.cpp" />
+    <ClCompile Include="..\InterfSolver\Tools\Vector.cpp" />
+    <ClCompile Include="..\MGTools\Source\Utils\BaseDataType.cpp" />
+    <ClCompile Include="gtest_main.cpp" />
+    <ClCompile Include="test.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\InterfSolver\Tools\CalcContour.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\CalcContourClassificationBugTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\CalcContourDegenerateTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\CalcContourTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\ConnectSegmentsTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\isPupil.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\isPupilTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="UtilsTests\middle_integrated_test.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\XYBrokenLine.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\XYEllipse.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\XYEllipseTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\XYPolygon.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\XYPolygonAreaTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\XYPolygonTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\XYRect.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\XYRectTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\InterfSolver\Tools\XYShape.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\XYShapeTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\CFringeSegment.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\CFringeSegmentFileIOTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\CFringeSegmentTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\CommandDispatcherTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\DigitInfoTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\HitTesterTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\InputHandlerTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\SelectionManagerTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\HitTester.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\SelectionManager.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\TooltipGenerator.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\CursorManager.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\CommandDispatcher.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\InputHandler.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="stdafx.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="InterfSolver\Tools\ELLIPSE_TEST_ANALYSIS.md" />
+    <None Include="InterfSolver\Tools\ISPUPIL_TEST_FIXES.md" />
+    <None Include="packages.config" />
+    <None Include="InterfSolver\Tools\REMAINING_TEST_FAILURES.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CONNECTSEGMENTS_TEST_UPDATES.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CONNECTSEGMENTS_TEST_UPDATES_COMPLETE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_CLASSIFICATION_BUG.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_FIXES.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_DEGENERATE_BUG_QUICK_REFERENCE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_DEGENERATE_BUG_TEST_STRATEGY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_DEGENERATE_POLYGON_BUG_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_DEGENERATE_TEST_FIXES.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_FIXES_APPLIED.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_FIXES_REQUIRED.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_OCCLUDED_TEST_BUG.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_COMPLETE_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{2d17857e-76dd-4ecc-8893-9b8aaa62e9d4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ApertureTests">
+      <UniqueIdentifier>{63774887-b72c-465e-8b47-183c626d9a39}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="EditorTests">
+      <UniqueIdentifier>{d98a629a-ae88-417a-8753-9cdc4aef8efb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>
