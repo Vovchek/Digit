@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "MGTools/Include/Utils/BaseDataType.h"
+#include <vector>
 
 /// <summary>
 /// Represents a single fringe as an ordered polyline of points.
@@ -10,13 +11,14 @@
 /// - NO section information stored here (sections are horizontal slices across ALL fringes)
 /// - Multiple CFringeSegment objects can share the same Number (discontinuous segments)
 /// - Sections can be reconstructed from Y-coordinates of all fringes when needed
+/// - Uses std::vector (NOT CArray) for modern C++ compliance
 /// </summary>
 class CFringeSegment {
 private:
     double m_Number;              ///< Fringe number (e.g., 0, 0.5, 1.0, ...)
     int m_Index;                  ///< Segment index for this fringe Number 
                                   ///< (to distinguish discontinuous parts)
-    CArray<CDPoint> m_Points;     ///< ORDERED sequence of points forming the polyline
+    std::vector<CDPoint> m_Points; ///< ORDERED sequence of points forming the polyline
     BOOL m_bClosed;               ///< Is this a closed loop?
     
 public:
@@ -51,7 +53,7 @@ public:
     
     // ===== Queries =====
     /// Get total number of points in fringe
-    int GetPointCount() const { return m_Points.GetSize(); }
+    int GetPointCount() const { return static_cast<int>(m_Points.size()); }
     
     /// Get point at specific index
     /// @param idx Point index (0-based)
@@ -80,69 +82,41 @@ public:
     /// Check if fringe is closed loop
     BOOL IsClosed() const { return m_bClosed; }
     
-    /// Set closed loop flag
-    /// @param closed TRUE if closed loop
-    void SetClosed(BOOL closed) { m_bClosed = closed; }
+    /// Set closed loop state
+    void SetClosed(BOOL bClosed) { m_bClosed = bClosed; }
     
     // ===== Hit Testing =====
-    /// Find nearest point to screen coordinate (within tolerance)
-    /// @param screenP Screen coordinates to test
-    /// @param tolerance Maximum distance in pixels
-    /// @return Point index, or -1 if none within tolerance
-    int FindNearestPoint(CPoint screenP, int tolerance);
+    /// Find nearest point to screen position within tolerance
+    /// @return Index of nearest point, or -1 if none within tolerance
+    int FindNearestPoint(CPoint screenP, int tolerance = 5);
     
-    /// Check if screen coordinate is on the polyline
-    /// @param P Screen coordinates to test
-    /// @param tolerance Maximum distance in pixels
-    /// @param nearestIdx [out] Index of nearest point (if found)
-    /// @return TRUE if point is on polyline within tolerance
+    /// Check if point is on polyline within tolerance
     BOOL IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx);
     
     /// Get bounding rectangle
-    /// @return Bounding rectangle containing all points
     CRect GetBoundingRect() const;
     
-    // ===== Drawing =====
-    /// Draw only the dots (markers)
-    /// @param pDC Device context
-    /// @param dotSize Size of dot markers in pixels
-    /// @param color Color for dots
+    // ===== Drawing (UI dependency - to be removed later) =====
     void DrawDots(CDC* pDC, int dotSize, COLORREF color);
-    
-    /// Draw only the connecting polyline
-    /// @param pDC Device context
-    /// @param color Color for line
     void DrawPolyline(CDC* pDC, COLORREF color);
-    
-    /// Draw both dots and connecting lines
-    /// @param pDC Device context
-    /// @param dotSize Size of dot markers in pixels
-    /// @param lineColor Color for polyline
-    /// @param dotColor Color for dots
     void DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotColor);
     
-    // ===== Advanced Operations (Phase 5) =====
-    /// Split this fringe at given point index (returns new fringe)
-    /// @param atIndex Index where to split (point becomes first of new fringe)
-    /// @return New fringe containing points from atIndex onward
+    // ===== Advanced Operations (Phase 5+) =====
+    /// Split fringe at given point index
+    /// @return New fringe containing points from split point to end
     CFringeSegment Split(int atIndex);
     
-    /// Compute total arc length
-    /// @return Total length of polyline
+    /// Get arc length of polyline
     double GetArcLength() const;
     
-    /// Subdivide long segments to max spacing
-    /// @param maxGap Maximum allowed distance between consecutive points
+    /// Subdivide segments longer than maxGap
     void SubdivideSegments(double maxGap);
     
-    /// Simplify polyline (Douglas-Peucker algorithm)
-    /// @param epsilon Maximum allowed distance from simplified line
+    /// Simplify polyline using Douglas-Peucker algorithm
+    /// @param epsilon Maximum distance from original polyline
     void Simplify(double epsilon);
-
-private:
-    /// Helper for Douglas-Peucker simplification
-    void SimplifyRecursive(int start, int end, double epsilon, CArray<BOOL>& keep);
     
-    /// Calculate distance from point to line segment
+private:
+    void SimplifyRecursive(int start, int end, double epsilon, std::vector<bool>& keep);
     double PointToLineDistance(CDPoint p, CDPoint lineStart, CDPoint lineEnd);
 };

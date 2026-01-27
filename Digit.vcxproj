@@ -279,6 +279,7 @@
     <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
     <None Include="Docs\HitTester_Tolerance_Fix.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
+    <None Include="Docs\MFC_Auxiliary_Audit.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />

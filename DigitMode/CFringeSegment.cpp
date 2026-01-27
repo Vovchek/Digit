@@ -1,7 +1,11 @@
 ﻿#include "stdafx.h"
 #include "CFringeSegment.h"
+
+#undef max  // Windows.h defines max as a macro
+#undef min
+
 #include <cmath>
-#include <float.h>
+#include <limits>
 
 // ===== Construction =====
 
@@ -13,17 +17,16 @@ CFringeSegment::CFringeSegment(double number, int index)
 CFringeSegment::CFringeSegment(const CFringeSegment& other)
     : m_Number(other.m_Number), m_Index(other.m_Index), m_bClosed(other.m_bClosed)
 {
-    m_Points.Copy(other.m_Points);
+    m_Points = other.m_Points;  // std::vector copy
 }
 
 CFringeSegment& CFringeSegment::operator=(const CFringeSegment& other)
 {
     if (this != &other) {
         m_Number = other.m_Number;
-		m_Index = other.m_Index;
+        m_Index = other.m_Index;
         m_bClosed = other.m_bClosed;
-        m_Points.RemoveAll();
-        m_Points.Copy(other.m_Points);
+        m_Points = other.m_Points;  // std::vector assignment
     }
     return *this;
 }
@@ -36,40 +39,38 @@ CFringeSegment::~CFringeSegment()
 
 int CFringeSegment::AddPoint(CDPoint p)
 {
-    m_Points.Add(p);
-    return m_Points.GetSize() - 1;
+    m_Points.push_back(p);
+    return static_cast<int>(m_Points.size()) - 1;
 }
 
 void CFringeSegment::InsertPoint(int idx, CDPoint p)
 {
-    if (idx < 0 || idx > m_Points.GetSize()) return;
-    m_Points.InsertAt(idx, p);
+    if (idx < 0 || idx > static_cast<int>(m_Points.size())) return;
+    m_Points.insert(m_Points.begin() + idx, p);
 }
 
 void CFringeSegment::RemovePoint(int idx)
 {
-    if (idx < 0 || idx >= m_Points.GetSize()) return;
-    m_Points.RemoveAt(idx);
+    if (idx < 0 || idx >= static_cast<int>(m_Points.size())) return;
+    m_Points.erase(m_Points.begin() + idx);
 }
 
 void CFringeSegment::MovePoint(int idx, CDPoint newP)
 {
-    if (idx < 0 || idx >= m_Points.GetSize()) return;
+    if (idx < 0 || idx >= static_cast<int>(m_Points.size())) return;
     m_Points[idx] = newP;
 }
 
 void CFringeSegment::AppendPoints(const CFringeSegment& other)
 {
-    for (int i = 0; i < other.m_Points.GetSize(); i++) {
-        m_Points.Add(other.m_Points[i]);
-    }
+    m_Points.insert(m_Points.end(), other.m_Points.begin(), other.m_Points.end());
 }
 
 // ===== Queries =====
 
 CDPoint CFringeSegment::GetPoint(int idx) const
 {
-    if (idx >= 0 && idx < m_Points.GetSize()) {
+    if (idx >= 0 && idx < static_cast<int>(m_Points.size())) {
         return m_Points[idx];
     }
     return CDPoint(0, 0);
@@ -77,7 +78,7 @@ CDPoint CFringeSegment::GetPoint(int idx) const
 
 void CFringeSegment::SetPoint(int idx, CDPoint p)
 {
-    if (idx >= 0 && idx < m_Points.GetSize()) {
+    if (idx >= 0 && idx < static_cast<int>(m_Points.size())) {
         m_Points[idx] = p;
     }
 }
@@ -87,16 +88,16 @@ void CFringeSegment::SetPoint(int idx, CDPoint p)
 int CFringeSegment::FindNearestPoint(CPoint screenP, int tolerance)
 {
     int nearestIdx = -1;
-    double minDist = DBL_MAX;
+    double minDist = std::numeric_limits<double>::max();
     
-    for (int i = 0; i < m_Points.GetSize(); i++) {
+    for (size_t i = 0; i < m_Points.size(); i++) {
         double dx = m_Points[i].x - screenP.x;
         double dy = m_Points[i].y - screenP.y;
-        double dist = sqrt(dx * dx + dy * dy);
+        double dist = std::sqrt(dx * dx + dy * dy);
         
         if (dist < tolerance && dist < minDist) {
             minDist = dist;
-            nearestIdx = i;
+            nearestIdx = static_cast<int>(i);
         }
     }
     
@@ -111,21 +112,24 @@ BOOL CFringeSegment::IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx)
 
 CRect CFringeSegment::GetBoundingRect() const
 {
-    if (m_Points.GetSize() == 0) {
+    if (m_Points.empty()) {
         return CRect(0, 0, 0, 0);
     }
     
-    double minX = DBL_MAX, minY = DBL_MAX;
-    double maxX = -DBL_MAX, maxY = -DBL_MAX;
+    double minX = std::numeric_limits<double>::max();
+    double minY = std::numeric_limits<double>::max();
+    double maxX = std::numeric_limits<double>::lowest();
+    double maxY = std::numeric_limits<double>::lowest();
     
-    for (int i = 0; i < m_Points.GetSize(); i++) {
-        if (m_Points[i].x < minX) minX = m_Points[i].x;
-        if (m_Points[i].x > maxX) maxX = m_Points[i].x;
-        if (m_Points[i].y < minY) minY = m_Points[i].y;
-        if (m_Points[i].y > maxY) maxY = m_Points[i].y;
+    for (const auto& point : m_Points) {
+        if (point.x < minX) minX = point.x;
+        if (point.x > maxX) maxX = point.x;
+        if (point.y < minY) minY = point.y;
+        if (point.y > maxY) maxY = point.y;
     }
     
-    return CRect((int)minX, (int)minY, (int)maxX, (int)maxY);
+    return CRect(static_cast<int>(minX), static_cast<int>(minY), 
+                 static_cast<int>(maxX), static_cast<int>(maxY));
 }
 
 // ===== Drawing =====
@@ -136,8 +140,8 @@ void CFringeSegment::DrawDots(CDC* pDC, int dotSize, COLORREF color)
     CBrush brush(color);
     CBrush* oldBrush = pDC->SelectObject(&brush);
     
-    for (int i = 0; i < m_Points.GetSize(); i++) {
-        CPoint p((int)m_Points[i].x, (int)m_Points[i].y);
+    for (const auto& point : m_Points) {
+        CPoint p(static_cast<int>(point.x), static_cast<int>(point.y));
         pDC->Ellipse(p.x - half, p.y - half, p.x + half, p.y + half);
     }
     
@@ -146,20 +150,20 @@ void CFringeSegment::DrawDots(CDC* pDC, int dotSize, COLORREF color)
 
 void CFringeSegment::DrawPolyline(CDC* pDC, COLORREF color)
 {
-    if (m_Points.GetSize() < 2) return;
+    if (m_Points.size() < 2) return;
     
     CPen pen(PS_SOLID, 1, color);
     CPen* oldPen = pDC->SelectObject(&pen);
     
-    CPoint p0((int)m_Points[0].x, (int)m_Points[0].y);
+    CPoint p0(static_cast<int>(m_Points[0].x), static_cast<int>(m_Points[0].y));
     pDC->MoveTo(p0);
     
-    for (int i = 1; i < m_Points.GetSize(); i++) {
-        CPoint p((int)m_Points[i].x, (int)m_Points[i].y);
+    for (size_t i = 1; i < m_Points.size(); i++) {
+        CPoint p(static_cast<int>(m_Points[i].x), static_cast<int>(m_Points[i].y));
         pDC->LineTo(p);
     }
     
-    if (m_bClosed && m_Points.GetSize() > 2) {
+    if (m_bClosed && m_Points.size() > 2) {
         pDC->LineTo(p0);
     }
     
@@ -178,19 +182,15 @@ CFringeSegment CFringeSegment::Split(int atIndex)
 {
     CFringeSegment newFringe(m_Number);
     
-    if (atIndex <= 0 || atIndex >= m_Points.GetSize()) {
+    if (atIndex <= 0 || atIndex >= static_cast<int>(m_Points.size())) {
         return newFringe;  // Invalid, return empty
     }
     
-    // Move points [atIndex..end] to new fringe
-    for (int i = atIndex; i < m_Points.GetSize(); i++) {
-        newFringe.AddPoint(m_Points[i]);
-    }
+    // Copy points [atIndex..end] to new fringe
+    newFringe.m_Points.assign(m_Points.begin() + atIndex, m_Points.end());
     
-    // Remove from original
-    for (int i = m_Points.GetSize() - 1; i >= atIndex; i--) {
-        m_Points.RemoveAt(i);
-    }
+    // Remove from original (keep [0..atIndex))
+    m_Points.erase(m_Points.begin() + atIndex, m_Points.end());
     
     return newFringe;
 }
@@ -199,16 +199,16 @@ double CFringeSegment::GetArcLength() const
 {
     double length = 0.0;
     
-    for (int i = 1; i < m_Points.GetSize(); i++) {
+    for (size_t i = 1; i < m_Points.size(); i++) {
         double dx = m_Points[i].x - m_Points[i - 1].x;
         double dy = m_Points[i].y - m_Points[i - 1].y;
-        length += sqrt(dx * dx + dy * dy);
+        length += std::sqrt(dx * dx + dy * dy);
     }
     
-    if (m_bClosed && m_Points.GetSize() > 2) {
-        double dx = m_Points[0].x - m_Points[m_Points.GetSize() - 1].x;
-        double dy = m_Points[0].y - m_Points[m_Points.GetSize() - 1].y;
-        length += sqrt(dx * dx + dy * dy);
+    if (m_bClosed && m_Points.size() > 2) {
+        double dx = m_Points[0].x - m_Points[m_Points.size() - 1].x;
+        double dy = m_Points[0].y - m_Points[m_Points.size() - 1].y;
+        length += std::sqrt(dx * dx + dy * dy);
     }
     
     return length;
@@ -216,23 +216,23 @@ double CFringeSegment::GetArcLength() const
 
 void CFringeSegment::SubdivideSegments(double maxGap)
 {
-    int originalCount = m_Points.GetSize();
+    size_t originalCount = m_Points.size();
     
-    for (int i = 0; i < originalCount - 1; /* increment in loop */) {
+    for (size_t i = 0; i < originalCount - 1; /* increment in loop */) {
         CDPoint p1 = m_Points[i];
         CDPoint p2 = m_Points[i + 1];
         
         double dx = p2.x - p1.x;
         double dy = p2.y - p1.y;
-        double dist = sqrt(dx * dx + dy * dy);
+        double dist = std::sqrt(dx * dx + dy * dy);
         
         if (dist > maxGap) {
-            int nInsert = (int)(dist / maxGap);
+            int nInsert = static_cast<int>(dist / maxGap);
             
             for (int j = 1; j <= nInsert; j++) {
-                double t = (double)j / (nInsert + 1);
+                double t = static_cast<double>(j) / (nInsert + 1);
                 CDPoint pNew(p1.x + t * dx, p1.y + t * dy);
-                InsertPoint(i + j, pNew);
+                InsertPoint(static_cast<int>(i) + j, pNew);
             }
             
             i += nInsert + 1;  // Skip inserted points
@@ -246,28 +246,24 @@ void CFringeSegment::SubdivideSegments(double maxGap)
 
 void CFringeSegment::Simplify(double epsilon)
 {
-    if (m_Points.GetSize() <= 2) return;
+    if (m_Points.size() <= 2) return;
     
-    CArray<BOOL> keep;
-    keep.SetSize(m_Points.GetSize());
-    for (int i = 0; i < keep.GetSize(); i++) {
-        keep[i] = FALSE;
-    }
+    std::vector<bool> keep(m_Points.size(), false);
     
-    keep[0] = TRUE;  // Always keep endpoints
-    keep[keep.GetSize() - 1] = TRUE;
+    keep[0] = true;  // Always keep endpoints
+    keep[keep.size() - 1] = true;
     
-    SimplifyRecursive(0, m_Points.GetSize() - 1, epsilon, keep);
+    SimplifyRecursive(0, static_cast<int>(m_Points.size()) - 1, epsilon, keep);
     
-    // Remove points not marked for keeping
-    for (int i = m_Points.GetSize() - 1; i >= 0; i--) {
+    // Remove points not marked for keeping (reverse iteration)
+    for (int i = static_cast<int>(m_Points.size()) - 1; i >= 0; i--) {
         if (!keep[i]) {
-            m_Points.RemoveAt(i);
+            m_Points.erase(m_Points.begin() + i);
         }
     }
 }
 
-void CFringeSegment::SimplifyRecursive(int start, int end, double epsilon, CArray<BOOL>& keep)
+void CFringeSegment::SimplifyRecursive(int start, int end, double epsilon, std::vector<bool>& keep)
 {
     if (end - start <= 1) return;
     
@@ -287,7 +283,7 @@ void CFringeSegment::SimplifyRecursive(int start, int end, double epsilon, CArra
     }
     
     if (maxDist > epsilon) {
-        keep[maxIdx] = TRUE;
+        keep[maxIdx] = true;
         SimplifyRecursive(start, maxIdx, epsilon, keep);
         SimplifyRecursive(maxIdx, end, epsilon, keep);
     }
@@ -320,5 +316,5 @@ double CFringeSegment::PointToLineDistance(CDPoint p, CDPoint lineStart, CDPoint
     
     double dx = p.x - xx;
     double dy = p.y - yy;
-    return sqrt(dx * dx + dy * dy);
+    return std::sqrt(dx * dx + dy * dy);
 }

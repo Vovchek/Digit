@@ -407,6 +407,7 @@
     <None Include="Scripts\Add_DrawModeTest.ps1" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
     <None Include="Docs\Fix_MultipleSegments_SameNumber.md" />
+    <None Include="Docs\MFC_Auxiliary_Audit.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
