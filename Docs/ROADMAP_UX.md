@@ -1,7 +1,7 @@
-# Phase 3: Implementation Roadmap � UX v1.0 to Code
+﻿# Phase 3: Implementation Roadmap — UX v1.0 to Code
 
 **Status**: Detailed step-by-step development plan  
-**Date**: 2025-01-XX  
+**Date**: 2026-01-26  
 **Purpose**: Guide developers from architecture (IMPLEMENT_UX.md) ? working UI with full UX v1.0 compliance  
 **Audience**: Developers, QA, project leads
 
@@ -20,11 +20,11 @@ This roadmap converts the **architecture design** into a **phased, testable impl
 ## Table of Contents
 
 1. [Phase Overview](#phase-overview)
-2. [Phase 1: Foundation (Weeks 1�2)](#phase-1-foundation-weeks-12)
-3. [Phase 2: Draw Mode (Weeks 3�4)](#phase-2-draw-mode-weeks-34)
-4. [Phase 3: Selection & Navigate (Weeks 5�6)](#phase-3-selection--navigate-weeks-56)
+2. [Phase 1: Foundation (Weeks 1–2)](#phase-1-foundation-weeks-12)
+3. [Phase 2: Draw Mode (Weeks 3–4)](#phase-2-draw-mode-weeks-34)
+4. [Phase 3: Selection & Navigate (Weeks 5–6)](#phase-3-selection--navigate-weeks-56)
 5. [Phase 4: Dot Edit Mode (Week 7)](#phase-4-dot-edit-mode-week-7)
-6. [Phase 5: Commands & Undo/Redo (Weeks 8�9)](#phase-5-commands--undoredo-weeks-89)
+6. [Phase 5: Commands & Undo/Redo (Weeks 8–9)](#phase-5-commands--undoredo-weeks-89)
 7. [Phase 6: Polish & Testing (Week 10)](#phase-6-polish--testing-week-10)
 8. [File Organization](#file-organization)
 9. [Testing Strategy](#testing-strategy)
@@ -36,16 +36,16 @@ This roadmap converts the **architecture design** into a **phased, testable impl
 
 | Phase | Focus | Weeks | Deliverable | Risk |
 |-------|-------|-------|-------------|------|
-| **1** | Core classes + basic infrastructure | 1�2 | InputHandler, ModifierState, basic drawing | Low |
-| **2** | Draw mode (create/continue curves) | 3�4 | Full Draw workflow tested | Medium |
-| **3** | Selection + Navigate mode | 5�6 | Selection state machine, hit testing, Navigation | Medium |
+| **1** | Core classes + basic infrastructure | 1–2 | InputHandler, ModifierState, basic drawing | Low |
+| **2** | Draw mode (create/continue curves) | 3–4 | Full Draw workflow tested | Medium |
+| **3** | Selection + Navigate mode | 5–6 | Selection state machine, hit testing, Navigation | Medium |
 | **4** | Dot Edit mode (move/insert/delete dots) | 7 | Geometry editing tested | Medium |
-| **5** | Command pattern + Undo/Redo | 8�9 | All commands implemented + atomic transactions | High |
+| **5** | Command pattern + Undo/Redo | 8–9 | All commands implemented + atomic transactions | High |
 | **6** | Integration + edge cases + polish | 10 | Full regression test + UX v1.0 acceptance | Medium |
 
 ---
 
-## Phase 1: Foundation (Weeks 1�2)
+## Phase 1: Foundation (Weeks 1–2)
 
 **Goal**: Establish core classes and wire basic infrastructure into existing `ImageView`.
 
@@ -53,27 +53,27 @@ This roadmap converts the **architecture design** into a **phased, testable impl
 
 ```
 DigitMode/
-??? InputHandler.h              (NEW)
-??? InputHandler.cpp            (NEW)
-??? SelectionManager.h          (NEW)
-??? SelectionManager.cpp        (NEW)
-??? HitTester.h                 (NEW)
-??? HitTester.cpp               (NEW)
-??? CommandDispatcher.h         (NEW)
-??? CommandDispatcher.cpp       (NEW)
-??? Commands/
-?   ??? Command.h               (NEW) - Base class
-?   ??? (specific commands added in Phase 5)
-??? CursorManager.h             (NEW)
-??? CursorManager.cpp           (NEW)
-??? TooltipGenerator.h          (NEW)
-       TooltipGenerator.cpp     (NEW)
+├── InputHandler.h              (NEW)
+├── InputHandler.cpp            (NEW)
+├── SelectionManager.h          (NEW)
+├── SelectionManager.cpp        (NEW)
+├── HitTester.h                 (NEW)
+├── HitTester.cpp               (NEW)
+├── CommandDispatcher.h         (NEW)
+├── CommandDispatcher.cpp       (NEW)
+├── Commands/
+│   ├── Command.h               (NEW) - Base class
+│   └── (specific commands added in Phase 5)
+├── CursorManager.h             (NEW)
+├── CursorManager.cpp           (NEW)
+├── TooltipGenerator.h          (NEW)
+└── TooltipGenerator.cpp       (NEW)
 
 Tests/DigitMode/
-??? InputHandlerTest.cpp        (NEW)
-??? SelectionManagerTest.cpp    (NEW)
-??? HitTesterTest.cpp           (NEW)
-??? CommandDispatcherTest.cpp   (NEW)
+├── InputHandlerTest.cpp        (NEW)
+├── SelectionManagerTest.cpp    (NEW)
+├── HitTesterTest.cpp           (NEW)
+└── CommandDispatcherTest.cpp   (NEW)
 ```
 
 ### Tasks
@@ -396,7 +396,7 @@ TEST(HitTester, DotDistanceCorrect) {
 
 ---
 
-## Phase 2: Draw Mode (Weeks 3�4)
+## Phase 2: Draw Mode (Weeks 3–4)
 
 **Goal**: Implement full Draw workflow (create ? continue ? connect ? end curves).
 
@@ -566,11 +566,11 @@ TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
 
 ### Deliverables (Phase 2)
 
-- ? InputHandler fully implements Draw mode
-- ? AddDotCommand, RemoveLastDotCommand working
-- ? ImageView mouse handlers route to Draw logic
-- ? Draw mode unit tests pass
-- ? Can draw curves interactively (no visual feedback yet, just commands execute)
+- ✅ InputHandler fully implements Draw mode
+- ✅ AddDotCommand, RemoveLastDotCommand working
+- ✅ ImageView mouse handlers route to Draw logic
+- ✅ Draw mode unit tests pass
+- ✅ Can draw curves interactively (no visual feedback yet, just commands execute)
 
 ### Success Criteria
 
@@ -582,7 +582,7 @@ TEST_F(DrawModeTest, ContinueCurveTransfersDrawing) {
 
 ---
 
-## Phase 3: Selection & Navigate (Weeks 5�6)
+## Phase 3: Selection & Navigate (Weeks 5–6)
 
 **Goal**: Implement Navigate mode with full selection (Dot ? Edge ? Curve ? Fringe hierarchy).
 
@@ -734,11 +734,11 @@ TEST_F(SelectionWorkflowTest, AltClickPromotesToFringe) {
 
 ### Deliverables (Phase 3)
 
-- ? HitTester fully implemented
-- ? Navigate mode handlers wired
-- ? Box selection working
-- ? Selection state visual feedback
-- ? Navigation workflow tests pass
+- ✅ HitTester fully implemented
+- ✅ Navigate mode handlers wired
+- ✅ Box selection working
+- ✅ Selection state visual feedback
+- ✅ Navigation workflow tests pass
 
 ### Success Criteria
 
@@ -848,11 +848,11 @@ public:
 
 ### Deliverables (Phase 4)
 
-- ? Move dots with drag
-- ? Insert dots on edges
-- ? Delete dots with Alt+Click
-- ? Live preview during drag
-- ? Undo/Redo for all operations
+- ✅ Move dots with drag
+- ✅ Insert dots on edges
+- ✅ Delete dots with Alt+Click
+- ✅ Live preview during drag
+- ✅ Undo/Redo for all operations
 
 ### Success Criteria
 
@@ -864,7 +864,7 @@ public:
 
 ---
 
-## Phase 5: Commands & Undo/Redo (Weeks 8�9)
+## Phase 5: Commands & Undo/Redo (Weeks 8–9)
 
 **Goal**: Implement all remaining commands (Renumber, Simplify, Split, Merge, Subdivide, Auto-number, etc.).
 
@@ -969,11 +969,11 @@ TEST_F(CommandsTest, SimplifyCommand) {
 
 ### Deliverables (Phase 5)
 
-- ? All commands from UX v1.0 spec implemented
-- ? Keyboard shortcuts wired
-- ? All commands undoable/redoable
-- ? Menu items (optional, for discoverability)
-- ? Command tests pass
+- ✅ All commands from UX v1.0 spec implemented
+- ✅ Keyboard shortcuts wired
+- ✅ All commands undoable/redoable
+- ✅ Menu items (optional, for discoverability)
+- ✅ Command tests pass
 
 ### Success Criteria
 
@@ -1001,7 +1001,7 @@ TEST_F(CommandsTest, SimplifyCommand) {
 
 **TooltipGenerator.cpp** - Full implementation:
 - Format: `#2.5 / 1(1) / 12` for dots
-- Format: `Curve � 34 dots` for curves
+- Format: `Curve – 34 dots` for curves
 - Format: `Fringe #2.5 (3 curves)` for fringes
 
 #### 6.2 Context Menus
@@ -1104,12 +1104,12 @@ TEST_F(RegressionTest, LargeFilePerformance) {
 
 ### Deliverables (Phase 6)
 
-- ? Full cursor feedback system
-- ? Context menus for all object types
-- ? Comprehensive edge case handling
-- ? Regression test suite
-- ? Manual testing protocol completed
-- ? User/developer documentation
+- ✅ Full cursor feedback system
+- ✅ Context menus for all object types
+- ✅ Comprehensive edge case handling
+- ✅ Regression test suite
+- ✅ Manual testing protocol completed
+- ✅ User/developer documentation
 
 ### Success Criteria
 
@@ -1128,50 +1128,48 @@ TEST_F(RegressionTest, LargeFilePerformance) {
 
 ```
 Digit/
-??? DigitMode/
-?   ??? DigitInfo.h
-?   ??? DigitInfo.cpp
-?   ??? CFringe.h
-?   ??? CFringe.cpp
-?   ??? InputHandler.h                (Phase 1)
-?   ??? InputHandler.cpp              (Phase 1)
-?   ??? SelectionManager.h            (Phase 1)
-?   ??? SelectionManager.cpp          (Phase 1)
-?   ??? HitTester.h                   (Phase 1)
-?   ??? HitTester.cpp                 (Phase 1)
-?   ??? CursorManager.h               (Phase 1)
-?   ??? CursorManager.cpp             (Phase 1)
-?   ??? TooltipGenerator.h            (Phase 1)
-?   ??? TooltipGenerator.cpp          (Phase 1)
-?   ??? CommandDispatcher.h           (Phase 1)
-?   ??? CommandDispatcher.cpp         (Phase 1)
-?   ??? Commands/                     (Phase 2+)
-?       ??? Command.h                 (Phase 1)
-?       ??? AddDotCommand.h/.cpp      (Phase 2)
-?       ??? RemoveDotCommand.h/.cpp   (Phase 2)
-?       ??? MoveGeometryCommand.h/.cpp(Phase 4)
-?       ??? RenumberCommand.h/.cpp    (Phase 5)
-?       ??? SimplifyCommand.h/.cpp    (Phase 5)
-?       ??? SplitCurveCommand.h/.cpp  (Phase 5)
-?       ??? MergeCurvesCommand.h/.cpp (Phase 5)
-?       ??? SubdivideCommand.h/.cpp   (Phase 5)
-?       ??? DeleteSelectionCommand.h/.cpp (Phase 5)
-?
-??? Tests/DigitMode/                  (New test files)
-?   ??? InputHandlerTest.cpp          (Phase 1)
-?   ??? SelectionManagerTest.cpp      (Phase 1)
-?   ??? HitTesterTest.cpp             (Phase 1)
-?   ??? DrawModeTest.cpp              (Phase 2)
-?   ??? SelectionWorkflowTest.cpp     (Phase 3)
-?   ??? CommandsTest.cpp              (Phase 5)
-?   ??? EdgeCaseTest.cpp              (Phase 6)
-?   ??? RegressionTest.cpp            (Phase 6)
-?
-??? Docs/
-    ??? FRINGES_EDITOR_UX_SPECIFICATIONS.md
-    ??? IMPLEMENT_UX.md
-    ??? ROADMAP_UX.md                 (this file)
-    ??? UX_IMPLEMENTATION.md           (Phase 6)
+├── DigitMode/
+│   ├── DigitInfo.h
+│   ├── DigitInfo.cpp
+│   ├── CFringe.h
+│   ├── CFringe.cpp
+│   ├── InputHandler.h                (Phase 1)
+│   ├── InputHandler.cpp              (Phase 1)
+│   ├── SelectionManager.h            (Phase 1)
+│   ├── SelectionManager.cpp          (Phase 1)
+│   ├── HitTester.h                   (Phase 1)
+│   ├── HitTester.cpp                 (Phase 1)
+│   ├── CursorManager.h               (Phase 1)
+│   ├── CursorManager.cpp             (Phase 1)
+│   ├── TooltipGenerator.h            (Phase 1)
+│   ├── TooltipGenerator.cpp          (Phase 1)
+│   ├── CommandDispatcher.h           (Phase 1)
+│   ├── CommandDispatcher.cpp         (Phase 1)
+│   └── Commands/                     (Phase 2+)
+│       ├── Command.h                 (Phase 1)
+│       ├── AddDotCommand.h/.cpp      (Phase 2)
+│       ├── RemoveDotCommand.h/.cpp   (Phase 2)
+│       ├── MoveGeometryCommand.h/.cpp(Phase 4)
+│       ├── RenumberCommand.h/.cpp    (Phase 5)
+│       ├── SimplifyCommand.h/.cpp    (Phase 5)
+│       ├── SplitCurveCommand.h/.cpp  (Phase 5)
+│       ├── MergeCurvesCommand.h/.cpp (Phase 5)
+│       ├── SubdivideCommand.h/.cpp   (Phase 5)
+│       └── DeleteSelectionCommand.h/.cpp (Phase 5)
+├── Tests/DigitMode/                  (New test files)
+│   ├── InputHandlerTest.cpp          (Phase 1)
+│   ├── SelectionManagerTest.cpp      (Phase 1)
+│   ├── HitTesterTest.cpp             (Phase 1)
+│   ├── DrawModeTest.cpp              (Phase 2)
+│   ├── SelectionWorkflowTest.cpp     (Phase 3)
+│   ├── CommandsTest.cpp              (Phase 5)
+│   ├── EdgeCaseTest.cpp              (Phase 6)
+│   └── RegressionTest.cpp            (Phase 6)
+└── Docs/
+    ├── FRINGES_EDITOR_UX_SPECIFICATIONS.md
+    ├── IMPLEMENT_UX.md
+    ├── ROADMAP_UX.md                 (this file)
+    └── UX_IMPLEMENTATION.md          (Phase 6)
 ```
 
 ### Compilation Order
@@ -1213,7 +1211,7 @@ Digit/
 ### Manual Testing (Phase 6)
 
 **Test Matrix**:
-- 3 modes ? 4 modifier combinations ? 5 object types = 60 basic interactions
+- 3 modes × 4 modifier combinations × 5 object types = 60 basic interactions
 - Each interaction: click, drag, keyboard, right-click
 - Undo/Redo for each: forward + backward
 - Large file (1000+ fringes) performance check
@@ -1270,7 +1268,7 @@ Digit/
 ### Final Acceptance (UX v1.0)
 
 Project sign-off when:
-1. **All phases complete**: Features 1�6 working
+1. **All phases complete**: Features 1–6 working
 2. **All tests pass**: Unit + Integration + Regression + Manual
 3. **UX v1.0 checklist**: All items in IMPLEMENT_UX.md Appendix checked
 4. **Performance acceptable**: <5% regression vs baseline

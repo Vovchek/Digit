@@ -1,8 +1,8 @@
-# Phase 2: Architecture Design for UX v1.0
+﻿# Phase 2: Architecture Design for UX v1.0
 
 **Status**: Complete architecture design for Digit/MFringe editor.  
-**Date**: 2025-01-XX  
-**Purpose**: Map UX v1.0 concepts ? Code architecture for implementation.  
+**Date**: 2026-01-26  
+**Purpose**: Map UX v1.0 concepts → Code architecture for implementation.  
 **Audience**: Developers implementing interaction layer, command dispatch, and undo/redo.
 
 ---
@@ -38,18 +38,14 @@ This document translates **UX v1.0 specification** into a working architecture t
 
 Three modes, mutually exclusive, state-driven.
 
-```
-???????????????
-?   NAVIGATE  ? (default)
-???????????????
-      ? (mode switch)
-???????????????
-?    DRAW     ? (curve creation)
-???????????????
-      ? (mode switch)
-???????????????
-?  DOT EDIT   ? (geometry only)
-???????????????
+```mermaid
+graph TD
+    NAVIGATE["NAVIGATE<br/>(default)"] -->|mode switch| DRAW["DRAW<br/>(curve creation)"]
+    DRAW -->|mode switch| DOTEDIT["DOT EDIT<br/>(geometry only)"]
+    DOTEDIT -->|mode switch| NAVIGATE
+    
+    classDef state fill:#e1f5fe,stroke:#01579b,stroke-width:2px
+    class NAVIGATE,DRAW,DOTEDIT state```
 ```
 
 **Key Rules**:
@@ -726,7 +722,7 @@ class TooltipGenerator {
                 double number = fringe.GetNumber();
                 int dotCount = fringe.DotCount(obj.iCurve);
                 
-                tip.Format("#%.1f Edge (%d�%d of %d)", 
+                tip.Format("#%.1f Edge (%d–%d of %d)", 
                     number, obj.iEdge, obj.iEdge + 1, dotCount - 1);
                 break;
             }
@@ -735,7 +731,7 @@ class TooltipGenerator {
                 int dotCount = fringe.DotCount(obj.iCurve);
                 double number = fringe.GetNumber();
                 
-                tip.Format("Fringe #%.1f Curve � %d dots", number, dotCount);
+                tip.Format("Fringe #%.1f Curve — %d dots", number, dotCount);
                 break;
             }
             case SelectionLevel::Fringe: {
@@ -1059,115 +1055,74 @@ private:
 
 ## F. Data Flow Diagram
 
-```
-????????????????????????????????????????????????????????????
-? User: Mouse/Keyboard Event                               ?
-????????????????????????????????????????????????????????????
-              ?
-              v
-     ??????????????????????
-     ? ModifierState      ?
-     ? (Ctrl/Shift/Alt)   ?
-     ??????????????????????
-              ?
-              v
-     ??????????????????????????????????
-     ? InputHandler (Mode-Dispatch)   ?
-     ?  - Determine intent            ?
-     ?  - Route to correct handler    ?
-     ??????????????????????????????????
-              ?
-       ???????????????
-       ?             ?
-       v             v
-  ???????????  ????????????????
-  ? HitTest ?  ? SelectionMgr  ?
-  ? (Loc)   ?  ? (Hierarchy)   ?
-  ???????????  ????????????????
-       ?               ?
-       ?????????????????
-               ?
-               v
-       ????????????????????
-       ? Command Factory  ?
-       ? (Create command) ?
-       ????????????????????
-                ?
-                v
-       ????????????????????????
-       ? CommandDispatcher    ?
-       ? Execute ? Undo/Redo  ?
-       ????????????????????????
-                ?
-                v
-       ????????????????????????
-       ? CDigitInfo           ?
-       ? (Data model)         ?
-       ????????????????????????
-                ?
-                v
-       ????????????????????????
-       ? Feedback:            ?
-       ? - CursorManager      ?
-       ? - TooltipGenerator   ?
-       ? - Invalidate/Render  ?
-       ????????????????????????
+```mermaid
+graph TD
+    A["User: Mouse/Keyboard Event"] --> B["ModifierState<br/>(Ctrl/Shift/Alt)"]
+    B --> C["InputHandler (Mode-Dispatch)"]
+    C --> D["HitTest<br/>(Loc)"]
+    C --> E["SelectionMgr<br/>(Hierarchy)"]
+    D --> F["Command Factory<br/>(Create command)"]
+    E --> F
+    F --> G["CommandDispatcher<br/>Execute ? Undo/Redo"]
+    G --> H["CDigitInfo<br/>(Data model)"]
+    H --> I["Feedback:<br/>- CursorManager<br/>- TooltipGenerator<br/>- Invalidate/Render"]
 ```
 
 ---
 
 ## G. Class Diagram (Summary)
 
-```
+```## G. Class Diagram (Summary)
+
 InputHandler
-??? SetMode(EditMode)
-??? OnMouseDown(point, mods)
-??? OnMouseMove(point, mods)
-??? StartNewCurve(P)
-??? ContinueCurve(iFringe, iCurve, iDot)
-??? ConnectCurves(iFringe, iCurve, iDot)
-??? EndCurrentCurve()
-??? IsInDrawMode()
+├── SetMode(EditMode)
+├── OnMouseDown(point, mods)
+├── OnMouseMove(point, mods)
+├── StartNewCurve(P)
+├── ContinueCurve(iFringe, iCurve, iDot)
+├── ConnectCurves(iFringe, iCurve, iDot)
+├── EndCurrentCurve()
+└── IsInDrawMode() → bool
 
 SelectionManager
-??? SelectDot(iF, iC, iD)
-??? SelectCurve(iF, iC)
-??? SelectFringe(iF)
-??? AddToSelection(obj)
-??? PromoteToFringe()
-??? GetLevel()
-??? GetCount()
-??? GetAt(i)
-??? Clear()
+├── SelectDot(iF, iC, iD)
+├── SelectCurve(iF, iC)
+├── SelectFringe(iF)
+├── AddToSelection(obj)
+├── PromoteToFringe()
+├── GetLevel() → SelectionLevel
+├── GetCount() → int
+├── GetAt(i) → SelectionObject
+└── Clear()
 
 HitTester
-??? HitTest(P) ? SelectionLevel
-??? DotDistance(P, dot)
-??? DistanceToSegment(P, A, B)
+├── HitTest(P) → SelectionLevel
+├── DotDistance(P, dot) → float
+└── DistanceToSegment(P, A, B) → float
 
 CommandDispatcher
-??? Execute(Command*)
-??? Undo()
-??? Redo()
-??? CanUndo()
-??? CanRedo()
-??? GetUndoLabel()
-??? GetRedoLabel()
+├── Execute(Command*)
+├── Undo()
+├── Redo()
+├── CanUndo() → bool
+├── CanRedo() → bool
+├── GetUndoLabel() → string
+└── GetRedoLabel() → string
 
 Command (abstract)
-??? AddDotCommand
-??? RemoveLastDotCommand
-??? MoveGeometryCommand
-??? RenumberCommand
-??? SimplifyCommand
-??? DeleteSelectionCommand
-??? ...
+├── AddDotCommand
+├── RemoveLastDotCommand
+├── MoveGeometryCommand
+├── RenumberCommand
+├── SimplifyCommand
+├── DeleteSelectionCommand
+└── ...
 
 CursorManager
-??? UpdateCursor(mode, mods, under)
+└── UpdateCursor(mode, mods, under)
 
 TooltipGenerator
-??? GetTooltip(obj, digit)
+└── GetTooltip(obj, digit) → string
 ```
 
 ---
@@ -1176,7 +1131,7 @@ TooltipGenerator
 
 This architecture strictly follows UX v1.0 requirements:
 
-### ? UX v1.0 Aligned
+### ✅ UX v1.0 Aligned
 
 - **Mode dispatch is contextual**: Same Ctrl+Click = different action in Draw vs Navigate
 - **Selection is persistent**: Survives mode switches; cleared explicitly
@@ -1184,21 +1139,21 @@ This architecture strictly follows UX v1.0 requirements:
 - **Modifiers are globally consistent**: Ctrl = Add/Connect everywhere, Shift = Range/Constrain everywhere, Alt = Structural/Destructive everywhere
 - **Hit testing obeys selection rules**: Edge if intersects or inside, Curve only if all edges included (unless modifier), Fringe only via Alt modifier
 
-### ? No Topology Reconstruction
+### ✅ No Topology Reconstruction
 
 - Fringes are already ordered (CFringe polyline)
 - No flat-dot logic
 - Hit testing works directly on curve geometry
 - Commands directly manipulate fringe data without rebuilding indices
 
-### ? Scalable & Extensible
+### ✅ Scalable & Extensible
 
 - **Command pattern**: Easy to add new commands (Split, Merge, Auto-number, Subdivide) by subclassing `Command`
 - **Modifier dispatch**: Can extend with new modifiers without breaking existing logic
 - **Selection manager**: Agnostic to data model details; works with any (iFringe, iCurve, iDot) tuple
 - **Undo/Redo**: Framework supports arbitrary command types automatically
 
-### ? Clear Separation of Concerns
+### ✅ Clear Separation of Concerns
 
 - **InputHandler**: Pure mode/modifier logic (no data model knowledge)
 - **SelectionManager**: Selection state machine (agnostic to modes or commands)
