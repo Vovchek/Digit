@@ -103,6 +103,7 @@
     <ClCompile Include="..\DigitMode\InputHandler.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\DrawModeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

@@ -2,6 +2,9 @@
 
 #include <string>
 
+// Forward declarations (global namespace)
+class CDigitInfo;
+
 namespace DigitMode {
 
 /**
@@ -104,26 +107,29 @@ public:
     /**
      * @brief Start drawing a new segment at point P
      * @param P Starting point in image coordinates
+     * @param pDigit Pointer to DigitInfo (for accessing Fringes)
      * 
      * Creates a new segment with incremented Number value
      */
-    void StartNewSegment(CPoint P);
+    void StartNewSegment(CPoint P, ::CDigitInfo* pDigit);
 
     /**
      * @brief Continue drawing from an existing segment end
      * @param iSegment Index of segment to continue
      * @param iDot Index of end dot (must be 0 or last)
+     * @param pDigit Pointer to DigitInfo
      */
-    void ContinueSegment(int iSegment, int iDot);
+    void ContinueSegment(int iSegment, int iDot, ::CDigitInfo* pDigit);
 
     /**
      * @brief Connect current segment to another segment's end
      * @param iSegment Index of segment to connect to
      * @param iDot Index of connection dot (end of segment)
+     * @param pDigit Pointer to DigitInfo
      * 
      * After connection, the free end of the target segment becomes active
      */
-    void ConnectSegments(int iSegment, int iDot);
+    void ConnectSegments(int iSegment, int iDot, ::CDigitInfo* pDigit);
 
     /**
      * @brief End the current segment (finish drawing)

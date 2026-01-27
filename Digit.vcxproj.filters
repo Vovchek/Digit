@@ -374,6 +374,12 @@
     <ClInclude Include="DigitMode\TooltipGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AddDotCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\RemoveLastDotCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -398,6 +404,9 @@
     <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
     <None Include="Docs\HitTester_Tolerance_Fix.md" />
     <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
+    <None Include="Scripts\Add_DrawModeTest.ps1" />
+    <None Include="Docs\Phase2_DrawMode_Complete.md" />
+    <None Include="Docs\Fix_MultipleSegments_SameNumber.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
