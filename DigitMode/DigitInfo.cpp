@@ -160,7 +160,9 @@ void CDigitInfo::Auto()
 	SelectMainDot();
 	Delete_buf_line();
 	::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-	m_bUseFringeModel = false; // TODO: remove after transition
+	m_bUseFringeModel = false; // TODO: update after transition
+	SyncFringesToDots();
+	m_bUseFringeModel = true;
 }
 
 void CDigitInfo::CreateBufLine()

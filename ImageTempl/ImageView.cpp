@@ -1,4 +1,4 @@
-// ImageView.cpp : implementation file
+﻿// ImageView.cpp : implementation file
 //
 
 #include "stdafx.h"

@@ -7,7 +7,7 @@
 
 **Model**: Segment-primary architecture. Fringes are logical groupings computed on-demand from segment Number values.
 
-**Modernization**: Uses STL (std::vector, std::string) instead of MFC auxiliary types where possible.
+**Modernization**: Uses STL (`std::vector, std::string`) instead of MFC auxiliary types where possible.
 
 ---
 
