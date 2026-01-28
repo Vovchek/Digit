@@ -1,4 +1,4 @@
-#if !defined(AFX_IMAGEVIEW_H__0EB4F04B_79B3_4FDE_A46E_A1CA7E62D173__INCLUDED_)
+﻿#if !defined(AFX_IMAGEVIEW_H__0EB4F04B_79B3_4FDE_A46E_A1CA7E62D173__INCLUDED_)
 #define AFX_IMAGEVIEW_H__0EB4F04B_79B3_4FDE_A46E_A1CA7E62D173__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -8,6 +8,10 @@
 //
 #include "BaseImageView.h"
 #include "Utils\contour.h"
+#include "DigitMode/InputHandler.h"
+#include "DigitMode/HitTester.h"
+#include "DigitMode/SelectionManager.h"
+#include "DigitMode/CommandDispatcher.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -15,6 +19,13 @@ class CBaseImageView;
 
 class CImageView : public CBaseImageView
 {
+private:
+
+	DigitMode::InputHandler m_inputHandler;
+	DigitMode::HitTester m_hitTester;
+	DigitMode::SelectionManager m_selectionMgr;
+	DigitMode::CommandDispatcher m_cmdDispatcher;
+
 protected:
 	CImageView();           // protected constructor used by dynamic creation
 	DECLARE_DYNCREATE(CImageView)

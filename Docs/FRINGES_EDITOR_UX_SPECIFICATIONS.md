@@ -552,10 +552,10 @@ This keeps feedback immediate.
 
 ## 7. Final Sanity Check (UX v1.0)
 
-✔ Ctrl / Shift / Alt meanings are consistent
-✔ No modifier does two unrelated things
-✔ Modes are few and obvious
-✔ Icons represent mental model, not code
+✔ Ctrl / Shift / Alt meanings are consistent  
+✔ No modifier does two unrelated things  
+✔ Modes are few and obvious  
+✔ Icons represent mental model, not code   
 ✔ Keyboard and mouse workflows both complete
 
 ---

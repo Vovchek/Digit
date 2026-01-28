@@ -910,15 +910,45 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 
 void CImageView::OnLButtonDown(UINT nFlags, CPoint point) 
 {
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
     CImageCtrls* pImCtrls = GetImageCtrls(this);
     CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
     CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-    CControls* pCtrls = GetControls();
     
     CPoint l_point(point);
     ClientToDoc(l_point);
 	CursorPos = l_point;
+
+    // Adapter: route draw-mode interactions to new InputHandler
+	// =======================================================================
+    using namespace DigitMode;
+
+    ModifierState mods = ModifierState::FromKeyboard();
+    int hitSeg = -1, hitDot = -1;
+    SelectionLevel hitLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, {});
+
+    CControls* pCtrls = GetControls();
+    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
+    // Treat toolbar/menu edit modes as Draw mode if appropriate
+    bool uiRequestsDraw = (pCtrls->ActiveEditMode == E_ADD_DOT || pCtrls->ActiveEditMode == E_ADD_SECTION);
+
+    if (uiRequestsDraw || m_inputHandler.IsInDrawMode()) {
+        // Start new segment when clicking empty space
+        if (hitLevel == SelectionLevel::None) {
+            // Create command via InputHandler (InputHandler must call CommandDispatcher internally or expose StartNewSegment that accepts a CommandDispatcher reference)
+            m_inputHandler.StartNewSegment(l_point, &pDoc->Digit);
+            Invalidate(FALSE);
+            return; // consumed
+        }
+        // Continue drawing when clicking an existing dot (attach to its segment)
+        if (hitLevel == SelectionLevel::Dot) {
+            m_inputHandler.ContinueSegment(hitSeg, hitDot, &pDoc->Digit);
+            Invalidate(FALSE);
+            return;
+        }
+    }
+    // =======================================================================
+
     if(pDoc->IsFotoSections()){
 	    DrawMouseMoveCrossedLines(l_point);
 		pDoc->ReSetSections(l_point);
