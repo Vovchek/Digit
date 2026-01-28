@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "SelectionManager.h"
 #include "CFringeSegment.h"  // Global namespace
+#include "DigitMode/DigitInfo.h"
 #include <algorithm>
 #include <cmath>
 
@@ -15,6 +16,24 @@ void SelectionManager::SelectDot(int iSegment, int iDot) {
     obj.iSegment = iSegment;
     obj.iDot = iDot;
     selection.push_back(obj);
+}
+
+void SelectionManager::SetHover(SelectionLevel level, int segId, int dotId) {
+    // Simple hover implementation: store as a single temporary selection (not persisted)
+    selection.clear();
+    if (level == SelectionLevel::None) return;
+
+    SelectedObject obj;
+    obj.level = level;
+    obj.iSegment = segId;
+    obj.iDot = dotId;
+    selection.push_back(obj);
+}
+
+void SelectionManager::DrawHighlights(CDC* pDC, const CDigitInfo* pDigit, int /*dotSide*/) {
+    // Use existing DrawSelection which expects segments; adapt from CDigitInfo
+    if (!pDigit) return;
+    DrawSelection(pDC, pDigit->Fringes);
 }
 
 void SelectionManager::SelectEdge(int iSegment, int iEdge) {

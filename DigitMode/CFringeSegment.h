@@ -51,7 +51,10 @@ public:
     /// Append all points from another fringe
     /// @param other Source fringe to append from
     void AppendPoints(const CFringeSegment& other);
-    
+    void AppendPointsReverse(const CFringeSegment& other);
+    void InsertPointsAtStart(const CFringeSegment& other);
+    void InsertPointsAtStartReverse(const CFringeSegment& other);
+
     // ===== Queries =====
     /// Get total number of points in fringe
     int GetPointCount() const { return static_cast<int>(m_Points.size()); }

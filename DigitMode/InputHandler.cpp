@@ -2,6 +2,9 @@
 #include "InputHandler.h"
 #include "DigitMode/DigitInfo.h"  // Full include for implementation
 #include "DigitMode/CFringeSegment.h"
+#include "Commands/AddDotCommand.h"
+#include "CommandDispatcher.h"
+#include <memory>
 
 namespace DigitMode {
 
@@ -12,6 +15,25 @@ void InputHandler::SetMode(EditMode newMode) {
     }
     currentMode = newMode;
     // Note: Cursor update is handled by caller (ImageView)
+}
+
+void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+    ContinueSegment(iSegment, iDot, pDigit);
+    // Optionally emit commands via pCmdDisp
+}
+
+void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+    // Create model state
+    StartNewSegment(P, pDigit);
+
+    // If dispatcher provided, create and execute first AddDotCommand to add initial point
+    if (pCmdDisp && pDigit && iActiveSegment >= 0) {
+        CDPoint dp;
+        dp.x = P.x;
+        dp.y = P.y;
+        auto cmd = std::make_unique<AddDotCommand>(pDigit, iActiveSegment, 0, dp);
+        pCmdDisp->Execute(std::move(cmd));
+    }
 }
 
 void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
@@ -36,6 +58,47 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
         newNumber, iActiveSegment, P.x, P.y);
 }
 
+void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+    ConnectSegments(iSegment, iDot, pDigit);
+    // Optionally emit a ConnectSegmentsCommand via pCmdDisp
+}
+
+void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+    // Preview logic: update temporary preview point in active segment
+    if (IsInDrawMode() && iActiveSegment >= 0 && pDigit) {
+        // Update preview (not yet committed) - simplest: set last point to pt for visual feedback
+        // Note: real implementation should track preview separately
+        TRACE("InputHandler::OnMouseMove preview at (%d,%d)\n", pt.x, pt.y);
+    }
+}
+
+void InputHandler::OnLButtonUp(CPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+    // Commit draw operation
+    if (IsInDrawMode() && iActiveSegment >= 0 && pDigit) {
+        // Finalize current segment (add final dot via command if dispatcher available)
+        TRACE("InputHandler::OnLButtonUp commit at (%d,%d)\n", pt.x, pt.y);
+        EndCurrentSegment();
+    }
+}
+
+void InputHandler::CancelDraw(CDigitInfo* pDigit) {
+    // Cancel active draw and revert any preview changes
+    if (iActiveSegment >= 0) {
+        TRACE("InputHandler::CancelDraw segment=%d\n", iActiveSegment);
+        iActiveSegment = -1;
+    }
+}
+
+void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit) {
+    if (!IsInDrawMode()) return;
+    if (nChar == VK_BACK) {
+        // Remove last dot behavior should create a command via CommandDispatcher in future
+        TRACE("InputHandler::OnKeyDown Backspace in draw mode\n");
+    } else if (nChar == VK_ESCAPE) {
+        CancelDraw(pDigit);
+    }
+}
+
 void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
     ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
@@ -56,20 +119,32 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
     ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
     
-    // TODO: Phase 2.2 - Implement segment connection logic
-    // For now, just transfer drawing to the free end of target segment
-    
     CFringeSegment& targetSegment = pDigit->Fringes[iSegment];
     int dotCount = targetSegment.GetPointCount();
     
     // Find the free end (opposite of clicked end)
     int freeEndDot = (iDot == 0) ? (dotCount - 1) : 0;
+
+	// move dots from connected segment to active segment
+    if (activeEnd == ActiveEnd::Start) {
+		if (iDot == 0)
+            pDigit->Fringes[iActiveSegment].InsertPointsAtStartReverse(targetSegment);
+        else
+            pDigit->Fringes[iActiveSegment].InsertPointsAtStart(targetSegment);
+    }
+    else {
+        if (iDot == 0)
+            pDigit->Fringes[iActiveSegment].AppendPointsReverse(targetSegment);
+		else
+			pDigit->Fringes[iActiveSegment].AppendPoints(targetSegment);
+    }
     
     // Transfer active segment to this free end
-    iActiveSegment = iSegment;
-    
-    TRACE("InputHandler::ConnectSegments: target segment=%d, clicked dot=%d, free end=%d\n", 
+    activeEnd = (iDot == 0) ? ActiveEnd::Start : ActiveEnd::End;
+
+    TRACE("InputHandler::ConnectSegments: target segment=%d, clicked dot=%d, free end=%d\n",
         iSegment, iDot, freeEndDot);
+
 }
 
 void InputHandler::EndCurrentSegment() {

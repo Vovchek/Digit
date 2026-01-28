@@ -303,4 +303,4 @@ Appendix: exact replacement call sites summary
 - Replace `pDoc->OnKeyDown(nChar, ...)` in `CImageView::OnKeyDown` with early-return handling for draw-mode keys (Ticket 005).
 - Replace `pDoc->LastOperationUndo()` in `CImageView::OnUndo` with `m_cmdDispatcher.Undo()` (Ticket 008).
 
-If you approve, I will create PR-ready patches per ticket in order, starting with minimal safe adapters (Tickets 001–004) and add tests. If you want me to apply the first patch now (add members in `ImageView.h` and the `OnLButtonDown` adapter), confirm and I will proceed.
+## Update (action required): implement missing DigitMode methods

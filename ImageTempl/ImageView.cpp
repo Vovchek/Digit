@@ -867,13 +867,42 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 	CControls* pCtrls = GetControls();
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CImageDoc* pActDoc = (CImageDoc*) GetWIActiveDocument();
-	if(pDoc == pActDoc){
-		CImageCtrls* pImCtrls = GetImageCtrls(this);
+    CPoint l_point(point);
+    ClientToDoc(l_point);
+    CursorPos = l_point;
+
+    if(pDoc == pActDoc){
+
+        // Compute doc-space point and modifiers
+        using namespace DigitMode;
+
+        ModifierState mods = ModifierState::FromKeyboard();
+        int hitSeg = -1, hitDot = -1;
+        SelectionLevel hoverLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, pDoc->Digit.Fringes);
+
+        // Update cursor using hit test result
+        m_selectionMgr.SetHover(hoverLevel, hitSeg, hitDot);
+
+        // If draw-mode active and we have a preview active, let InputHandler render preview via ImageView hooks
+        if (m_inputHandler.IsInDrawMode()) {
+            m_inputHandler.OnMouseMove(l_point, mods, &pDoc->Digit, &m_cmdDispatcher);
+            Invalidate(FALSE);
+            return; // consumed
+        }
+
+        // Fallback to existing drag behaviours if legacy locking active
+        if (pDoc->IsLockedDot()) {
+            DragDot(l_point);
+            return;
+        }
+        if (pDoc->IsLockedZapSection()) {
+            DragZapSection(l_point);
+            return;
+        }
+        
+        CImageCtrls* pImCtrls = GetImageCtrls(this);
 		CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
 		CControls* pCtrls = GetControls();
-		CPoint l_point(point);
-		ClientToDoc(l_point);
-		CursorPos = l_point;
 		BOOL keyDown = FALSE;
 		if((nFlags & MK_LBUTTON) || 
 			GetAsyncKeyState(VK_LEFT)<0 || GetAsyncKeyState(VK_RIGHT)<0 ||
@@ -922,12 +951,11 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
 	// =======================================================================
     using namespace DigitMode;
 
-    ModifierState mods = ModifierState::FromKeyboard();
-    int hitSeg = -1, hitDot = -1;
-    SelectionLevel hitLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, {});
-
     CControls* pCtrls = GetControls();
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
+    ModifierState mods = ModifierState::FromKeyboard();
+    int hitSeg = -1, hitDot = -1;
+    SelectionLevel hitLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, pDoc->Digit.Fringes);
 
     // Treat toolbar/menu edit modes as Draw mode if appropriate
     bool uiRequestsDraw = (pCtrls->ActiveEditMode == E_ADD_DOT || pCtrls->ActiveEditMode == E_ADD_SECTION);
@@ -935,14 +963,14 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     if (uiRequestsDraw || m_inputHandler.IsInDrawMode()) {
         // Start new segment when clicking empty space
         if (hitLevel == SelectionLevel::None) {
-            // Create command via InputHandler (InputHandler must call CommandDispatcher internally or expose StartNewSegment that accepts a CommandDispatcher reference)
-            m_inputHandler.StartNewSegment(l_point, &pDoc->Digit);
+            // Create command via InputHandler (InputHandler can accept CommandDispatcher)
+            m_inputHandler.StartNewSegment(l_point, &pDoc->Digit, &m_cmdDispatcher);
             Invalidate(FALSE);
             return; // consumed
         }
         // Continue drawing when clicking an existing dot (attach to its segment)
         if (hitLevel == SelectionLevel::Dot) {
-            m_inputHandler.ContinueSegment(hitSeg, hitDot, &pDoc->Digit);
+            m_inputHandler.ContinueSegment(hitSeg, hitDot, &pDoc->Digit, &m_cmdDispatcher);
             Invalidate(FALSE);
             return;
         }

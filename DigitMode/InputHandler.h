@@ -65,11 +65,22 @@ enum class EditMode {
 };
 
 /**
+* @brief Active end of a segment during drawing
+* 
+* State used to track which end is being manipulated
+**/
+enum class ActiveEnd {
+	None,   ///< Default state: no active end
+	Start,  ///< Drawing extends/inserts at start of segment
+	End     ///< Drawing extends/inserts at end of segment
+};
+
+/**
  * @brief Manages mode switching and drawing state
  * 
  * Responsibilities:
  * - Track current editing mode
- * - Maintain active segment during drawing
+ * - Maintain active segment and end dot during drawing
  * - Finalize pending operations on mode switch
  * 
  * @note Selection is locked during Draw mode (handled by caller)
@@ -80,6 +91,7 @@ private:
 
     // Draw mode state
     int iActiveSegment = -1;  ///< Index of segment being drawn (-1 = none)
+	ActiveEnd activeEnd = ActiveEnd::None; ///< Currently active end during drawing
 
 public:
     /**
@@ -112,6 +124,8 @@ public:
      * Creates a new segment with incremented Number value
      */
     void StartNewSegment(CPoint P, ::CDigitInfo* pDigit);
+    // Overload that accepts CommandDispatcher to create/execute Commands directly
+    void StartNewSegment(CPoint P, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
      * @brief Continue drawing from an existing segment end
@@ -120,6 +134,8 @@ public:
      * @param pDigit Pointer to DigitInfo
      */
     void ContinueSegment(int iSegment, int iDot, ::CDigitInfo* pDigit);
+    // Thin forwarding that accepts CommandDispatcher when continuation should emit commands
+    void ContinueSegment(int iSegment, int iDot, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
      * @brief Connect current segment to another segment's end
@@ -130,6 +146,7 @@ public:
      * After connection, the free end of the target segment becomes active
      */
     void ConnectSegments(int iSegment, int iDot, ::CDigitInfo* pDigit);
+    void ConnectSegments(int iSegment, int iDot, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
      * @brief End the current segment (finish drawing)
@@ -137,6 +154,16 @@ public:
      * Called on right-click or when leaving Draw mode
      */
     void EndCurrentSegment();
+
+    // Preview & commit hooks used by ImageView adapter
+    void OnMouseMove(CPoint pt, const ModifierState& mods, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+    void OnLButtonUp(CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+
+    // Cancel active draw without committing
+    void CancelDraw(::CDigitInfo* pDigit);
+
+    // Keyboard handling while in draw mode (arrows, backspace, escape)
+    void OnKeyDown(UINT nChar, ::CDigitInfo* pDigit);
 
     /**
      * @brief Get the index of the currently active segment

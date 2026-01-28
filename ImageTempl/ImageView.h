@@ -12,6 +12,7 @@
 #include "DigitMode/HitTester.h"
 #include "DigitMode/SelectionManager.h"
 #include "DigitMode/CommandDispatcher.h"
+#include "DigitMode/CursorManager.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -24,6 +25,7 @@ private:
 	DigitMode::InputHandler m_inputHandler;
 	DigitMode::HitTester m_hitTester;
 	DigitMode::SelectionManager m_selectionMgr;
+	DigitMode::CursorManager m_cursorMgr;
 	DigitMode::CommandDispatcher m_cmdDispatcher;
 
 protected:

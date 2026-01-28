@@ -5,6 +5,8 @@
 
 // Forward declaration (global namespace)
 class CFringeSegment;
+// Forward declare CDigitInfo to avoid header dependency
+class CDigitInfo;
 
 namespace DigitMode {
 
@@ -168,6 +170,12 @@ public:
      * @param segments Reference to segment array for querying
      */
     void DrawSelection(CDC* pDC, const std::vector<::CFringeSegment>& segments);
+
+    // Hover state used by ImageView to draw cursor/preview
+    void SetHover(SelectionLevel level, int segId, int dotId);
+
+    // Draw highlights for hover/selected object using DigitInfo draw helpers
+    void DrawHighlights(CDC* pDC, const class CDigitInfo* pDigit, int dotSide);
 
 private:
     /**

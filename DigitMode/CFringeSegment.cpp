@@ -66,6 +66,21 @@ void CFringeSegment::AppendPoints(const CFringeSegment& other)
     m_Points.insert(m_Points.end(), other.m_Points.begin(), other.m_Points.end());
 }
 
+void CFringeSegment::AppendPointsReverse(const CFringeSegment& other)
+{
+    m_Points.insert(m_Points.end(), other.m_Points.rbegin(), other.m_Points.rend());
+}
+
+void CFringeSegment::InsertPointsAtStart(const CFringeSegment& other)
+{
+    m_Points.insert(m_Points.begin(), other.m_Points.begin(), other.m_Points.end());
+}
+
+void CFringeSegment::InsertPointsAtStartReverse(const CFringeSegment& other)
+{
+    m_Points.insert(m_Points.begin(), other.m_Points.rbegin(), other.m_Points.rend());
+}
+
 // ===== Queries =====
 
 CDPoint CFringeSegment::GetPoint(int idx) const

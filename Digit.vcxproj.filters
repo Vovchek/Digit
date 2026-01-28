@@ -71,6 +71,12 @@
       <UniqueIdentifier>{685792a3-dfec-4ce5-9f9d-6823d38a07aa}</UniqueIdentifier>
       <Extensions>cnt;rtf</Extensions>
     </Filter>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{a5656ae7-ce9a-4b25-9886-73e64c60f680}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Scripts">
+      <UniqueIdentifier>{a9f4a0dd-f4ab-42d3-b9a8-8c4652679587}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp">
@@ -384,32 +390,80 @@
   <ItemGroup>
     <None Include="glut32.dll" />
     <None Include="ApertureCore\.gitignore" />
-    <None Include="Docs\GOOGLE_TEST_VISUAL_STUDIO_SETUP.md" />
-    <None Include="Docs\RUN_TESTS_QUICK_START.md" />
-    <None Include="Docs\GOOGLE_TEST_INSTALL_GUIDE.md" />
-    <None Include="Docs\GOOGLE_TEST_SETUP_SUMMARY.md" />
     <None Include=".vsconfig" />
-    <None Include="export-vs-config.ps1" />
-    <None Include="VISUAL_STUDIO_SETUP.md" />
-    <None Include="DIGITINFO_DEPENDENCY_ANALYSIS.md" />
-    <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
-    <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
-    <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
-    <None Include="README_DIGITINFO_ANALYSIS.md" />
-    <None Include="Docs\IMPLEMENT_UX.md" />
-    <None Include="Docs\ROADMAP_UX.md" />
-    <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
-    <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1" />
-    <None Include="Scripts\Add_Phase1_Tests.ps1" />
-    <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
-    <None Include="Docs\HitTester_Tolerance_Fix.md" />
-    <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
-    <None Include="Scripts\Add_DrawModeTest.ps1" />
-    <None Include="Docs\Phase2_DrawMode_Complete.md" />
-    <None Include="Docs\Fix_MultipleSegments_SameNumber.md" />
-    <None Include="Docs\MFC_Auxiliary_Audit.md" />
+    <None Include="DIGITINFO_DEPENDENCY_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="DIGITINFO_EXTRACTION_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="DIGITINFO_REFACTORING_GUIDE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\GOOGLE_TEST_INSTALL_GUIDE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\GOOGLE_TEST_SETUP_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\GOOGLE_TEST_VISUAL_STUDIO_SETUP.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\HitTester_BeyondEndpoint_Fix.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\HitTester_Tolerance_Fix.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\IMPLEMENT_UX.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\MFC_Auxiliary_Audit.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\Phase2_DrawMode_Complete.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="README_DIGITINFO_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\ROADMAP_UX.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\RUN_TESTS_QUICK_START.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="VISUAL_STUDIO_SETUP.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Scripts\Add_DrawModeTest.ps1">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\Add_Phase1_Tests.ps1">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="export-vs-config.ps1">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Scripts\Refactor_CFringe_To_CFringeSegment.ps1">
+      <Filter>Scripts</Filter>
+    </None>
+    <None Include="Docs\Fix_MultipleSegments_SameNumber.md">
+      <Filter>Docs</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
+    <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
+      <Filter>Docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>
