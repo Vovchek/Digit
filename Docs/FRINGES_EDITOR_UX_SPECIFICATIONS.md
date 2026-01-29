@@ -103,28 +103,38 @@ Selection is:
 
 ## 5. Draw Mode (Frozen)
 
+### Segment activation states:
+* Idle (no active segment)
+* Tail active (drawing from segment end)
+* Head active (drawing from segment start)
+
 ### Start / End Drawing
 
-* **Left-click empty space**
+* **Left-click empty space in Idle state**
 
   * Starts new segment
   * Segment receives Number = last Number + step
   * New fringe membership (if Number is unique)
 
-* **Right-click** (mouse counterpart of Enter)
+* **Ctrl+click** (mouse counterpart of Enter)
 
   * Ends current segment
+  * Sets Idle state
   * Remains in Draw mode
 
 ---
 
 ### Continue Existing Segment
 
-* **Left-click on either end of a segment**
+* **Left-click on either end of a segment in Idle state**
 
   * Activates that segment
-  * Clicked end becomes active
+  * Clicked end becomes active (Head or Tail state)
   * Drawing continues
+
+* **Left-click in Tail or Head state**
+
+  * Continue active segment
 
 ---
 
@@ -260,7 +270,7 @@ This table is intentionally **small, memorable, and non-overloaded**.
 | Left-click empty         | Start new segment |
 | Left-click segment end   | Continue segment  |
 | Connect modifier + click | Connect segments  |
-| Right-click / Enter      | End segment       |
+| Ctrl + click / Enter     | End segment       |
 | Backspace                | Remove last dot   |
 | Delete modifier + click  | Remove dot        |
 
@@ -390,14 +400,14 @@ Rationale:
 
 ### 2.3 Draw Mode
 
-| Input                  | Action                 |
-| ---------------------- | ---------------------- |
-| Left-click empty       | Start new segment      |
-| Left-click segment end | Continue segment       |
-| Ctrl+Click segment end | **Connect segments**   |
-| Right-click            | End segment            |
-| Backspace              | Remove last dot        |
-| Alt+Click dot          | Delete arbitrary dot   |
+| Input                   | Action                 |
+| ----------------------- | ---------------------- |
+| Left-click empty        | Start new segment      |
+| Left-click segment end  | Continue segment       |
+| Ctrl+click segment end  | **Connect segments**   |
+| Ctrl+click empty        | End segment            |
+| Backspace               | Remove last dot        |
+| Alt+Click dot           | Delete arbitrary dot   |
 
 Here:
 
@@ -574,10 +584,10 @@ Goal: identify **collisions, ambiguities, or overloads** and resolve them explic
 
 | Context            | Potential Conflict                 | Resolution                                                                                                      |
 | ------------------ | ---------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Ctrl in Draw       | Add-to-selection vs Connect curves | **Resolved**: In Draw mode, Ctrl is contextually *Connect* when clicking curve end; selection is locked in Draw |
+| Ctrl in Draw       | Add-to-selection vs End curve      | **Resolved**: In Draw mode, Ctrl is contextually *End* when continuing curve; selection is locked in Draw |
+| Ctrl in Draw       | Add-to-selection vs Connect curves | **Resolved**: In Draw mode, Ctrl is contextually *Connect* when clicking curve end; selection is locked in Draw|
 | Shift in Selection | Range select vs Promote            | **Resolved**: Shift+Click promotes only when click target is curve body; on dot/edge it remains range           |
 | Alt in Selection   | Fringe-select vs Delete dot        | **Resolved**: Alt+Click deletes dot only in Draw/Dot Edit; in Navigate it promotes to Fringe                    |
-| Right-click        | Context menu vs End drawing        | **Resolved**: In Draw mode, right-click = End drawing; elsewhere = context menu                                 |
 
 ### 1.2 Mode Boundary Conflicts
 
@@ -862,8 +872,8 @@ These are meant to be *authoritative*, readable by humans **and** usable by Copi
 
 1. Left-click empty → start segment (Number increments)
 2. Left-click end → continue segment
-3. Ctrl+Click other segment end → connect
-4. Right-click → end segment
+3. Ctrl+click other segment end → connect
+4. Ctrl+click empty → end segment
 
 ---
 
@@ -932,7 +942,7 @@ This is what implementation must satisfy before sign-off.
 * [ ] Continue from segment ends
 * [ ] Connect segments with Ctrl
 * [ ] Free end becomes active after connect
-* [ ] Right-click ends segment
+* [ ] Ctrl+click ends segment
 * [ ] Backspace removes last dot
 
 ## Dot Edit
@@ -993,8 +1003,8 @@ Alt = structural / alternate
 • **Draw mode**:
 – Left-click empty → start new segment (Number += step)
 – Left-click segment end → continue segment
-– Ctrl+Click other segment end → connect; **free end becomes active**
-– Right-click ends current segment
+– Ctrl+click other segment end → connect; **free end becomes active**
+– Ctrl+click empty space ends current segment
 – Backspace removes last dot
 • **Dot Edit mode**: move/insert/delete dots and edges only; no creation or numbering.
 • **Navigate mode**: full selection, box select, multi-object drag/delete.

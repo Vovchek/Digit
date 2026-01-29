@@ -460,6 +460,9 @@
     <None Include="Docs\Fix_MultipleSegments_SameNumber.md">
       <Filter>Docs</Filter>
     </None>
+    <None Include="Docs\FRINGES_EDITOR_UX_SPECIFICATIONS.md">
+      <Filter>Docs</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

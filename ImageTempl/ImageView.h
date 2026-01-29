@@ -13,6 +13,7 @@
 #include "DigitMode/SelectionManager.h"
 #include "DigitMode/CommandDispatcher.h"
 #include "DigitMode/CursorManager.h"
+#include "DigitMode/TooltipGenerator.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -23,10 +24,11 @@ class CImageView : public CBaseImageView
 private:
 
 	DigitMode::InputHandler m_inputHandler;
-	DigitMode::HitTester m_hitTester;
 	DigitMode::SelectionManager m_selectionMgr;
-	DigitMode::CursorManager m_cursorMgr;
+	DigitMode::HitTester m_hitTester;
 	DigitMode::CommandDispatcher m_cmdDispatcher;
+	DigitMode::CursorManager m_cursorMgr;
+	DigitMode::TooltipGenerator tooltipGen;
 
 protected:
 	CImageView();           // protected constructor used by dynamic creation
