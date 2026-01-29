@@ -159,6 +159,7 @@
   <ItemGroup>
     <ClCompile Include="DigitMode\CFringeSegment.cpp" />
     <ClCompile Include="DigitMode\CommandDispatcher.cpp" />
+    <ClCompile Include="DigitMode\Commands\AllCommands.cpp" />
     <ClCompile Include="DigitMode\CursorManager.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
@@ -214,6 +215,7 @@
     <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AddDotCommand.h" />
+    <ClInclude Include="DigitMode\Commands\AllCommands.h" />
     <ClInclude Include="DigitMode\Commands\Command.h" />
     <ClInclude Include="DigitMode\Commands\RemoveLastDotCommand.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />

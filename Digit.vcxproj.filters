@@ -208,6 +208,9 @@
     <ClCompile Include="DigitMode\TooltipGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\Commands\AllCommands.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -378,6 +381,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\TooltipGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AllCommands.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\Commands\AddDotCommand.h">

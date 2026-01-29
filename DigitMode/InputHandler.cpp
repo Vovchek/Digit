@@ -2,7 +2,7 @@
 #include "InputHandler.h"
 #include "DigitMode/DigitInfo.h"  // Full include for implementation
 #include "DigitMode/CFringeSegment.h"
-#include "Commands/AddDotCommand.h"
+#include "Commands/AllCommands.h"
 #include "CommandDispatcher.h"
 #include <memory>
 
