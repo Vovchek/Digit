@@ -24,10 +24,44 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
 
     // Update hover via hit tester (ImageView passes hit test earlier, but keep local)
     int hitSeg=-1, hitDot=-1;
-    SelectionLevel level = HitTester().HitTest(pt, hitSeg, hitDot, pDigit->Fringes);
+    HitTester tester;
+    SelectionLevel level = tester.HitTest(pt, hitSeg, hitDot, pDigit->Fringes);
     m_hoverLevel = level; m_hoverSeg = hitSeg; m_hoverDot = hitDot;
 
     if (currentMode == EditMode::Draw) {
+        // If we already have an active segment, empty clicks should add a dot to its active end
+        if (IsActiveSegmentValid(pDigit)) {
+            if (level == SelectionLevel::None) {
+				// End segment if emtpty click with Ctrl
+				if (mods.ctrl) {
+                    EndCurrentSegment();
+                    return; // consumed
+                }
+                // Add dot to active segment at head or tail
+                auto& seg = pDigit->Fringes[iActiveSegment];
+                int insertIndex = (activeEnd == ActiveEnd::Head) ? 0 : seg.GetPointCount();
+                if (pCmdDisp) {
+                    CDPoint dp; dp.x = pt.x; dp.y = pt.y;
+                    auto add = std::make_unique<AddDotCommand>(pDigit, iActiveSegment, insertIndex, dp);
+                    pCmdDisp->Execute(std::move(add));
+                }
+                return; // consumed
+            }
+
+            if (level == SelectionLevel::Dot) {
+                // Click on a dot while drawing: possibly connect or change active end
+                if (mods.ctrl && hitSeg != iActiveSegment && pCmdDisp) {
+                    // Connect active segment to clicked segment end
+                    ConnectSegments(hitSeg, hitDot, pDigit, pCmdDisp);
+                    return;
+                }
+                // Otherwise, adopt this segment as active (continue from that end)
+                ContinueSegment(hitSeg, hitDot, pDigit, pCmdDisp);
+                return;
+            }
+        }
+
+        // No active segment -> behave as start/continue as before
         if (level == SelectionLevel::None) {
             StartNewSegment(pt, pDigit, pCmdDisp);
             return;
@@ -84,6 +118,7 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit, CommandDispatch
 
     // Set active segment to newly created one
     iActiveSegment = static_cast<int>(pDigit->Fringes.size()) - 1;
+	activeEnd = ActiveEnd::Tail; // Default to tail
 
     // Add initial dot via command
     CDPoint dp; dp.x = P.x; dp.y = P.y;
@@ -114,7 +149,7 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
 }
 
 void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
-    if (pCmdDisp && pDigit && iActiveSegment >= 0) {
+    if (pCmdDisp && IsActiveSegmentValid(pDigit)) {
         // Map activeEnd and clicked end into booleans expected by command
         bool endA = (activeEnd == ActiveEnd::Tail); // true => attach at A's end (append)
         int dotCount = pDigit->Fringes[static_cast<int>(iSegment)].GetPointCount();
@@ -128,7 +163,7 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, C
         return;
     }
 
-    // Fallback: mutate directly (legacy behavior)
+    // No legacy fallback: callers must pass a dispatcher
 }
 
 void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
@@ -150,8 +185,8 @@ void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo*
     }
 
     // Draw-mode preview: no document mutation
-    if (IsInDrawMode() && iActiveSegment >= 0 && pDigit) {
-        TRACE("InputHandler::OnMouseMove preview at (%d,%d)\n", pt.x, pt.y);
+    if (IsInDrawMode() && IsActiveSegmentValid(pDigit)) {
+        //TRACE("InputHandler::OnMouseMove preview at (%d,%d)\n", pt.x, pt.y);
     }
 }
 
@@ -177,12 +212,6 @@ void InputHandler::OnLButtonUp(CPoint pt, CDigitInfo* pDigit, CommandDispatcher*
         return;
     }
 
-    // Commit draw operation
-    if (IsInDrawMode() && iActiveSegment >= 0 && pDigit) {
-        // Finalize current segment (add final dot via command if dispatcher available)
-        TRACE("InputHandler::OnLButtonUp commit at (%d,%d)\n", pt.x, pt.y);
-        EndCurrentSegment();
-    }
 }
 
 void InputHandler::CancelDraw(CDigitInfo* pDigit) {
@@ -225,37 +254,12 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     TRACE("InputHandler::ContinueSegment: segment=%d, dot=%d\n", iSegment, iDot);
 }
 
-void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
-    // Legacy fallback: this method mutates document directly. Prefer using overload with dispatcher.
-    ASSERT(pDigit != nullptr);
-    ASSERT(iSegment >= 0 && static_cast<size_t>(iSegment) < pDigit->Fringes.size());
-
-    CFringeSegment& targetSegment = pDigit->Fringes[iSegment];
-    int dotCount = targetSegment.GetPointCount();
-    int freeEndDot = (iDot == 0) ? (dotCount - 1) : 0;
-
-    if (activeEnd == ActiveEnd::Head) {
-        if (iDot == 0)
-            pDigit->Fringes[iActiveSegment].InsertPointsAtStartReverse(targetSegment);
-        else
-            pDigit->Fringes[iActiveSegment].InsertPointsAtStart(targetSegment);
-    } else {
-        if (iDot == 0)
-            pDigit->Fringes[iActiveSegment].AppendPointsReverse(targetSegment);
-        else
-            pDigit->Fringes[iActiveSegment].AppendPoints(targetSegment);
-    }
-
-    activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
-    TRACE("InputHandler::ConnectSegments: target segment=%d, clicked dot=%d, free end=%d\n",
-        iSegment, iDot, freeEndDot);
-
-}
+// legacy direct-mutation overload removed: callers must pass a CommandDispatcher
 
 void InputHandler::EndCurrentSegment() {
     if (iActiveSegment >= 0) {
         TRACE("InputHandler::EndCurrentSegment: segment=%d\n", iActiveSegment);
-        iActiveSegment = -1;
+        activeEnd = ActiveEnd::None;
     }
 }
 
@@ -277,4 +281,9 @@ void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
     }
 }
 
+bool InputHandler::IsActiveSegmentValid(const ::CDigitInfo* doc) const {
+    return (doc != nullptr && iActiveSegment >= 0 && static_cast<size_t>(iActiveSegment) < doc->Fringes.size() && activeEnd != ActiveEnd::None);
+}
+
 } // namespace DigitMode
+

@@ -175,7 +175,6 @@ public:
      * 
      * After connection, the free end of the target segment becomes active
      */
-    void ConnectSegments(int iSegment, int iDot, ::CDigitInfo* pDigit);
     void ConnectSegments(int iSegment, int iDot, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
@@ -225,6 +224,7 @@ public:
 
     // Query helpers
     bool HasActiveSegment() const { return iActiveSegment >= 0; }
+    bool IsActiveSegmentValid(const ::CDigitInfo* doc) const;
     ActiveEnd GetActiveEnd() const { return activeEnd; }
     CPoint GetCurrentCursorPos() const { return m_cursorPos; }
 };

@@ -232,6 +232,7 @@
     <ClInclude Include="Controls\controls.h" />
     <ClInclude Include="Controls\ImageCtrls.h" />
     <ClInclude Include="Controls\MeasureCtrls.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Utils\Edit\BaseTextDoc.h" />
     <ClInclude Include="Utils\Edit\BaseTextFrm.h" />
     <ClInclude Include="Utils\Edit\BaseTextView.h" />
@@ -300,5 +301,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\Digit.ico" />
+    <Image Include="res\DigitDoc.ico" />
+    <Image Include="res\Toolbar.bmp" />
   </ItemGroup>
 </Project>

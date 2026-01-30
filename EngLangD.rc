@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+п»ї//Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
 
@@ -513,7 +513,7 @@ BEGIN
     END
     POPUP "&Edit"
     BEGIN
-        MENUITEM "&Undo\tCtrl+Z",               ID_EDIT_UNDO
+        MENUITEM "&Undo\tCtrl+Z",               IDD_EDIT_UNDO
         MENUITEM SEPARATOR
         MENUITEM "Cu&t\tCtrl+X",                ID_EDIT_CUT
         MENUITEM "&Copy\tCtrl+C",               ID_EDIT_COPY
@@ -543,7 +543,8 @@ BEGIN
     "L",            IDD_CLONE,              VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    "Z",            IDD_UNDO,               VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDD_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDD_EDIT_REDO,          VIRTKEY, CONTROL, NOINVERT
 END
 
 
@@ -704,7 +705,7 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDD_FILE_OPEN           "Open\nOpen"
     IDD_FILE_SAVE_AS        "Save As\nSave As"
-    IDD_UNDO                "Undo\nUndo"
+    IDD_EDIT_UNDO            "Undo\nUndo"
     IDD_ZOOM_IMAGE          "Zoom\nZoom"
     IDD_CONTRAST_BRIGHTNESS "Brightness/contrast\nBrightness/contrast"
     IDD_ROTATION_IMAGE      "Rotation Image\nRotation Image"
@@ -725,15 +726,15 @@ BEGIN
     IDD_MEASURE             "Ruler\nRuler"
     IDD_FOTO_SECTIONS       "Photometric cross sections\nPhotometric cross sections"
     IDD_SH_SECTIONS         "Show/hide Cross sections\nShow/hide Cross sections"
-    ID_MENUITEM32790        "Показать/Скрыть точки\nПоказать/Скрыть точки"
+    ID_MENUITEM32790        "РџРѕРєР°Р·Р°С‚СЊ/РЎРєСЂС‹С‚СЊ С‚РѕС‡РєРё\nРџРѕРєР°Р·Р°С‚СЊ/РЎРєСЂС‹С‚СЊ С‚РѕС‡РєРё"
     IDD_SH_DOTS             "Show/hide dots\nShow/hide dots"
     IDD_SH_IMAGE            "Show/hide Interferogram\nShow/hide Interferogram"
-    IDD_SH_DRAFT            "Показать/Скрыть скелет\nПоказать/Скрыть скелет"
+    IDD_SH_DRAFT            "РџРѕРєР°Р·Р°С‚СЊ/РЎРєСЂС‹С‚СЊ СЃРєРµР»РµС‚\nРџРѕРєР°Р·Р°С‚СЊ/РЎРєСЂС‹С‚СЊ СЃРєРµР»РµС‚"
     IDD_INTR_ANALYSIS       "Analysis of interferogram\nAnalysis of interferogram"
     IDD_DIFRA_ANALYSIS      "Diffractional analysis\nDiffractional analysis"
     IDD_CALCULATOR          "Operations with polynoms\nOperations with polynoms"
-    IDD_INTERF_PROP         "Анализ интерферограмм\nАнализ интерферограмм"
-    IDD_DIFRA_PROP          "Дифракционный анализ\nДифракционный анализ"
+    IDD_INTERF_PROP         "РђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј\nРђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј"
+    IDD_DIFRA_PROP          "Р”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·\nР”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -744,7 +745,7 @@ BEGIN
     IDD_AUTO_D              "Autonumbering\nAutonumbering"
     IDD_CLEAR_D             "Clear numbering\nClear numbering"
     IDD_CROP_IMAGE          "Crop\nCrop"
-    IDD_EXPAND_IMAGE        "Расширение по шкале\nРасширение по шкале"
+    IDD_EXPAND_IMAGE        "Р Р°СЃС€РёСЂРµРЅРёРµ РїРѕ С€РєР°Р»Рµ\nР Р°СЃС€РёСЂРµРЅРёРµ РїРѕ С€РєР°Р»Рµ"
     IDD_AUTOCONTRAST_IMAGE  "Optimize contrast\nOptimize contrast"
     IDD_CHANGE_LANG         "Russian interface\nRussian interface"
 END

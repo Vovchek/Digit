@@ -1,4 +1,4 @@
-//Microsoft Developer Studio generated resource script.
+п»ї//Microsoft Developer Studio generated resource script.
 //
 #include "resource.h"
 
@@ -76,123 +76,123 @@ IDR_WININTTYPE          ICON    DISCARDABLE     "res\\DigitDoc.ico"
 
 IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
 BEGIN
-    POPUP "&Файл"
+    POPUP "&Р¤Р°Р№Р»"
     BEGIN
-        MENUITEM "&Открыть...\tCtrl+O",         ID_FILE_OPEN
-        MENUITEM "&Сохранить как...",           ID_FILE_SAVE_AS
+        MENUITEM "&РћС‚РєСЂС‹С‚СЊ...\tCtrl+O",         ID_FILE_OPEN
+        MENUITEM "&РЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє...",           ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Выход",                      ID_APP_EXIT
+        MENUITEM "&Р’С‹С…РѕРґ",                      ID_APP_EXIT
     END
-    POPUP "&Вид"
+    POPUP "&Р’РёРґ"
     BEGIN
-        MENUITEM "&Дополнительные параметры",   IDD_ADV_PARAMETERS
+        MENUITEM "&Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹",   IDD_ADV_PARAMETERS
     END
-    POPUP "&Настройки"
+    POPUP "&РќР°СЃС‚СЂРѕР№РєРё"
     BEGIN
-        MENUITEM "&Английский интерфейс",       IDD_CHANGE_LANG
-        MENUITEM "&Панели инструментов",        IDD_TOOLBARS
+        MENUITEM "&РђРЅРіР»РёР№СЃРєРёР№ РёРЅС‚РµСЂС„РµР№СЃ",       IDD_CHANGE_LANG
+        MENUITEM "&РџР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ",        IDD_TOOLBARS
     END
-    POPUP "&Помощь"
+    POPUP "&РџРѕРјРѕС‰СЊ"
     BEGIN
-        MENUITEM "&О программе...",             ID_APP_ABOUT
-        MENUITEM "Содержание",                  ID_HELP
+        MENUITEM "&Рћ РїСЂРѕРіСЂР°РјРјРµ...",             ID_APP_ABOUT
+        MENUITEM "РЎРѕРґРµСЂР¶Р°РЅРёРµ",                  ID_HELP
     END
 END
 
 IDR_IMAGETYPE MENU DISCARDABLE 
 BEGIN
-    POPUP "&Файл"
+    POPUP "&Р¤Р°Р№Р»"
     BEGIN
-        MENUITEM "&Открыть...\tCtrl+O",         ID_FILE_OPEN
-        MENUITEM "&Сохранить",                  ID_FILE_SAVE
-        MENUITEM "Сох&ранить как...",           ID_FILE_SAVE_AS
+        MENUITEM "&РћС‚РєСЂС‹С‚СЊ...\tCtrl+O",         ID_FILE_OPEN
+        MENUITEM "&РЎРѕС…СЂР°РЅРёС‚СЊ",                  ID_FILE_SAVE
+        MENUITEM "РЎРѕС…&СЂР°РЅРёС‚СЊ РєР°Рє...",           ID_FILE_SAVE_AS
         MENUITEM SEPARATOR
         MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
         MENUITEM SEPARATOR
-        MENUITEM "&Выход",                      ID_APP_EXIT
+        MENUITEM "&Р’С‹С…РѕРґ",                      ID_APP_EXIT
     END
-    POPUP "Изображение"
+    POPUP "РР·РѕР±СЂР°Р¶РµРЅРёРµ"
     BEGIN
-        MENUITEM "Увеличить",                   IDD_ZOOM_IN
-        MENUITEM "Уменьшить",                   IDD_ZOOM_OUT
-        MENUITEM "Выровнять",                   IDD_ZOOM_FIT
+        MENUITEM "РЈРІРµР»РёС‡РёС‚СЊ",                   IDD_ZOOM_IN
+        MENUITEM "РЈРјРµРЅСЊС€РёС‚СЊ",                   IDD_ZOOM_OUT
+        MENUITEM "Р’С‹СЂРѕРІРЅСЏС‚СЊ",                   IDD_ZOOM_FIT
     END
-    POPUP "Вид"
+    POPUP "Р’РёРґ"
     BEGIN
-        MENUITEM "Интерферограмма",             IDD_INTERFEROGRAM_VIEW
-        MENUITEM "Экстремумы",                  IDD_EXTRFRINGE_VIEW
-        MENUITEM "Сечения",                     IDD_SECTIONS_VIEW
-        MENUITEM "Точки оцифровки",             IDD_DOTS_VIEW
+        MENUITEM "РРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРјР°",             IDD_INTERFEROGRAM_VIEW
+        MENUITEM "Р­РєСЃС‚СЂРµРјСѓРјС‹",                  IDD_EXTRFRINGE_VIEW
+        MENUITEM "РЎРµС‡РµРЅРёСЏ",                     IDD_SECTIONS_VIEW
+        MENUITEM "РўРѕС‡РєРё РѕС†РёС„СЂРѕРІРєРё",             IDD_DOTS_VIEW
         MENUITEM SEPARATOR
-        MENUITEM "Дополнительные параметры",    IDD_ADV_PARAMETERS
+        MENUITEM "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹",    IDD_ADV_PARAMETERS
     END
-    POPUP "Оцифровка"
+    POPUP "РћС†РёС„СЂРѕРІРєР°"
     BEGIN
-        MENUITEM "Автооцифровка",               IDD_AUTO_D
+        MENUITEM "РђРІС‚РѕРѕС†РёС„СЂРѕРІРєР°",               IDD_AUTO_D
         MENUITEM SEPARATOR
-        MENUITEM "Отмечать макс полос",         IDD_FC_MAX
-        MENUITEM "Отмечать мин полос",          IDD_FC_MIN
-        MENUITEM "Отмечать мин и макс полос",   IDD_FC_MINMAX
+        MENUITEM "РћС‚РјРµС‡Р°С‚СЊ РјР°РєСЃ РїРѕР»РѕСЃ",         IDD_FC_MAX
+        MENUITEM "РћС‚РјРµС‡Р°С‚СЊ РјРёРЅ РїРѕР»РѕСЃ",          IDD_FC_MIN
+        MENUITEM "РћС‚РјРµС‡Р°С‚СЊ РјРёРЅ Рё РјР°РєСЃ РїРѕР»РѕСЃ",   IDD_FC_MINMAX
         MENUITEM SEPARATOR
-        MENUITEM "Очистить",                    IDD_CLEAR_D
+        MENUITEM "РћС‡РёСЃС‚РёС‚СЊ",                    IDD_CLEAR_D
         MENUITEM SEPARATOR
-        MENUITEM "Расчет аппроксимации",        IDD_CALC_APROX
+        MENUITEM "Р Р°СЃС‡РµС‚ Р°РїРїСЂРѕРєСЃРёРјР°С†РёРё",        IDD_CALC_APROX
         MENUITEM SEPARATOR
-        MENUITEM "Добавить точку",              IDD_ADD_DOT_D
-        MENUITEM "Удалить точку",               IDD_DEL_DOT_D
+        MENUITEM "Р”РѕР±Р°РІРёС‚СЊ С‚РѕС‡РєСѓ",              IDD_ADD_DOT_D
+        MENUITEM "РЈРґР°Р»РёС‚СЊ С‚РѕС‡РєСѓ",               IDD_DEL_DOT_D
         MENUITEM SEPARATOR
-        MENUITEM "Изменить номер точки",        IDD_RENUM_DOT_D
-        MENUITEM "Изменить номер полосы",       IDD_RENUM_FR_D
+        MENUITEM "РР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ С‚РѕС‡РєРё",        IDD_RENUM_DOT_D
+        MENUITEM "РР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹",       IDD_RENUM_FR_D
         MENUITEM SEPARATOR
-        MENUITEM "Уменьшить  номер полосы",     IDD_NUM_OFF_MINUS
-        MENUITEM "Увеличить номер полосы",      IDD_NUM_OFF_PLUS
+        MENUITEM "РЈРјРµРЅСЊС€РёС‚СЊ  РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹",     IDD_NUM_OFF_MINUS
+        MENUITEM "РЈРІРµР»РёС‡РёС‚СЊ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹",      IDD_NUM_OFF_PLUS
         MENUITEM SEPARATOR
-        MENUITEM "Удалить полосу",              IDD_DEL_FR_D
+        MENUITEM "РЈРґР°Р»РёС‚СЊ РїРѕР»РѕСЃСѓ",              IDD_DEL_FR_D
         MENUITEM SEPARATOR
-        MENUITEM "Добавить сечение",            IDD_ADD_SEC_D
-        MENUITEM "Удалить сечение",             IDD_DEL_SEC_D
-        MENUITEM "Сдвиг вдоль сечения влево",   IDD_SEC_LEFT_D
-        MENUITEM "Сдвиг вдоль сечения вправо",  IDD_SEC_RIGHT_D
+        MENUITEM "Р”РѕР±Р°РІРёС‚СЊ СЃРµС‡РµРЅРёРµ",            IDD_ADD_SEC_D
+        MENUITEM "РЈРґР°Р»РёС‚СЊ СЃРµС‡РµРЅРёРµ",             IDD_DEL_SEC_D
+        MENUITEM "РЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІР»РµРІРѕ",   IDD_SEC_LEFT_D
+        MENUITEM "РЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІРїСЂР°РІРѕ",  IDD_SEC_RIGHT_D
     END
-    POPUP "Сервис"
+    POPUP "РЎРµСЂРІРёСЃ"
     BEGIN
-        MENUITEM "Панели инструментов",         IDD_TOOLBARS
+        MENUITEM "РџР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ",         IDD_TOOLBARS
         MENUITEM SEPARATOR
-        MENUITEM "Фотометрические сечения",     IDD_FOTO_SECTIONS
-        MENUITEM "Измерительная линейка",       IDD_MEASURE
-        MENUITEM "Внешняя граница",             IDD_BOUNDS_EXT
-        MENUITEM "Внутренняя граница",          IDD_BOUNDS_INS
+        MENUITEM "Р¤РѕС‚РѕРјРµС‚СЂРёС‡РµСЃРєРёРµ СЃРµС‡РµРЅРёСЏ",     IDD_FOTO_SECTIONS
+        MENUITEM "РР·РјРµСЂРёС‚РµР»СЊРЅР°СЏ Р»РёРЅРµР№РєР°",       IDD_MEASURE
+        MENUITEM "Р’РЅРµС€РЅСЏСЏ РіСЂР°РЅРёС†Р°",             IDD_BOUNDS_EXT
+        MENUITEM "Р’РЅСѓС‚СЂРµРЅРЅСЏСЏ РіСЂР°РЅРёС†Р°",          IDD_BOUNDS_INS
         MENUITEM SEPARATOR
-        MENUITEM "Копировать сценарий",         IDD_COPY_SCENARIO
-        MENUITEM "Применить сценарий",          IDD_PASTE_SCENARIO
-        MENUITEM "Загрузить сценарий",          IDD_OPEN_SCENARIO
-        MENUITEM "Сохранить сценарий",          IDD_SAVE_SCENARIO
+        MENUITEM "РљРѕРїРёСЂРѕРІР°С‚СЊ СЃС†РµРЅР°СЂРёР№",         IDD_COPY_SCENARIO
+        MENUITEM "РџСЂРёРјРµРЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№",          IDD_PASTE_SCENARIO
+        MENUITEM "Р—Р°РіСЂСѓР·РёС‚СЊ СЃС†РµРЅР°СЂРёР№",          IDD_OPEN_SCENARIO
+        MENUITEM "РЎРѕС…СЂР°РЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№",          IDD_SAVE_SCENARIO
     END
-    POPUP "&Помощь"
+    POPUP "&РџРѕРјРѕС‰СЊ"
     BEGIN
-        MENUITEM "&О программе...",             ID_APP_ABOUT
-        MENUITEM "Содержание",                  ID_HELP
+        MENUITEM "&Рћ РїСЂРѕРіСЂР°РјРјРµ...",             ID_APP_ABOUT
+        MENUITEM "РЎРѕРґРµСЂР¶Р°РЅРёРµ",                  ID_HELP
     END
 END
 
 IDR_TEXT_WINDOW MENU PRELOAD DISCARDABLE 
 BEGIN
-    POPUP "&Файл"
+    POPUP "&Р¤Р°Р№Р»"
     BEGIN
-        MENUITEM "&Печать...\tCtrl+P",          ID_FILE_PRINT
-        MENUITEM "Настройки принтера...",       ID_FILE_PRINT_SETUP
-        MENUITEM "&Сохранить\tCtrl+S",          ID_FILE_SAVE
-        MENUITEM "Сохранить как...",            ID_FILE_SAVE_AS
+        MENUITEM "&РџРµС‡Р°С‚СЊ...\tCtrl+P",          ID_FILE_PRINT
+        MENUITEM "РќР°СЃС‚СЂРѕР№РєРё РїСЂРёРЅС‚РµСЂР°...",       ID_FILE_PRINT_SETUP
+        MENUITEM "&РЎРѕС…СЂР°РЅРёС‚СЊ\tCtrl+S",          ID_FILE_SAVE
+        MENUITEM "РЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє...",            ID_FILE_SAVE_AS
     END
-    POPUP "&Редактировать"
+    POPUP "&Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ"
     BEGIN
-        MENUITEM "Отмена\tCtrl+Z",              ID_EDIT_UNDO
+        MENUITEM "РћС‚РјРµРЅР°\tCtrl+Z",              IDD_EDIT_UNDO
         MENUITEM SEPARATOR
-        MENUITEM "Вырезать\tCtrl+X",            ID_EDIT_CUT
-        MENUITEM "Копировать\tCtrl+C",          ID_EDIT_COPY
-        MENUITEM "Вставить\tCtrl+V",            ID_EDIT_PASTE
+        MENUITEM "Р’С‹СЂРµР·Р°С‚СЊ\tCtrl+X",            ID_EDIT_CUT
+        MENUITEM "РљРѕРїРёСЂРѕРІР°С‚СЊ\tCtrl+C",          ID_EDIT_COPY
+        MENUITEM "Р’СЃС‚Р°РІРёС‚СЊ\tCtrl+V",            ID_EDIT_PASTE
     END
 END
 
@@ -208,7 +208,9 @@ BEGIN
     "L",            IDD_CLONE,              VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
-    "Z",            IDD_UNDO,               VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDD_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDD_EDIT_REDO,          VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDD_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, NOINVERT
 END
 
 
@@ -219,7 +221,7 @@ END
 
 IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "О программе"
+CAPTION "Рћ РїСЂРѕРіСЂР°РјРјРµ"
 FONT 8, "MS Sans Serif"
 BEGIN
     ICON            IDR_MAINFRAME,IDC_STATIC,12,13,20,20
@@ -230,14 +232,14 @@ END
 
 IDD_ZOOM_DLG DIALOGEX 0, 0, 187, 61
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Увеличить / Уменьшить"
+CAPTION "РЈРІРµР»РёС‡РёС‚СЊ / РЈРјРµРЅСЊС€РёС‚СЊ"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",IDOK,133,28,50,12
-    PUSHBUTTON      "Отмена",IDCANCEL,133,10,50,12
+    PUSHBUTTON      "РћС‚РјРµРЅР°",IDCANCEL,133,10,50,12
     CONTROL         "Slider1",IDS_zoom_scale,"msctls_trackbar32",TBS_TOP | 
                     TBS_NOTICKS | WS_TABSTOP,7,28,109,13,WS_EX_DLGMODALFRAME
-    LTEXT           "Увеличение  ",IDC_STATIC,9,11,45,8
+    LTEXT           "РЈРІРµР»РёС‡РµРЅРёРµ  ",IDC_STATIC,9,11,45,8
     COMBOBOX        IDCB_zoom_scale,60,10,48,126,CBS_DROPDOWNLIST | 
                     WS_VSCROLL | WS_TABSTOP
     LTEXT           "% ",IDC_STATIC,111,12,9,8
@@ -255,11 +257,11 @@ END
 
 IDD_TOOLBARS_DLG DIALOG DISCARDABLE  0, 0, 221, 98
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Панели инструментов"
+CAPTION "РџР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,160,54,50,12
-    PUSHBUTTON      "Отмена",IDCANCEL,160,75,50,12
+    PUSHBUTTON      "РћС‚РјРµРЅР°",IDCANCEL,160,75,50,12
     LISTBOX         IDCB_Toolbar_list,10,8,141,79,LBS_OWNERDRAWFIXED | 
                     LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
 END
@@ -268,12 +270,12 @@ IDR_IMAGEINFO DIALOG DISCARDABLE  0, 0, 574, 18
 STYLE WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
-    LTEXT           "Заголовок",IDC_STATIC,2,3,37,8
+    LTEXT           "Р—Р°РіРѕР»РѕРІРѕРє",IDC_STATIC,2,3,37,8
     EDITTEXT        IDE_comments_info,40,2,377,12,ES_AUTOHSCROLL
     EDITTEXT        IDE_scalefactor,463,2,33,12,ES_AUTOHSCROLL
     EDITTEXT        IDE_rotation,537,2,30,12,ES_AUTOHSCROLL
-    LTEXT           "Масштаб",IDC_STATIC,425,3,32,8
-    LTEXT           "Разворот",IDC_STATIC,501,3,33,8
+    LTEXT           "РњР°СЃС€С‚Р°Р±",IDC_STATIC,425,3,32,8
+    LTEXT           "Р Р°Р·РІРѕСЂРѕС‚",IDC_STATIC,501,3,33,8
 END
 
 IDR_RULER DIALOG DISCARDABLE  0, 0, 426, 16
@@ -308,14 +310,14 @@ END
 
 IDD_APPROXSET_DLG DIALOG DISCARDABLE  0, 0, 186, 84
 STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
-CAPTION "Параметры аппроксимации"
+CAPTION "РџР°СЂР°РјРµС‚СЂС‹ Р°РїРїСЂРѕРєСЃРёРјР°С†РёРё"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,23,60,50,14
-    PUSHBUTTON      "Отмена",IDCANCEL,111,60,50,14
-    LTEXT           "Макс. cтепень",IDC_STATIC,32,16,50,8
+    PUSHBUTTON      "РћС‚РјРµРЅР°",IDCANCEL,111,60,50,14
+    LTEXT           "РњР°РєСЃ. cС‚РµРїРµРЅСЊ",IDC_STATIC,32,16,50,8
     EDITTEXT        IDE_approx_pow,107,13,40,14,ES_AUTOHSCROLL
-    LTEXT           "Погрешность",IDC_STATIC,38,38,46,8
+    LTEXT           "РџРѕРіСЂРµС€РЅРѕСЃС‚СЊ",IDC_STATIC,38,38,46,8
     EDITTEXT        IDE_approx_dist,108,35,40,14,ES_AUTOHSCROLL
 END
 
@@ -599,9 +601,9 @@ END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_APP_ABOUT            "О программе\nО программе"
-    ID_APP_EXIT             "Выход\nВыходt"
-    ID_HELP                 "Помощь\nПомощь"
+    ID_APP_ABOUT            "Рћ РїСЂРѕРіСЂР°РјРјРµ\nРћ РїСЂРѕРіСЂР°РјРјРµ"
+    ID_APP_EXIT             "Р’С‹С…РѕРґ\nР’С‹С…РѕРґt"
+    ID_HELP                 "РџРѕРјРѕС‰СЊ\nРџРѕРјРѕС‰СЊ"
 END
 
 STRINGTABLE DISCARDABLE 
@@ -627,125 +629,125 @@ END
 STRINGTABLE DISCARDABLE 
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
-    ID_VIEW_STATUS_BAR      "Строка состояния\nСтрока состояния"
+    ID_VIEW_STATUS_BAR      "РЎС‚СЂРѕРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ\nРЎС‚СЂРѕРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ"
     ID_FRINGE_NUM           "Number fringe"
     ID_FRINGE_NUM_CTRL      "Number fringe ctrl"
-    IDW_EDIT                "Номер полосы"
+    IDW_EDIT                "РќРѕРјРµСЂ РїРѕР»РѕСЃС‹"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_FILE_OPEN           "Открыть\nОткрыть"
-    IDD_FILE_SAVE_AS        "Сохранить как\nСохранить как"
-    IDD_UNDO                "Отменить\nОтменить"
-    IDD_ZOOM_IMAGE          "Изменить размер\nИзменить размер"
-    IDD_CONTRAST_BRIGHTNESS "Яркость и контраст\nЯркость и контраст"
-    IDD_ROTATION_IMAGE      "Повернуть\nПовернуть"
-    IDD_GAUSS_IMAGE         "Размытие Гаусса\nРазмытие Гаусса"
-    IDD_RATIO_IMAGE         "Изменить пропорции\nИзменить пропорции"
-    IDD_INVERTION_IMAGE     "Инвертировать\nИнвертировать"
-    IDD_ROTATION_180        "Повернуть на 180\nПовернуть на 180"
+    IDD_FILE_OPEN           "РћС‚РєСЂС‹С‚СЊ\nРћС‚РєСЂС‹С‚СЊ"
+    IDD_FILE_SAVE_AS        "РЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє\nРЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє"
+    IDD_EDIT_UNDO           "РћС‚РјРµРЅРёС‚СЊ\nРћС‚РјРµРЅРёС‚СЊ"
+    IDD_ZOOM_IMAGE          "РР·РјРµРЅРёС‚СЊ СЂР°Р·РјРµСЂ\nРР·РјРµРЅРёС‚СЊ СЂР°Р·РјРµСЂ"
+    IDD_CONTRAST_BRIGHTNESS "РЇСЂРєРѕСЃС‚СЊ Рё РєРѕРЅС‚СЂР°СЃС‚\nРЇСЂРєРѕСЃС‚СЊ Рё РєРѕРЅС‚СЂР°СЃС‚"
+    IDD_ROTATION_IMAGE      "РџРѕРІРµСЂРЅСѓС‚СЊ\nРџРѕРІРµСЂРЅСѓС‚СЊ"
+    IDD_GAUSS_IMAGE         "Р Р°Р·РјС‹С‚РёРµ Р“Р°СѓСЃСЃР°\nР Р°Р·РјС‹С‚РёРµ Р“Р°СѓСЃСЃР°"
+    IDD_RATIO_IMAGE         "РР·РјРµРЅРёС‚СЊ РїСЂРѕРїРѕСЂС†РёРё\nРР·РјРµРЅРёС‚СЊ РїСЂРѕРїРѕСЂС†РёРё"
+    IDD_INVERTION_IMAGE     "РРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ\nРРЅРІРµСЂС‚РёСЂРѕРІР°С‚СЊ"
+    IDD_ROTATION_180        "РџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 180\nРџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 180"
     IDD_ROTATION_90_CLOCKWISE 
-                            "Повернуть на 90 по часовой стрелке\nПовернуть на 90 по часовой стрелке"
+                            "РџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 90 РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ\nРџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 90 РїРѕ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРµ"
     IDD_ROTATION_90_ANTICLOCKWISE 
-                            "Повернуть на 90 против часовой стрелки\nПовернуть на 90 против часовой стрелки"
-    IDD_ROTATION_CUSTOM     "Повернуть на произвольный угол\nПовернуть на произвольный угол"
+                            "РџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 90 РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРё\nРџРѕРІРµСЂРЅСѓС‚СЊ РЅР° 90 РїСЂРѕС‚РёРІ С‡Р°СЃРѕРІРѕР№ СЃС‚СЂРµР»РєРё"
+    IDD_ROTATION_CUSTOM     "РџРѕРІРµСЂРЅСѓС‚СЊ РЅР° РїСЂРѕРёР·РІРѕР»СЊРЅС‹Р№ СѓРіРѕР»\nРџРѕРІРµСЂРЅСѓС‚СЊ РЅР° РїСЂРѕРёР·РІРѕР»СЊРЅС‹Р№ СѓРіРѕР»"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_ROTATION_HORZ       "Отразить горизонтально\nОтразить горизонтально"
-    IDD_ROTATION_VERT       "Отразить вертикально\nОтразить вертикально"
-    IDD_MEASURE             "Измерительная линейка\nИзмерительная линейка"
-    IDD_FOTO_SECTIONS       "Фотометрические сечения\nФотометрические сечения"
-    IDD_INTR_ANALYSIS       "Анализ интерферограмм\nАнализ интерферограмм"
-    IDD_DIFRA_ANALYSIS      "Дифракционный анализ \nДифракционный анализ "
-    IDD_CALCULATOR          "Операции с полиномами\nОперации с полиномами"
-    IDD_INTERF_PROP         "Анализ интерферограмм\nАнализ интерферограмм"
-    IDD_DIFRA_PROP          "Дифракционный анализ\nДифракционный анализ"
+    IDD_ROTATION_HORZ       "РћС‚СЂР°Р·РёС‚СЊ РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРѕ\nРћС‚СЂР°Р·РёС‚СЊ РіРѕСЂРёР·РѕРЅС‚Р°Р»СЊРЅРѕ"
+    IDD_ROTATION_VERT       "РћС‚СЂР°Р·РёС‚СЊ РІРµСЂС‚РёРєР°Р»СЊРЅРѕ\nРћС‚СЂР°Р·РёС‚СЊ РІРµСЂС‚РёРєР°Р»СЊРЅРѕ"
+    IDD_MEASURE             "РР·РјРµСЂРёС‚РµР»СЊРЅР°СЏ Р»РёРЅРµР№РєР°\nРР·РјРµСЂРёС‚РµР»СЊРЅР°СЏ Р»РёРЅРµР№РєР°"
+    IDD_FOTO_SECTIONS       "Р¤РѕС‚РѕРјРµС‚СЂРёС‡РµСЃРєРёРµ СЃРµС‡РµРЅРёСЏ\nР¤РѕС‚РѕРјРµС‚СЂРёС‡РµСЃРєРёРµ СЃРµС‡РµРЅРёСЏ"
+    IDD_INTR_ANALYSIS       "РђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј\nРђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј"
+    IDD_DIFRA_ANALYSIS      "Р”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР· \nР”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР· "
+    IDD_CALCULATOR          "РћРїРµСЂР°С†РёРё СЃ РїРѕР»РёРЅРѕРјР°РјРё\nРћРїРµСЂР°С†РёРё СЃ РїРѕР»РёРЅРѕРјР°РјРё"
+    IDD_INTERF_PROP         "РђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј\nРђРЅР°Р»РёР· РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј"
+    IDD_DIFRA_PROP          "Р”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·\nР”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_VIEW_IMAGETOOLS     "Панель Инструментов\nПанель Инструментов"
-    IDD_INCLINE_IMAGE       "Выровнять средний фон\nВыровнять средний фон"
-    IDD_GAMMA_IMAGE         "Гамма корекция\nГамма корекция"
-    IDD_AUTO_D              "Автооцифровка\nАвтооцифровка"
-    IDD_CLEAR_D             "Очистить\nОчистить"
-    IDD_CROP_IMAGE          "Вырезать\nВырезать"
-    IDD_EXPAND_IMAGE        "Расширение по шкале\nРасширение по шкале"
-    IDD_AUTOCONTRAST_IMAGE  "Оптимизация контраста\nОптимизация контраста"
-    IDD_CHANGE_LANG         "Английский интерфейс\nАнглийский интерфейс"
-    IDD_HELP                "Помощь\nПомощь"
+    IDD_VIEW_IMAGETOOLS     "РџР°РЅРµР»СЊ РРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ\nРџР°РЅРµР»СЊ РРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ"
+    IDD_INCLINE_IMAGE       "Р’С‹СЂРѕРІРЅСЏС‚СЊ СЃСЂРµРґРЅРёР№ С„РѕРЅ\nР’С‹СЂРѕРІРЅСЏС‚СЊ СЃСЂРµРґРЅРёР№ С„РѕРЅ"
+    IDD_GAMMA_IMAGE         "Р“Р°РјРјР° РєРѕСЂРµРєС†РёСЏ\nР“Р°РјРјР° РєРѕСЂРµРєС†РёСЏ"
+    IDD_AUTO_D              "РђРІС‚РѕРѕС†РёС„СЂРѕРІРєР°\nРђРІС‚РѕРѕС†РёС„СЂРѕРІРєР°"
+    IDD_CLEAR_D             "РћС‡РёСЃС‚РёС‚СЊ\nРћС‡РёСЃС‚РёС‚СЊ"
+    IDD_CROP_IMAGE          "Р’С‹СЂРµР·Р°С‚СЊ\nР’С‹СЂРµР·Р°С‚СЊ"
+    IDD_EXPAND_IMAGE        "Р Р°СЃС€РёСЂРµРЅРёРµ РїРѕ С€РєР°Р»Рµ\nР Р°СЃС€РёСЂРµРЅРёРµ РїРѕ С€РєР°Р»Рµ"
+    IDD_AUTOCONTRAST_IMAGE  "РћРїС‚РёРјРёР·Р°С†РёСЏ РєРѕРЅС‚СЂР°СЃС‚Р°\nРћРїС‚РёРјРёР·Р°С†РёСЏ РєРѕРЅС‚СЂР°СЃС‚Р°"
+    IDD_CHANGE_LANG         "РђРЅРіР»РёР№СЃРєРёР№ РёРЅС‚РµСЂС„РµР№СЃ\nРђРЅРіР»РёР№СЃРєРёР№ РёРЅС‚РµСЂС„РµР№СЃ"
+    IDD_HELP                "РџРѕРјРѕС‰СЊ\nРџРѕРјРѕС‰СЊ"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_EXTRFRINGE_VIEW     "Показать экстремумы\nПоказать экстремумы"
-    IDD_DOTS_VIEW           "Показать точки оцифровки\nПоказать точки оцифровки"
-    IDD_SECTIONS_VIEW       "Показать сечения\nПоказать сечения"
-    IDD_APPROX_VIEW         "Показать аппроксимацию\nПоказать аппроксимацию"
-    IDD_BOUNDS_EXT          "Установка внешней границы\nУстановка внешней границы"
-    IDD_BOUNDS_INS          "Установка внутренней границы\nУстановка внутренней границы"
+    IDD_EXTRFRINGE_VIEW     "РџРѕРєР°Р·Р°С‚СЊ СЌРєСЃС‚СЂРµРјСѓРјС‹\nРџРѕРєР°Р·Р°С‚СЊ СЌРєСЃС‚СЂРµРјСѓРјС‹"
+    IDD_DOTS_VIEW           "РџРѕРєР°Р·Р°С‚СЊ С‚РѕС‡РєРё РѕС†РёС„СЂРѕРІРєРё\nРџРѕРєР°Р·Р°С‚СЊ С‚РѕС‡РєРё РѕС†РёС„СЂРѕРІРєРё"
+    IDD_SECTIONS_VIEW       "РџРѕРєР°Р·Р°С‚СЊ СЃРµС‡РµРЅРёСЏ\nРџРѕРєР°Р·Р°С‚СЊ СЃРµС‡РµРЅРёСЏ"
+    IDD_APPROX_VIEW         "РџРѕРєР°Р·Р°С‚СЊ Р°РїРїСЂРѕРєСЃРёРјР°С†РёСЋ\nРџРѕРєР°Р·Р°С‚СЊ Р°РїРїСЂРѕРєСЃРёРјР°С†РёСЋ"
+    IDD_BOUNDS_EXT          "РЈСЃС‚Р°РЅРѕРІРєР° РІРЅРµС€РЅРµР№ РіСЂР°РЅРёС†С‹\nРЈСЃС‚Р°РЅРѕРІРєР° РІРЅРµС€РЅРµР№ РіСЂР°РЅРёС†С‹"
+    IDD_BOUNDS_INS          "РЈСЃС‚Р°РЅРѕРІРєР° РІРЅСѓС‚СЂРµРЅРЅРµР№ РіСЂР°РЅРёС†С‹\nРЈСЃС‚Р°РЅРѕРІРєР° РІРЅСѓС‚СЂРµРЅРЅРµР№ РіСЂР°РЅРёС†С‹"
     IDD_INTERFEROGRAM_INFO  "Interferogram Info\nInterferogram Info"
     IDD_DIGIT_PARAMETERS    "Digit Parameters\nDigit Parameters"
-    IDD_ADV_PARAMETERS      "Дополнительные параметры\nДополнительные параметры"
-    IDD_CALC_APROX          "Расчет аппроксимации\nРасчет аппроксимации"
+    IDD_ADV_PARAMETERS      "Р”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹\nР”РѕРїРѕР»РЅРёС‚РµР»СЊРЅС‹Рµ РїР°СЂР°РјРµС‚СЂС‹"
+    IDD_CALC_APROX          "Р Р°СЃС‡РµС‚ Р°РїРїСЂРѕРєСЃРёРјР°С†РёРё\nР Р°СЃС‡РµС‚ Р°РїРїСЂРѕРєСЃРёРјР°С†РёРё"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    ID_FILE_SAVE            "Сохранить\nСохранить"
-    ID_FILE_SAVE_AS         "Сохранить как\nСохранить как"
+    ID_FILE_SAVE            "РЎРѕС…СЂР°РЅРёС‚СЊ\nРЎРѕС…СЂР°РЅРёС‚СЊ"
+    ID_FILE_SAVE_AS         "РЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє\nРЎРѕС…СЂР°РЅРёС‚СЊ РєР°Рє"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_E_SEC_D             "Редактировать вдоль сечений\nРедактировать вдоль сечений"
-    IDD_E_FR_D              "Редактировать вдоль полос\nРедактировать вдоль полос"
-    IDD_ADD_DOT_D           "Добавить точку\nДобавить точку"
-    IDD_DEL_DOT_D           "Удалить точку\nУдалить точку"
-    IDD_RENUM_DOT_D         "Изменить номер точки\nИзменить номер точки"
-    IDD_RENUM_FR_D          "Изменить номер полосы\nИзменить номер полосы"
-    IDD_NUMBER_D            "Задать текущий номер\nЗадать текущий номер"
-    IDD_DEL_FR_D            "Удалить полосу\nУдалить полосу"
-    IDD_ADD_SEC_D           "Добавить сечение\nДобавить сечение"
-    IDD_DEL_SEC_D           "Удалить сечение\nУдалить сечение"
-    IDD_SEC_LEFT_D          "Сдвиг вдоль сечения влево\nСдвиг вдоль сечения влево"
-    IDD_SEC_RIGHT_D         "Сдвиг вдоль сечения вправо\nСдвиг вдоль сечения вправо"
-    IDD_TOOLBARS            "Панели инструментов\nПанели инструментов"
-    IDD_INTR_ANALYSIS_OPTIONS "Анализ Интерферограмм\nАнализ Интерферограмм"
-    IDD_DIFRA_ANALYSIS_CONTRL "Дифракционный анализ\nДифракционный анализ"
+    IDD_E_SEC_D             "Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РІРґРѕР»СЊ СЃРµС‡РµРЅРёР№\nР РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РІРґРѕР»СЊ СЃРµС‡РµРЅРёР№"
+    IDD_E_FR_D              "Р РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РІРґРѕР»СЊ РїРѕР»РѕСЃ\nР РµРґР°РєС‚РёСЂРѕРІР°С‚СЊ РІРґРѕР»СЊ РїРѕР»РѕСЃ"
+    IDD_ADD_DOT_D           "Р”РѕР±Р°РІРёС‚СЊ С‚РѕС‡РєСѓ\nР”РѕР±Р°РІРёС‚СЊ С‚РѕС‡РєСѓ"
+    IDD_DEL_DOT_D           "РЈРґР°Р»РёС‚СЊ С‚РѕС‡РєСѓ\nРЈРґР°Р»РёС‚СЊ С‚РѕС‡РєСѓ"
+    IDD_RENUM_DOT_D         "РР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ С‚РѕС‡РєРё\nРР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ С‚РѕС‡РєРё"
+    IDD_RENUM_FR_D          "РР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹\nРР·РјРµРЅРёС‚СЊ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹"
+    IDD_NUMBER_D            "Р—Р°РґР°С‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ\nР—Р°РґР°С‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ"
+    IDD_DEL_FR_D            "РЈРґР°Р»РёС‚СЊ РїРѕР»РѕСЃСѓ\nРЈРґР°Р»РёС‚СЊ РїРѕР»РѕСЃСѓ"
+    IDD_ADD_SEC_D           "Р”РѕР±Р°РІРёС‚СЊ СЃРµС‡РµРЅРёРµ\nР”РѕР±Р°РІРёС‚СЊ СЃРµС‡РµРЅРёРµ"
+    IDD_DEL_SEC_D           "РЈРґР°Р»РёС‚СЊ СЃРµС‡РµРЅРёРµ\nРЈРґР°Р»РёС‚СЊ СЃРµС‡РµРЅРёРµ"
+    IDD_SEC_LEFT_D          "РЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІР»РµРІРѕ\nРЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІР»РµРІРѕ"
+    IDD_SEC_RIGHT_D         "РЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІРїСЂР°РІРѕ\nРЎРґРІРёРі РІРґРѕР»СЊ СЃРµС‡РµРЅРёСЏ РІРїСЂР°РІРѕ"
+    IDD_TOOLBARS            "РџР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ\nРџР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ"
+    IDD_INTR_ANALYSIS_OPTIONS "РђРЅР°Р»РёР· РРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј\nРђРЅР°Р»РёР· РРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј"
+    IDD_DIFRA_ANALYSIS_CONTRL "Р”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·\nР”РёС„СЂР°РєС†РёРѕРЅРЅС‹Р№ Р°РЅР°Р»РёР·"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_IMAGE_GENERATION    "Генерация интерферограмм\nГенерация интерферограмм"
-    IDD_INFO_TEXT_WND       "Информация\nИнформация"
-    IDD_COPY                "Установка границ\nУстановка границ"
-    IDD_CLONE               "Дубликат документа\nДубликат документа"
-    IDD_COPY_SCENARIO       "Копировать сценарий обработки\nКопировать сценарий обработки"
-    IDD_PAST_SCENARIO       "Применить сценарий обработки\nПрименить сценарий обработки"
+    IDD_IMAGE_GENERATION    "Р“РµРЅРµСЂР°С†РёСЏ РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј\nР“РµРЅРµСЂР°С†РёСЏ РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРј"
+    IDD_INFO_TEXT_WND       "РРЅС„РѕСЂРјР°С†РёСЏ\nРРЅС„РѕСЂРјР°С†РёСЏ"
+    IDD_COPY                "РЈСЃС‚Р°РЅРѕРІРєР° РіСЂР°РЅРёС†\nРЈСЃС‚Р°РЅРѕРІРєР° РіСЂР°РЅРёС†"
+    IDD_CLONE               "Р”СѓР±Р»РёРєР°С‚ РґРѕРєСѓРјРµРЅС‚Р°\nР”СѓР±Р»РёРєР°С‚ РґРѕРєСѓРјРµРЅС‚Р°"
+    IDD_COPY_SCENARIO       "РљРѕРїРёСЂРѕРІР°С‚СЊ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё\nРљРѕРїРёСЂРѕРІР°С‚СЊ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё"
+    IDD_PAST_SCENARIO       "РџСЂРёРјРµРЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё\nРџСЂРёРјРµРЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_OPEN_SCENARIO       "Загрузить сценарий\nЗагрузить сценарий"
-    IDD_SAVE_SCENARIO       "Сохранить сценарий\nСохранить сценарий"
-    IDD_NUM_OFF_MINUS       "Уменьшить текущий номер полосы\nУменьшить текущий номер полосы"
-    IDD_NUM_OFF_PLUS        "Увеличить текущий номер полосы\nУвеличить текущий номер полосы"
-    IDD_ZOOM_IN             "Увеличить\nУвеличить"
-    IDD_ZOOM_OUT            "Уменьшить\nУменьшить"
-    IDD_ZOOM_FIT            "Выровнять\nВыровнять"
-    IDD_FC_MAX              "Отмечать макс полос\nОтмечать макс полос"
-    IDD_FC_MIN              "Отмечать мин полос\nОтмечать мин полос"
-    IDD_FC_MINMAX           "Отмечать мин и макс полос\nОтмечать мин и макс полос"
-    IDD_INTERFEROGRAM_VIEW  "Показать интерферограмму\nПоказать интерферограмму"
+    IDD_OPEN_SCENARIO       "Р—Р°РіСЂСѓР·РёС‚СЊ СЃС†РµРЅР°СЂРёР№\nР—Р°РіСЂСѓР·РёС‚СЊ СЃС†РµРЅР°СЂРёР№"
+    IDD_SAVE_SCENARIO       "РЎРѕС…СЂР°РЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№\nРЎРѕС…СЂР°РЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№"
+    IDD_NUM_OFF_MINUS       "РЈРјРµРЅСЊС€РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹\nРЈРјРµРЅСЊС€РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹"
+    IDD_NUM_OFF_PLUS        "РЈРІРµР»РёС‡РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹\nРЈРІРµР»РёС‡РёС‚СЊ С‚РµРєСѓС‰РёР№ РЅРѕРјРµСЂ РїРѕР»РѕСЃС‹"
+    IDD_ZOOM_IN             "РЈРІРµР»РёС‡РёС‚СЊ\nРЈРІРµР»РёС‡РёС‚СЊ"
+    IDD_ZOOM_OUT            "РЈРјРµРЅСЊС€РёС‚СЊ\nРЈРјРµРЅСЊС€РёС‚СЊ"
+    IDD_ZOOM_FIT            "Р’С‹СЂРѕРІРЅСЏС‚СЊ\nР’С‹СЂРѕРІРЅСЏС‚СЊ"
+    IDD_FC_MAX              "РћС‚РјРµС‡Р°С‚СЊ РјР°РєСЃ РїРѕР»РѕСЃ\nРћС‚РјРµС‡Р°С‚СЊ РјР°РєСЃ РїРѕР»РѕСЃ"
+    IDD_FC_MIN              "РћС‚РјРµС‡Р°С‚СЊ РјРёРЅ РїРѕР»РѕСЃ\nРћС‚РјРµС‡Р°С‚СЊ РјРёРЅ РїРѕР»РѕСЃ"
+    IDD_FC_MINMAX           "РћС‚РјРµС‡Р°С‚СЊ РјРёРЅ Рё РјР°РєСЃ РїРѕР»РѕСЃ\nРћС‚РјРµС‡Р°С‚СЊ РјРёРЅ Рё РјР°РєСЃ РїРѕР»РѕСЃ"
+    IDD_INTERFEROGRAM_VIEW  "РџРѕРєР°Р·Р°С‚СЊ РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРјСѓ\nРџРѕРєР°Р·Р°С‚СЊ РёРЅС‚РµСЂС„РµСЂРѕРіСЂР°РјРјСѓ"
 END
 
 STRINGTABLE DISCARDABLE 
 BEGIN
-    IDD_DOTLINES_VIEW       "Показать центры полос\nПоказать центры полос"
+    IDD_DOTLINES_VIEW       "РџРѕРєР°Р·Р°С‚СЊ С†РµРЅС‚СЂС‹ РїРѕР»РѕСЃ\nРџРѕРєР°Р·Р°С‚СЊ С†РµРЅС‚СЂС‹ РїРѕР»РѕСЃ"
 END
 
 #endif    // Russian resources

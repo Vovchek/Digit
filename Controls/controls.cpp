@@ -1,4 +1,4 @@
-#include "controls.h"
+п»ї#include "controls.h"
 #include "Utils\mutils.h"
 #include "MGTools\Include\Utils\Utils.h"
 #include "ImageTempl\ImageDoc.h"
@@ -33,61 +33,61 @@ void CControls::Init()
 //   if(ReadSection("FRAGMENTCOLOR", "Color1", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(255, 128, 192);//малин
+      Color = RGB(255, 128, 192);//РјР°Р»РёРЅ
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color2", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(102, 153, 255);//голуб-серый
+      Color = RGB(102, 153, 255);//РіРѕР»СѓР±-СЃРµСЂС‹Р№
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color3", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(255, 0, 204);//малин
+      Color = RGB(255, 0, 204);//РјР°Р»РёРЅ
      ObjColors.Add(Color);
     
 //   if(ReadSection("FRAGMENTCOLOR", "Color4", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(255, 153, 0);//оранж
+      Color = RGB(255, 153, 0);//РѕСЂР°РЅР¶
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color5", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(102, 204, 102);//зел
+      Color = RGB(102, 204, 102);//Р·РµР»
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color6", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(153, 51, 153);//фиолет
+      Color = RGB(153, 51, 153);//С„РёРѕР»РµС‚
     ObjColors.Add(Color);
     
 //   if(ReadSection("FRAGMENTCOLOR", "Color7", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(255, 153, 153);//свет кирпич
+      Color = RGB(255, 153, 153);//СЃРІРµС‚ РєРёСЂРїРёС‡
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color8", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(204, 102, 102);//коричневый
+      Color = RGB(204, 102, 102);//РєРѕСЂРёС‡РЅРµРІС‹Р№
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color9", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(255, 153, 153);//свет кирпич
+      Color = RGB(255, 153, 153);//СЃРІРµС‚ РєРёСЂРїРёС‡
     ObjColors.Add(Color);
 
 //   if(ReadSection("FRAGMENTCOLOR", "Color10", tCol, GetIniFile()))
 //        Color = atoi(tCol);
 //   else
-      Color = RGB(51, 255, 255);//голубой
+      Color = RGB(51, 255, 255);//РіРѕР»СѓР±РѕР№
     ObjColors.Add(Color);
 }
 
@@ -246,3 +246,28 @@ void CControls::OnCloseImageDocument()
 	}
 }
 
+DigitMode::EditMode CControls::GetEditMode()
+{
+	/*
+#define E_ADD_DOT        0
+#define E_DELETE_DOT     1
+#define E_DELETE_FRINGE  2
+#define E_ADD_SECTION    3
+#define E_DELETE_SECTION 4
+#define E_SECTION_LEFT   5
+#define E_SECTION_RIGHT  6
+#define E_RENUM_DOT      7
+#define E_RENUM_FRINGE   8
+
+	*/
+	switch (ActiveEditMode) {
+	  case E_ADD_SECTION:
+		return DigitMode::EditMode::Navigate;
+	  case E_ADD_DOT:
+		return DigitMode::EditMode::Draw;
+	  case E_RENUM_DOT:
+		return DigitMode::EditMode::DotEdit;
+	  default:
+		return DigitMode::EditMode::Navigate;
+	}
+}

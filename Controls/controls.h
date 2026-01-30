@@ -1,8 +1,9 @@
-#if !defined(AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
+﻿#if !defined(AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 
 #include "stdafx.h"
 #include "Appdef.h"
+#include "DigitMode/InputHandler.h"
 
 class CImageDoc;
 class CControls
@@ -39,6 +40,7 @@ class CControls
 	void LoadBoundSettings();
 	void SaveBoundSettings();
     bool GetCorrectFilterForSave(CString& str, int& nFilters);
+	DigitMode::EditMode GetEditMode();
 };
 
 #endif // !defined(AFX_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)

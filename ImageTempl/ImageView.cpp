@@ -133,10 +133,10 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
     ON_UPDATE_COMMAND_UI(IDD_BOUNDS_INS, OnUpdateInsBounds)
     ON_COMMAND(IDD_ZOOM_IMAGE, OnZoom)
     ON_UPDATE_COMMAND_UI(IDD_ZOOM_IMAGE, OnUpdateZoom)
-    ON_COMMAND(IDD_UNDO, OnUndo)
-    ON_UPDATE_COMMAND_UI(IDD_UNDO, OnUpdateUndo)
-    ON_COMMAND(IDD_UNDO, OnUndo)
-    ON_UPDATE_COMMAND_UI(IDD_UNDO, OnUpdateUndo)
+    ON_COMMAND(IDD_EDIT_UNDO, OnUndo)
+    ON_UPDATE_COMMAND_UI(IDD_EDIT_UNDO, OnUpdateUndo)
+    ON_COMMAND(IDD_EDIT_REDO, OnEditRedo)
+    ON_UPDATE_COMMAND_UI(IDD_EDIT_REDO, OnUpdateEditRedo)
     ON_COMMAND(IDD_AUTO_D, OnAutoDigit)
     ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateAutoDigit)
 	ON_COMMAND(IDD_FC_MAX, OnFCMax)
@@ -877,6 +877,7 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
         using namespace DigitMode;
 
         ModifierState mods = ModifierState::FromKeyboard();
+        m_inputHandler.SetMode(pCtrls->GetEditMode());
         int hitSeg = -1, hitDot = -1;
         SelectionLevel hoverLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, pDoc->Digit.Fringes);
 
@@ -942,40 +943,22 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     CImageCtrls* pImCtrls = GetImageCtrls(this);
     CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
     CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-    
+    CControls* pCtrls = GetControls();
+    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
     CPoint l_point(point);
     ClientToDoc(l_point);
 	CursorPos = l_point;
 
-    // Adapter: route draw-mode interactions to new InputHandler
-	// =======================================================================
+    // Forward to InputHandler for draw-mode / UI-requested draw interactions
     using namespace DigitMode;
-
-    CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    ModifierState mods = ModifierState::FromKeyboard();
-    int hitSeg = -1, hitDot = -1;
-    SelectionLevel hitLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, pDoc->Digit.Fringes);
-
-    // Treat toolbar/menu edit modes as Draw mode if appropriate
-    bool uiRequestsDraw = (pCtrls->ActiveEditMode == E_ADD_DOT || pCtrls->ActiveEditMode == E_ADD_SECTION);
-
-    if (uiRequestsDraw || m_inputHandler.IsInDrawMode()) {
-        // Start new segment when clicking empty space
-        if (hitLevel == SelectionLevel::None) {
-            // Create command via InputHandler (InputHandler can accept CommandDispatcher)
-            m_inputHandler.StartNewSegment(l_point, &pDoc->Digit, &m_cmdDispatcher);
-            Invalidate(FALSE);
-            return; // consumed
-        }
-        // Continue drawing when clicking an existing dot (attach to its segment)
-        if (hitLevel == SelectionLevel::Dot) {
-            m_inputHandler.ContinueSegment(hitSeg, hitDot, &pDoc->Digit, &m_cmdDispatcher);
-            Invalidate(FALSE);
-            return;
-        }
+    CControls* pCtrlsLocal = GetControls();
+	m_inputHandler.SetMode(pCtrls->GetEditMode());
+    if (m_inputHandler.IsInDrawMode()) {
+        m_inputHandler.OnLButtonDown(nFlags, l_point, &((CImageDoc*)GetDocument())->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
     }
-    // =======================================================================
 
     if(pDoc->IsFotoSections()){
 	    DrawMouseMoveCrossedLines(l_point);
@@ -1011,7 +994,9 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
 	else{
 		pDoc->OnLButDown(l_point);
 	}
-   CBaseImageView::OnLButtonDown(nFlags, point);
+   
+    
+    CBaseImageView::OnLButtonDown(nFlags, point);
 }
 
 void CImageView::OnLButtonDblClk(UINT nFlags, CPoint point) 
@@ -1033,6 +1018,14 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
     if(pDoc->IsFotoSections()){
 		;
 	}
+    // Forward to InputHandler when in draw mode so it can commit/handle the click
+    using namespace DigitMode;
+    m_inputHandler.SetMode(pCtrls->GetEditMode());
+    if (m_inputHandler.IsInDrawMode()) {
+        m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
+    }
     else if(pCtrls->EnableOptions & I_MEASURE_ACTIVE){
       ReleaseCapture();
       EndLine(l_point);
@@ -1085,8 +1078,17 @@ void CImageView::OnRButtonDown(UINT nFlags, CPoint point)
     CPoint l_point(point);
     ClientToDoc(l_point);
 
-	pDoc->OnRButDown(l_point);
-	
+    // Let InputHandler handle right-button in draw mode (e.g., finish/cancel)
+    using namespace DigitMode;
+    m_inputHandler.SetMode(GetControls()->GetEditMode());
+    if (m_inputHandler.IsInDrawMode()) {
+        m_inputHandler.OnRButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
+    }
+
+    pDoc->OnRButDown(l_point);
+
     CBaseImageView::OnRButtonDown(nFlags, point);
 }
 
@@ -1212,21 +1214,36 @@ void CImageView::OnContextMenu(CWnd* pWnd, CPoint point)
 
 void CImageView::OnUndo()
 {
-  CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
-  pDoc->LastOperationUndo();
+    m_cmdDispatcher.Undo();
+    Invalidate(FALSE);
+
+  //CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
+  //pDoc->LastOperationUndo();
 }
 
 void CImageView::OnUpdateUndo(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
-  CControls* pCtrls = GetControls();
+	pCmdUI->Enable(m_cmdDispatcher.CanUndo());
+    
+  //CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
+  //CControls* pCtrls = GetControls();
   
-  if(pDoc->LastOperationType == O_NO_UNDO)
-    pCmdUI->Enable(FALSE);
-  else
-    pCmdUI->Enable(TRUE);
+  //if(pDoc->LastOperationType == O_NO_UNDO)
+    //pCmdUI->Enable(FALSE);
+  //else
+    //pCmdUI->Enable(TRUE);
 }
 
+void CImageView::OnEditRedo()
+{
+    m_cmdDispatcher.Redo();
+    Invalidate(FALSE);
+}
+
+void CImageView::OnUpdateEditRedo(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(m_cmdDispatcher.CanRedo());
+}
 
 void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
 {
@@ -1733,3 +1750,4 @@ void CImageView::SingleIsoline(int pn, ISO_POINT *plist, double level, int ileve
    CPen* retPen = pDC->SelectObject(open);
    if(retPen) retPen->DeleteObject();
 }
+

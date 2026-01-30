@@ -1,6 +1,6 @@
-//{{NO_DEPENDENCIES}}
-// Microsoft Developer Studio generated include file.
-// Used by EngLangD.rc
+﻿//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by Digit.rc
 //
 #define IDD_apply_angle                 3
 #define IDD_apply_gauss                 3
@@ -119,7 +119,8 @@
 #define IDBM_PREOPEN_PICTURE            1124
 #define IDD_FILE_OPEN                   32771
 #define IDD_FILE_SAVE_AS                32772
-#define IDD_UNDO                        32773
+#define IDD_EDIT_UNDO                   32773
+#define IDD_EDIT_REDO                   32876
 #define IDD_ZOOM_IMAGE                  32774
 #define IDD_CONTRAST_BRIGHTNESS         32775
 #define IDD_ROTATION_IMAGE              32776
@@ -223,7 +224,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
 #define _APS_NEXT_RESOURCE_VALUE        202
-#define _APS_NEXT_COMMAND_VALUE         32876
+#define _APS_NEXT_COMMAND_VALUE         32877
 #define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           101
 #endif

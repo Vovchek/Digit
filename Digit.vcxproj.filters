@@ -368,6 +368,9 @@
     <ClInclude Include="DigitMode\TooltipGenerator.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -450,5 +453,16 @@
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
       <Filter>Docs</Filter>
     </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\Digit.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\DigitDoc.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>
