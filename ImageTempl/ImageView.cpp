@@ -890,6 +890,16 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
             Invalidate(FALSE);
             return; // consumed
         }
+        
+        // Show tooltip for hovered selection
+        SelectionManager::SelectedObject hoverObj;
+        hoverObj.level = hoverLevel;
+        hoverObj.iSegment = hitSeg;
+        hoverObj.iDot = hitDot;
+        std::string tip = tooltipGen.GetTooltip(hoverObj, pDoc->Digit);
+        // Use simple status bar update as lightweight tooltip for now
+        CString ctip(tip.c_str());
+        AfxGetMainWnd()->SendMessage(WM_SETTEXT, 0, (LPARAM)(LPCTSTR)ctip);
 
         // Fallback to existing drag behaviours if legacy locking active
         if (pDoc->IsLockedDot()) {
@@ -1277,6 +1287,9 @@ void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 		SetCursorPos(cPos.x, cPos.y);
 	}
   }
+  
+  m_inputHandler.OnKeyDown(nChar, &pDoc->Digit, &m_cmdDispatcher);
+
   pDoc->OnKeyDown(nChar, nRepCnt, nFlags);
   CBaseImageView::OnKeyDown(nChar, nRepCnt, nFlags);
 }

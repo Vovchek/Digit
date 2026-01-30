@@ -228,17 +228,25 @@ void InputHandler::CancelDraw(CDigitInfo* pDigit) {
     }
 }
 
-void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit) {
+void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
     if (!IsInDrawMode()) return;
-    if (nChar == VK_BACK) {
-        // Remove last dot behavior should create a command via CommandDispatcher in future
-        TRACE("InputHandler::OnKeyDown Backspace in draw mode\n");
+    if (nChar == VK_BACK) { 
+        // Delete last dot on active segment (if any)
+        if (IsActiveSegmentValid(pDigit) && pCmdDisp) {
+            int seg = iActiveSegment;
+            auto& s = pDigit->Fringes[seg];
+            int last = s.GetPointCount() - 1;
+            if (last >= 0) {
+                auto cmd = std::make_unique<RemoveLastDotCommand>(pDigit, seg);
+                pCmdDisp->Execute(std::move(cmd));
+            }
+        }
     } else if (nChar == VK_ESCAPE) {
         CancelDraw(pDigit);
     }
 }
 
-void InputHandler::OnKeyUp(UINT nChar, CDigitInfo* pDigit) {
+void InputHandler::OnKeyUp(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
     // placeholder for future handling
 }
 

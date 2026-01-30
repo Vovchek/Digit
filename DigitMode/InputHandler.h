@@ -140,18 +140,9 @@ public:
      */
     EditMode GetMode() const { return currentMode; }
 
-    // External collaborators (optional pointers for legacy default construction)
-    ::CDigitInfo* m_doc = nullptr;
-    SelectionManager* m_selectionMgr = nullptr;
-    class HitTester* m_hitTester = nullptr;
-    class CommandDispatcher* m_dispatcher = nullptr;
-
     // Default constructor (keeps existing member-field usage in ImageView)
     InputHandler() = default;
 
-    // Constructor with explicit dependencies
-    InputHandler(::CDigitInfo* doc, SelectionManager* selection, class HitTester* hitTester, class CommandDispatcher* dispatcher)
-        : m_doc(doc), m_selectionMgr(selection), m_hitTester(hitTester), m_dispatcher(dispatcher) {}
     /**
      * @brief Check if currently in Draw mode
      */
@@ -205,13 +196,13 @@ public:
     void OnLButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
     void OnRButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
-    void OnKeyUp(UINT nChar, ::CDigitInfo* pDigit);
+    void OnKeyUp(UINT nChar, ::CDigitInfo* pDigit, CommandDispatcher* pCmdDisp);
 
     // Cancel active draw without committing
     void CancelDraw(::CDigitInfo* pDigit);
 
     // Keyboard handling while in draw mode (arrows, backspace, escape)
-    void OnKeyDown(UINT nChar, ::CDigitInfo* pDigit);
+    void OnKeyDown(UINT nChar, ::CDigitInfo* pDigit, CommandDispatcher* pCmdDisp);
 
     /**
      * @brief Get the index of the currently active segment
