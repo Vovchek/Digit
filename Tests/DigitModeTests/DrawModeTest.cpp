@@ -2,8 +2,7 @@
 #include "gtest/gtest.h"
 #include "DigitMode/InputHandler.h"
 #include "DigitMode/CommandDispatcher.h"
-#include "DigitMode/Commands/AddDotCommand.h"
-#include "DigitMode/Commands/RemoveLastDotCommand.h"
+#include "DigitMode/Commands/AllCommands.h"
 #include "DigitMode/DigitInfo.h"
 
 using namespace DigitMode;

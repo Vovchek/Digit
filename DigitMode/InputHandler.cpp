@@ -101,7 +101,7 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit) {
 
 void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
-    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
+    ASSERT(iSegment >= 0 && static_cast<size_t>(iSegment) < pDigit->Fringes.size());
     
     CFringeSegment& segment = pDigit->Fringes[iSegment];
     int dotCount = segment.GetPointCount();
@@ -110,7 +110,7 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(iDot == 0 || iDot == dotCount - 1 && "Can only continue from segment ends");
     
     // Set as active segment & end
-	activeEnd = (iDot == 0) ? ActiveEnd::Start : ActiveEnd::End;
+	activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
     iActiveSegment = iSegment;
     
     TRACE("InputHandler::ContinueSegment: segment=%d, dot=%d\n", iSegment, iDot);
@@ -118,7 +118,7 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
 
 void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
-    ASSERT(iSegment >= 0 && iSegment < pDigit->Fringes.size());
+    ASSERT(iSegment >= 0 && static_cast<size_t>(iSegment) < pDigit->Fringes.size());
     
     CFringeSegment& targetSegment = pDigit->Fringes[iSegment];
     int dotCount = targetSegment.GetPointCount();
@@ -127,7 +127,7 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
     int freeEndDot = (iDot == 0) ? (dotCount - 1) : 0;
 
 	// move dots from connected segment to active segment
-    if (activeEnd == ActiveEnd::Start) {
+    if (activeEnd == ActiveEnd::Head) {
 		if (iDot == 0)
             pDigit->Fringes[iActiveSegment].InsertPointsAtStartReverse(targetSegment);
         else
@@ -141,7 +141,7 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit) {
     }
     
     // Transfer active segment to this free end
-    activeEnd = (iDot == 0) ? ActiveEnd::Start : ActiveEnd::End;
+    activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
 
     TRACE("InputHandler::ConnectSegments: target segment=%d, clicked dot=%d, free end=%d\n",
         iSegment, iDot, freeEndDot);

@@ -71,8 +71,8 @@ enum class EditMode {
 **/
 enum class ActiveEnd {
 	None,   ///< Default state: no active end
-	Start,  ///< Drawing extends/inserts at start of segment
-	End     ///< Drawing extends/inserts at end of segment
+	Head,  ///< Drawing extends/inserts at start of segment
+	Tail     ///< Drawing extends/inserts at end of segment
 };
 
 /**

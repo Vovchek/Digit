@@ -329,24 +329,6 @@
     <ClInclude Include="FileUtils.h">
       <Filter>Header Files\Utils_H</Filter>
     </ClInclude>
-    <ClInclude Include="MFringe\StdAfx.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFringe\src\mfc\MFringeApp.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFringe\src\mfc\MainFrm.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFringe\src\mfc\MFringeDoc.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFringe\src\mfc\MFringeView.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="MFringe\Resource.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\DigitInfoExt.hxx">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>

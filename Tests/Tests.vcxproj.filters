@@ -104,6 +104,10 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\DrawModeTest.cpp" />
+    <ClCompile Include="..\DigitMode\Commands\AllCommands.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
