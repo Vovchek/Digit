@@ -2,6 +2,8 @@
 
 #include <string>
 
+#include "SelectionManager.h"
+
 // Forward declarations (global namespace)
 class CDigitInfo;
 
@@ -92,6 +94,22 @@ private:
     // Draw mode state
     int iActiveSegment = -1;  ///< Index of segment being drawn (-1 = none)
 	ActiveEnd activeEnd = ActiveEnd::None; ///< Currently active end during drawing
+    // Transient interaction state
+    CPoint m_cursorPos = CPoint(-1, -1);
+
+    struct DragState {
+        bool active = false;
+        enum class Type { None, BoxSelect, MoveDot, RubberBand } type = Type::None;
+        CPoint start = CPoint(-1, -1);
+        CPoint current = CPoint(-1, -1);
+        int segmentIndex = -1;
+        int dotIndex = -1;
+    } m_drag;
+
+    // Hover (simple representation)
+    SelectionLevel m_hoverLevel = SelectionLevel::None;
+    int m_hoverSeg = -1;
+    int m_hoverDot = -1;
 
 public:
     /**
@@ -109,6 +127,18 @@ public:
      */
     EditMode GetMode() const { return currentMode; }
 
+    // External collaborators (optional pointers for legacy default construction)
+    ::CDigitInfo* m_doc = nullptr;
+    SelectionManager* m_selectionMgr = nullptr;
+    class HitTester* m_hitTester = nullptr;
+    class CommandDispatcher* m_dispatcher = nullptr;
+
+    // Default constructor (keeps existing member-field usage in ImageView)
+    InputHandler() = default;
+
+    // Constructor with explicit dependencies
+    InputHandler(::CDigitInfo* doc, SelectionManager* selection, class HitTester* hitTester, class CommandDispatcher* dispatcher)
+        : m_doc(doc), m_selectionMgr(selection), m_hitTester(hitTester), m_dispatcher(dispatcher) {}
     /**
      * @brief Check if currently in Draw mode
      */
@@ -159,6 +189,12 @@ public:
     void OnMouseMove(CPoint pt, const ModifierState& mods, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
     void OnLButtonUp(CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
+    // Full event handlers (higher-level adapter may call these)
+    void OnLButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+    void OnRButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+
+    void OnKeyUp(UINT nChar, ::CDigitInfo* pDigit);
+
     // Cancel active draw without committing
     void CancelDraw(::CDigitInfo* pDigit);
 
@@ -186,6 +222,11 @@ public:
      * @param pDigit Pointer to the digit information
      */
     void OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit);
+
+    // Query helpers
+    bool HasActiveSegment() const { return iActiveSegment >= 0; }
+    ActiveEnd GetActiveEnd() const { return activeEnd; }
+    CPoint GetCurrentCursorPos() const { return m_cursorPos; }
 };
 
 } // namespace DigitMode
