@@ -3,6 +3,8 @@
 #include <string>
 
 #include "SelectionManager.h"
+// CDPoint definition
+#include "MGTools/Include/Utils/BaseDataType.h"
 
 // Forward declarations (global namespace)
 class CDigitInfo;
@@ -91,6 +93,12 @@ class InputHandler {
 private:
     EditMode currentMode = EditMode::Navigate;  ///< Initialize currentMode to Navigate
 
+    // Internal helpers for drag lifecycle
+    void BeginDotDrag(int segIdx, int dotIdx, CPoint start, ::CDigitInfo* pDigit);
+    void BeginEdgeDrag(int segIdx, int edgeStartIdx, CPoint start, ::CDigitInfo* pDigit);
+    void UpdateDragPreview(CPoint pt, ::CDigitInfo* pDigit);
+    void CommitActiveDrag(class CommandDispatcher* pCmdDisp, ::CDigitInfo* pDigit);
+
     // Draw mode state
     int iActiveSegment = -1;  ///< Index of segment being drawn (-1 = none)
 	ActiveEnd activeEnd = ActiveEnd::None; ///< Currently active end during drawing
@@ -99,11 +107,16 @@ private:
 
     struct DragState {
         bool active = false;
-        enum class Type { None, BoxSelect, MoveDot, RubberBand } type = Type::None;
+        enum class Type { None, BoxSelect, MoveDot, MoveEdge, RubberBand } type = Type::None;
         CPoint start = CPoint(-1, -1);
         CPoint current = CPoint(-1, -1);
         int segmentIndex = -1;
         int dotIndex = -1;
+        // For edge drags store original end-point positions
+        CDPoint edgeOldA = CDPoint(0,0);
+        CDPoint edgeOldB = CDPoint(0,0);
+        // For dot drags store original position
+        CDPoint dotOldPos = CDPoint(0,0);
     } m_drag;
 
     // Hover (simple representation)

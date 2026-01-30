@@ -112,18 +112,18 @@ void ConnectSegmentsCommand::Execute() {
     auto& B = m_doc.Fringes[static_cast<int>(m_segB)];
     if (m_endA) {
         if(m_endB)
-            A.AppendPointsReverse(B);
-        else
             A.AppendPoints(B);
+        else
+            A.AppendPointsReverse(B);
     } else {
         if(m_endB)
-            A.InsertPointsAtStartReverse(B);
-        else
             A.InsertPointsAtStart(B);
+        else
+            A.InsertPointsAtStartReverse(B);
 	}
     m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(m_segB));
 }
-
+// TODO: fix segment index restoration
 void ConnectSegmentsCommand::Undo() {
     // Restore A and reinsert B
     auto& A = m_doc.Fringes[static_cast<int>(m_segA)];

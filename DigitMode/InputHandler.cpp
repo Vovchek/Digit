@@ -28,6 +28,25 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
     SelectionLevel level = tester.HitTest(pt, hitSeg, hitDot, pDigit->Fringes);
     m_hoverLevel = level; m_hoverSeg = hitSeg; m_hoverDot = hitDot;
 
+    // Alt+L-Click destructive actions (delete dot / split edge)
+    if (mods.alt) {
+        if (level == SelectionLevel::Dot) {
+            if (pCmdDisp && pDigit) {
+                auto cmd = std::make_unique<DeleteDotCommand>(*pDigit, hitSeg, hitDot);
+                pCmdDisp->Execute(std::move(cmd));
+            }
+            return;
+        }
+        else if (level == SelectionLevel::Edge) {
+            if (pCmdDisp && pDigit) {
+                // split at edge end: remove connection between hitDot and hitDot+1
+                auto cmd = std::make_unique<SplitSegmentCommand>(*pDigit, hitSeg, hitDot + 1);
+                pCmdDisp->Execute(std::move(cmd));
+            }
+            return;
+        }
+    }
+
     if (currentMode == EditMode::Draw) {
         // If we already have an active segment, empty clicks should add a dot to its active end
         if (IsActiveSegmentValid(pDigit)) {
@@ -57,17 +76,21 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
                 }
                 // Otherwise, adopt this segment as active (continue from that end)
                 ContinueSegment(hitSeg, hitDot, pDigit, pCmdDisp);
-                return;
+                //return; // continue to enable dragging
             }
         }
-
+        // Dragging is also allowed for dots and edges while editing
+        if (level == SelectionLevel::Dot) {
+            BeginDotDrag(hitSeg, hitDot, pt, nullptr); // nullptr to use pt for undo
+            return;
+        }
+        if (level == SelectionLevel::Edge) {
+            BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
+            return;
+        }
         // No active segment -> behave as start/continue as before
         if (level == SelectionLevel::None) {
             StartNewSegment(pt, pDigit, pCmdDisp);
-            return;
-        }
-        if (level == SelectionLevel::Dot) {
-            ContinueSegment(hitSeg, hitDot, pDigit, pCmdDisp);
             return;
         }
     }
@@ -80,12 +103,9 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
             m_drag.start = pt;
             m_drag.current = pt;
         } else if (level == SelectionLevel::Dot) {
-            m_drag.active = true;
-            m_drag.type = DragState::Type::MoveDot;
-            m_drag.segmentIndex = hitSeg;
-            m_drag.dotIndex = hitDot;
-            m_drag.start = pt;
-            m_drag.current = pt;
+            BeginDotDrag(hitSeg, hitDot, pt, pDigit);
+        } else if (level == SelectionLevel::Edge) {
+            BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
         }
     }
 }
@@ -153,13 +173,13 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, C
         // Map activeEnd and clicked end into booleans expected by command
         bool endA = (activeEnd == ActiveEnd::Tail); // true => attach at A's end (append)
         int dotCount = pDigit->Fringes[static_cast<int>(iSegment)].GetPointCount();
-        bool endB = (iDot == dotCount - 1); // true => clicked B's end
+        bool endB = (iDot >= dotCount / 2); // true => clicked close to B's end
 
         auto cmd = std::make_unique<ConnectSegmentsCommand>(*pDigit, static_cast<size_t>(iActiveSegment), endA, static_cast<size_t>(iSegment), endB);
         pCmdDisp->Execute(std::move(cmd));
 
-        // After connection, set active end to the free end of the target (as before)
-        activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
+        // After connection, iActiveSegment and activeEnd persits
+
         return;
     }
 
@@ -178,10 +198,7 @@ void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo*
     // Update drag if active
     if (m_drag.active) {
         m_drag.current = pt;
-        // For box select, update selection preview (view will query state)
-        if (m_drag.type == DragState::Type::BoxSelect) {
-            // no geometry changes here
-        }
+        UpdateDragPreview(pt, pDigit);
     }
 
     // Draw-mode preview: no document mutation
@@ -194,19 +211,7 @@ void InputHandler::OnLButtonUp(CPoint pt, CDigitInfo* pDigit, CommandDispatcher*
     m_cursorPos = pt;
     // If a drag was active, commit appropriate command
     if (m_drag.active) {
-        if (m_drag.type == DragState::Type::BoxSelect) {
-            HandleBoxSelection(m_drag.start, m_drag.current, pDigit);
-        } else if (m_drag.type == DragState::Type::MoveDot) {
-            // Create MoveDotCommand if position changed
-            if (pCmdDisp && pDigit) {
-                CDPoint oldP = pDigit->Fringes[m_drag.segmentIndex].GetPoint(m_drag.dotIndex);
-                CDPoint newP; newP.x = pt.x; newP.y = pt.y;
-                if (!(oldP == newP)) {
-                    auto cmd = std::make_unique<MoveDotCommand>(*pDigit, m_drag.segmentIndex, m_drag.dotIndex, oldP, newP);
-                    pCmdDisp->Execute(std::move(cmd));
-                }
-            }
-        }
+        CommitActiveDrag(pCmdDisp, pDigit);
         // Clear drag
         m_drag = DragState();
         return;
@@ -245,7 +250,10 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     int dotCount = segment.GetPointCount();
     
     // Validate that we're continuing from an end dot
-    ASSERT(iDot == 0 || iDot == dotCount - 1 && "Can only continue from segment ends");
+	if (iDot != 0 && iDot != dotCount - 1) {
+        TRACE("InputHandler::ContinueSegment: Invalid dot index %d for segment %d with %d dots\n", iDot, iSegment, dotCount);
+		return;
+    }
     
     // Set as active segment & end
 	activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
@@ -283,6 +291,87 @@ void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
 
 bool InputHandler::IsActiveSegmentValid(const ::CDigitInfo* doc) const {
     return (doc != nullptr && iActiveSegment >= 0 && static_cast<size_t>(iActiveSegment) < doc->Fringes.size() && activeEnd != ActiveEnd::None);
+}
+
+// ---- Drag helpers (implementation local) ----
+void InputHandler::BeginDotDrag(int segIdx, int dotIdx, CPoint start, CDigitInfo* pDigit) {
+    m_drag.active = true;
+    m_drag.type = DragState::Type::MoveDot;
+    m_drag.segmentIndex = segIdx;
+    m_drag.dotIndex = dotIdx;
+    m_drag.start = start;
+    m_drag.current = start;
+    m_drag.dotOldPos = pDigit ? pDigit->Fringes[segIdx].GetPoint(dotIdx) : start;
+}
+
+void InputHandler::BeginEdgeDrag(int segIdx, int edgeStartIdx, CPoint start, ::CDigitInfo* pDigit) {
+    m_drag.active = true;
+    m_drag.type = DragState::Type::MoveEdge;
+    m_drag.segmentIndex = segIdx;
+    m_drag.dotIndex = edgeStartIdx;
+    m_drag.start = start;
+    m_drag.current = start;
+    if (pDigit) {
+        auto& seg = pDigit->Fringes[segIdx];
+        m_drag.edgeOldA = seg.GetPoint(edgeStartIdx);
+        m_drag.edgeOldB = seg.GetPoint(edgeStartIdx + 1);
+    }
+}
+
+void InputHandler::UpdateDragPreview(CPoint pt, ::CDigitInfo* pDigit) {
+    // For preview we perform immediate document updates
+    if (!pDigit) return;
+    if (m_drag.type == DragState::Type::MoveDot) {
+        CDPoint newP; newP.x = pt.x; newP.y = pt.y;
+        pDigit->Fringes[m_drag.segmentIndex].SetPoint(m_drag.dotIndex, newP);
+    }
+    else if (m_drag.type == DragState::Type::MoveEdge) {
+        int segIdx = m_drag.segmentIndex;
+        int eStart = m_drag.dotIndex;
+        CDPoint delta; delta.x = pt.x - m_drag.start.x; delta.y = pt.y - m_drag.start.y;
+        CDPoint a = m_drag.edgeOldA; a.x += delta.x; a.y += delta.y;
+        CDPoint b = m_drag.edgeOldB; b.x += delta.x; b.y += delta.y;
+        auto& seg = pDigit->Fringes[segIdx];
+        seg.SetPoint(eStart, a);
+        seg.SetPoint(eStart + 1, b);
+    }
+}
+
+void InputHandler::CommitActiveDrag(CommandDispatcher* pCmdDisp, ::CDigitInfo* pDigit) {
+    if (m_drag.type == DragState::Type::BoxSelect) {
+        HandleBoxSelection(m_drag.start, m_drag.current, pDigit);
+        return;
+    }
+    if (!pCmdDisp || !pDigit) return;
+
+    if (m_drag.type == DragState::Type::MoveDot) {
+        CDPoint oldP = m_drag.dotOldPos;
+        CDPoint newP = pDigit->Fringes[m_drag.segmentIndex].GetPoint(m_drag.dotIndex);
+        if (!(oldP == newP)) {
+            auto cmd = std::make_unique<MoveDotCommand>(*pDigit, m_drag.segmentIndex, m_drag.dotIndex, oldP, newP);
+            pCmdDisp->Execute(std::move(cmd));
+        }
+        return;
+    }
+
+    if (m_drag.type == DragState::Type::MoveEdge) {
+        int segIdx = m_drag.segmentIndex;
+        int edgeStart = m_drag.dotIndex;
+        CDPoint oldA = m_drag.edgeOldA;
+        CDPoint oldB = m_drag.edgeOldB;
+        auto& seg = pDigit->Fringes[segIdx];
+        CDPoint newA = seg.GetPoint(edgeStart);
+        CDPoint newB = seg.GetPoint(edgeStart + 1);
+        if (!(oldA == newA)) {
+            auto cmdA = std::make_unique<MoveDotCommand>(*pDigit, segIdx, edgeStart, oldA, newA);
+            pCmdDisp->Execute(std::move(cmdA));
+        }
+        if (!(oldB == newB)) {
+            auto cmdB = std::make_unique<MoveDotCommand>(*pDigit, segIdx, edgeStart + 1, oldB, newB);
+            pCmdDisp->Execute(std::move(cmdB));
+        }
+        return;
+    }
 }
 
 } // namespace DigitMode

@@ -157,7 +157,6 @@
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="Options\ApproxSetDlg.cpp" />
     <ClCompile Include="RusLangD.cpp" />
   </ItemGroup>
   <ItemGroup>
