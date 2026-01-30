@@ -55,6 +55,9 @@ public:
     void InsertPointsAtStart(const CFringeSegment& other);
     void InsertPointsAtStartReverse(const CFringeSegment& other);
 
+	/// Reverse the order of points in the fringe
+	void ReversePoints();
+
     // ===== Queries =====
     /// Get total number of points in fringe
     int GetPointCount() const { return static_cast<int>(m_Points.size()); }

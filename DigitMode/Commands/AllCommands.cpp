@@ -36,8 +36,6 @@ void RemoveLastDotCommand::Undo() {
     segment.InsertPoint(iDot, savedPoint);
 }
 
-// AddDotCommand and RemoveLastDotCommand are defined in their headers (inline)
-
 // Minimal stubs for other commands (implementations later)
 
 CreateSegmentCommand::CreateSegmentCommand(CDigitInfo& doc, const std::vector<CPoint2d>& points, double number)
@@ -88,38 +86,59 @@ void DeleteDotCommand::Execute() {
 void DeleteDotCommand::Undo() { m_doc.Fringes[static_cast<int>(m_segmentIndex)].InsertPoint(static_cast<int>(m_dotIndex), m_removedPoint); }
 
 SplitSegmentCommand::SplitSegmentCommand(CDigitInfo& doc, size_t segmentIndex, size_t splitDotIndex)
-    : m_doc(doc), m_originalIndex(segmentIndex), m_newIndex(static_cast<size_t>(-1)) {}
+    : m_doc(doc), m_originalIndex(segmentIndex), m_newIndex(static_cast<size_t>(-1)), m_dotIndex(splitDotIndex){}
 
 void SplitSegmentCommand::Execute() {
-    // Not implemented: placeholder
+    auto& seg = m_doc.Fringes[static_cast<int>(m_originalIndex)];
+    m_doc.Fringes.push_back(seg.Split(m_dotIndex));
+	m_newIndex = m_doc.Fringes.size() - 1;
 }
 
 void SplitSegmentCommand::Undo() {
-    // Not implemented: placeholder
+	m_doc.Fringes[static_cast<int>(m_originalIndex)].AppendPoints(m_doc.Fringes[static_cast<int>(m_newIndex)]);
+	m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(m_newIndex));
 }
 
 ConnectSegmentsCommand::ConnectSegmentsCommand(CDigitInfo& doc, size_t segA, bool endA, size_t segB, bool endB)
-    : m_doc(doc), m_segA(segA), m_segB(segB), m_endA(endA), m_endB(endB) {}
+    : m_doc(doc), m_segA(segA), m_segB(segB), m_endA(endA), m_endB(endB) {
+	m_lenA = doc.Fringes[static_cast<int>(segA)].GetPointCount();
+	m_numB = doc.Fringes[static_cast<int>(segB)].GetNumber();
+    m_indexB = doc.Fringes[static_cast<int>(segB)].GetIndex();
+}
 
 void ConnectSegmentsCommand::Execute() {
     // Minimal implementation: append B into A and erase B
     auto& A = m_doc.Fringes[static_cast<int>(m_segA)];
     auto& B = m_doc.Fringes[static_cast<int>(m_segB)];
-    m_segAPoints.clear(); m_segBPoints.clear();
-    for (int i = 0; i < A.GetPointCount(); ++i) m_segAPoints.push_back(A.GetPoint(i));
-    for (int i = 0; i < B.GetPointCount(); ++i) m_segBPoints.push_back(B.GetPoint(i));
-    for (const auto& p : m_segBPoints) A.AddPoint(p);
+    if (m_endA) {
+        if(m_endB)
+            A.AppendPointsReverse(B);
+        else
+            A.AppendPoints(B);
+    } else {
+        if(m_endB)
+            A.InsertPointsAtStartReverse(B);
+        else
+            A.InsertPointsAtStart(B);
+	}
     m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(m_segB));
 }
 
 void ConnectSegmentsCommand::Undo() {
     // Restore A and reinsert B
     auto& A = m_doc.Fringes[static_cast<int>(m_segA)];
-    A = CFringeSegment(A.GetNumber(), A.GetIndex());
-    for (const auto& p : m_segAPoints) A.AddPoint(p);
-    CFringeSegment Bseg(0.0, static_cast<int>(m_segB));
-    for (const auto& p : m_segBPoints) Bseg.AddPoint(p);
-    m_doc.Fringes.insert(m_doc.Fringes.begin() + static_cast<int>(m_segB), Bseg);
+	CFringeSegment B;
+    if(m_endA) {
+        B = A.Split(m_lenA);
+    } else {
+		B = A.Split(A.GetPointCount() - m_lenA);
+		std::swap(A, B);
+    }
+    if (m_endB)
+        B.ReversePoints();
+    B.SetNumber(static_cast<double>(m_numB));
+    B.SetIndex(m_indexB);
+    m_doc.Fringes.insert(m_doc.Fringes.begin() + static_cast<int>(m_segB), B);
 }
 
 RenumberSegmentsCommand::RenumberSegmentsCommand(CDigitInfo& doc, const std::vector<size_t>& segmentIndices, double newNumber)

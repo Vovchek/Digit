@@ -79,7 +79,7 @@ private:
     CDigitInfo& m_doc;
     size_t m_originalIndex;
     size_t m_newIndex;
-    std::vector<CPoint2d> m_secondPart;
+    size_t m_dotIndex;
 };
 
 // ConnectSegmentsCommand
@@ -92,7 +92,10 @@ public:
 private:
     CDigitInfo& m_doc;
     size_t m_segA;
+	size_t m_lenA;
     size_t m_segB;
+    double m_numB;
+    int m_indexB;
     bool m_endA;
     bool m_endB;
 

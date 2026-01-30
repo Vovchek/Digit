@@ -109,7 +109,8 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     // Validate that we're continuing from an end dot
     ASSERT(iDot == 0 || iDot == dotCount - 1 && "Can only continue from segment ends");
     
-    // Set as active segment
+    // Set as active segment & end
+	activeEnd = (iDot == 0) ? ActiveEnd::Start : ActiveEnd::End;
     iActiveSegment = iSegment;
     
     TRACE("InputHandler::ContinueSegment: segment=%d, dot=%d\n", iSegment, iDot);

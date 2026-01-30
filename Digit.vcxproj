@@ -214,10 +214,8 @@
     <ClInclude Include="AppDef.h" />
     <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
-    <ClInclude Include="DigitMode\Commands\AddDotCommand.h" />
     <ClInclude Include="DigitMode\Commands\AllCommands.h" />
     <ClInclude Include="DigitMode\Commands\Command.h" />
-    <ClInclude Include="DigitMode\Commands\RemoveLastDotCommand.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />
     <ClInclude Include="DigitMode\CursorManager.h" />
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />

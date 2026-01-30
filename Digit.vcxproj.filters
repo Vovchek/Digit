@@ -57,9 +57,6 @@
     <Filter Include="Header Files\Options_H">
       <UniqueIdentifier>{e127b6e5-6ec3-4b05-8a7a-3a5d2a7ae71c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\ImageFeatures_H">
-      <UniqueIdentifier>{bf7964f1-79fb-4cba-b294-9da8e1031e03}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\DigitMode_H">
       <UniqueIdentifier>{4fd79c38-9b39-4f0d-8b7c-cea8a0a8b986}</UniqueIdentifier>
     </Filter>
@@ -76,6 +73,9 @@
     </Filter>
     <Filter Include="Scripts">
       <UniqueIdentifier>{a9f4a0dd-f4ab-42d3-b9a8-8c4652679587}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DigitMode_H\ImageFeatures_H">
+      <UniqueIdentifier>{bf7964f1-79fb-4cba-b294-9da8e1031e03}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -190,26 +190,26 @@
     <ClCompile Include="DigitMode\CFringeSegment.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\InputHandler.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\SelectionManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\HitTester.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="DigitMode\Commands\AllCommands.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\CommandDispatcher.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\CursorManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\HitTester.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InputHandler.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\SelectionManager.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\TooltipGenerator.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Commands\AllCommands.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -300,10 +300,10 @@
       <Filter>Header Files\Options_H</Filter>
     </ClInclude>
     <ClInclude Include="ImageFeatures\SectionFrame.h">
-      <Filter>Header Files\ImageFeatures_H</Filter>
+      <Filter>Header Files\DigitMode_H\ImageFeatures_H</Filter>
     </ClInclude>
     <ClInclude Include="ImageFeatures\ZoomDlg.h">
-      <Filter>Header Files\ImageFeatures_H</Filter>
+      <Filter>Header Files\DigitMode_H\ImageFeatures_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\DigitInfo.h">
       <Filter>Header Files\DigitMode_H</Filter>
@@ -362,35 +362,29 @@
     <ClInclude Include="DigitMode\CFringeSegment.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AllCommands.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
     <ClInclude Include="DigitMode\Commands\Command.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\InputHandler.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\SelectionManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\HitTester.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\CommandDispatcher.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\CursorManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\HitTester.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\InputHandler.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\SelectionManager.h">
+      <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\TooltipGenerator.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\AllCommands.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\AddDotCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\RemoveLastDotCommand.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
