@@ -30,7 +30,7 @@ const CFringeSegment* CDigitInfo::GetFringe(int i) const
 	return NULL;
 }
 
-void CDigitInfo::FindFringesByNumber(double number, std::vector<int>& indices)
+void CDigitInfo::FindFringesByNumber(double number, std::vector<int>& indices) const
 {
 	indices.clear();
 	for (size_t iF = 0; iF < Fringes.size(); iF++) {

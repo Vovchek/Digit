@@ -180,7 +180,7 @@ class CDigitInfo
 	  const CFringeSegment* GetFringe(int i) const;
 	  	
 	  /// Find all fringes with given number
-	  void FindFringesByNumber(double number, std::vector<int>& indices);
+	  void FindFringesByNumber(double number, std::vector<int>& indices) const;
 	  	
 	  /// Add point to end of fringe
 	  void AddPointToFringe(int iFringe, CDPoint p);

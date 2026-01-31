@@ -255,6 +255,14 @@ void CImageView::OnInitialUpdate()
    if(needFit){
 	   OnZoomFit();
    }
+
+   // Initialize tooltip control for dynamic hover tooltips
+   if (!m_tooltip.m_hWnd) {
+       m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
+       m_tooltip.AddTool(this, _T(""));
+       m_tooltip.SetMaxTipWidth(300);
+       m_tooltip.Activate(TRUE);
+   }
 }
 
 void CImageView::OnDraw(CDC* pDC)
@@ -891,19 +899,36 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
         if (m_inputHandler.IsInDrawMode()) {
             m_inputHandler.OnMouseMove(l_point, mods, &pDoc->Digit, &m_cmdDispatcher);
             Invalidate(FALSE);
-            return; // consumed
+            //return; // consumed
         }
         
-        // Show tooltip for hovered selection
+        // Show tooltip for hovered selection (use CToolTipCtrl)
         SelectionManager::SelectedObject hoverObj;
         hoverObj.level = hoverLevel;
         hoverObj.iSegment = hitSeg;
         hoverObj.iDot = hitDot;
         std::string tip = tooltipGen.GetTooltip(hoverObj, pDoc->Digit);
-        // Use simple status bar update as lightweight tooltip for now
         CString ctip(tip.c_str());
-        AfxGetMainWnd()->SendMessage(WM_SETTEXT, 0, (LPARAM)(LPCTSTR)ctip);
+        // Update tooltip text and position near cursor
+        if (m_tooltip.m_hWnd) {
+            // If there's no tooltip text for current hover, hide immediately
+            if (ctip.IsEmpty()) {
+                if (!m_lastTip.IsEmpty()) {
+                    m_tooltip.Pop(); // hide any visible tip now
+                    // reset last tip so future tips will re-show
+                    m_lastTip.Empty();
+                }
+            }
+            else {
+                // show/update only when text changed to avoid flicker
+                if (m_lastTip != ctip) {
+                    m_tooltip.UpdateTipText(ctip, this);
+                    m_lastTip = ctip;
+                }
+            }
+        }
 
+        /*
         // Fallback to existing drag behaviours if legacy locking active
         if (pDoc->IsLockedDot()) {
             DragDot(l_point);
@@ -913,10 +938,9 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
             DragZapSection(l_point);
             return;
         }
-        
+        */
         CImageCtrls* pImCtrls = GetImageCtrls(this);
-		CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-		CControls* pCtrls = GetControls();
+        CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
 		BOOL keyDown = FALSE;
 		if((nFlags & MK_LBUTTON) || 
 			GetAsyncKeyState(VK_LEFT)<0 || GetAsyncKeyState(VK_RIGHT)<0 ||
@@ -949,6 +973,13 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 		}
 	}
     CBaseImageView::OnMouseMove(nFlags, point);
+}
+
+BOOL CImageView::PreTranslateMessage(MSG* pMsg)
+{
+    if (m_tooltip.m_hWnd)
+        m_tooltip.RelayEvent(pMsg);
+    return CBaseImageView::PreTranslateMessage(pMsg);
 }
 
 void CImageView::OnLButtonDown(UINT nFlags, CPoint point) 

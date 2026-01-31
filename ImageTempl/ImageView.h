@@ -14,6 +14,7 @@
 #include "DigitMode/CommandDispatcher.h"
 #include "DigitMode/CursorManager.h"
 #include "DigitMode/TooltipGenerator.h"
+#include <afxcmn.h>
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -29,6 +30,8 @@ private:
 	DigitMode::CommandDispatcher m_cmdDispatcher;
 	DigitMode::CursorManager m_cursorMgr;
 	DigitMode::TooltipGenerator tooltipGen;
+    CToolTipCtrl m_tooltip; // dynamic tooltip for dots/segments
+    CString m_lastTip; // last shown tooltip text
 
 protected:
 	CImageView();           // protected constructor used by dynamic creation
@@ -87,6 +90,11 @@ protected:
 
 protected:
 	virtual ~CImageView();
+#ifdef _DEBUG
+	virtual BOOL PreTranslateMessage(MSG* pMsg) override;
+#else
+	virtual BOOL PreTranslateMessage(MSG* pMsg) override;
+#endif
 #ifdef _DEBUG
 	virtual void AssertValid() const;
 	virtual void Dump(CDumpContext& dc) const;

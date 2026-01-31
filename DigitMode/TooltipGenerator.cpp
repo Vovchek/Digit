@@ -12,33 +12,40 @@ std::string TooltipGenerator::GetTooltip(
 ) const {
     char buffer[MAX_TOOLTIP_LEN];
 
+    if(SelectionLevel::None == obj.level ||
+		obj.iSegment < 0 || obj.iSegment >= static_cast<int>(digit.Fringes.size())) {
+        return { "" };
+    }
+
+    auto seg = digit.Fringes[obj.iSegment];
+    std::vector<int> segments;
+    digit.FindFringesByNumber(seg.GetNumber(), segments);
+
     switch (obj.level) {
         case SelectionLevel::Dot: {
-            // TODO: Phase 6 - Implement full query logic
-            // For now, return simplified tooltip
-            sprintf_s(buffer, "Dot %d in Segment %d", obj.iDot + 1, obj.iSegment + 1);
+            sprintf_s(buffer, "# %.1lf | %d/%d | %d/%d", 
+                seg.GetNumber(), 
+				seg.GetIndex(), segments.size(),
+                obj.iDot + 1, seg.GetPointCount());
             break;
         }
 
+        case SelectionLevel::Segment:
+			[[fallthrough]];
         case SelectionLevel::Edge: {
-            sprintf_s(buffer, "Edge %d–%d in Segment %d",
-                obj.iEdge, obj.iEdge + 1, obj.iSegment + 1);
-            break;
-        }
-
-        case SelectionLevel::Segment: {
-            sprintf_s(buffer, "Segment %d", obj.iSegment + 1);
+            sprintf_s(buffer, "# %.1lf | %d/%d ",
+                seg.GetNumber(),
+                seg.GetIndex(), segments.size());
             break;
         }
 
         case SelectionLevel::Fringe: {
-            sprintf_s(buffer, "Fringe #%.1f", obj.Number);
+            sprintf_s(buffer, "# %.1lf", seg.GetNumber());
             break;
         }
 
         default:
-            strcpy_s(buffer, "Unknown");
-            break;
+            return { "" };
     }
 
     return std::string(buffer);
