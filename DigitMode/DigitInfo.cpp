@@ -519,7 +519,7 @@ void CDigitInfo::CreateRedCenters()
 		pI->m_pDIB->PubPadBits();
 }
 
-void CDigitInfo::Draw(CDC* pDC, int DotSide)
+void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand)
 {
 	int iS = 0;
 	CControls* pCtrls = GetControls();
@@ -604,15 +604,20 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide)
 			}
 
 			// Highlight main selected point if any
-			if (idxMainPoint.IsValid()) {
-				const CFringeSegment* pFr = GetFringe(idxMainPoint.iFringe);
-				if (pFr && idxMainPoint.iPoint >= 0 && idxMainPoint.iPoint < pFr->GetPointCount()) {
-					CDPoint sel = pFr->GetPoint(idxMainPoint.iPoint);
-					int half = (DotSide + 2) / 2;
-					CBrush brush(RGB(255, 0, 0));
-					CBrush* oldBr = pDC->SelectObject(&brush);
-					pDC->Ellipse((int)sel.x - half, (int)sel.y - half, (int)sel.x + half, (int)sel.y + half);
-					pDC->SelectObject(oldBr);
+			if (activeDot != CPoint(-1,-1)) { // check if activeDot is valid
+				int half = (DotSide + 2) / 2;
+				CBrush brush(RGB(255, 64, 64));// noticeable color
+				CBrush* oldBr = pDC->SelectObject(&brush);
+				pDC->Ellipse(activeDot.x - half, activeDot.y - half, activeDot.x + half, activeDot.y + half);
+				pDC->SelectObject(oldBr);
+
+				if (cursorPos != CPoint(-1, -1) && rubberBand) {
+					CPen rubberPen;
+					rubberPen.CreatePen(PS_DOT, 1, RGB(255, 128, 0));
+					CPen* oldPen = pDC->SelectObject(&rubberPen);
+					pDC->MoveTo(activeDot);
+					pDC->LineTo(cursorPos);
+					pDC->SelectObject(oldPen);
 				}
 			}
 		}

@@ -74,17 +74,26 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
                     ConnectSegments(hitSeg, hitDot, pDigit, pCmdDisp);
                     return;
                 }
-                // Otherwise, adopt this segment as active (continue from that end)
-                ContinueSegment(hitSeg, hitDot, pDigit, pCmdDisp);
-                //return; // continue to enable dragging
+                // Otherwise, adopt this segment as active (continue from that end) ->
             }
         }
-        // Dragging is also allowed for dots and edges while editing
+        // -> Dragging is also allowed for dots and edges while editing
         if (level == SelectionLevel::Dot) {
+            ContinueSegment(hitSeg, hitDot, pDigit, pCmdDisp);
             BeginDotDrag(hitSeg, hitDot, pt, nullptr); // nullptr to use pt for undo
             return;
         }
+		// Edge drag or insert dot with Ctrl+Edge click
         if (level == SelectionLevel::Edge) {
+            if(mods.ctrl) {
+                // Insert dot at clicked edge position
+                if (pCmdDisp && pDigit) {
+                    CDPoint dp; dp.x = pt.x; dp.y = pt.y;
+                    auto insertCmd = std::make_unique<AddDotCommand>(pDigit, hitSeg, hitDot + 1, dp);
+                    pCmdDisp->Execute(std::move(insertCmd));
+                }
+				return; // TODO: try dragging newly inserted dot?
+			}
             BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
             return;
         }
@@ -244,6 +253,14 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
     } else if (nChar == VK_ESCAPE) {
         CancelDraw(pDigit);
     }
+    else if (nChar == VK_RETURN) {
+        // Finalize active segment
+        EndCurrentSegment();
+    }
+	else if (nChar == 'b' || nChar == 'B') {
+        // flip rubber band status
+		m_rubberBand = !m_rubberBand;
+    }
 }
 
 void InputHandler::OnKeyUp(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
@@ -298,7 +315,10 @@ void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
 }
 
 bool InputHandler::IsActiveSegmentValid(const ::CDigitInfo* doc) const {
-    return (doc != nullptr && iActiveSegment >= 0 && static_cast<size_t>(iActiveSegment) < doc->Fringes.size() && activeEnd != ActiveEnd::None);
+    return (doc != nullptr && iActiveSegment >= 0 
+        && static_cast<size_t>(iActiveSegment) < doc->Fringes.size() 
+		&& doc->Fringes[iActiveSegment].GetPointCount() > 0
+        && activeEnd != ActiveEnd::None);
 }
 
 // ---- Drag helpers (implementation local) ----
@@ -382,5 +402,23 @@ void InputHandler::CommitActiveDrag(CommandDispatcher* pCmdDisp, ::CDigitInfo* p
     }
 }
 
-} // namespace DigitMode
+CPoint InputHandler::GetActiveDot(const ::CDigitInfo* doc) const
+{
+	if (!IsActiveSegmentValid(doc))
+        return CPoint(-1, -1);
+	const auto& seg = doc->Fringes[iActiveSegment];
+	int dotIdx = (activeEnd == ActiveEnd::Head) ? 0 : seg.GetPointCount() - 1;
+	CDPoint dp = seg.GetPoint(dotIdx);
+	return CPoint(static_cast<int>(dp.x), static_cast<int>(dp.y));
+}
 
+// active dot to cursor rubber band status
+// hides when mode is not Draw, Alt is pressed, dragging is active, or no valid active dot
+bool InputHandler::GetRubberBand(const ::CDigitInfo* doc) const
+{
+	if (!m_rubberBand) return false;
+    ModifierState mods = ModifierState::FromKeyboard();
+	return IsInDrawMode() && !mods.alt && !m_drag.active && IsActiveSegmentValid(doc);
+}
+
+} // namespace DigitMode

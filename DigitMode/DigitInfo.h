@@ -101,7 +101,7 @@ class CDigitInfo
 	  void CreateBufLineObstructionComplex();
 	  void CreateBufLineObstructionSimple();
 	  void CreateRedCenters(); // TODO: remove UI dependency
-	  void Draw(CDC* pDC, int DotSide); // TODO: remove UI dependency
+	  void Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand = false); // TODO: remove UI dependency
 
 	  void CalcSectionAveSteps();
 	  void SelectFringeStep();

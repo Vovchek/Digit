@@ -327,7 +327,10 @@ void CImageView::DrawDigitInfo(CDC* pDC)
     CControls* pCtrls = GetControls();
 	int DotSide;
 	pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	pDoc->Digit.Draw(pDC, DotSide);
+	pDoc->Digit.Draw(pDC, DotSide, 
+        m_inputHandler.GetActiveDot(&pDoc->Digit), 
+        m_inputHandler.GetCurrentCursorPos(),
+        m_inputHandler.GetRubberBand(&pDoc->Digit));
 }
 
 void CImageView::DrawAproximation(CDC* pDC)

@@ -104,6 +104,7 @@ private:
 	ActiveEnd activeEnd = ActiveEnd::None; ///< Currently active end during drawing
     // Transient interaction state
     CPoint m_cursorPos = CPoint(-1, -1);
+	bool m_rubberBand = false;
 
     struct DragState {
         bool active = false;
@@ -229,8 +230,10 @@ public:
     // Query helpers
     bool HasActiveSegment() const { return iActiveSegment >= 0; }
     bool IsActiveSegmentValid(const ::CDigitInfo* doc) const;
+    bool GetRubberBand(const ::CDigitInfo* doc) const;
     ActiveEnd GetActiveEnd() const { return activeEnd; }
     CPoint GetCurrentCursorPos() const { return m_cursorPos; }
+	CPoint GetActiveDot(const ::CDigitInfo* doc) const;
 };
 
 } // namespace DigitMode
