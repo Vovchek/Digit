@@ -1,4 +1,4 @@
-#if !defined(AFX_BASEIMAGEVIEW_H__1941C47C_4C98_4938_AEA4_62BAA2AB0489__INCLUDED_)
+﻿#if !defined(AFX_BASEIMAGEVIEW_H__1941C47C_4C98_4938_AEA4_62BAA2AB0489__INCLUDED_)
 #define AFX_BASEIMAGEVIEW_H__1941C47C_4C98_4938_AEA4_62BAA2AB0489__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -6,13 +6,14 @@
 #endif // _MSC_VER > 1000
 // BaseImageView.h : header file
 //
-#include "Utils\seczmvw.h"
+// Removed dependency on SECZoomView to adopt custom ViewTransform approach
+#include <afxext.h>
 typedef enum {NORMAL,ZOOMINPOINT,ZOOMOUTPOINT,ZOOMRECT} DigitViewMode;
 
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageView view
 
-class CBaseImageView : public SECZoomView
+class CBaseImageView : public CScrollView
 {
 protected:
 	CBaseImageView();           // protected constructor used by dynamic creation
@@ -29,6 +30,11 @@ public:
     HCURSOR       m_hZoomOutPointCursor;
     HCURSOR       m_hZoomRectCursor;
     HCURSOR       m_hZoomRectDragCursor;
+    // Replacement zoom state (mimics SECZoomView basics)
+    double        m_zoomLevel = 1.0;
+    double        m_zoomMin = 0.02;
+    double        m_zoomMax = 22.0;
+    int           m_zoomMode = 0;
 
 // Operations
 public:
@@ -40,6 +46,11 @@ public:
     void DocToClient(CSize& size);
 
     void GetZoomCoefficent(double& kZ);
+    double GetZoomLevel() { return m_zoomLevel; }
+    void SetZoomMinMax(float minZ, float maxZ) { m_zoomMin = minZ; m_zoomMax = maxZ; }
+    void ZoomIn(CPoint* p=nullptr, float factor=1.1f) { m_zoomLevel *= factor; if(m_zoomLevel>m_zoomMax) m_zoomLevel=m_zoomMax; }
+    void ZoomOut(CPoint* p=nullptr, float factor=1.1f) { m_zoomLevel /= factor; if(m_zoomLevel<m_zoomMin) m_zoomLevel=m_zoomMin; }
+    void ZoomFit() { /* best effort: caller should implement */ }
     CRect GetImageRegion(bool absReg=false);
     void DrawImage(CDC* pDC);
 	void DrawBounds(CDC* pDC);

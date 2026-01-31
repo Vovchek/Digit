@@ -15,6 +15,7 @@
 #include "DigitMode/CursorManager.h"
 #include "DigitMode/TooltipGenerator.h"
 #include <afxcmn.h>
+#include "ViewTransform.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +33,10 @@ private:
 	DigitMode::TooltipGenerator tooltipGen;
     CToolTipCtrl m_tooltip; // dynamic tooltip for dots/segments
     CString m_lastTip; // last shown tooltip text
+    ViewTransform m_viewTransform;
+    // Expose view transform accessor
+public:
+    ViewTransform& GetViewTransform() { return m_viewTransform; }
 
 protected:
 	CImageView();           // protected constructor used by dynamic creation
@@ -50,6 +55,8 @@ public:
     bool GetYPixelLine(CPoint P, double*& pR, double*& pF, int& nP);
 
 	void SingleIsoline(int pn, ISO_POINT *plist, double level, int ilevel);
+    // Draw image bitmap with view-aware sampling
+    void DrawImage(CDC* pDC);
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -92,6 +99,9 @@ protected:
 	virtual ~CImageView();
 #ifdef _DEBUG
 	virtual BOOL PreTranslateMessage(MSG* pMsg) override;
+#if _MSC_VER >= 1400
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+#endif
 #else
 	virtual BOOL PreTranslateMessage(MSG* pMsg) override;
 #endif
@@ -165,6 +175,7 @@ protected:
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+    afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
 	afx_msg void OnTimer(UINT nIDEvent);
 	afx_msg void OnLButtonDblClk(UINT nFlags, CPoint point);
 	afx_msg void OnRButtonDblClk(UINT nFlags, CPoint point);

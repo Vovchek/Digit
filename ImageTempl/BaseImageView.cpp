@@ -1,9 +1,9 @@
-// BaseImageView.cpp : implementation file
+п»ї// BaseImageView.cpp : implementation file
 //
 /***********************************************************************************
- МОДУЛЬ: BaseImageView.cpp
- НАЗНАЧЕНИЕ:
-         Базовое представление архитектуры документ-представления      
+ РњРћР”РЈР›Р¬: BaseImageView.cpp
+ РќРђР—РќРђР§Р•РќРР•:
+         Р‘Р°Р·РѕРІРѕРµ РїСЂРµРґСЃС‚Р°РІР»РµРЅРёРµ Р°СЂС…РёС‚РµРєС‚СѓСЂС‹ РґРѕРєСѓРјРµРЅС‚-РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ      
 ************************************************************************************/
 //C:\Ilya\Programming\cpp\Numbering\ImageTempl\BaseImageView.cpp
 #include "stdafx.h"
@@ -25,13 +25,15 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageView
 
-IMPLEMENT_DYNCREATE(CBaseImageView, SECZoomView)
+IMPLEMENT_DYNCREATE(CBaseImageView, CScrollView)
 
 CBaseImageView::CBaseImageView()
 {
     SetScrollSizes(MM_TEXT, CSize(0, 0));
-    //Turn on zooming, default is zooming off.
-    SetZoomMode(SEC_ZOOMNORMAL); //SECZoomView
+    // Initialize simple zoom state
+    m_zoomLevel = 1.0;
+    m_zoomMin = 0.02; m_zoomMax = 22.0;
+    m_zoomMode = 0; // NORMAL
     m_cvwMode = NORMAL;
     m_bCaptured = FALSE;
     m_hZoomInPointCursor  = AfxGetApp()->LoadCursor(IDC_ZOOMIN);
@@ -49,8 +51,8 @@ CBaseImageView::~CBaseImageView()
     if (m_hZoomRectDragCursor) DestroyCursor(m_hZoomRectDragCursor);
 }
 
-//Преобразует координаты точки (point) из координат устройства в 
-//логические координаты 
+//РџСЂРµРѕР±СЂР°Р·СѓРµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ С‚РѕС‡РєРё (point) РёР· РєРѕРѕСЂРґРёРЅР°С‚ СѓСЃС‚СЂРѕР№СЃС‚РІР° РІ 
+//Р»РѕРіРёС‡РµСЃРєРёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ 
 void CBaseImageView::ClientToDoc(CPoint& point)
 {
     CClientDC dc(this);
@@ -65,8 +67,8 @@ void CBaseImageView::ClientToDoc(CSize& size)
     dc.DPtoLP(&size);
 }
 
-//Преобразует координаты прямоуголька (rect) из координат устройства в 
-//логические координаты 
+//РџСЂРµРѕР±СЂР°Р·СѓРµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ РїСЂСЏРјРѕСѓРіРѕР»СЊРєР° (rect) РёР· РєРѕРѕСЂРґРёРЅР°С‚ СѓСЃС‚СЂРѕР№СЃС‚РІР° РІ 
+//Р»РѕРіРёС‡РµСЃРєРёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ 
 void CBaseImageView::ClientToDoc(CRect& rect)
 {
     CClientDC dc(this);
@@ -76,8 +78,8 @@ void CBaseImageView::ClientToDoc(CRect& rect)
 //  ASSERT(rect.bottom <= rect.top);
 }
 
-//Преобразует координаты точки (point) из логических координат в  
-// координаты устройства
+//РџСЂРµРѕР±СЂР°Р·СѓРµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ С‚РѕС‡РєРё (point) РёР· Р»РѕРіРёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚ РІ  
+// РєРѕРѕСЂРґРёРЅР°С‚С‹ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 void CBaseImageView::DocToClient(CPoint& point)
 {
     CClientDC dc(this);
@@ -92,8 +94,8 @@ void CBaseImageView::DocToClient(CSize& size)
     dc.LPtoDP(&size);
 }
 
-//Преобразует координаты прямоуголька (rect) из логических координат в  
-// координаты устройства
+//РџСЂРµРѕР±СЂР°Р·СѓРµС‚ РєРѕРѕСЂРґРёРЅР°С‚С‹ РїСЂСЏРјРѕСѓРіРѕР»СЊРєР° (rect) РёР· Р»РѕРіРёС‡РµСЃРєРёС… РєРѕРѕСЂРґРёРЅР°С‚ РІ  
+// РєРѕРѕСЂРґРёРЅР°С‚С‹ СѓСЃС‚СЂРѕР№СЃС‚РІР°
 void CBaseImageView::DocToClient(CRect& rect)
 {
     CClientDC dc(this);
@@ -161,7 +163,7 @@ CRect CBaseImageView::GetImageRegion(bool absReg/*false*/)
     return rcDest;
 }
 
-// Отрисовка изображения в контексте устройства CDC
+// РћС‚СЂРёСЃРѕРІРєР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ РєРѕРЅС‚РµРєСЃС‚Рµ СѓСЃС‚СЂРѕР№СЃС‚РІР° CDC
 void CBaseImageView::DrawImage(CDC* pDC)
 {
     CImageCtrls* pImCtrls = GetImageCtrls(this);
@@ -212,7 +214,7 @@ void CBaseImageView::DrawBackGround(CDC* pDC)
 	pDC->FillRect(&clientRect, &CBrush(RGB(0,0,0)));
 	pDC->SelectClipRgn(NULL);
 }
-// Отрисовка границ в контексте устройства CDC
+// РћС‚СЂРёСЃРѕРІРєР° РіСЂР°РЅРёС† РІ РєРѕРЅС‚РµРєСЃС‚Рµ СѓСЃС‚СЂРѕР№СЃС‚РІР° CDC
 void CBaseImageView::DrawBounds(CDC* pDC)
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -292,7 +294,7 @@ void CBaseImageView::DrawBounds(CDC* pDC)
     }
 }
 
-// Отрисовка границы  в процессе редактирования в контексте устройства CDC
+// РћС‚СЂРёСЃРѕРІРєР° РіСЂР°РЅРёС†С‹  РІ РїСЂРѕС†РµСЃСЃРµ СЂРµРґР°РєС‚РёСЂРѕРІР°РЅРёСЏ РІ РєРѕРЅС‚РµРєСЃС‚Рµ СѓСЃС‚СЂРѕР№СЃС‚РІР° CDC
 void CBaseImageView::DrawCurBound(CDC* pDC)
 {
     COLORREF Color = RGB(0,255,255);
@@ -334,10 +336,10 @@ void CBaseImageView::DrawCurBound(CDC* pDC)
       if(pRetPen) pRetPen->DeleteObject();
     }
 }
-// Отрисовка маркера установки границ
-// cP - центр маркера
-// zoomMark - коэфф увеличения изображения маркера
-// Color - цвет маркера
+// РћС‚СЂРёСЃРѕРІРєР° РјР°СЂРєРµСЂР° СѓСЃС‚Р°РЅРѕРІРєРё РіСЂР°РЅРёС†
+// cP - С†РµРЅС‚СЂ РјР°СЂРєРµСЂР°
+// zoomMark - РєРѕСЌС„С„ СѓРІРµР»РёС‡РµРЅРёСЏ РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РјР°СЂРєРµСЂР°
+// Color - С†РІРµС‚ РјР°СЂРєРµСЂР°
 void CBaseImageView::DrawMarker(CDC* pDC, CPoint cP, double zoomMark, COLORREF Color)
 {
     CPen* open=NULL;
@@ -364,7 +366,7 @@ void CBaseImageView::DrawMarker(CDC* pDC, CPoint cP, double zoomMark, COLORREF C
       if(pRetPen) pRetPen->DeleteObject();
     }
 }
-// Отрисовка точек, при задании границ точками в контексте CDC
+// РћС‚СЂРёСЃРѕРІРєР° С‚РѕС‡РµРє, РїСЂРё Р·Р°РґР°РЅРёРё РіСЂР°РЅРёС† С‚РѕС‡РєР°РјРё РІ РєРѕРЅС‚РµРєСЃС‚Рµ CDC
 void CBaseImageView::DrawCustomDots(CDC* pDC)
 {
 	CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
@@ -384,8 +386,8 @@ void CBaseImageView::DrawCustomDots(CDC* pDC)
     CPen* retopen = pDC->SelectObject(open);
     if(retopen) retopen->DeleteObject();
 }
-// Установка одной из точек задания границ
-//point - логические координаты точки
+// РЈСЃС‚Р°РЅРѕРІРєР° РѕРґРЅРѕР№ РёР· С‚РѕС‡РµРє Р·Р°РґР°РЅРёСЏ РіСЂР°РЅРёС†
+//point - Р»РѕРіРёС‡РµСЃРєРёРµ РєРѕРѕСЂРґРёРЅР°С‚С‹ С‚РѕС‡РєРё
 void CBaseImageView::SetCustomDot(CPoint point)
 {
 	CControls* pCtrls = GetControls();
@@ -407,8 +409,8 @@ void CBaseImageView::SetCustomDot(CPoint point)
         }
     }
 }
-// Перетаскивание точек задания границ
-// point - новое положение точки
+// РџРµСЂРµС‚Р°СЃРєРёРІР°РЅРёРµ С‚РѕС‡РµРє Р·Р°РґР°РЅРёСЏ РіСЂР°РЅРёС†
+// point - РЅРѕРІРѕРµ РїРѕР»РѕР¶РµРЅРёРµ С‚РѕС‡РєРё
 void CBaseImageView::DragCustomDot(CPoint point, bool ReDraw/*true*/)
 {
    if(GetCapture() != this)
@@ -512,7 +514,7 @@ CPoint CBaseImageView::GetHandle(int nHandle)
     return CPoint(x, y);
 }
 
-BEGIN_MESSAGE_MAP(CBaseImageView, SECZoomView)
+BEGIN_MESSAGE_MAP(CBaseImageView, CScrollView)
 	//{{AFX_MSG_MAP(CBaseImageView)
     ON_COMMAND(IDD_CLONE, OnCloneDoc)
     ON_COMMAND(IDD_COPY, OnCopy)
@@ -549,7 +551,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageView drawing
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnInitialUpdate()
 {
     SetZoomMinMax(0.02f,22.0f);
@@ -559,7 +561,7 @@ void CBaseImageView::OnInitialUpdate()
     SetScrollSizes(MM_TEXT, sizeDoc);    
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnDraw(CDC* pDC)
 {
 	CDocument* pDoc = GetDocument();
@@ -569,56 +571,56 @@ void CBaseImageView::OnDraw(CDC* pDC)
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageView diagnostics
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 #ifdef _DEBUG
 void CBaseImageView::AssertValid() const
 {
-	SECZoomView::AssertValid();
+    CScrollView::AssertValid();
 }
 
 void CBaseImageView::Dump(CDumpContext& dc) const
 {
-	SECZoomView::Dump(dc);
+    CScrollView::Dump(dc);
 }
 #endif //_DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageView message handlers
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CBaseImageView::OnEraseBkgnd(CDC* pDC) 
 {
     return TRUE;
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-	SECZoomView::OnHScroll(nSBCode, nPos, pScrollBar);
+    CScrollView::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
-	SECZoomView::OnVScroll(nSBCode, nPos, pScrollBar);
+    CScrollView::OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) 
 {
-	SECZoomView::OnActivateView(bActivate, pActivateView, pDeactiveView);
+    CScrollView::OnActivateView(bActivate, pActivateView, pDeactiveView);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnSetFocus(CWnd* pOldWnd) 
 {
-	SECZoomView::OnSetFocus(pOldWnd);
-	// TODO: Add your message handler code here
+    CScrollView::OnSetFocus(pOldWnd);
+    // TODO: Add your message handler code here
 }
 
-// Загрузка файла сценария из файла
+// Р—Р°РіСЂСѓР·РєР° С„Р°Р№Р»Р° СЃС†РµРЅР°СЂРёСЏ РёР· С„Р°Р№Р»Р°
 void CBaseImageView::OnLoadScn()
 {
-    LPCTSTR title = CRS("Открыть файл сценария", "Open scenario file");
+    LPCTSTR title = CRS("РћС‚РєСЂС‹С‚СЊ С„Р°Р№Р» СЃС†РµРЅР°СЂРёСЏ", "Open scenario file");
     CFileDialog fileDlg(TRUE);
     CString fIndex;
 
@@ -630,7 +632,7 @@ void CBaseImageView::OnLoadScn()
     LPCTSTR lan;
 	CString str;
     str.Empty();
-    lan = CRS("Файлы (*.scn)","Files (*.scn)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (*.scn)","Files (*.scn)");
     str += lan; str += (TCHAR)NULL;
     str += "*.scn"; str += (TCHAR)NULL;
     fileDlg.m_ofn.lpstrFilter = LPCTSTR(str);
@@ -649,15 +651,15 @@ void CBaseImageView::OnLoadScn()
 	}
 }
 
-//Сохранение файла сценария
+//РЎРѕС…СЂР°РЅРµРЅРёРµ С„Р°Р№Р»Р° СЃС†РµРЅР°СЂРёСЏ
 void CBaseImageView::OnSaveScn()
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    LPCTSTR title = CRS("Сохранить файл сценария", "Save scenario file");
+    LPCTSTR title = CRS("РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р» СЃС†РµРЅР°СЂРёСЏ", "Save scenario file");
     CFileDialog fileDlg(FALSE);
     LPCTSTR lan;
 	CString str;
-    lan = CRS("Файлы (SCN)","Files (SCN)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (SCN)","Files (SCN)");
     str += lan; str += (TCHAR)NULL;
     fileDlg.m_ofn.lpstrFilter = LPCTSTR(str);
     fileDlg.m_ofn.nFilterIndex = 1;
@@ -689,7 +691,7 @@ void CBaseImageView::OnSaveScn()
 void CBaseImageView::OnUpdateLoadScn(CCmdUI* pCmdUI)
 {
 }
-// регулировка состояния меню
+// СЂРµРіСѓР»РёСЂРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ РјРµРЅСЋ
 void CBaseImageView::OnUpdateSaveScn(CCmdUI* pCmdUI)
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -715,13 +717,14 @@ void CBaseImageView::OnZoomOut()
 
 void CBaseImageView::OnZoomFit()
 {
-	m_zoomMode = SEC_ZOOMFIT;
-	ZoomFit();
-	m_zoomMode = SEC_ZOOMNORMAL;
+    // emulate zoom fit behavior using zoomLevel placeholder
+    m_zoomMode = 1; // fit
+    ZoomFit();
+    m_zoomMode = 0; // normal
 	Invalidate(FALSE);
 }
 
-// Копирование сценария обработки
+// РљРѕРїРёСЂРѕРІР°РЅРёРµ СЃС†РµРЅР°СЂРёСЏ РѕР±СЂР°Р±РѕС‚РєРё
 void CBaseImageView::OnCopyScn()
 {
    CControls* pCtrls = GetControls();
@@ -735,7 +738,7 @@ void CBaseImageView::OnCopyScn()
   }
 }
 
-// регулировка состояния меню
+// СЂРµРіСѓР»РёСЂРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ РјРµРЅСЋ
 void CBaseImageView::OnUpdateCopyScn(CCmdUI* pCmdUI)
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -746,7 +749,7 @@ void CBaseImageView::OnUpdateCopyScn(CCmdUI* pCmdUI)
 	   key = TRUE;
    pCmdUI->Enable(key);
 }
-//Вставка сценария обработки
+//Р’СЃС‚Р°РІРєР° СЃС†РµРЅР°СЂРёСЏ РѕР±СЂР°Р±РѕС‚РєРё
 void CBaseImageView::OnPasteScn()
 {
     CImageCtrls* pImCtrls = GetImageCtrls(this);
@@ -763,7 +766,7 @@ void CBaseImageView::OnPasteScn()
 	Invalidate(FALSE);
 }
 
-// регулировка состояния меню
+// СЂРµРіСѓР»РёСЂРѕРІРєР° СЃРѕСЃС‚РѕСЏРЅРёСЏ РјРµРЅСЋ
 void CBaseImageView::OnUpdatePasteScn(CCmdUI* pCmdUI)
 {
    CControls* pCtrls = GetControls();
@@ -774,19 +777,19 @@ void CBaseImageView::OnUpdatePasteScn(CCmdUI* pCmdUI)
 	   key = TRUE;
    pCmdUI->Enable(key);
 }
-// Клонирование документа
+// РљР»РѕРЅРёСЂРѕРІР°РЅРёРµ РґРѕРєСѓРјРµРЅС‚Р°
 void CBaseImageView::OnCloneDoc()
 {
   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
   pDoc->CopyImage();
 }
 
-// Копирование документа в ClipBoard
+// РљРѕРїРёСЂРѕРІР°РЅРёРµ РґРѕРєСѓРјРµРЅС‚Р° РІ ClipBoard
 void CBaseImageView::OnCopy()
 {
   OnCopyClipboard();
 }
-// Копирование документа в ClipBoard
+// РљРѕРїРёСЂРѕРІР°РЅРёРµ РґРѕРєСѓРјРµРЅС‚Р° РІ ClipBoard
 void CBaseImageView::OnCopyClipboard()
 {
     // Clean clipboard of contents, and copy the DIB.
@@ -807,7 +810,7 @@ void CBaseImageView::OnCopyClipboard()
     }
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageView::OnContextMenu(CWnd* pWnd, CPoint point) 
 {
 	CControls* pCtrls = GetControls();
@@ -817,7 +820,7 @@ void CBaseImageView::OnContextMenu(CWnd* pWnd, CPoint point)
 	  CreateDefaultMenu(point);
 }
 
-// Формирование меню по умолчанию
+// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РјРµРЅСЋ РїРѕ СѓРјРѕР»С‡Р°РЅРёСЋ
 void CBaseImageView::CreateDefaultMenu(CPoint point)
 {
    CControls* pCtrls = GetControls();
@@ -840,22 +843,22 @@ void CBaseImageView::CreateDefaultMenu(CPoint point)
    if(pCtrls->curScenario.GetCount()==0)
 	   PastScnFlag |= MF_GRAYED;
    
-   ItemText = CRS("Дубликат", "Clone");
+   ItemText = CRS("Р”СѓР±Р»РёРєР°С‚", "Clone");
    Main.AppendMenu(CopyDocFlag, IDD_CLONE, ItemText);
-   ItemText = CRS("Копировать", "Copy");
+   ItemText = CRS("РљРѕРїРёСЂРѕРІР°С‚СЊ", "Copy");
    Main.AppendMenu(CopyDocFlag, IDD_COPY, ItemText);
    Main.AppendMenu(MF_SEPARATOR);
 
-   ItemText = CRS("Копировать сценарий", "Copy scenario");
+   ItemText = CRS("РљРѕРїРёСЂРѕРІР°С‚СЊ СЃС†РµРЅР°СЂРёР№", "Copy scenario");
    Main.AppendMenu(CopyScnFlag, IDD_COPY_SCENARIO, ItemText);
-   ItemText = CRS("Применить сценарий", "Past scenario");
+   ItemText = CRS("РџСЂРёРјРµРЅРёС‚СЊ СЃС†РµРЅР°СЂРёР№", "Past scenario");
    Main.AppendMenu(PastScnFlag, IDD_PAST_SCENARIO, ItemText);
 
    Main.TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON,
                               point.x, point.y, this, NULL);
 }
 
-// Формирование меню в режиме установки границ 
+// Р¤РѕСЂРјРёСЂРѕРІР°РЅРёРµ РјРµРЅСЋ РІ СЂРµР¶РёРјРµ СѓСЃС‚Р°РЅРѕРІРєРё РіСЂР°РЅРёС† 
 void CBaseImageView::CreateBoundMenu(CPoint point)
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -882,9 +885,9 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    if(pCtrls->CurTypeBound == BOUND_POLYGON)
       SetRectFlag |= MF_GRAYED;
 
-   ItemText = CRS("Точки", "Dots");
+   ItemText = CRS("РўРѕС‡РєРё", "Dots");
    SetUpMenu.AppendMenu(SetDotFlag, IDD_BOUND_SETDOTS, ItemText);
-   ItemText = CRS("Контур", "Contour");
+   ItemText = CRS("РљРѕРЅС‚СѓСЂ", "Contour");
    SetUpMenu.AppendMenu(SetRectFlag, IDD_BOUND_SETRECT, ItemText);
 
    CMenu ScreenMenu;
@@ -909,13 +912,13 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    if(pCtrls->EnableTracker)
       ScreenPlgFlag |= MF_GRAYED;
 
-   ItemText = CRS("Круг", "Round");
+   ItemText = CRS("РљСЂСѓРі", "Round");
    ScreenMenu.AppendMenu(ScreenRoundFlag, IDD_BOUND_SCRROUND, ItemText);
-   ItemText = CRS("Эллипс", "Ellpse");
+   ItemText = CRS("Р­Р»Р»РёРїСЃ", "Ellpse");
    ScreenMenu.AppendMenu(ScreenEllipseFlag, IDD_BOUND_SCRELLIPSE, ItemText);
-   ItemText = CRS("Прямоугольник", "Rectangle");
+   ItemText = CRS("РџСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє", "Rectangle");
    ScreenMenu.AppendMenu(ScreenRectFlag, IDD_BOUND_SCRRECT, ItemText);
-   ItemText = CRS("Полигон", "Polygon");
+   ItemText = CRS("РџРѕР»РёРіРѕРЅ", "Polygon");
    ScreenMenu.AppendMenu(ScreenPlgFlag, IDD_BOUND_SCRPLG, ItemText);
 
    CMenu Main;
@@ -944,25 +947,25 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
      RemoveLastFlag = MF_STRING;
    }
    
-   ItemText = CRS("Добавить", "Apply");
+   ItemText = CRS("Р”РѕР±Р°РІРёС‚СЊ", "Apply");
    Main.AppendMenu(ApplyFlag, IDD_BOUND_APPLY, ItemText);
 
-   ItemText = CRS("Отменить ", "Cancel");
+   ItemText = CRS("РћС‚РјРµРЅРёС‚СЊ ", "Cancel");
    Main.AppendMenu(RemoveCurFlag, IDD_BOUND_CURREMOVE, ItemText);
-   ItemText = CRS("Удалить последнюю границу", "Remove last bound");
+   ItemText = CRS("РЈРґР°Р»РёС‚СЊ РїРѕСЃР»РµРґРЅСЋСЋ РіСЂР°РЅРёС†Сѓ", "Remove last bound");
    Main.AppendMenu(RemoveLastFlag, IDD_BOUND_LASTREMOVE, ItemText);
-   ItemText = CRS("Удалить все границы", "Remove all bounds");
+   ItemText = CRS("РЈРґР°Р»РёС‚СЊ РІСЃРµ РіСЂР°РЅРёС†С‹", "Remove all bounds");
    Main.AppendMenu(RemoveAllFlag, IDD_BOUND_ALLREMOVE, ItemText);
    
-   ItemText = CRS("Тип установки", "Set up type");
+   ItemText = CRS("РўРёРї СѓСЃС‚Р°РЅРѕРІРєРё", "Set up type");
    Main.AppendMenu(SetTypeFlag, (UINT)SetUpMenu.m_hMenu, ItemText);
-   ItemText = CRS("Тип границы", "Bound type");
+   ItemText = CRS("РўРёРї РіСЂР°РЅРёС†С‹", "Bound type");
    Main.AppendMenu(ScreenFlag, (UINT)ScreenMenu.m_hMenu, ItemText);
 
    Main.TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON,
                               point.x, point.y, this, NULL);
 }
-//Принять редактируемую границу 
+//РџСЂРёРЅСЏС‚СЊ СЂРµРґР°РєС‚РёСЂСѓРµРјСѓСЋ РіСЂР°РЅРёС†Сѓ 
 void CBaseImageView::OnApplyBound()
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -993,7 +996,7 @@ void CBaseImageView::OnApplyBound()
    pBCtrls->CustomDots.RemoveAll();
    Invalidate(FALSE);
 }
-//Удалить последнюю границу
+//РЈРґР°Р»РёС‚СЊ РїРѕСЃР»РµРґРЅСЋСЋ РіСЂР°РЅРёС†Сѓ
 void CBaseImageView::OnRemoveCurBound()
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1014,7 +1017,7 @@ void CBaseImageView::OnRemoveLastBound()
 	Invalidate(FALSE);
 }
 
-// Удалить все границы
+// РЈРґР°Р»РёС‚СЊ РІСЃРµ РіСЂР°РЅРёС†С‹
 void CBaseImageView::OnRemoveAllBound()
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1032,7 +1035,7 @@ void CBaseImageView::OnRemoveAllBound()
 	Invalidate(FALSE);
 }
 
-// Установка границ будет производиться точками
+// РЈСЃС‚Р°РЅРѕРІРєР° РіСЂР°РЅРёС† Р±СѓРґРµС‚ РїСЂРѕРёР·РІРѕРґРёС‚СЊСЃСЏ С‚РѕС‡РєР°РјРё
 void CBaseImageView::OnSetupDotsBound()
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1042,7 +1045,7 @@ void CBaseImageView::OnSetupDotsBound()
 	pCtrls->EnableTracker = FALSE;
 	pDoc->Tracker.SetEnableState(FALSE);
 }
-// Установка прямоугольных границ 
+// РЈСЃС‚Р°РЅРѕРІРєР° РїСЂСЏРјРѕСѓРіРѕР»СЊРЅС‹С… РіСЂР°РЅРёС† 
 void CBaseImageView::OnSetupRectBound()
 {
     CBoundCtrls* pBCtrls = GetBoundCtrls(this);
@@ -1051,7 +1054,7 @@ void CBaseImageView::OnSetupRectBound()
 	pCtrls->EnableCustomDots = FALSE;
 }
 
-// Установка границ в виде круга
+// РЈСЃС‚Р°РЅРѕРІРєР° РіСЂР°РЅРёС† РІ РІРёРґРµ РєСЂСѓРіР°
 void CBaseImageView::OnScrRoundBound()
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1079,7 +1082,7 @@ void CBaseImageView::OnScrRoundBound()
    Invalidate(FALSE);
 }
 
-// Установка границ в виде эллипса
+// РЈСЃС‚Р°РЅРѕРІРєР° РіСЂР°РЅРёС† РІ РІРёРґРµ СЌР»Р»РёРїСЃР°
 void CBaseImageView::OnScrEllipseBound()
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1107,7 +1110,7 @@ void CBaseImageView::OnScrEllipseBound()
    Invalidate(FALSE);
 }
 
-// Установка в виде прямоугольника 
+// РЈСЃС‚Р°РЅРѕРІРєР° РІ РІРёРґРµ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєР° 
 void CBaseImageView::OnScrRectBound()
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1151,7 +1154,7 @@ void CBaseImageView::OnScrPlgBound()
    Invalidate(FALSE);
 }
 
-//Инициализация прямоугольника установки границ
+//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєР° СѓСЃС‚Р°РЅРѕРІРєРё РіСЂР°РЅРёС†
 void CBaseImageView::BeginTracker(CPoint P1)
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1172,7 +1175,7 @@ void CBaseImageView::BeginTracker(CPoint P1)
     Invalidate(FALSE);
 }
 
-//Перетаскивание прямоугольника установки границ
+//РџРµСЂРµС‚Р°СЃРєРёРІР°РЅРёРµ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєР° СѓСЃС‚Р°РЅРѕРІРєРё РіСЂР°РЅРёС†
 void CBaseImageView::DragTracker(CPoint P2)
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
@@ -1182,7 +1185,7 @@ void CBaseImageView::DragTracker(CPoint P2)
     pDoc->Tracker.Track(this, &dc, P2, false);
 }
 
-//Конец Перетаскивания прямоугольника установки границ
+//РљРѕРЅРµС† РџРµСЂРµС‚Р°СЃРєРёРІР°РЅРёСЏ РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРєР° СѓСЃС‚Р°РЅРѕРІРєРё РіСЂР°РЅРёС†
 void CBaseImageView::DropTracker(CPoint P2)
 {
     CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();

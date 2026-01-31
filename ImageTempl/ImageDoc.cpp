@@ -1,4 +1,4 @@
-// ImageDoc.cpp : implementation file
+ï»¿// ImageDoc.cpp : implementation file
 //
 
 #include "stdafx.h"
@@ -590,7 +590,8 @@ void CImageDoc::SetTitle(LPCTSTR lpszTitle)
 void CImageDoc::SetZoomToTitle()
 {
 	CImageView* pV = GetView();
-	float zLevel = pV->GetZoomLevel();
+    float zLevel = 1.0f;
+    if (pV) zLevel = (float)pV->GetViewTransform().GetScale();
 	CString Title, s;
 	Title = GetTitle();
 	int iP = Title.Find(" @");
@@ -713,7 +714,7 @@ void CImageDoc::GetImageInfo(CString& Info)
 {
 	CImageCtrls* pImg = GetImageCtrls();
 	CString s;
-	LPCTSTR text = CRS("Ðàçìåð :", "Size :");
+	LPCTSTR text = CRS("Ð Ð°Ð·Ð¼ÐµÑ€ :", "Size :");
 	s.Format("%d x %d\r\n", pImg->m_pDIB->m_dwWidth, pImg->m_pDIB->m_dwHeight);
 	s = text + s;
 	Info += s;
@@ -1020,10 +1021,10 @@ BOOL CImageDoc::CheckForSave()
 {
 	if (IsModified()) {
 		CString Title = GetTitle();
-		LPCTSTR text = CRS("Ñîõðàíèòü îöèôðîâêó\r\n", "Save digitization of\r\n");
+		LPCTSTR text = CRS("Ð¡Ð¾Ñ…Ñ€Ð°Ð½Ð¸Ñ‚ÑŒ Ð¾Ñ†Ð¸Ñ„Ñ€Ð¾Ð²ÐºÑƒ\r\n", "Save digitization of\r\n");
 		CString mes;
 		mes += text; mes += Title;
-		LPCTSTR war = CRS("Âîïðîñ", "Question");
+		LPCTSTR war = CRS("Ð’Ð¾Ð¿Ñ€Ð¾Ñ", "Question");
 		int res = GetView()->MessageBox(text, war, MB_ICONQUESTION | MB_YESNOCANCEL);
 		if (res == IDYES)
 			OnFileSave();

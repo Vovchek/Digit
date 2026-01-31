@@ -8,6 +8,7 @@
 
 // Forward declarations (global namespace)
 class CDigitInfo;
+class ViewTransform;
 
 namespace DigitMode {
 
@@ -126,6 +127,13 @@ private:
     int m_hoverDot = -1;
 
 public:
+    // Pan/zoom short-circuit state
+    bool m_isPanning = false;
+    CPoint m_lastPanPoint = CPoint(-1, -1);
+    void OnMouseWheel(const CPoint& pt, short zDelta, ViewTransform* view);
+    void BeginPan(const CPoint& pt);
+    void ContinuePan(const CPoint& pt, ViewTransform* view);
+    void EndPan();
     /**
      * @brief Set the current editing mode
      * @param newMode Mode to switch to

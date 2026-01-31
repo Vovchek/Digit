@@ -6,6 +6,7 @@
 #include "CommandDispatcher.h"
 #include <memory>
 #include "HitTester.h"
+#include "../ImageTempl/ViewTransform.h"
 
 namespace DigitMode {
 
@@ -214,6 +215,31 @@ void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo*
     if (IsInDrawMode() && IsActiveSegmentValid(pDigit)) {
         //TRACE("InputHandler::OnMouseMove preview at (%d,%d)\n", pt.x, pt.y);
     }
+}
+
+void InputHandler::OnMouseWheel(const CPoint& pt, short zDelta, ::ViewTransform* view) {
+    ModifierState mods = ModifierState::FromKeyboard();
+    if (mods.ctrl && view) {
+        double factor = (zDelta > 0) ? 1.15 : (1.0 / 1.15);
+        view->ZoomAt(pt, factor);
+    }
+}
+
+void InputHandler::BeginPan(const CPoint& pt) {
+    m_isPanning = true;
+    m_lastPanPoint = pt;
+}
+
+void InputHandler::ContinuePan(const CPoint& pt, ::ViewTransform* view) {
+    if (!m_isPanning || !view) return;
+    CPoint delta(pt.x - m_lastPanPoint.x, pt.y - m_lastPanPoint.y);
+    view->PanBy(delta);
+    m_lastPanPoint = pt;
+}
+
+void InputHandler::EndPan() {
+    m_isPanning = false;
+    m_lastPanPoint = CPoint(-1, -1);
 }
 
 void InputHandler::OnLButtonUp(CPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {

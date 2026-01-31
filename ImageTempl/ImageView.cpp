@@ -26,6 +26,64 @@ void Polyline(int pn, ISO_POINT *plist, double level, int ilevel)
   gr->SingleIsoline(pn, plist, level, ilevel);
 }
 
+// Override image drawing to draw bitmap without the world transform (to get proper resampling)
+void CImageView::DrawImage(CDC* pDC)
+{
+    CImageCtrls* pImCtrls = GetImageCtrls(this);
+    SECDib* pImage = (SECDib*)pImCtrls->GetImage();
+    CControls* pCtrls = GetControls();
+
+    if(pImage && (pCtrls->ViewState & V_INTERFEROGRAM)){
+        // compute destination rect in screen coords using ViewTransform
+        CRect rcDIB(pImCtrls->GetDIBRect());
+        CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)rcDIB.left, (double)rcDIB.top});
+        CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)rcDIB.right, (double)rcDIB.bottom});
+        CRect rcDest(tl, br);
+        rcDest.NormalizeRect();
+
+        // Temporarily disable any world transform on this DC so StretchDIBits uses high-quality scaling
+        HDC hdc = pDC->GetSafeHdc();
+        XFORM oldX;
+        BOOL hadTransform = FALSE;
+        memset(&oldX, 0, sizeof(oldX));
+        if (GetWorldTransform(hdc, &oldX)) {
+            // set identity transform
+            XFORM id = {1.0f,0.0f,0.0f,1.0f,0.0f,0.0f};
+            SetWorldTransform(hdc, &id);
+            hadTransform = TRUE;
+        }
+
+        CPalette* pOldPalette = NULL;
+        if(pImage && pImage->m_pPalette)
+            pOldPalette = pDC->SelectPalette(pImage->m_pPalette, TRUE);
+        // Use high-quality stretching for bitmap resampling
+        int prevMode = SetStretchBltMode(hdc, HALFTONE);
+        pDC->SetBrushOrg(rcDest.left % 8, rcDest.top % 8);
+        pImage->m_bUseHalftone = TRUE;
+        int ix = rcDIB.left, iy = rcDIB.top, iw = rcDIB.Width(), ih = rcDIB.Height();
+        pImage->StretchDIBits(pDC,
+            rcDest.left, rcDest.top, rcDest.Width(), rcDest.Height(),
+            ix, iy, iw, ih,
+            pImage->m_lpSrcBits,
+            pImage->m_lpBMI, DIB_RGB_COLORS,
+            SRCCOPY);
+
+        if(pOldPalette)
+            pDC->SelectPalette(pOldPalette, TRUE);
+        // restore previous stretch mode
+        SetStretchBltMode(hdc, prevMode);
+
+        // restore previous world transform
+        if (hadTransform) {
+            SetWorldTransform(hdc, &oldX);
+        }
+    }
+    else{
+        CRect clRect; GetClientRect(clRect);
+        pDC->FillRect(&clRect, &CBrush(RGB(0,0,0)));
+    }
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // CImageView
 
@@ -173,6 +231,7 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_PLUS, OnUpdateNumberPlus)
     ON_WM_ERASEBKGND()
     ON_WM_MOUSEMOVE()
+    ON_WM_MOUSEWHEEL()
     ON_WM_LBUTTONDOWN()
     ON_WM_LBUTTONUP()
     ON_WM_RBUTTONDOWN()
@@ -186,6 +245,7 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_WM_CONTEXTMENU()
 	ON_WM_SETFOCUS()
 	ON_WM_KEYDOWN()
+    ON_WM_KEYUP()
 	ON_WM_TIMER()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONDBLCLK()
@@ -270,6 +330,12 @@ void CImageView::OnDraw(CDC* pDC)
     CControls* pCtrls = GetControls();
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
+    // ViewTransform is used for coordinate conversions. We draw bitmap in
+    // device coords (no world-transform) for proper resampling, then apply
+    // a temporary GDI world-transform to the same DC for vector overlays
+    // so they scale/translate correctly. xForm is computed after rectClip so
+    // we can adjust translation when drawing to an offscreen bitmap.
+
     CDC dc;
     CDC* pDrawDC = pDC;
     CBitmap bitmap;
@@ -281,6 +347,15 @@ void CImageView::OnDraw(CDC* pDC)
     pDC->LPtoDP(&rectClip);
     rectClip.InflateRect(1, 1); // avoid rounding to nothing
 
+    // compute world transform based on current view
+    double s = m_viewTransform.GetScale();
+    CPoint2d off = m_viewTransform.GetOffset();
+    XFORM xForm;
+    xForm.eM11 = (FLOAT)s; xForm.eM12 = 0.0f;
+    xForm.eM21 = 0.0f; xForm.eM22 = (FLOAT)s;
+    // default translation assumes drawing to screen DC
+    xForm.eDx = (FLOAT)off.x; xForm.eDy = (FLOAT)off.y;
+
     if (dc.CreateCompatibleDC(pDC)){
             if (bitmap.CreateCompatibleBitmap(pDC, rectClip.Width(), rectClip.Height()))
             {
@@ -288,6 +363,10 @@ void CImageView::OnDraw(CDC* pDC)
                 pDrawDC = &dc;
                 // offset origin more because bitmap is just piece of the whole drawing
                 dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
+                // When drawing into an offscreen bitmap the world transform's
+                // translation must be adjusted by the viewport offset.
+                xForm.eDx = (FLOAT)(off.x - rectClip.left);
+                xForm.eDy = (FLOAT)(off.y - rectClip.top);
                 pOldBitmap = dc.SelectObject(&bitmap);
                 dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
                 // might as well clip to the same rectangle
@@ -297,6 +376,21 @@ void CImageView::OnDraw(CDC* pDC)
 	
     DrawBackGround(pDrawDC);
     DrawImage(pDrawDC);
+
+    // Apply world-transform to the drawing DC for vector overlays
+    // Ensure DC mapping is prepared first
+    OnPrepareDC(pDrawDC, NULL);
+    HDC hDraw = pDrawDC->GetSafeHdc();
+    int oldMode = SetGraphicsMode(hDraw, GM_ADVANCED);
+    XFORM oldX; memset(&oldX, 0, sizeof(oldX));
+    bool hadOld = false;
+    if (GetWorldTransform(hDraw, &oldX)) {
+        hadOld = true;
+    }
+    // Always set desired transform so overlays follow view
+    SetWorldTransform(hDraw, &xForm);
+    BOOL worldApplied = TRUE;
+
     DrawMeasureLine(pDrawDC);
     if(pCtrls->EnableCustomDots){
        DrawCustomDots(pDrawDC);
@@ -313,7 +407,12 @@ void CImageView::OnDraw(CDC* pDC)
     DrawBounds(pDrawDC);
 	DrawDigitInfo(pDrawDC);
 	DrawAproximation(pDrawDC);
-	
+    // Restore world-transform for overlays
+    if (worldApplied) {
+        SetWorldTransform(hDraw, &oldX);
+        SetGraphicsMode(hDraw, oldMode);
+    }
+    // Drawing performed here... (no world-transform applied)
     if (pDrawDC != pDC){
         pDC->SetViewportOrg(0, 0);
         pDC->SetWindowOrg(0,0);
@@ -878,9 +977,9 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 	CControls* pCtrls = GetControls();
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CImageDoc* pActDoc = (CImageDoc*) GetWIActiveDocument();
-    CPoint l_point(point);
-    ClientToDoc(l_point);
-    CursorPos = l_point;
+    // Convert screen point to world (document) coordinates using ViewTransform
+    CPoint worldPt = m_viewTransform.ScreenToWorld(point);
+    CursorPos = worldPt;
 
     if(pDoc == pActDoc){
 
@@ -889,17 +988,41 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 
         ModifierState mods = ModifierState::FromKeyboard();
         m_inputHandler.SetMode(pCtrls->GetEditMode());
+    // Pan start / continue (space pressed) - use screen coords
+    if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+        if (!m_inputHandler.m_isPanning) {
+            // start panning on first event
+            m_inputHandler.BeginPan(point);
+            SetCapture();
+            return;
+        }
+        else {
+            // continue panning while space is held and mouse moves
+            m_inputHandler.ContinuePan(point, &m_viewTransform);
+            Invalidate(FALSE);
+            return;
+        }
+    }
         int hitSeg = -1, hitDot = -1;
-        SelectionLevel hoverLevel = m_hitTester.HitTest(l_point, hitSeg, hitDot, pDoc->Digit.Fringes);
+        // Hit test in world coordinates
+        SelectionLevel hoverLevel = m_hitTester.HitTest(worldPt, hitSeg, hitDot, pDoc->Digit.Fringes);
 
         // Update cursor using hit test result
         m_selectionMgr.SetHover(hoverLevel, hitSeg, hitDot);
 
         // If draw-mode active and we have a preview active, let InputHandler render preview via ImageView hooks
         if (m_inputHandler.IsInDrawMode()) {
-            m_inputHandler.OnMouseMove(l_point, mods, &pDoc->Digit, &m_cmdDispatcher);
+            // Pass world coordinates to InputHandler
+            m_inputHandler.OnMouseMove(worldPt, mods, &pDoc->Digit, &m_cmdDispatcher);
             Invalidate(FALSE);
-            //return; // consumed
+            //continue; still allow tooltip generation
+        }
+
+        // If panning is active, handle pan here
+        if (m_inputHandler.m_isPanning) {
+            m_inputHandler.ContinuePan(point, &m_viewTransform);
+            Invalidate(FALSE);
+            return;
         }
         
         // Show tooltip for hovered selection (use CToolTipCtrl)
@@ -947,29 +1070,29 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 			GetAsyncKeyState(VK_UP)<0 || GetAsyncKeyState(VK_DOWN)<0)
 		      keyDown = TRUE;
 		
-		if(keyDown && pDoc->IsFotoSections()){
-			DrawMouseMoveCrossedLines(l_point);
-			pDoc->ReSetSections(l_point);
-     	    InvalidateRect(NULL,FALSE);
-		}
+        if(keyDown && pDoc->IsFotoSections()){
+            DrawMouseMoveCrossedLines(worldPt);
+            pDoc->ReSetSections(worldPt);
+            InvalidateRect(NULL,FALSE);
+        }
 		else if(pCtrls->EnableOptions & I_MEASURE_ACTIVE &&
 			pCtrls->EnableOptions & I_MEASURE_DRAW){
-			DrawMouseMoveMeasureLine(l_point);
+            DrawMouseMoveMeasureLine(worldPt);
 		}
 		else if((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots){
-			DragCustomDot(l_point);
+            DragCustomDot(worldPt);
 		}
 		else if((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots){
-			DragCustomDot(l_point);
+            DragCustomDot(worldPt);
 		}
 		else if(pDoc->Tracker.GetDragingState()){
-			DragTracker(l_point);
+            DragTracker(worldPt);
 		}
 		else if(pDoc->IsLockedDot()){
-			DragDot(l_point);
+            DragDot(worldPt);
 		}
 		else if(pDoc->IsLockedZapSection()){
-			DragZapSection(l_point);
+            DragZapSection(worldPt);
 		}
 	}
     CBaseImageView::OnMouseMove(nFlags, point);
@@ -977,9 +1100,28 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 
 BOOL CImageView::PreTranslateMessage(MSG* pMsg)
 {
-    if (m_tooltip.m_hWnd)
+    if (pMsg && m_tooltip.m_hWnd && ::IsWindow(m_tooltip.m_hWnd)) {
+        // Relay to tooltip control only when it is a valid window and message available
         m_tooltip.RelayEvent(pMsg);
+    }
+    // Always call base PreTranslateMessage if available
     return CBaseImageView::PreTranslateMessage(pMsg);
+}
+
+BOOL CImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    // Handle zooming here: Ctrl+wheel zooms at cursor, otherwise default scroll
+    if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
+        CPoint clientPt = pt; ScreenToClient(&clientPt);
+        double factor = (zDelta > 0) ? 1.15 : (1.0/1.15);
+        m_viewTransform.ZoomAt(clientPt, factor);
+        Invalidate(FALSE);
+        return TRUE;
+    }
+    // Fallback to InputHandler/paging
+    m_inputHandler.OnMouseWheel(pt, zDelta, &m_viewTransform);
+    Invalidate(FALSE);
+    return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
 void CImageView::OnLButtonDown(UINT nFlags, CPoint point) 
@@ -990,9 +1132,10 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     CControls* pCtrls = GetControls();
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-    CPoint l_point(point);
-    ClientToDoc(l_point);
-	CursorPos = l_point;
+    // convert screen to world and set cursor
+    CPoint worldPt = m_viewTransform.ScreenToWorld(point);
+    CPoint l_point(worldPt);
+    CursorPos = worldPt;
 
     // Forward to InputHandler for draw-mode / UI-requested draw interactions
     using namespace DigitMode;
@@ -1005,8 +1148,8 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     }
 
     if(pDoc->IsFotoSections()){
-	    DrawMouseMoveCrossedLines(l_point);
-		pDoc->ReSetSections(l_point);
+    	DrawMouseMoveCrossedLines(worldPt);
+    	pDoc->ReSetSections(worldPt);
  	    InvalidateRect(NULL, FALSE);
 	}
     else if(pCtrls->EnableOptions & I_MEASURELINE){
@@ -1067,6 +1210,12 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
     m_inputHandler.SetMode(pCtrls->GetEditMode());
     if (m_inputHandler.IsInDrawMode()) {
         m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
+    }
+    if (m_inputHandler.m_isPanning) {
+        m_inputHandler.EndPan();
+        ReleaseCapture();
         Invalidate(FALSE);
         return;
     }
@@ -1326,6 +1475,18 @@ void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
   pDoc->OnKeyDown(nChar, nRepCnt, nFlags);
   CBaseImageView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+void CImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    // Stop panning when space released
+    if (nChar == VK_SPACE && m_inputHandler.m_isPanning) {
+        m_inputHandler.EndPan();
+        ReleaseCapture();
+        Invalidate(FALSE);
+        return;
+    }
+    CBaseImageView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
 
 void CImageView::OnTimer(UINT nIDEvent) 
