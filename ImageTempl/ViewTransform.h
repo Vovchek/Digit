@@ -24,6 +24,24 @@ public:
         scale = newScale;
     }
 
+    // Zoom to fit image rect into client rect, then center
+    void ZoomToFit(const CRect& imageRect, const CRect& clientRect) {
+        if (imageRect.IsRectEmpty() || clientRect.IsRectEmpty()) return;
+        
+        // Calculate scale to fit image in client area (with small margin)
+        double scaleX = (clientRect.Width() - 20.0) / imageRect.Width();
+        double scaleY = (clientRect.Height() - 20.0) / imageRect.Height();
+        scale = min(scaleX, scaleY);
+        if (scale < 0.02) scale = 0.02;
+        if (scale > 22.0) scale = 22.0;
+
+        // Center the scaled image
+        double scaledW = imageRect.Width() * scale;
+        double scaledH = imageRect.Height() * scale;
+        offset.x = (clientRect.Width() - scaledW) / 2.0;
+        offset.y = (clientRect.Height() - scaledH) / 2.0;
+    }
+
     // Pan by screen delta (client pixels)
     void PanBy(const CPoint& deltaScreen) {
         offset.x += deltaScreen.x;

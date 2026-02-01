@@ -59,6 +59,10 @@ public:
     void DrawImage(CDC* pDC);
     // Center image in viewport
     void CenterImageInView();
+    // Override zoom methods to use ViewTransform
+    void OnZoomIn();
+    void OnZoomOut();
+    void OnZoomFit();
 
 // Overrides
 	// ClassWizard generated virtual function overrides

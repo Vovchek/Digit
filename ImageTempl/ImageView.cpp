@@ -286,6 +286,9 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
     ON_UPDATE_COMMAND_UI(IDD_BOUNDS_INS, OnUpdateInsBounds)
     ON_COMMAND(IDD_ZOOM_IMAGE, OnZoom)
     ON_UPDATE_COMMAND_UI(IDD_ZOOM_IMAGE, OnUpdateZoom)
+    ON_COMMAND(IDD_ZOOM_IN, OnZoomIn)
+    ON_COMMAND(IDD_ZOOM_OUT, OnZoomOut)
+    ON_COMMAND(IDD_ZOOM_FIT, OnZoomFit)
     ON_COMMAND(IDD_EDIT_UNDO, OnUndo)
     ON_UPDATE_COMMAND_UI(IDD_EDIT_UNDO, OnUpdateUndo)
     ON_COMMAND(IDD_EDIT_REDO, OnEditRedo)
@@ -448,6 +451,35 @@ void CImageView::CenterImageInView()
     CPoint2d newOffset = {offsetX, offsetY};
     m_viewTransform.SetOffset(newOffset);
     
+    Invalidate(FALSE);
+}
+
+void CImageView::OnZoomIn()
+{
+    CRect clientR;
+    GetClientRect(clientR);
+    CPoint center(clientR.Width()/2, clientR.Height()/2);
+    m_viewTransform.ZoomAt(center, 1.15);
+    Invalidate(FALSE);
+}
+
+void CImageView::OnZoomOut()
+{
+    CRect clientR;
+    GetClientRect(clientR);
+    CPoint center(clientR.Width()/2, clientR.Height()/2);
+    m_viewTransform.ZoomAt(center, 1.0/1.15);
+    Invalidate(FALSE);
+}
+
+void CImageView::OnZoomFit()
+{
+    CImageCtrls* pImage = GetImageCtrls(this);
+    CRect imgRect = pImage->GetDIBRect();
+    CRect clientR;
+    GetClientRect(clientR);
+    
+    m_viewTransform.ZoomToFit(imgRect, clientR);
     Invalidate(FALSE);
 }
 
@@ -889,7 +921,7 @@ void CImageView::DrawMouseMoveMeasureLine(CPoint P2)
       CRect rcDIB(pImCtrls->GetDIBRect());
       CRect rcDest(pImCtrls->GetDIBRect());
       pMCtrls->SetFirstPoint(rcDest, rcDIB, TL);
-      pMCtrls->SetSecondPoint(rcDest, rcDIB, BR);
+      pMCtrls->SetSecondPoint(rcDIB, rcDest, BR);
       pDoc->WriteMeasureCtrls();
 
       dc.SetROP2(orop);
@@ -1255,6 +1287,23 @@ BOOL CImageView::PreTranslateMessage(MSG* pMsg)
         // Relay to tooltip control only when it is a valid window and message available
         m_tooltip.RelayEvent(pMsg);
     }
+    
+    // Handle Ctrl+'+'/'-'/'0' for zoom
+    if (pMsg && pMsg->message == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0x8000)) {
+        if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS || pMsg->wParam == 0xBB) {
+            OnZoomIn();
+            return TRUE;
+        }
+        else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS || pMsg->wParam == 0xBD) {
+            OnZoomOut();
+            return TRUE;
+        }
+        else if (pMsg->wParam == '0' || pMsg->wParam == VK_NUMPAD0) {
+            OnZoomFit();
+            return TRUE;
+        }
+    }
+    
     // Always call base PreTranslateMessage if available
     return CBaseImageView::PreTranslateMessage(pMsg);
 }
