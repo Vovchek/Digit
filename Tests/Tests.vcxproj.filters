@@ -5,7 +5,6 @@
     <ClCompile Include="..\InterfSolver\Tools\Vector.cpp" />
     <ClCompile Include="..\MGTools\Source\Utils\BaseDataType.cpp" />
     <ClCompile Include="gtest_main.cpp" />
-    <ClCompile Include="test.cpp" />
     <ClCompile Include="pch.cpp" />
     <ClCompile Include="..\InterfSolver\Tools\CalcContour.cpp">
       <Filter>ApertureTests</Filter>
@@ -107,6 +106,7 @@
     <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
     <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
     <ClCompile Include="DigitModeTests\InputHandlerTest.cpp" />
+    <ClCompile Include="DigitModeTests\NavigateModeTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

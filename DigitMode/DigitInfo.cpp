@@ -604,6 +604,9 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
             }
         }
     }
+    
+    // Draw selection highlighting (glow effect for selected items)
+    selectionManager.DrawSelection(pDC, Fringes);
 }
 
 void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)

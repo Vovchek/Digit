@@ -1340,17 +1340,37 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     // Forward to InputHandler for draw-mode / UI-requested draw interactions
     using namespace DigitMode;
     CControls* pCtrlsLocal = GetControls();
-	m_inputHandler.SetMode(pCtrls->GetEditMode());
+    EditMode mode = pCtrls->GetEditMode();
+	m_inputHandler.SetMode(mode);
+    
+    TRACE("OnLButtonDown: mode=%d, IsInDrawMode=%d\n", static_cast<int>(mode), m_inputHandler.IsInDrawMode());
+    
+    // Handle Draw mode
     if (m_inputHandler.IsInDrawMode()) {
         // If panning is active, ignore draw clicks to avoid accidental dots
         if (m_inputHandler.m_isPanning) {
             return;
         }
+        TRACE("OnLButtonDown: Forwarding to InputHandler (Draw mode)\n");
         m_inputHandler.OnLButtonDown(nFlags, l_point, &((CImageDoc*)GetDocument())->Digit, &m_cmdDispatcher);
         Invalidate(FALSE);
         return;
     }
+    
+    // Handle Navigate mode (CRITICAL: Must be before legacy code!)
+    if (m_inputHandler.GetMode() == EditMode::Navigate) {
+        // If panning is active, ignore selection clicks
+        if (m_inputHandler.m_isPanning) {
+            return;
+        }
+        TRACE("OnLButtonDown: Forwarding to InputHandler (Navigate mode) at (%d,%d)\n", l_point.x, l_point.y);
+        m_inputHandler.OnLButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
+    }
 
+    TRACE("OnLButtonDown: Falling through to legacy code\n");
+    // Legacy code for other modes (measure, bounds, etc.)
     if(pDoc->IsFotoSections()){
     	DrawMouseMoveCrossedLines(worldPt);
     	pDoc->ReSetSections(worldPt);
@@ -1417,6 +1437,14 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
         Invalidate(FALSE);
         return;
     }
+    
+    // Handle Navigate mode (box selection end)
+    if (m_inputHandler.GetMode() == EditMode::Navigate) {
+        m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
+        Invalidate(FALSE);
+        return;
+    }
+    
     if (m_inputHandler.m_isPanning) {
         m_inputHandler.EndPan();
         ReleaseCapture();

@@ -25,6 +25,21 @@ enum class SelectionLevel {
 };
 
 /**
+ * @brief Box selection mode (affected by modifiers)
+ * 
+ * According to UX v1.0:
+ * - Default: Dot inside, Edge intersects, Segment all edges included
+ * - Segment mode (Shift): Segment if any part intersects
+ * - Fringe mode (Alt): All segments with same Number if any intersects
+ */
+enum class BoxSelectionMode {
+    Default,    ///< Standard box selection rules
+    Segment,    ///< Select entire segment if any part intersects (Shift)
+    Fringe,     ///< Select fringe if any segment intersects (Alt)
+    AddMode     ///< Add to existing selection (Ctrl)
+};
+
+/**
  * @brief Manages persistent, hierarchical selection state
  * 
  * Key Principles:
@@ -101,13 +116,17 @@ public:
      * @brief Select all objects within a rectangular box
      * @param box Selection box in screen coordinates
      * @param segments Reference to segment array for querying
+     * @param mode Box selection mode (Default/Segment/Fringe/AddMode)
      * @return Number of objects selected
      * 
-     * Rules:
-     * - Selects all objects intersecting the box
-     * - Selection level depends on current mode (Dot, Edge, Segment)
+     * Rules (UX v1.0):
+     * - Default: Dot if inside, Edge if intersects, Segment if all edges included
+     * - Segment mode: Segment if ANY part intersects
+     * - Fringe mode: All segments with same Number if any segment intersects
+     * - AddMode: Add to existing selection instead of replacing
      */
-    size_t SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments);
+    size_t SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments,
+                     BoxSelectionMode mode = BoxSelectionMode::Default);
 
     // ===== Multi-Selection =====
 

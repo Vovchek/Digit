@@ -453,6 +453,9 @@
     <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
     <None Include="Docs\INPUTHANDLERTEST_REWRITE.md" />
     <None Include="Docs\TEST_SUITE_FIXES_SUMMARY.md" />
+    <None Include="Docs\NAVIGATE_MODE_IMPLEMENTATION.md" />
+    <None Include="Docs\NAVIGATE_MODE_VISUALIZATION_FIXES.md" />
+    <None Include="Docs\NAVIGATE_MODE_INTEGRATION_FIX.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

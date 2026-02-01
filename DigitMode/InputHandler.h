@@ -163,12 +163,10 @@ public:
      * @brief Start drawing a new segment at point P
      * @param P Starting point in image coordinates
      * @param pDigit Pointer to DigitInfo (for accessing Fringes)
-     * 
+     * @param pCmdDisp Pointer to CommandDispatcher (to create/execute Commands directly)
+     *
      * Creates a new segment with incremented Number value
-     * @deprecated Use overload with CommandDispatcher for undo support
      */
-    void StartNewSegment(CPoint P, ::CDigitInfo* pDigit);
-    // Overload that accepts CommandDispatcher to create/execute Commands directly
     void StartNewSegment(CPoint P, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
@@ -243,6 +241,19 @@ public:
     ActiveEnd GetActiveEnd() const { return activeEnd; }
     CPoint GetCurrentCursorPos() const { return m_cursorPos; }
 	CPoint GetActiveDot(const ::CDigitInfo* doc) const;
+    
+    /**
+     * @brief Draw selection box (rubber band) during box select drag
+     * @param pDC Device context to draw on
+     */
+    void DrawSelectionBox(CDC* pDC) const;
+    
+    /**
+     * @brief Check if currently dragging a selection box
+     */
+    bool IsDraggingSelectionBox() const {
+        return m_drag.active && m_drag.type == DragState::Type::BoxSelect;
+    }
 };
 
 } // namespace DigitMode

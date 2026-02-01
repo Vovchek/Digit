@@ -71,6 +71,12 @@ void CImageView::OnDraw(CDC* pDC)
     DrawBounds(pDrawDC);
     DrawDigitInfo(pDrawDC);
     DrawAproximation(pDrawDC);
+    
+    // Draw selection box (rubber band) if dragging in Navigate mode
+    if (m_inputHandler.IsDraggingSelectionBox()) {
+        m_inputHandler.DrawSelectionBox(pDrawDC);
+    }
+    
     // Drawing performed here... (no world-transform applied)
     if (pDrawDC != pDC){
         pDC->SetViewportOrg(0, 0);

@@ -105,17 +105,81 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
         }
     }
 
-    // Navigate mode: begin box select if empty, else prepare drag
+    // Navigate mode: handle selection and box select
     if (currentMode == EditMode::Navigate) {
         if (level == SelectionLevel::None) {
+            // Empty click: start box select
             m_drag.active = true;
             m_drag.type = DragState::Type::BoxSelect;
             m_drag.start = pt;
             m_drag.current = pt;
-        } else if (level == SelectionLevel::Dot) {
-            BeginDotDrag(hitSeg, hitDot, pt, pDigit);
-        } else if (level == SelectionLevel::Edge) {
-            BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
+        } 
+        else if (level == SelectionLevel::Dot) {
+            // Click on dot
+            if (mods.ctrl) {
+                // Ctrl+Click: Add/toggle to selection
+                SelectionManager::SelectedObject obj;
+                obj.level = SelectionLevel::Dot;
+                obj.iSegment = hitSeg;
+                obj.iDot = hitDot;
+                pDigit->selectionManager.AddToSelection(obj);
+            }
+            else if (mods.shift) {
+                // Shift+Click: Range select (TODO: implement range logic)
+                // For now, just select the dot
+                pDigit->selectionManager.SelectDot(hitSeg, hitDot);
+            }
+            else if (mods.alt) {
+                // Alt+Click: Promote to Fringe
+                pDigit->selectionManager.SelectDot(hitSeg, hitDot);
+                pDigit->selectionManager.PromoteToFringe(pDigit->Fringes);
+            }
+            else {
+                // Plain click: Select single
+                pDigit->selectionManager.SelectDot(hitSeg, hitDot);
+            }
+            
+            // Start drag if not Ctrl (Ctrl is just toggle)
+            if (!mods.ctrl) {
+                BeginDotDrag(hitSeg, hitDot, pt, pDigit);
+            }
+        } 
+        else if (level == SelectionLevel::Edge) {
+            // Click on edge
+            if (mods.ctrl) {
+                SelectionManager::SelectedObject obj;
+                obj.level = SelectionLevel::Edge;
+                obj.iSegment = hitSeg;
+                obj.iEdge = hitDot; // HitTester returns edge start index in hitDot
+                pDigit->selectionManager.AddToSelection(obj);
+            }
+            else if (mods.alt) {
+                pDigit->selectionManager.SelectEdge(hitSeg, hitDot);
+                pDigit->selectionManager.PromoteToFringe(pDigit->Fringes);
+            }
+            else {
+                pDigit->selectionManager.SelectEdge(hitSeg, hitDot);
+            }
+            
+            if (!mods.ctrl) {
+                BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
+            }
+        }
+        else if (level == SelectionLevel::Segment) {
+            // Click on segment body
+            if (mods.ctrl) {
+                SelectionManager::SelectedObject obj;
+                obj.level = SelectionLevel::Segment;
+                obj.iSegment = hitSeg;
+                pDigit->selectionManager.AddToSelection(obj);
+            }
+            else if (mods.alt) {
+                pDigit->selectionManager.SelectSegment(hitSeg);
+                pDigit->selectionManager.PromoteToFringe(pDigit->Fringes);
+            }
+            else {
+                pDigit->selectionManager.SelectSegment(hitSeg);
+            }
         }
     }
 }
@@ -132,12 +196,6 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit, C
 }
 
 void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
-    if (!pCmdDisp || !pDigit) {
-        // Fallback to legacy behaviour
-        StartNewSegment(P, pDigit);
-        return;
-    }
-
     // Use command to create the new segment (no points yet)
     double newNumber = pDigit->CurrentNumber + pDigit->numStep;
     auto createCmd = std::make_unique<CreateSegmentCommand>(*pDigit, std::vector<CDPoint>{}, newNumber);
@@ -154,28 +212,6 @@ void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit, CommandDispatch
     CDPoint dp; dp.x = P.x; dp.y = P.y;
     auto addDot = std::make_unique<AddDotCommand>(pDigit, iActiveSegment, 0, dp);
     pCmdDisp->Execute(std::move(addDot));
-}
-
-void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit) {
-    ASSERT(pDigit != nullptr);
-    
-    // Get the next number for new segment
-    double newNumber = pDigit->CurrentNumber + pDigit->numStep;
-    
-    // Create new segment with incremented number
-    CFringeSegment newSegment(newNumber, pDigit->Fringes.size());
-    pDigit->Fringes.emplace_back(newSegment);
-    
-    // Update CurrentNumber for next segment
-    pDigit->CurrentNumber = newNumber;
-    
-    // Set as active segment
-    iActiveSegment = pDigit->Fringes.size() - 1;
-    
-    // Add first dot to segment (done via AddDotCommand in caller)
-    
-    TRACE("InputHandler::StartNewSegment: number=%.1f, segment=%d at (%d, %d)\n", 
-        newNumber, iActiveSegment, P.x, P.y);
 }
 
 void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
@@ -329,9 +365,23 @@ void InputHandler::HandleBoxSelection(CPoint start, CPoint end, CDigitInfo* pDig
     box.SetRect(start, end);
     box.NormalizeRect();
 
-    size_t count = pDigit->selectionManager.SelectBox(box, pDigit->Fringes);
+    // Determine mode from current modifiers
+    ModifierState mods = ModifierState::FromKeyboard();
+    BoxSelectionMode mode = BoxSelectionMode::Default;
+    
+    if (mods.alt) {
+        mode = BoxSelectionMode::Fringe;  // Alt = Fringe select
+    }
+    else if (mods.shift) {
+        mode = BoxSelectionMode::Segment;  // Shift = Segment select
+    }
+    else if (mods.ctrl) {
+        mode = BoxSelectionMode::AddMode;  // Ctrl = Add to selection
+    }
 
-    TRACE("InputHandler::HandleBoxSelection: Selected %zu objects\n", count);
+    size_t count = pDigit->selectionManager.SelectBox(box, pDigit->Fringes, mode);
+
+    TRACE("InputHandler::HandleBoxSelection: Selected %zu objects (mode=%d)\n", count, static_cast<int>(mode));
 }
 
 void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
@@ -445,6 +495,40 @@ bool InputHandler::GetRubberBand(const ::CDigitInfo* doc) const
 	if (!m_rubberBand) return false;
     ModifierState mods = ModifierState::FromKeyboard();
 	return IsInDrawMode() && !mods.alt && !m_drag.active && IsActiveSegmentValid(doc);
+}
+
+void InputHandler::DrawSelectionBox(CDC* pDC) const
+{
+    if (!pDC || !m_drag.active || m_drag.type != DragState::Type::BoxSelect) {
+        return;
+    }
+    
+    // Create selection box rectangle
+    CRect box;
+    box.SetRect(m_drag.start, m_drag.current);
+    box.NormalizeRect();
+    
+    // Save DC state
+    int savedDC = pDC->SaveDC();
+    
+    // Draw dashed rectangle for selection box
+    CPen pen(PS_DASH, 1, RGB(0, 120, 215));  // Blue dashed line
+    CPen* oldPen = pDC->SelectObject(&pen);
+    
+    // Set transparent brush (no fill)
+    CBrush* oldBrush = (CBrush*)pDC->SelectStockObject(NULL_BRUSH);
+    
+    // Set ROP2 for XOR drawing (so we can undraw easily)
+    int oldROP = pDC->SetROP2(R2_NOTXORPEN);
+    
+    // Draw the rectangle
+    pDC->Rectangle(&box);
+    
+    // Restore DC state
+    pDC->SetROP2(oldROP);
+    pDC->SelectObject(oldBrush);
+    pDC->SelectObject(oldPen);
+    pDC->RestoreDC(savedDC);
 }
 
 } // namespace DigitMode
