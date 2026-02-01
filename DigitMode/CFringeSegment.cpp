@@ -200,7 +200,7 @@ void CFringeSegment::DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORRE
 
 CFringeSegment CFringeSegment::Split(int atIndex)
 {
-    CFringeSegment newFringe(m_Number);
+    CFringeSegment newFringe(m_Number, m_Index+1);
     
     if (atIndex <= 0 || atIndex >= static_cast<int>(m_Points.size())) {
         return newFringe;  // Invalid, return empty

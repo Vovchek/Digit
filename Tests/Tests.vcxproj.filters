@@ -108,6 +108,7 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
+    <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

@@ -101,9 +101,9 @@ void SplitSegmentCommand::Undo() {
 
 ConnectSegmentsCommand::ConnectSegmentsCommand(CDigitInfo& doc, size_t segA, bool endA, size_t segB, bool endB)
     : m_doc(doc), m_segA(segA), m_segB(segB), m_endA(endA), m_endB(endB) {
-	m_lenA = doc.Fringes[static_cast<int>(segA)].GetPointCount();
-	m_numB = doc.Fringes[static_cast<int>(segB)].GetNumber();
-    m_indexB = doc.Fringes[static_cast<int>(segB)].GetIndex();
+	m_segA_before = m_doc.Fringes[static_cast<int>(m_segA)];
+	m_segB_before = m_doc.Fringes[static_cast<int>(m_segB)];
+	m_segA_after = segA;
 }
 
 void ConnectSegmentsCommand::Execute() {
@@ -112,9 +112,9 @@ void ConnectSegmentsCommand::Execute() {
     auto& B = m_doc.Fringes[static_cast<int>(m_segB)];
     if (m_endA) {
         if(m_endB)
-            A.AppendPoints(B);
-        else
             A.AppendPointsReverse(B);
+        else
+            A.AppendPoints(B);
     } else {
         if(m_endB)
             A.InsertPointsAtStart(B);
@@ -122,23 +122,22 @@ void ConnectSegmentsCommand::Execute() {
             A.InsertPointsAtStartReverse(B);
 	}
     m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(m_segB));
+	m_segA_after = (m_segB < m_segA) ? m_segA - 1 : m_segA;// Save data for undo
 }
 // TODO: fix segment index restoration
 void ConnectSegmentsCommand::Undo() {
-    // Restore A and reinsert B
-    auto& A = m_doc.Fringes[static_cast<int>(m_segA)];
-	CFringeSegment B;
-    if(m_endA) {
-        B = A.Split(m_lenA);
-    } else {
-		B = A.Split(A.GetPointCount() - m_lenA);
-		std::swap(A, B);
+    // Remove merged A
+    m_doc.Fringes.erase(m_doc.Fringes.begin() + m_segA_after);
+
+    // Reinsert original segments in correct order
+    if (m_segA < m_segB) {
+        m_doc.Fringes.insert(m_doc.Fringes.begin() + m_segA, m_segA_before);
+        m_doc.Fringes.insert(m_doc.Fringes.begin() + m_segB, m_segB_before);
     }
-    if (m_endB)
-        B.ReversePoints();
-    B.SetNumber(static_cast<double>(m_numB));
-    B.SetIndex(m_indexB);
-    m_doc.Fringes.insert(m_doc.Fringes.begin() + static_cast<int>(m_segB), B);
+    else {
+        m_doc.Fringes.insert(m_doc.Fringes.begin() + m_segB, m_segB_before);
+        m_doc.Fringes.insert(m_doc.Fringes.begin() + m_segA, m_segA_before);
+    }
 }
 
 RenumberSegmentsCommand::RenumberSegmentsCommand(CDigitInfo& doc, const std::vector<size_t>& segmentIndices, double newNumber)

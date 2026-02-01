@@ -201,6 +201,7 @@
     <ClCompile Include="DigitModeTests\SelectionManagerTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
     <ClCompile Include="gtest_main.cpp" />
     <ClCompile Include="InterfSolver\Tools\CalcContourClassificationBugTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

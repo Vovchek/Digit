@@ -92,15 +92,12 @@ public:
 private:
     CDigitInfo& m_doc;
     size_t m_segA;
-	size_t m_lenA;
+    size_t m_segA_after;
     size_t m_segB;
-    double m_numB;
-    int m_indexB;
     bool m_endA;
     bool m_endB;
-
-    std::vector<CPoint2d> m_segAPoints;
-    std::vector<CPoint2d> m_segBPoints;
+    CFringeSegment m_segA_before;
+    CFringeSegment m_segB_before;
 };
 
 // RenumberSegmentsCommand
