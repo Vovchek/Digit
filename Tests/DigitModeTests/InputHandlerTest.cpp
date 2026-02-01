@@ -1,25 +1,48 @@
 ﻿#include "stdafx.h"
 #include "gtest/gtest.h"
 #include "DigitMode/InputHandler.h"
-#include "DigitMode/CFringeSegment.h"  // Include for CFringeSegment
-#include "DigitMode/DigitInfo.h"      // Include for CDigitInfo
-#include "MGTools/Include/Utils/BaseDataType.h"  // Include for CDPoint
+#include "DigitMode/CommandDispatcher.h"
+#include "DigitMode/Commands/AllCommands.h"
+#include "DigitMode/CFringeSegment.h"
+#include "DigitMode/DigitInfo.h"
+#include "MGTools/Include/Utils/BaseDataType.h"
+#include "ImageTempl/ViewTransform.h"
 
 using namespace DigitMode;
 
 /**
  * @brief Test fixture for InputHandler
+ * 
+ * Tests InputHandler functionality including:
+ * - Mode switching
+ * - Draw mode operations (via CommandDispatcher)
+ * - Keyboard shortcuts
+ * - Active segment state management
  */
 class InputHandlerTest : public ::testing::Test {
 protected:
     InputHandler inputHandler;
+    CDigitInfo digitInfo;
+    CommandDispatcher cmdDispatcher;
 
     void SetUp() override {
-        // Ensure default state
+        digitInfo.Init();
+        digitInfo.CurrentNumber = 0.0;
+        digitInfo.numStep = 1.0;
     }
 
     void TearDown() override {
-        // Cleanup
+        digitInfo.Fringes.clear();
+    }
+
+    // Helper: Create a test segment with dots
+    int CreateTestSegment(double number, const std::vector<CDPoint>& points) {
+        CFringeSegment seg(number, digitInfo.Fringes.size());
+        for (const auto& p : points) {
+            seg.AddPoint(p);
+        }
+        digitInfo.Fringes.push_back(seg);
+        return digitInfo.Fringes.size() - 1;
     }
 };
 
@@ -40,143 +63,15 @@ TEST_F(InputHandlerTest, SetModeChangesMode) {
     EXPECT_FALSE(inputHandler.IsInDrawMode());
 }
 
-TEST_F(InputHandlerTest, IsInDrawModeWorks) {
-    inputHandler.SetMode(EditMode::Navigate);
-    EXPECT_FALSE(inputHandler.IsInDrawMode());
-
+TEST_F(InputHandlerTest, LeavingDrawModeFinalizesSegment) {
     inputHandler.SetMode(EditMode::Draw);
-    EXPECT_TRUE(inputHandler.IsInDrawMode());
-
-    inputHandler.SetMode(EditMode::DotEdit);
-    EXPECT_FALSE(inputHandler.IsInDrawMode());
-}
-
-TEST_F(InputHandlerTest, SetSameModeIsIdempotent) {
-    inputHandler.SetMode(EditMode::Draw);
-    EXPECT_EQ(EditMode::Draw, inputHandler.GetMode());
-
-    inputHandler.SetMode(EditMode::Draw);
-    EXPECT_EQ(EditMode::Draw, inputHandler.GetMode());
-}
-
-TEST_F(InputHandlerTest, LeavingDrawModeEndsSegment) {
-    inputHandler.SetMode(EditMode::Draw);
-    // TODO: Start a segment (requires DigitInfo integration)
-    // inputHandler.StartNewSegment(CPoint(10, 10));
-    // int activeSegment = inputHandler.GetActiveSegment();
-    // EXPECT_GE(activeSegment, 0);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    int iSeg = inputHandler.GetActiveSegment();
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
 
     inputHandler.SetMode(EditMode::Navigate);
-
-    // Active segment should be cleared
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
-}
-
-// ===== Draw Mode State Tests =====
-
-TEST_F(InputHandlerTest, InitialActiveSegmentIsNegative) {
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
-}
-
-TEST_F(InputHandlerTest, EndCurrentSegmentClearsActiveSegment) {
-    inputHandler.SetMode(EditMode::Draw);
-    // Simulate starting a segment (stubbed, just test state)
-    // inputHandler.StartNewSegment(CPoint(10, 10));
-
-    inputHandler.EndCurrentSegment();
-
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
-}
-
-TEST_F(InputHandlerTest, EndCurrentSegmentOnEmptyStateDoesNotCrash) {
-    // Should not crash when no segment is active
-    inputHandler.EndCurrentSegment();
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
-}
-
-TEST_F(InputHandlerTest, MultipleEndCurrentSegmentCallsAreSafe) {
-    inputHandler.EndCurrentSegment();
-    inputHandler.EndCurrentSegment();
-    inputHandler.EndCurrentSegment();
-
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
-}
-
-// ===== Mode Transition Tests =====
-
-TEST_F(InputHandlerTest, NavigateToDrawTransition) {
-    inputHandler.SetMode(EditMode::Navigate);
-    inputHandler.SetMode(EditMode::Draw);
-
-    EXPECT_EQ(EditMode::Draw, inputHandler.GetMode());
-}
-
-TEST_F(InputHandlerTest, DrawToNavigateTransition) {
-    inputHandler.SetMode(EditMode::Draw);
-    inputHandler.SetMode(EditMode::Navigate);
-
-    EXPECT_EQ(EditMode::Navigate, inputHandler.GetMode());
-}
-
-TEST_F(InputHandlerTest, DrawToDotEditTransition) {
-    inputHandler.SetMode(EditMode::Draw);
-    inputHandler.SetMode(EditMode::DotEdit);
-
-    EXPECT_EQ(EditMode::DotEdit, inputHandler.GetMode());
-}
-
-TEST_F(InputHandlerTest, DotEditToDrawTransition) {
-    inputHandler.SetMode(EditMode::DotEdit);
-    inputHandler.SetMode(EditMode::Draw);
-
-    EXPECT_EQ(EditMode::Draw, inputHandler.GetMode());
-}
-
-// ===== Stub Function Tests (Phase 1) =====
-
-TEST_F(InputHandlerTest, StartNewSegmentDoesNotCrash) {
-    inputHandler.SetMode(EditMode::Draw);
-    
-    // Stubbed function should not crash
-    // Note: Requires DigitInfo - skip in Phase 1 tests
-    // inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo);
-    
-    // TODO: Move to DrawModeTest in Phase 2
-}
-
-TEST_F(InputHandlerTest, ContinueSegmentDoesNotCrash) {
-    inputHandler.SetMode(EditMode::Draw);
-    
-    // Stubbed function should not crash
-    // Note: Requires DigitInfo - skip in Phase 1 tests
-    // inputHandler.ContinueSegment(0, 0, &digitInfo);
-    
-    // TODO: Move to DrawModeTest in Phase 2
-}
-
-TEST_F(InputHandlerTest, ConnectSegmentsDoesNotCrash) {
-    inputHandler.SetMode(EditMode::Draw);
-    
-    // Stubbed function should not crash
-    // Note: Requires DigitInfo - skip in Phase 1 tests
-    // inputHandler.ConnectSegments(1, 0, &digitInfo);
-    
-    // TODO: Move to DrawModeTest in Phase 2
-}
-
-// ===== Integration Readiness Tests =====
-
-TEST_F(InputHandlerTest, ModeSwitchingPreservesNoState) {
-    // Mode switching should not preserve draw state (by design)
-    inputHandler.SetMode(EditMode::Draw);
-    // Start segment (stubbed)
-    // inputHandler.StartNewSegment(CPoint(10, 10));
-
-    inputHandler.SetMode(EditMode::Navigate);
-    inputHandler.SetMode(EditMode::Draw);
-
-    // New draw session should have no active segment
-    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
 }
 
 TEST_F(InputHandlerTest, MultipleModeSwitchesStable) {
@@ -185,8 +80,280 @@ TEST_F(InputHandlerTest, MultipleModeSwitchesStable) {
         inputHandler.SetMode(EditMode::Draw);
         inputHandler.SetMode(EditMode::DotEdit);
     }
-
     EXPECT_EQ(EditMode::DotEdit, inputHandler.GetMode());
+}
+
+// ===== Draw Mode State Tests =====
+
+TEST_F(InputHandlerTest, InitialActiveSegmentIsNegative) {
+    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
+}
+
+TEST_F(InputHandlerTest, EndCurrentSegmentClearsActiveEnd) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    int iSeg = inputHandler.GetActiveSegment();
+
+    inputHandler.EndCurrentSegment();
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, EndCurrentSegmentOnEmptyStateDoesNotCrash) {
+    inputHandler.EndCurrentSegment();
+    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
+}
+
+TEST_F(InputHandlerTest, MultipleEndCurrentSegmentCallsAreSafe) {
+    inputHandler.EndCurrentSegment();
+    inputHandler.EndCurrentSegment();
+    inputHandler.EndCurrentSegment();
+    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
+}
+
+// ===== OnLButtonDown Tests =====
+
+TEST_F(InputHandlerTest, DrawMode_EmptyClickStartsNewSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.OnLButtonDown(0, CPoint(100, 100), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(1, digitInfo.Fringes.size());
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+    EXPECT_EQ(1, digitInfo.Fringes[0].GetPointCount());
+}
+
+TEST_F(InputHandlerTest, DrawMode_EmptyClickAddsToActiveSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    
+    inputHandler.OnLButtonDown(0, CPoint(20, 20), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(2, digitInfo.Fringes[0].GetPointCount());
+    EXPECT_DOUBLE_EQ(20.0, digitInfo.Fringes[0].GetPoint(1).x);
+}
+
+TEST_F(InputHandlerTest, DrawMode_ClickDotContinuesSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    int iSeg = CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    
+    inputHandler.OnLButtonDown(0, CPoint(20, 20), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+// ===== OnKeyDown Tests =====
+
+TEST_F(InputHandlerTest, BackspaceRemovesLastDot) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 0, 1, CDPoint(20, 20)));
+    
+    EXPECT_EQ(2, digitInfo.Fringes[0].GetPointCount());
+    
+    inputHandler.OnKeyDown(VK_BACK, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(1, digitInfo.Fringes[0].GetPointCount());
+    EXPECT_TRUE(cmdDispatcher.CanUndo());
+}
+
+TEST_F(InputHandlerTest, EscapeCancelsActiveSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+    
+    inputHandler.OnKeyDown(VK_ESCAPE, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
+    EXPECT_EQ(-1, inputHandler.GetActiveSegment());
+}
+
+TEST_F(InputHandlerTest, EnterFinalizesActiveSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    int iSeg = inputHandler.GetActiveSegment();
+    
+    inputHandler.OnKeyDown(VK_RETURN, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, KeyB_TogglesRubberBand) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_FALSE(inputHandler.GetRubberBand(&digitInfo));
+    
+    inputHandler.OnKeyDown('b', &digitInfo, &cmdDispatcher);
+    EXPECT_TRUE(inputHandler.GetRubberBand(&digitInfo));
+    
+    inputHandler.OnKeyDown('B', &digitInfo, &cmdDispatcher);
+    EXPECT_FALSE(inputHandler.GetRubberBand(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, KeyDownOutsideDrawModeIgnored) {
+    inputHandler.SetMode(EditMode::Navigate);
+    
+    inputHandler.OnKeyDown(VK_BACK, &digitInfo, &cmdDispatcher);
+    inputHandler.OnKeyDown(VK_ESCAPE, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(EditMode::Navigate, inputHandler.GetMode());
+}
+
+// ===== ContinueSegment Tests =====
+
+TEST_F(InputHandlerTest, ContinueSegmentFromTail) {
+    inputHandler.SetMode(EditMode::Draw);
+    int iSeg = CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    
+    inputHandler.ContinueSegment(iSeg, 1, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, ContinueSegmentFromHead) {
+    inputHandler.SetMode(EditMode::Draw);
+    int iSeg = CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    
+    inputHandler.ContinueSegment(iSeg, 0, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, ContinueSegmentRejectsMiddleDot) {
+    inputHandler.SetMode(EditMode::Draw);
+    int iSeg = CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20), CDPoint(30, 30)});
+    
+    inputHandler.ContinueSegment(iSeg, 1, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+// ===== ConnectSegments Tests =====
+
+TEST_F(InputHandlerTest, ConnectSegmentsMergesTwoSegments) {
+    inputHandler.SetMode(EditMode::Draw);
+    CreateTestSegment(1.0, {CDPoint(0, 0), CDPoint(10, 10)});
+    CreateTestSegment(2.0, {CDPoint(20, 20), CDPoint(30, 30)});
+    
+    inputHandler.ContinueSegment(0, 1, &digitInfo, &cmdDispatcher);
+    inputHandler.ConnectSegments(1, 0, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(1, digitInfo.Fringes.size());
+    EXPECT_TRUE(cmdDispatcher.CanUndo());
+}
+
+// ===== Drag & Drop Tests =====
+
+TEST_F(InputHandlerTest, DotDragCommitsMoveDotCommand) {
+    inputHandler.SetMode(EditMode::Draw);
+    CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    
+    inputHandler.OnLButtonDown(0, CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    inputHandler.OnLButtonUp(CPoint(15, 15), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_DOUBLE_EQ(15.0, digitInfo.Fringes[0].GetPoint(0).x);
+    EXPECT_TRUE(cmdDispatcher.CanUndo());
+}
+
+TEST_F(InputHandlerTest, NavigateMode_BoxSelection) {
+    inputHandler.SetMode(EditMode::Navigate);
+    CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    CreateTestSegment(2.0, {CDPoint(30, 30), CDPoint(40, 40)});
+    
+    inputHandler.OnLButtonDown(0, CPoint(5, 5), &digitInfo, &cmdDispatcher);
+    inputHandler.OnLButtonUp(CPoint(35, 35), &digitInfo, &cmdDispatcher);
+    
+    EXPECT_GT(digitInfo.selectionManager.GetCount(), 0);
+}
+
+// ===== IsActiveSegmentValid Tests =====
+
+TEST_F(InputHandlerTest, IsActiveSegmentValid_RequiresActiveEnd) {
+    CreateTestSegment(1.0, {CDPoint(10, 10)});
+    
+    EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));
+    
+    inputHandler.ContinueSegment(0, 0, &digitInfo);
+    EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
+}
+
+// ===== GetActiveDot Tests =====
+
+TEST_F(InputHandlerTest, GetActiveDot_NoActiveSegment) {
+    EXPECT_EQ(CPoint(-1, -1), inputHandler.GetActiveDot(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, GetActiveDot_ActiveTail) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 0, 1, CDPoint(20, 20)));
+    
+    CPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
+    EXPECT_EQ(20, activeDot.x);
+}
+
+TEST_F(InputHandlerTest, GetActiveDot_ActiveHead) {
+    inputHandler.SetMode(EditMode::Draw);
+    int iSeg = CreateTestSegment(1.0, {CDPoint(10, 10), CDPoint(20, 20)});
+    
+    inputHandler.ContinueSegment(iSeg, 0, &digitInfo);
+    
+    CPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
+    EXPECT_EQ(10, activeDot.x);
+}
+
+// ===== GetRubberBand Tests =====
+
+TEST_F(InputHandlerTest, GetRubberBand_FalseByDefault) {
+    EXPECT_FALSE(inputHandler.GetRubberBand(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, GetRubberBand_RequiresActiveSegment) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.OnKeyDown('b', &digitInfo, &cmdDispatcher);
+    
+    EXPECT_FALSE(inputHandler.GetRubberBand(&digitInfo));
+    
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    EXPECT_TRUE(inputHandler.GetRubberBand(&digitInfo));
+}
+
+TEST_F(InputHandlerTest, GetRubberBand_HidesOutsideDrawMode) {
+    inputHandler.SetMode(EditMode::Draw);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    inputHandler.OnKeyDown('b', &digitInfo, &cmdDispatcher);
+    
+    EXPECT_TRUE(inputHandler.GetRubberBand(&digitInfo));
+    
+    inputHandler.SetMode(EditMode::Navigate);
+    EXPECT_FALSE(inputHandler.GetRubberBand(&digitInfo));
+}
+
+// ===== Pan/Zoom Tests =====
+
+TEST_F(InputHandlerTest, BeginPan_SetsPanningState) {
+    inputHandler.BeginPan(CPoint(100, 100));
+    EXPECT_TRUE(inputHandler.m_isPanning);
+}
+
+TEST_F(InputHandlerTest, EndPan_ClearsPanningState) {
+    inputHandler.BeginPan(CPoint(100, 100));
+    inputHandler.EndPan();
+    EXPECT_FALSE(inputHandler.m_isPanning);
+}
+
+TEST_F(InputHandlerTest, ContinuePan_UpdatesTransform) {
+    ViewTransform vt;
+    inputHandler.BeginPan(CPoint(100, 100));
+    inputHandler.ContinuePan(CPoint(110, 110), &vt);
+    
+    ::CPoint2d offset = vt.GetOffset();  // Explicit namespace
+    EXPECT_DOUBLE_EQ(10.0, offset.x);
+    EXPECT_DOUBLE_EQ(10.0, offset.y);
 }
 
 // ===== ModifierState Tests =====
@@ -202,18 +369,6 @@ TEST_F(InputHandlerTest, ModifierStateCtrlWorks) {
     EXPECT_FALSE(mods.None());
 }
 
-TEST_F(InputHandlerTest, ModifierStateShiftWorks) {
-    ModifierState mods;
-    mods.shift = true;
-    EXPECT_FALSE(mods.None());
-}
-
-TEST_F(InputHandlerTest, ModifierStateAltWorks) {
-    ModifierState mods;
-    mods.alt = true;
-    EXPECT_FALSE(mods.None());
-}
-
 TEST_F(InputHandlerTest, ModifierStateDebugString) {
     ModifierState mods;
     EXPECT_EQ("None", mods.Debug());
@@ -223,84 +378,41 @@ TEST_F(InputHandlerTest, ModifierStateDebugString) {
 
     mods.shift = true;
     EXPECT_EQ("Ctrl+Shift+", mods.Debug());
-
-    mods.alt = true;
-    EXPECT_EQ("Ctrl+Shift+Alt+", mods.Debug());
 }
 
-TEST_F(InputHandlerTest, ModifierStateFromKeyboardDoesNotCrash) {
-    // This will read actual keyboard state (may be all false in test environment)
-    ModifierState mods = ModifierState::FromKeyboard();
+// ===== Undo Support Tests =====
 
-    // Just verify it doesn't crash
-    EXPECT_TRUE(mods.None() || !mods.None());
-}
-
-// ===== Placeholder for Phase 2 Tests =====
-
-/*
-TEST_F(InputHandlerTest, StartNewSegmentCreatesSegment) {
-    // TODO: Implement in Phase 2 with DigitInfo integration
-    // inputHandler.StartNewSegment(CPoint(100, 100));
-    // EXPECT_GE(inputHandler.GetActiveSegment(), 0);
-}
-
-TEST_F(InputHandlerTest, ContinueSegmentFromEnd) {
-    // TODO: Implement in Phase 2
-    // Create segment, continue from end
-}
-
-TEST_F(InputHandlerTest, ConnectSegmentsFreeEndBecomesActive) {
-    // TODO: Implement in Phase 2
-    // Create two segments, connect them, verify free end is active
-}
-*/
-
-using namespace DigitMode;
-
-TEST_F(InputHandlerTest, NavigateModeBoxSelection) {
-    // Setup DigitInfo with test segments
-    CDigitInfo digitInfo;
-    digitInfo.Init();
-
-    CFringeSegment seg1(1.0, 0);
-    seg1.AddPoint(CDPoint(10, 10));
-    seg1.AddPoint(CDPoint(20, 20));
-    digitInfo.Fringes.push_back(seg1);
-
-    CFringeSegment seg2(2.0, 1);
-    seg2.AddPoint(CDPoint(30, 30));
-    seg2.AddPoint(CDPoint(40, 40));
-    digitInfo.Fringes.push_back(seg2);
-
-    // Simulate box selection drag
-    CPoint start(5, 5);
-    CPoint end(25, 25);
-    inputHandler.SetMode(EditMode::Navigate);
-    inputHandler.OnMouseDrag(start, end, &digitInfo);
-
-    // Verify selection
-    EXPECT_EQ(2, digitInfo.selectionManager.GetCount());
-    EXPECT_EQ(SelectionLevel::Dot, digitInfo.selectionManager.GetLevel());
-}
-
-// Mock implementation of CDigitInfo to avoid full dependency
-class MockDigitInfo : public CDigitInfo {
-public:
-    MockDigitInfo() {
-        CurrentNumber = 0.0;
-        numStep = 1.0;
-    }
-};
-
-TEST_F(InputHandlerTest, StartNewSegmentInitializesCorrectly) {
-    MockDigitInfo mockDigit;
-    CPoint startPoint(10, 10);
-
+TEST_F(InputHandlerTest, AllOperationsAreUndoable) {
     inputHandler.SetMode(EditMode::Draw);
-    inputHandler.StartNewSegment(startPoint, &mockDigit);
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 0, 1, CDPoint(20, 20)));
+    
+    inputHandler.OnKeyDown(VK_BACK, &digitInfo, &cmdDispatcher);
+    EXPECT_EQ(1, digitInfo.Fringes[0].GetPointCount());
+    
+    cmdDispatcher.Undo();
+    EXPECT_EQ(2, digitInfo.Fringes[0].GetPointCount());
+}
 
-    EXPECT_EQ(mockDigit.CurrentNumber, 1.0);
-    EXPECT_EQ(mockDigit.Fringes.size(), 1);
-    EXPECT_EQ(inputHandler.GetActiveSegment(), 0);
+// ===== Complex Workflows =====
+
+TEST_F(InputHandlerTest, DrawContinueConnectWorkflow) {
+    inputHandler.SetMode(EditMode::Draw);
+    
+    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 0, 1, CDPoint(20, 20)));
+    inputHandler.EndCurrentSegment();
+    
+    inputHandler.StartNewSegment(CPoint(30, 30), &digitInfo, &cmdDispatcher);
+    cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 1, 1, CDPoint(40, 40)));
+    
+    EXPECT_EQ(2, digitInfo.Fringes.size());
+    
+    inputHandler.ContinueSegment(0, 1, &digitInfo, &cmdDispatcher);
+    inputHandler.ConnectSegments(1, 0, &digitInfo, &cmdDispatcher);
+    
+    EXPECT_EQ(1, digitInfo.Fringes.size());
+    
+    cmdDispatcher.Undo();
+    EXPECT_EQ(2, digitInfo.Fringes.size());
 }

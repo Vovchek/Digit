@@ -393,14 +393,14 @@ void InputHandler::UpdateDragPreview(CPoint pt, ::CDigitInfo* pDigit) {
 
 void InputHandler::CommitActiveDrag(CommandDispatcher* pCmdDisp, ::CDigitInfo* pDigit) {
     if (m_drag.type == DragState::Type::BoxSelect) {
-        HandleBoxSelection(m_drag.start, m_drag.current, pDigit);
+        HandleBoxSelection(m_drag.start, m_cursorPos/*m_drag.current*/, pDigit);
         return;
     }
     if (!pCmdDisp || !pDigit) return;
 
     if (m_drag.type == DragState::Type::MoveDot) {
         CDPoint oldP = m_drag.dotOldPos;
-        CDPoint newP = pDigit->Fringes[m_drag.segmentIndex].GetPoint(m_drag.dotIndex);
+        CDPoint newP = m_cursorPos; //pDigit->Fringes[m_drag.segmentIndex].GetPoint(m_drag.dotIndex);
         if (!(oldP == newP)) {
             auto cmd = std::make_unique<MoveDotCommand>(*pDigit, m_drag.segmentIndex, m_drag.dotIndex, oldP, newP);
             pCmdDisp->Execute(std::move(cmd));

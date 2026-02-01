@@ -79,9 +79,6 @@
     <ClCompile Include="DigitModeTests\HitTesterTest.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
-    <ClCompile Include="DigitModeTests\InputHandlerTest.cpp">
-      <Filter>EditorTests</Filter>
-    </ClCompile>
     <ClCompile Include="DigitModeTests\SelectionManagerTest.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
@@ -109,6 +106,7 @@
     </ClCompile>
     <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
     <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
+    <ClCompile Include="DigitModeTests\InputHandlerTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

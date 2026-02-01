@@ -277,11 +277,13 @@
     <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
     <None Include="Docs\HitTester_Tolerance_Fix.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
+    <None Include="Docs\INPUTHANDLERTEST_REWRITE.md" />
     <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
     <None Include="Docs\MFC_Auxiliary_Audit.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
+    <None Include="Docs\TEST_SUITE_FIXES_SUMMARY.md" />
     <None Include="README_DIGITINFO_ANALYSIS.md" />
     <None Include="Scripts\Add_DrawModeTest.ps1" />
     <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
