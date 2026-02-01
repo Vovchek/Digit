@@ -57,6 +57,8 @@ public:
 	void SingleIsoline(int pn, ISO_POINT *plist, double level, int ilevel);
     // Draw image bitmap with view-aware sampling
     void DrawImage(CDC* pDC);
+    // Center image in viewport
+    void CenterImageInView();
 
 // Overrides
 	// ClassWizard generated virtual function overrides
@@ -79,6 +81,7 @@ protected:
 	
 protected:
     void DrawCrossedLines(CDC* pDC);
+    void DrawBounds(CDC* pDC);
     void DrawMouseMoveCrossedLines(CPoint P);
     void BeginLine(CPoint P);
     void EndLine(CPoint P2);

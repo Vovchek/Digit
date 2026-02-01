@@ -103,4 +103,7 @@
   <ItemGroup>
     <None Include="implement_ux_phase2-3_backlog_clear_pan.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="temp_ondraw.txt" />
+  </ItemGroup>
 </Project>

@@ -194,6 +194,9 @@
   <ItemGroup>
     <None Include="implement_ux_phase2-3_backlog_clear_pan.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="temp_ondraw.txt" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

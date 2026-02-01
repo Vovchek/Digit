@@ -10,6 +10,7 @@ public:
 
     double GetScale() const { return scale; }
     CPoint2d GetOffset() const { return offset; }
+    void SetOffset(const CPoint2d& newOffset) { offset = newOffset; }
 
     // Zoom around a screen point (client coords). factor >1 zooms in
     void ZoomAt(const CPoint& screenPt, double factor) {

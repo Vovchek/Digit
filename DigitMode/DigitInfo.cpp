@@ -521,117 +521,89 @@ void CDigitInfo::CreateRedCenters()
 
 void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand)
 {
-	int iS = 0;
-	CControls* pCtrls = GetControls();
+    CControls* pCtrls = GetControls();
+    if (!pCtrls) return;
 
-	COLORREF Color = RGB(255, 0, 0);
-	CPen pen;
-	pen.CreatePen(PS_SOLID, 0, InvColor);
-	CPen* open = pDC->SelectObject(&pen);
+    // Determine current world transform scale to keep UI pen sizes consistent
+    double scale = 1.0;
+    XFORM xf; memset(&xf, 0, sizeof(xf));
+    if (GetWorldTransform(pDC->GetSafeHdc(), &xf)) {
+        scale = xf.eM11 != 0.0f ? xf.eM11 : 1.0;
+    }
 
-	if (pCtrls->ViewState & V_ZAPSECTIONS) {
-		for (int i = 0; i < ZapLines.GetSize(); i++) {
-			if (idxDragZapLine == i || ZapLines[i].Removed)
-				continue;
-			ZapLines[i].Draw(pDC);
-		}
-	}
+    // Draw zap sections if enabled
+    if (pCtrls->ViewState & V_ZAPSECTIONS) {
+        for (int i = 0; i < ZapLines.GetSize(); ++i) {
+            if (idxDragZapLine == i || ZapLines[i].Removed) continue;
+            ZapLines[i].Draw(pDC);
+        }
+    }
 
-	CPen* retPen = pDC->SelectObject(open);
-	if (retPen)
-		retPen->DeleteObject();
+    // Draw extremums and section previews
+    if (pCtrls->ViewState & V_EXTREMUMS) {
+        COLORREF col = RGB(255,0,0);
+        for (int i = 0; i < HidenDots.GetSize(); ++i) {
+            CPoint P((int)HidenDots[i].x, (int)HidenDots[i].y);
+            pDC->SetPixelV(P.x, P.y, col);
+        }
+        for (int i = 0; i < Sections.GetSize(); ++i) {
+            Sections[i].Draw(pDC, MainFringeNumber);
+        }
+    }
 
-	if (pCtrls->ViewState & V_EXTREMUMS) {
-		Color = RGB(255, 0, 0);
-		for (iS = 0; iS < HidenDots.GetSize(); iS++) {
-			CPoint P;
-			P.x = HidenDots[iS].x;  P.y = HidenDots[iS].y;
-			pDC->SetPixelV(P.x, P.y, Color);
-		}
-		Color = RGB(255, 0, 0);
-		for (iS = 0; iS < Sections.GetSize(); iS++) {
-			Sections[iS].Draw(pDC, MainFringeNumber);
-		}
-	}
+    // Draw fringe polylines
+    if (pCtrls->ViewState & V_DOTLINES) {
+        if (m_bUseFringeModel) {
+            for (size_t iF = 0; iF < Fringes.size(); ++iF) {
+                double num = Fringes[iF].GetNumber();
+                COLORREF Color; pCtrls->GetIndexColor(num, Color);
+                int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
+                CPen pen(PS_GEOMETRIC, w, Color);
+                CPen* oldP = pDC->SelectObject(&pen);
+                Fringes[iF].DrawPolyline(pDC, Color);
+                pDC->SelectObject(oldP);
+            }
+        }
+    }
 
-	if (pCtrls->ViewState & V_DOTLINES) {
-		if (m_bUseFringeModel) {
-			for (int iF = 0; iF < Fringes.size(); iF++) {
-				double num = Fringes[iF].GetNumber();
-				pCtrls->GetIndexColor(num, Color);
-				CPen pen1;
-				pen1.CreatePen(PS_SOLID, 0, Color);
-				CPen* open1 = pDC->SelectObject(&pen1);
-				Fringes[iF].DrawPolyline(pDC, Color);
-				CPen* retPen1 = pDC->SelectObject(open1);
-				if (retPen1)
-					retPen1->DeleteObject();
-			}
-		}
-		else {
-			CList<double, double> Numbers;
-			CArray<CDPoint> adP;
-			GetDotNumbers(Numbers);
-			POSITION pos = Numbers.GetHeadPosition();
-			double Num;
-			CDPoint dP;
-			CPoint wP;
-			for (int i = 0; i < Numbers.GetCount(); i++) {
-				Num = Numbers.GetNext(pos);
-				pCtrls->GetIndexColor(Num, Color);
-				CPen pen1;
-				pen1.CreatePen(PS_SOLID, 0, Color);
-				CPen* open1 = pDC->SelectObject(&pen1);
-				GetFringeDots(Num, adP);
-				for (int ii = 0; ii < adP.GetSize(); ii++) {
-					wP.x = adP[ii].x; wP.y = adP[ii].y;
-					if (ii == 0) pDC->MoveTo(wP);
-					else      pDC->LineTo(wP);
-				}
-				CPen* retPen1 = pDC->SelectObject(open1);
-				if (retPen1)
-					retPen1->DeleteObject();
-			}
-		}
-	}
+    // Draw dots and active rubber-band
+    if (pCtrls->ViewState & V_DOTS) {
+        if (m_bUseFringeModel) {
+            for (size_t iF = 0; iF < Fringes.size(); ++iF) {
+                double num = Fringes[iF].GetNumber();
+                COLORREF Color; pCtrls->GetIndexColor(num, Color);
+                // Calculate world size to keep dots constant screen size
+                double screenDot = DotSide;
+                double dotScale = scale;
+                int worldDotSide = (int)(screenDot / (dotScale == 0.0 ? 1.0 : dotScale) + 0.5);
+                // Prevent dots from disappearing at high zoom: use minimum world size of 2
+                if (worldDotSide < 2) worldDotSide = 2;
+                Fringes[iF].DrawDots(pDC, worldDotSide, Color);
+            }
 
-	if (pCtrls->ViewState & V_DOTS) {
-		if (m_bUseFringeModel) {
-			for (int iF = 0; iF < Fringes.size(); iF++) {
-				double num = Fringes[iF].GetNumber();
-				pCtrls->GetIndexColor(num, Color);
-				Fringes[iF].DrawDots(pDC, DotSide, Color);
-			}
+            if (activeDot != CPoint(-1, -1)) {
+                // Use same world-scaling for active dot so it doesn't become huge
+                double screenDot = DotSide + 2;
+                double dotScale = scale;
+                int worldDotSide = (int)(screenDot / (dotScale == 0.0 ? 1.0 : dotScale) + 0.5);
+                if (worldDotSide < 2) worldDotSide = 2;
+                int half = worldDotSide / 2;
+                CBrush brush(RGB(255,64,64)); CBrush* oldBr = pDC->SelectObject(&brush);
+                pDC->Ellipse(activeDot.x-half, activeDot.y-half, activeDot.x+half, activeDot.y+half);
+                pDC->SelectObject(oldBr);
 
-			// Highlight main selected point if any
-			if (activeDot != CPoint(-1,-1)) { // check if activeDot is valid
-				int half = (DotSide + 2) / 2;
-				CBrush brush(RGB(255, 64, 64));// noticeable color
-				CBrush* oldBr = pDC->SelectObject(&brush);
-				pDC->Ellipse(activeDot.x - half, activeDot.y - half, activeDot.x + half, activeDot.y + half);
-				pDC->SelectObject(oldBr);
-
-				if (cursorPos != CPoint(-1, -1) && rubberBand) {
-					CPen rubberPen;
-					rubberPen.CreatePen(PS_DOT, 1, RGB(255, 128, 0));
-					CPen* oldPen = pDC->SelectObject(&rubberPen);
-					pDC->MoveTo(activeDot);
-					pDC->LineTo(cursorPos);
-					pDC->SelectObject(oldPen);
-				}
-			}
-		}
-		else {
-			for (int iD = 0; iD < Dots.size(); iD++) {
-				if (idxDragDot == iD)
-					continue;
-				if (idxMainDot == iD)
-					Dots[iD].Draw(pDC, DotSide, Color);
-				else
-					Dots[iD].Draw(pDC, DotSide, Color);
-			}
-		}
-	}
+                if (cursorPos != CPoint(-1, -1) && rubberBand) {
+                    // Rubber-band pen: use world width to keep 1px on screen
+                    int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
+                    CPen rubberPen; rubberPen.CreatePen(PS_DOT, w, RGB(255,128,0));
+                    CPen* oldPen = pDC->SelectObject(&rubberPen);
+                    pDC->MoveTo(activeDot);
+                    pDC->LineTo(cursorPos);
+                    pDC->SelectObject(oldPen);
+                }
+            }
+        }
+    }
 }
 
 void CDigitInfo::Clear(BOOL AllZAPSections/*TRUE*/)

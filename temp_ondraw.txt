@@ -1,0 +1,88 @@
+﻿// Temporary - restore OnDraw
+void CImageView::OnDraw(CDC* pDC)
+{
+    CControls* pCtrls = GetControls();
+    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
+    // ViewTransform is used for coordinate conversions. We draw bitmap in
+    // device coords (no world-transform) for proper resampling, then apply
+    // a temporary GDI world-transform to the same DC for vector overlays
+    // so they scale/translate correctly. xForm is computed after rectClip so
+    // we can adjust translation when drawing to an offscreen bitmap.
+
+    CDC dc;
+    CDC* pDrawDC = pDC;
+    CBitmap bitmap;
+    CBitmap* pOldBitmap;
+
+    CRect client, rectClip;
+    pDC->GetClipBox(&client);
+    rectClip = client;
+    pDC->LPtoDP(&rectClip);
+    rectClip.InflateRect(1, 1); // avoid rounding to nothing
+
+    // compute world transform based on current view
+    double s = m_viewTransform.GetScale();
+    CPoint2d off = m_viewTransform.GetOffset();
+    XFORM xForm;
+    xForm.eM11 = (FLOAT)s; xForm.eM12 = 0.0f;
+    xForm.eM21 = 0.0f; xForm.eM22 = (FLOAT)s;
+    // default translation assumes drawing to screen DC
+    xForm.eDx = (FLOAT)off.x; xForm.eDy = (FLOAT)off.y;
+
+    if (dc.CreateCompatibleDC(pDC)){
+            if (bitmap.CreateCompatibleBitmap(pDC, rectClip.Width(), rectClip.Height()))
+            {
+                OnPrepareDC(&dc, NULL);
+                pDrawDC = &dc;
+                // offset origin more because bitmap is just piece of the whole drawing
+                dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
+                // When drawing into an offscreen bitmap the world transform's
+                // translation must be adjusted by the viewport offset.
+                xForm.eDx = (FLOAT)(off.x - rectClip.left);
+                xForm.eDy = (FLOAT)(off.y - rectClip.top);
+                pOldBitmap = dc.SelectObject(&bitmap);
+                dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
+                // might as well clip to the same rectangle
+                dc.IntersectClipRect(client);
+            }
+        }
+	
+    DrawBackGround(pDrawDC);
+    DrawImage(pDrawDC);
+
+    // Draw vector overlays in screen (device) coordinates. Do not apply
+    // a GDI world-transform here – Draw* functions convert world points
+    // to screen via m_viewTransform.WorldToScreen when needed.
+
+    DrawMeasureLine(pDrawDC);
+    if(pCtrls->EnableCustomDots){
+       DrawCustomDots(pDrawDC);
+       DrawCurBound(pDrawDC);
+    }
+    else if(pDoc->Tracker.GetEnableState()){
+       pDoc->Tracker.DrawTracker(pDrawDC);
+       DrawCurBound(pDrawDC);
+    }
+    if(pDoc->IsFotoSections()){
+        DrawCrossedLines(pDrawDC);
+        pDoc->ReSetSections(CursorPos);
+    }
+    DrawBounds(pDrawDC);
+    DrawDigitInfo(pDrawDC);
+    DrawAproximation(pDrawDC);
+    // Drawing performed here... (no world-transform applied)
+    if (pDrawDC != pDC){
+        pDC->SetViewportOrg(0, 0);
+        pDC->SetWindowOrg(0,0);
+        pDC->SetMapMode(MM_TEXT);
+        dc.SetViewportOrg(0, 0);
+        dc.SetWindowOrg(0,0);
+        dc.SetMapMode(MM_TEXT);
+        pDC->BitBlt(rectClip.left, rectClip.top, rectClip.Width(), rectClip.Height(),
+            &dc, 0, 0, SRCCOPY);
+        dc.SelectObject(pOldBitmap);
+    }
+	if(pDoc)
+    	pDoc->SetZoomToTitle();
+}

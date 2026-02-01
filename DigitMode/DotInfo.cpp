@@ -36,13 +36,36 @@ void CDotInfo::Draw(CDC* pDC, int dotSide, BOOL mainDot/*FALSE*/)
    CControls* pCtrls = GetControls();
    int DotSide12;
    COLORREF Color;
+   // Adjust dot size to be screen-constant: if a world transform is active on the DC,
+   // convert desired screen size into world units by dividing by scale. If no transform,
+   // dotSide already specified in world coords.
+   double screenDot = dotSide; // pixels desired on screen
+   // Try to query mapping mode: if world transform set, use it. Fallback to provided size.
+   XFORM x;
+   bool hasXform = false;
+   if (GetWorldTransform(pDC->GetSafeHdc(), &x)) {
+       hasXform = true;
+   }
+   if (hasXform) {
+       // scale is approximately eM11 (assume uniform scale)
+       double scale = x.eM11;
+       // convert screen pixels to world units
+       double worldSize = screenDot / (scale == 0.0 ? 1.0 : scale);
+       DotSide12 = (int)(worldSize*0.5 + 0.5);
+   }
+   else {
+       if(mainDot){
+           DotSide12 = (int)(dotSide*0.5+0.5)+1;
+       }
+       else{
+           DotSide12 = (int)(dotSide*0.5+0.5);
+       }
+   }
    if(mainDot){
-	   Color = RGB(255,0,0);
-       DotSide12 = (int)(dotSide*0.5+0.5)+1;
+       Color = RGB(255,0,0);
    }
    else{
-      pCtrls->GetIndexColor(Number, Color);
-      DotSide12 = (int)(dotSide*0.5+0.5);
+       pCtrls->GetIndexColor(Number, Color);
    }
    CPoint lP;
    lP.x = (int)P.x;

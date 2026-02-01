@@ -26,6 +26,101 @@ void Polyline(int pn, ISO_POINT *plist, double level, int ilevel)
   gr->SingleIsoline(pn, plist, level, ilevel);
 }
 
+// Draw bounds (apertures) in screen coordinates so they scale with image pixels
+void CImageView::DrawBounds(CDC* pDC)
+{
+    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+    if (!pDoc) return;
+    CBaseImageDoc* pBase = (CBaseImageDoc*)pDoc;
+    COLORREF Color = RGB(0,255,0);
+    CPen pen;
+    pen.CreatePen(PS_SOLID, 1, Color);
+    CPen* open = pDC->SelectObject(&pen);
+
+    int xDIB, yDIB;
+    CImageCtrls* pImCtrls = GetImageCtrls(this);
+    if(pImCtrls->m_pDIB == 0){
+       xDIB = pImCtrls->ImageSize.cx;
+       yDIB = pImCtrls->ImageSize.cy;
+    }
+    else{
+       xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
+       yDIB = pImCtrls->m_pDIB->m_dwHeight;
+    }
+
+    CRect Bound;
+    CArray<CPoint, CPoint> PlgPoints;
+    BOOL res;
+    int BoundType = pDoc->boundCtrls.ExtBoundType;
+    if(BoundType != -1){
+        res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
+        if(res){
+            if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
+                // convert rect corners and draw arc via screen coordinates
+                CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
+                CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
+                CRect r(tl, br); r.NormalizeRect();
+                pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
+                pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
+            }
+            else if(BoundType == BOUND_RECT){
+                CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
+                CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.top});
+                CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
+                CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.bottom});
+                pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
+            }
+            else{
+                for(int i=0; i < PlgPoints.GetSize(); i++){
+                    CPoint wp = PlgPoints[i];
+                    CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{(double)wp.x, (double)wp.y});
+                    if(i==0) pDC->MoveTo(sp);
+                    else pDC->LineTo(sp);
+                }
+            }
+        }
+    }
+
+    BoundType = pDoc->boundCtrls.InsBoundType;
+    if(BoundType != -1){
+        int idx = 1;
+        res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+        if(res){
+            if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
+                CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
+                CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
+                CRect r(tl, br); r.NormalizeRect();
+                pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
+                pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
+            }
+            else if(BoundType == BOUND_RECT){
+                CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
+                CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.top});
+                CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
+                CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.bottom});
+                pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
+            }
+            else{
+                while(res){
+                    for(int i=0; i < PlgPoints.GetSize(); i++){
+                        CPoint wp = PlgPoints[i];
+                        CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{(double)wp.x, (double)wp.y});
+                        if(i==0) pDC->MoveTo(sp);
+                        else pDC->LineTo(sp);
+                    }
+                    idx++;
+                    res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+                }
+            }
+        }
+    }
+
+    if(open){
+      CPen* pRetPen = pDC->SelectObject(open);
+      if(pRetPen) pRetPen->DeleteObject();
+    }
+}
+
 // Override image drawing to draw bitmap without the world transform (to get proper resampling)
 void CImageView::DrawImage(CDC* pDC)
 {
@@ -302,6 +397,7 @@ void CImageView::OnInitialUpdate()
    CDC* pDC = GetDC();
    int scr_W = pDC->GetDeviceCaps(HORZRES);
    int scr_H = pDC->GetDeviceCaps(VERTRES);
+   ReleaseDC(pDC);
    BOOL needFit=FALSE;
    if(W > std::lround(scr_W*0.65)){
       W = std::lround(scr_W*0.65);
@@ -316,6 +412,8 @@ void CImageView::OnInitialUpdate()
 	   OnZoomFit();
    }
 
+   CenterImageInView();
+
    // Initialize tooltip control for dynamic hover tooltips
    if (!m_tooltip.m_hWnd) {
        m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
@@ -323,6 +421,93 @@ void CImageView::OnInitialUpdate()
        m_tooltip.SetMaxTipWidth(300);
        m_tooltip.Activate(TRUE);
    }
+}
+
+void CImageView::CenterImageInView()
+{
+    CImageCtrls* pImage = GetImageCtrls(this);
+    CRect imgRect = pImage->GetDIBRect();
+    if (imgRect.IsRectEmpty()) return;
+
+    CRect clientR;
+    GetClientRect(clientR);
+
+    // Calculate scaled image size
+    double scale = m_viewTransform.GetScale();
+    int scaledW = (int)(imgRect.Width() * scale);
+    int scaledH = (int)(imgRect.Height() * scale);
+
+    // Center the image in the client area
+    double offsetX = (clientR.Width() - scaledW) / 2.0;
+    double offsetY = (clientR.Height() - scaledH) / 2.0;
+
+    // Ensure offset doesn't go negative (if image is larger than client)
+    if (offsetX < 0) offsetX = 0;
+    if (offsetY < 0) offsetY = 0;
+
+    CPoint2d newOffset = {offsetX, offsetY};
+    m_viewTransform.SetOffset(newOffset);
+    
+    Invalidate(FALSE);
+}
+
+void CImageView::DrawDigitInfo(CDC* pDC)
+{
+    // Use single legacy drawing path: CDigitInfo::Draw expects the DC to have
+    // a world transform applied so coordinates inside Draw are in image/world
+    // space. We set the transform here from m_viewTransform, then call Draw.
+    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+    CControls* pCtrls = GetControls();
+    if (!pDoc || !pCtrls) return;
+
+    // Prepare HDC and save state
+    HDC hdc = pDC->GetSafeHdc();
+    int oldMode = SetGraphicsMode(hdc, GM_ADVANCED);
+    XFORM oldX; memset(&oldX, 0, sizeof(oldX));
+    bool hadOld = false;
+    if (GetWorldTransform(hdc, &oldX)) hadOld = true;
+
+    // Get current viewport origin to adjust translation when drawing into
+    // an offscreen DC that has offset viewport set by OnDraw.
+    POINT vp = {0,0};
+    ::GetViewportOrgEx(hdc, &vp);
+
+    double s = m_viewTransform.GetScale();
+    CPoint2d off = m_viewTransform.GetOffset();
+    XFORM xform;
+    xform.eM11 = (FLOAT)s; xform.eM12 = 0.0f;
+    xform.eM21 = 0.0f; xform.eM22 = (FLOAT)s;
+    xform.eDx = (FLOAT)(off.x - vp.x);
+    xform.eDy = (FLOAT)(off.y - vp.y);
+    SetWorldTransform(hdc, &xform);
+
+    // Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
+    // fringes and rubber-band consistently in world coordinates.
+    int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
+    CPoint active = m_inputHandler.GetActiveDot(&pDoc->Digit);
+    // CursorPos is already in world coordinates (set in OnMouseMove)
+    CPoint cursor = CursorPos;
+    bool rubber = m_inputHandler.GetRubberBand(&pDoc->Digit);
+    pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
+
+    // Restore previous transform/state
+    if (hadOld) SetWorldTransform(hdc, &oldX);
+    SetGraphicsMode(hdc, oldMode);
+}
+
+void CImageView::DrawAproximation(CDC* pDC)
+{
+  CImageDoc* pDoc = (CImageDoc*)GetDocument();
+  CControls* pCtrls = GetControls();
+
+  if(pDoc->IsAproximation() && (pCtrls->ViewState & V_APPROXIMATION)){
+	  gr = this;
+	  hDC = pDC->GetSafeHdc();
+	  if (pDoc->nLevel > 0)
+		  pDoc->pLevel[pDoc->nLevel - 1] *= 0.999999999;
+	  	
+	  ApproxContour(pDoc->pMatr, pDoc->nx, pDoc->ny, pDoc->pY, pDoc->pX, pDoc->nLevel, pDoc->pLevel, Polyline);
+  }
 }
 
 void CImageView::OnDraw(CDC* pDC)
@@ -377,19 +562,9 @@ void CImageView::OnDraw(CDC* pDC)
     DrawBackGround(pDrawDC);
     DrawImage(pDrawDC);
 
-    // Apply world-transform to the drawing DC for vector overlays
-    // Ensure DC mapping is prepared first
-    OnPrepareDC(pDrawDC, NULL);
-    HDC hDraw = pDrawDC->GetSafeHdc();
-    int oldMode = SetGraphicsMode(hDraw, GM_ADVANCED);
-    XFORM oldX; memset(&oldX, 0, sizeof(oldX));
-    bool hadOld = false;
-    if (GetWorldTransform(hDraw, &oldX)) {
-        hadOld = true;
-    }
-    // Always set desired transform so overlays follow view
-    SetWorldTransform(hDraw, &xForm);
-    BOOL worldApplied = TRUE;
+    // Draw vector overlays in screen (device) coordinates. Do not apply
+    // a GDI world-transform here - Draw* functions convert world points
+    // to screen via m_viewTransform.WorldToScreen when needed.
 
     DrawMeasureLine(pDrawDC);
     if(pCtrls->EnableCustomDots){
@@ -401,17 +576,12 @@ void CImageView::OnDraw(CDC* pDC)
        DrawCurBound(pDrawDC);
     }
     if(pDoc->IsFotoSections()){
-	    DrawCrossedLines(pDrawDC);
-		pDoc->ReSetSections(CursorPos);
-	}
-    DrawBounds(pDrawDC);
-	DrawDigitInfo(pDrawDC);
-	DrawAproximation(pDrawDC);
-    // Restore world-transform for overlays
-    if (worldApplied) {
-        SetWorldTransform(hDraw, &oldX);
-        SetGraphicsMode(hDraw, oldMode);
+        DrawCrossedLines(pDrawDC);
+        pDoc->ReSetSections(CursorPos);
     }
+    DrawBounds(pDrawDC);
+    DrawDigitInfo(pDrawDC);
+    DrawAproximation(pDrawDC);
     // Drawing performed here... (no world-transform applied)
     if (pDrawDC != pDC){
         pDC->SetViewportOrg(0, 0);
@@ -428,32 +598,6 @@ void CImageView::OnDraw(CDC* pDC)
     	pDoc->SetZoomToTitle();
 }
 
-void CImageView::DrawDigitInfo(CDC* pDC)
-{
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    CControls* pCtrls = GetControls();
-	int DotSide;
-	pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	pDoc->Digit.Draw(pDC, DotSide, 
-        m_inputHandler.GetActiveDot(&pDoc->Digit), 
-        m_inputHandler.GetCurrentCursorPos(),
-        m_inputHandler.GetRubberBand(&pDoc->Digit));
-}
-
-void CImageView::DrawAproximation(CDC* pDC)
-{
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
-
-  if(pDoc->IsAproximation() && (pCtrls->ViewState & V_APPROXIMATION)){
-	  gr = this;
-	  hDC = pDC->GetSafeHdc();
-	  if (pDoc->nLevel > 0)
-		  pDoc->pLevel[pDoc->nLevel - 1] *= 0.999999999;
-	  
-	  ApproxContour(pDoc->pMatr, pDoc->nx, pDoc->ny, pDoc->pY, pDoc->pX, pDoc->nLevel, pDoc->pLevel, Polyline);
-  }
-}
 /////////////////////////////////////////////////////////////////////////////
 // CImageView diagnostics
 
@@ -638,23 +782,26 @@ void CImageView::BeginLine(CPoint P)
     CPoint P2(MeasureLine.right, MeasureLine.bottom);
 
     PisActive = 0;
+    // Check if clicking near existing measure endpoints (P, P1, P2 are all in world coords)
     if(rP.PtInRect(P1)){
       PisActive = 1;
-	  DocToClient(P1);
-	  ClientToScreen(&P1);
-	  SetCursorPos(P1.x, P1.y);
+      // Snap cursor to P1 in screen space
+      CPoint screenP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)P1.x, (double)P1.y});
+      ClientToScreen(&screenP1);
+      SetCursorPos(screenP1.x, screenP1.y);
     }   
     else if(rP.PtInRect(P2)){
       PisActive = 2;
-	  DocToClient(P2);
-	  ClientToScreen(&P2);
-	  SetCursorPos(P2.x, P2.y);
+      CPoint screenP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)P2.x, (double)P2.y});
+      ClientToScreen(&screenP2);
+      SetCursorPos(screenP2.x, screenP2.y);
     }
     else{
 	  pCtrls->EnableOptions &= ~I_MEASURE_ACTIVE;	
       Invalidate(FALSE);
 	  MakeLoopMessage();
 	  
+      // Start new measure line at clicked point (P is in world coords)
       MeasureLine.left = P.x;
       MeasureLine.top = P.y;
       MeasureLine.right = P.x;
@@ -710,11 +857,15 @@ void CImageView::DrawMouseMoveMeasureLine(CPoint P2)
       CPen *pOld = dc.SelectObject(&penLine);
       int orop = dc.SetROP2(R2_XORPEN);
 
-      dc.MoveTo(MeasureLine.left,  MeasureLine.top);
-      dc.LineTo(MeasureLine.right, MeasureLine.bottom);
-      DrawMarker(&dc, CPoint(MeasureLine.left,  MeasureLine.top));
-      DrawMarker(&dc, CPoint(MeasureLine.right, MeasureLine.bottom));
+      // Convert world coords to screen for XOR drawing
+      CPoint scrP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.left, (double)MeasureLine.top});
+      CPoint scrP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.right, (double)MeasureLine.bottom});
+      dc.MoveTo(scrP1);
+      dc.LineTo(scrP2);
+      DrawMarker(&dc, scrP1);
+      DrawMarker(&dc, scrP2);
 
+      // Update world coords with new position
       if(PisActive==2){
         MeasureLine.right   = P2.x;
         MeasureLine.bottom  = P2.y;
@@ -725,10 +876,12 @@ void CImageView::DrawMouseMoveMeasureLine(CPoint P2)
       }
 
       if(PisActive==1 || PisActive==2){
-        dc.MoveTo(MeasureLine.left, MeasureLine.top);
-        dc.LineTo(MeasureLine.right, MeasureLine.bottom);
-        DrawMarker(&dc, CPoint(MeasureLine.left,  MeasureLine.top));
-        DrawMarker(&dc, CPoint(MeasureLine.right, MeasureLine.bottom));
+        scrP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.left, (double)MeasureLine.top});
+        scrP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.right, (double)MeasureLine.bottom});
+        dc.MoveTo(scrP1);
+        dc.LineTo(scrP2);
+        DrawMarker(&dc, scrP1);
+        DrawMarker(&dc, scrP2);
       }
 
       CPoint TL = MeasureLine.TopLeft();
@@ -767,16 +920,12 @@ void CImageView::DrawMeasureLine(CDC* pDC)
     CPen* pPen = pDC->SelectObject(&pen1);
     pPen->DeleteObject();
 
-    CPoint cP1;
-    CDPoint dP(pMCtrls->L.P1);
-	cP1.x = std::lround(dP.x);
-	cP1.y = std::lround(dP.y);
+    // convert measure endpoints from world to screen so markers align with view
+    CDPoint dP1 = pMCtrls->L.P1;
+    CDPoint dP2 = pMCtrls->L.P2;
+    CPoint cP1 = m_viewTransform.WorldToScreen(CPoint2d{dP1.x, dP1.y});
+    CPoint cP2 = m_viewTransform.WorldToScreen(CPoint2d{dP2.x, dP2.y});
     DrawMarker(pDC, cP1);
-    
-    CPoint cP2;
-    dP = pMCtrls->L.P2;
-	cP2.x = std::lround(dP.x);
-	cP2.y = std::lround(dP.y);
     DrawMarker(pDC, cP2);
 
     CPen pen2;
@@ -804,19 +953,21 @@ void CImageView::DrawCrossedLines(CDC* pDC)
     
     CRect clientR;
     GetClientRect(clientR);
-	ClientToDoc(clientR);
+    // Convert client rect to screen coordinates via world->screen corners
+    CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)clientR.left, (double)clientR.top});
+    CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)clientR.right, (double)clientR.bottom});
+    CRect scrRect(tl, br);
     CPoint P1, P2;
 
     if(CursorPos != CPoint(-1,-1)){
-        P1.x = clientR.left; P1.y = CursorPos.y;
-        P2.x = clientR.right; P2.y = CursorPos.y;
-        pDC->MoveTo(P1);
-        pDC->LineTo(P2);
-        P1.x = CursorPos.x; P1.y = clientR.top;
-        P2.x = CursorPos.x; P2.y = clientR.bottom;
-        pDC->MoveTo(P1);
-        pDC->LineTo(P2);
-	}
+        CPoint s = m_viewTransform.WorldToScreen(CPoint2d{(double)CursorPos.x, (double)CursorPos.y});
+        P1.x = scrRect.left; P1.y = s.y;
+        P2.x = scrRect.right; P2.y = s.y;
+        pDC->MoveTo(P1); pDC->LineTo(P2);
+        P1.x = s.x; P1.y = scrRect.top;
+        P2.x = s.x; P2.y = scrRect.bottom;
+        pDC->MoveTo(P1); pDC->LineTo(P2);
+    }
 	
     pDC->SetROP2(orop);
     CPen* retPen = pDC->SelectObject(open);
@@ -1142,6 +1293,10 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
     CControls* pCtrlsLocal = GetControls();
 	m_inputHandler.SetMode(pCtrls->GetEditMode());
     if (m_inputHandler.IsInDrawMode()) {
+        // If panning is active, ignore draw clicks to avoid accidental dots
+        if (m_inputHandler.m_isPanning) {
+            return;
+        }
         m_inputHandler.OnLButtonDown(nFlags, l_point, &((CImageDoc*)GetDocument())->Digit, &m_cmdDispatcher);
         Invalidate(FALSE);
         return;
@@ -1199,8 +1354,8 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
     CBoundCtrls* pBCtrls = GetBoundCtrls(this);
     CControls* pCtrls = GetControls();
     
-    CPoint l_point(point);
-    ClientToDoc(l_point);
+    // Convert screen to world coordinates using ViewTransform
+    CPoint l_point = m_viewTransform.ScreenToWorld(point);
 
     if(pDoc->IsFotoSections()){
 		;
@@ -1268,8 +1423,8 @@ void CImageView::OnRButtonDown(UINT nFlags, CPoint point)
 {
     CImageDoc* pDoc = (CImageDoc*)GetDocument();
     
-    CPoint l_point(point);
-    ClientToDoc(l_point);
+    // Convert screen to world coordinates using ViewTransform
+    CPoint l_point = m_viewTransform.ScreenToWorld(point);
 
     // Let InputHandler handle right-button in draw mode (e.g., finish/cancel)
     using namespace DigitMode;
@@ -1338,8 +1493,8 @@ BOOL CImageView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 		if(pDoc->IsZapSectionUnderCursor(CursorPos)){
 			HINSTANCE inst = AfxGetResourceHandle();
 			HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_SEL_ZAP_SEC), IMAGE_CURSOR, 32,32, LR_SHARED);
-			SetCursor(HCURSOR(han));
-			return TRUE;
+		 SetCursor(HCURSOR(han));
+		 return TRUE;
 		}
 	}
     return CBaseImageView::OnSetCursor(pWnd, nHitTest, message);
@@ -1348,6 +1503,10 @@ BOOL CImageView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 void CImageView::OnSize(UINT nType, int cx, int cy) 
 {
     CBaseImageView::OnSize(nType, cx, cy);
+    // Re-center image when window is resized (maximize/restore)
+    if (nType == SIZE_MAXIMIZED || nType == SIZE_RESTORED) {
+        CenterImageInView();
+    }
 }
 
 void CImageView::OnMove(int x, int y) 
@@ -1621,7 +1780,7 @@ void CImageView::OnUpdateAddDot(CCmdUI* pCmdUI)
   CImageDoc* pDoc = (CImageDoc*)GetDocument();
   CControls* pCtrls = GetControls();
   CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls();
+    CImageCtrls* pI = GetImageCtrls(this);
     int xDIB = pI->ImageSize.cx;
     int yDIB = pI->ImageSize.cy;
     CRect BoundR(0,0,0,0);
@@ -1654,7 +1813,7 @@ void CImageView::OnUpdateRemoveDot(CCmdUI* pCmdUI)
   CImageDoc* pDoc = (CImageDoc*)GetDocument();
   CControls* pCtrls = GetControls();
   CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls();
+    CImageCtrls* pI = GetImageCtrls(this);
     int xDIB = pI->ImageSize.cx;
     int yDIB = pI->ImageSize.cy;
     CRect BoundR(0,0,0,0);
