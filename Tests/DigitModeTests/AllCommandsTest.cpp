@@ -195,7 +195,7 @@ TEST(AllCommands, SplitSegmentCommand_SplitAtDifferentIndices) {
 
 // ===== ConnectSegmentsCommand Comprehensive Tests =====
 
-class ConnectSegmentsTest : public ::testing::Test {
+class ConnectSegmentsCommandTest : public ::testing::Test {
 protected:
     CDigitInfo doc;
     
@@ -234,7 +234,7 @@ protected:
     }
 };
 
-TEST_F(ConnectSegmentsTest, TailToHead_AEndBStart_Merge) {
+TEST_F(ConnectSegmentsCommandTest, TailToHead_AEndBStart_Merge) {
     CFringeSegment A, B;
     MakeStandardSegments(A, B);
     AddSegments(A, B);
@@ -252,7 +252,7 @@ TEST_F(ConnectSegmentsTest, TailToHead_AEndBStart_Merge) {
     ExpectSegmentPoints(1, {10, 11});
 }
 
-TEST_F(ConnectSegmentsTest, TailToTail_AEndBEnd_Reverse) {
+TEST_F(ConnectSegmentsCommandTest, TailToTail_AEndBEnd_Reverse) {
     CFringeSegment A, B;
     MakeStandardSegments(A, B);
     AddSegments(A, B);
@@ -270,17 +270,18 @@ TEST_F(ConnectSegmentsTest, TailToTail_AEndBEnd_Reverse) {
     ExpectSegmentPoints(1, {10, 11});
 }
 
-TEST_F(ConnectSegmentsTest, HeadToHead_AStartBStart_Insert) {
+TEST_F(ConnectSegmentsCommandTest, HeadToHead_AStartBStart_Insert) {
     CFringeSegment A, B;
     MakeStandardSegments(A, B);
     AddSegments(A, B);
 
-    // Connect A.head to B.head: result = [B points][A points]
+    // Connect A.head to B.head: B must be reversed so its head becomes tail
+    // Result: [B reversed][A points]
     ConnectSegmentsCommand cmd(doc, 0, false, 1, false);
     cmd.Execute();
     
     ASSERT_EQ(1u, doc.Fringes.size());
-    ExpectSegmentPoints(0, {10, 11, 0, 1, 2});
+    ExpectSegmentPoints(0, {11, 10, 0, 1, 2});  // Fixed: was {10, 11, 0, 1, 2}
 
     cmd.Undo();
     ASSERT_EQ(2u, doc.Fringes.size());
@@ -288,17 +289,18 @@ TEST_F(ConnectSegmentsTest, HeadToHead_AStartBStart_Insert) {
     ExpectSegmentPoints(1, {10, 11});
 }
 
-TEST_F(ConnectSegmentsTest, HeadToTail_AStartBEnd_InsertReversed) {
+TEST_F(ConnectSegmentsCommandTest, HeadToTail_AStartBEnd_InsertReversed) {
     CFringeSegment A, B;
     MakeStandardSegments(A, B);
     AddSegments(A, B);
 
-    // Connect A.head to B.tail: result = [B reversed][A points]
+    // Connect A.head to B.tail: B placed as-is so its tail touches A.head
+    // Result: [B points][A points]
     ConnectSegmentsCommand cmd(doc, 0, false, 1, true);
     cmd.Execute();
     
     ASSERT_EQ(1u, doc.Fringes.size());
-    ExpectSegmentPoints(0, {11, 10, 0, 1, 2});
+    ExpectSegmentPoints(0, {10, 11, 0, 1, 2});  // Fixed: was {11, 10, 0, 1, 2}
 
     cmd.Undo();
     ASSERT_EQ(2u, doc.Fringes.size());
@@ -306,7 +308,7 @@ TEST_F(ConnectSegmentsTest, HeadToTail_AStartBEnd_InsertReversed) {
     ExpectSegmentPoints(1, {10, 11});
 }
 
-TEST_F(ConnectSegmentsTest, UndoPreservesOriginalNumbers) {
+TEST_F(ConnectSegmentsCommandTest, UndoPreservesOriginalNumbers) {
     CFringeSegment A(3.5, 0), B(7.2, 1);
     A.AddPoint(CDPoint(0,0));
     B.AddPoint(CDPoint(10,10));
@@ -322,7 +324,7 @@ TEST_F(ConnectSegmentsTest, UndoPreservesOriginalNumbers) {
     EXPECT_DOUBLE_EQ(7.2, doc.Fringes[1].GetNumber());
 }
 
-TEST_F(ConnectSegmentsTest, ConnectWhenBIndexLessThanA_UndoRestoresCorrectly) {
+TEST_F(ConnectSegmentsCommandTest, ConnectWhenBIndexLessThanA_UndoRestoresCorrectly) {
     // Bug scenario: when segB index < segA index, undo must account for shifted indices
     CFringeSegment seg0(1.0, 0), seg1(2.0, 1), seg2(3.0, 2);
     seg0.AddPoint(CDPoint(0,0));
@@ -347,7 +349,7 @@ TEST_F(ConnectSegmentsTest, ConnectWhenBIndexLessThanA_UndoRestoresCorrectly) {
     ExpectSegmentPoints(2, {20});
 }
 
-TEST_F(ConnectSegmentsTest, MultipleConnections_ChainSegments) {
+TEST_F(ConnectSegmentsCommandTest, MultipleConnections_ChainSegments) {
     CFringeSegment s0(1.0,0), s1(2.0,1), s2(3.0,2);
     s0.AddPoint(CDPoint(0,0));
     s1.AddPoint(CDPoint(10,10));
@@ -379,7 +381,7 @@ TEST_F(ConnectSegmentsTest, MultipleConnections_ChainSegments) {
     ExpectSegmentPoints(1, {10});
 }
 
-TEST_F(ConnectSegmentsTest, EdgeCase_SinglePointSegments) {
+TEST_F(ConnectSegmentsCommandTest, EdgeCase_SinglePointSegments) {
     CFringeSegment A(1.0, 0), B(2.0, 1);
     A.AddPoint(CDPoint(5,5));
     B.AddPoint(CDPoint(15,15));
@@ -396,7 +398,7 @@ TEST_F(ConnectSegmentsTest, EdgeCase_SinglePointSegments) {
     EXPECT_EQ(1, doc.Fringes[1].GetPointCount());
 }
 
-TEST_F(ConnectSegmentsTest, ConnectPreservesNumberOfMergedSegment) {
+TEST_F(ConnectSegmentsCommandTest, ConnectPreservesNumberOfMergedSegment) {
     CFringeSegment A(100.5, 0), B(200.7, 1);
     A.AddPoint(CDPoint(0,0));
     B.AddPoint(CDPoint(10,10));

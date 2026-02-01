@@ -270,11 +270,14 @@
     <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
     <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
     <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
+    <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
+    <None Include="Docs\DRAWMODETEST_FIX_SUMMARY.md" />
     <None Include="Docs\Fix_MultipleSegments_SameNumber.md" />
     <None Include="Docs\FRINGES_EDITOR_UX_SPECIFICATIONS.md" />
     <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
     <None Include="Docs\HitTester_Tolerance_Fix.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
+    <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
     <None Include="Docs\MFC_Auxiliary_Audit.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
     <None Include="Docs\ROADMAP_UX.md" />

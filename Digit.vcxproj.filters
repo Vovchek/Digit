@@ -448,6 +448,9 @@
     <None Include="Docs\FRINGES_EDITOR_UX_SPECIFICATIONS.md">
       <Filter>Docs</Filter>
     </None>
+    <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
+    <None Include="Docs\DRAWMODETEST_FIX_SUMMARY.md" />
+    <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

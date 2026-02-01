@@ -165,6 +165,7 @@ public:
      * @param pDigit Pointer to DigitInfo (for accessing Fringes)
      * 
      * Creates a new segment with incremented Number value
+     * @deprecated Use overload with CommandDispatcher for undo support
      */
     void StartNewSegment(CPoint P, ::CDigitInfo* pDigit);
     // Overload that accepts CommandDispatcher to create/execute Commands directly
