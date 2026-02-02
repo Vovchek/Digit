@@ -288,17 +288,17 @@ size_t SelectionManager::SelectBox(const CRect& box, const std::vector<::CFringe
                 }
             }
             
-            // Select segment if ALL edges included
+            // Select segment if ALL edges FULLY inside box (all dots inside)
             if (pointCount > 1) {
-                bool allEdgesIncluded = true;
-                for (int j = 0; j < pointCount - 1; j++) {
-                    if (!edgesIntersect[j]) {
-                        allEdgesIncluded = false;
+                bool allDotsInside = true;
+                for (int j = 0; j < pointCount; j++) {
+                    if (!dotsInBox[j]) {
+                        allDotsInside = false;
                         break;
                     }
                 }
                 
-                if (allEdgesIncluded) {
+                if (allDotsInside) {
                     // Remove individual dots/edges and add segment
                     newSelection.erase(
                         std::remove_if(newSelection.begin(), newSelection.end(),
@@ -359,27 +359,69 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
                 continue;
             }
             
-            // Draw dot with glow effect
-            CDPoint point = segment.GetPoint(obj.iDot);
-            CPoint screenPoint(static_cast<int>(point.x), static_cast<int>(point.y));
-            
-            // Outer glow (larger, semi-transparent effect)
-            CPen glowPen(PS_SOLID, 3, glowColor);
-            CPen* oldPen = pDC->SelectObject(&glowPen);
-            CBrush glowBrush(glowColor);
-            CBrush* oldBrush = pDC->SelectObject(&glowBrush);
-            
-            pDC->Ellipse(screenPoint.x - 6, screenPoint.y - 6, 
-                         screenPoint.x + 6, screenPoint.y + 6);
-            
-            // Inner highlight (bright center)
-            CBrush highlightBrush(highlightColor);
-            pDC->SelectObject(&highlightBrush);
-            pDC->Ellipse(screenPoint.x - 3, screenPoint.y - 3,
-                         screenPoint.x + 3, screenPoint.y + 3);
-            
-            pDC->SelectObject(oldBrush);
-            pDC->SelectObject(oldPen);
+            // For single-dot segments, highlight the dot
+            // For multi-dot segments, highlight adjacent edges instead
+            if (pointCount == 1) {
+                // Draw dot with glow effect (only dot in segment)
+                CDPoint point = segment.GetPoint(obj.iDot);
+                CPoint screenPoint(static_cast<int>(point.x), static_cast<int>(point.y));
+                
+                CPen glowPen(PS_SOLID, 3, glowColor);
+                CPen* oldPen = pDC->SelectObject(&glowPen);
+                CBrush glowBrush(glowColor);
+                CBrush* oldBrush = pDC->SelectObject(&glowBrush);
+                
+                pDC->Ellipse(screenPoint.x - 6, screenPoint.y - 6, 
+                             screenPoint.x + 6, screenPoint.y + 6);
+                
+                CBrush highlightBrush(highlightColor);
+                pDC->SelectObject(&highlightBrush);
+                pDC->Ellipse(screenPoint.x - 3, screenPoint.y - 3,
+                             screenPoint.x + 3, screenPoint.y + 3);
+                
+                pDC->SelectObject(oldBrush);
+                pDC->SelectObject(oldPen);
+            }
+            else {
+                // Highlight adjacent edges instead of dot
+                // Edge before this dot (if exists)
+                if (obj.iDot > 0) {
+                    CDPoint p1 = segment.GetPoint(obj.iDot - 1);
+                    CDPoint p2 = segment.GetPoint(obj.iDot);
+                    CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
+                    CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
+                    
+                    CPen glowPen(PS_SOLID, 5, glowColor);
+                    CPen* oldPen = pDC->SelectObject(&glowPen);
+                    pDC->MoveTo(pt1);
+                    pDC->LineTo(pt2);
+                    
+                    CPen highlightPen(PS_SOLID, 2, highlightColor);
+                    pDC->SelectObject(&highlightPen);
+                    pDC->MoveTo(pt1);
+                    pDC->LineTo(pt2);
+                    pDC->SelectObject(oldPen);
+                }
+                
+                // Edge after this dot (if exists)
+                if (obj.iDot < pointCount - 1) {
+                    CDPoint p1 = segment.GetPoint(obj.iDot);
+                    CDPoint p2 = segment.GetPoint(obj.iDot + 1);
+                    CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
+                    CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
+                    
+                    CPen glowPen(PS_SOLID, 5, glowColor);
+                    CPen* oldPen = pDC->SelectObject(&glowPen);
+                    pDC->MoveTo(pt1);
+                    pDC->LineTo(pt2);
+                    
+                    CPen highlightPen(PS_SOLID, 2, highlightColor);
+                    pDC->SelectObject(&highlightPen);
+                    pDC->MoveTo(pt1);
+                    pDC->LineTo(pt2);
+                    pDC->SelectObject(oldPen);
+                }
+            }
         }
         else if (obj.level == SelectionLevel::Edge) {
             // Bounds check for edge index

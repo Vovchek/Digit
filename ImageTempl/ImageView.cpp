@@ -20,163 +20,163 @@
 static char THIS_FILE[] = __FILE__;
 #endif
 
-static CImageView *gr = NULL;
-void Polyline(int pn, ISO_POINT *plist, double level, int ilevel)
+static CImageView* gr = NULL;
+void Polyline(int pn, ISO_POINT* plist, double level, int ilevel)
 {
-  gr->SingleIsoline(pn, plist, level, ilevel);
+	gr->SingleIsoline(pn, plist, level, ilevel);
 }
 
 // Draw bounds (apertures) in screen coordinates so they scale with image pixels
 void CImageView::DrawBounds(CDC* pDC)
 {
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    if (!pDoc) return;
-    CBaseImageDoc* pBase = (CBaseImageDoc*)pDoc;
-    COLORREF Color = RGB(0,255,0);
-    CPen pen;
-    pen.CreatePen(PS_SOLID, 1, Color);
-    CPen* open = pDC->SelectObject(&pen);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	if (!pDoc) return;
+	CBaseImageDoc* pBase = (CBaseImageDoc*)pDoc;
+	COLORREF Color = RGB(0, 255, 0);
+	CPen pen;
+	pen.CreatePen(PS_SOLID, 1, Color);
+	CPen* open = pDC->SelectObject(&pen);
 
-    int xDIB, yDIB;
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    if(pImCtrls->m_pDIB == 0){
-       xDIB = pImCtrls->ImageSize.cx;
-       yDIB = pImCtrls->ImageSize.cy;
-    }
-    else{
-       xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
-       yDIB = pImCtrls->m_pDIB->m_dwHeight;
-    }
+	int xDIB, yDIB;
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	if (pImCtrls->m_pDIB == 0) {
+		xDIB = pImCtrls->ImageSize.cx;
+		yDIB = pImCtrls->ImageSize.cy;
+	}
+	else {
+		xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
+		yDIB = pImCtrls->m_pDIB->m_dwHeight;
+	}
 
-    CRect Bound;
-    CArray<CPoint, CPoint> PlgPoints;
-    BOOL res;
-    int BoundType = pDoc->boundCtrls.ExtBoundType;
-    if(BoundType != -1){
-        res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
-        if(res){
-            if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
-                // convert rect corners and draw arc via screen coordinates
-                CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
-                CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
-                CRect r(tl, br); r.NormalizeRect();
-                pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
-                pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
-            }
-            else if(BoundType == BOUND_RECT){
-                CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
-                CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.top});
-                CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
-                CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.bottom});
-                pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
-            }
-            else{
-                for(int i=0; i < PlgPoints.GetSize(); i++){
-                    CPoint wp = PlgPoints[i];
-                    CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{(double)wp.x, (double)wp.y});
-                    if(i==0) pDC->MoveTo(sp);
-                    else pDC->LineTo(sp);
-                }
-            }
-        }
-    }
+	CRect Bound;
+	CArray<CPoint, CPoint> PlgPoints;
+	BOOL res;
+	int BoundType = pDoc->boundCtrls.ExtBoundType;
+	if (BoundType != -1) {
+		res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
+		if (res) {
+			if (BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE) {
+				// convert rect corners and draw arc via screen coordinates
+				CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
+				CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
+				CRect r(tl, br); r.NormalizeRect();
+				pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
+				pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
+			}
+			else if (BoundType == BOUND_RECT) {
+				CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
+				CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.top });
+				CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
+				CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.bottom });
+				pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
+			}
+			else {
+				for (int i = 0; i < PlgPoints.GetSize(); i++) {
+					CPoint wp = PlgPoints[i];
+					CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{ (double)wp.x, (double)wp.y });
+					if (i == 0) pDC->MoveTo(sp);
+					else pDC->LineTo(sp);
+				}
+			}
+		}
+	}
 
-    BoundType = pDoc->boundCtrls.InsBoundType;
-    if(BoundType != -1){
-        int idx = 1;
-        res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-        if(res){
-            if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
-                CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
-                CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
-                CRect r(tl, br); r.NormalizeRect();
-                pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
-                pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
-            }
-            else if(BoundType == BOUND_RECT){
-                CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.top});
-                CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.top});
-                CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.right, (double)Bound.bottom});
-                CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{(double)Bound.left, (double)Bound.bottom});
-                pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
-            }
-            else{
-                while(res){
-                    for(int i=0; i < PlgPoints.GetSize(); i++){
-                        CPoint wp = PlgPoints[i];
-                        CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{(double)wp.x, (double)wp.y});
-                        if(i==0) pDC->MoveTo(sp);
-                        else pDC->LineTo(sp);
-                    }
-                    idx++;
-                    res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-                }
-            }
-        }
-    }
+	BoundType = pDoc->boundCtrls.InsBoundType;
+	if (BoundType != -1) {
+		int idx = 1;
+		res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+		if (res) {
+			if (BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE) {
+				CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
+				CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
+				CRect r(tl, br); r.NormalizeRect();
+				pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
+				pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
+			}
+			else if (BoundType == BOUND_RECT) {
+				CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
+				CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.top });
+				CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
+				CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.bottom });
+				pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
+			}
+			else {
+				while (res) {
+					for (int i = 0; i < PlgPoints.GetSize(); i++) {
+						CPoint wp = PlgPoints[i];
+						CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{ (double)wp.x, (double)wp.y });
+						if (i == 0) pDC->MoveTo(sp);
+						else pDC->LineTo(sp);
+					}
+					idx++;
+					res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+				}
+			}
+		}
+	}
 
-    if(open){
-      CPen* pRetPen = pDC->SelectObject(open);
-      if(pRetPen) pRetPen->DeleteObject();
-    }
+	if (open) {
+		CPen* pRetPen = pDC->SelectObject(open);
+		if (pRetPen) pRetPen->DeleteObject();
+	}
 }
 
 // Override image drawing to draw bitmap without the world transform (to get proper resampling)
 void CImageView::DrawImage(CDC* pDC)
 {
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    SECDib* pImage = (SECDib*)pImCtrls->GetImage();
-    CControls* pCtrls = GetControls();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	SECDib* pImage = (SECDib*)pImCtrls->GetImage();
+	CControls* pCtrls = GetControls();
 
-    if(pImage && (pCtrls->ViewState & V_INTERFEROGRAM)){
-        // compute destination rect in screen coords using ViewTransform
-        CRect rcDIB(pImCtrls->GetDIBRect());
-        CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)rcDIB.left, (double)rcDIB.top});
-        CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)rcDIB.right, (double)rcDIB.bottom});
-        CRect rcDest(tl, br);
-        rcDest.NormalizeRect();
+	if (pImage && (pCtrls->ViewState & V_INTERFEROGRAM)) {
+		// compute destination rect in screen coords using ViewTransform
+		CRect rcDIB(pImCtrls->GetDIBRect());
+		CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)rcDIB.left, (double)rcDIB.top });
+		CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)rcDIB.right, (double)rcDIB.bottom });
+		CRect rcDest(tl, br);
+		rcDest.NormalizeRect();
 
-        // Temporarily disable any world transform on this DC so StretchDIBits uses high-quality scaling
-        HDC hdc = pDC->GetSafeHdc();
-        XFORM oldX;
-        BOOL hadTransform = FALSE;
-        memset(&oldX, 0, sizeof(oldX));
-        if (GetWorldTransform(hdc, &oldX)) {
-            // set identity transform
-            XFORM id = {1.0f,0.0f,0.0f,1.0f,0.0f,0.0f};
-            SetWorldTransform(hdc, &id);
-            hadTransform = TRUE;
-        }
+		// Temporarily disable any world transform on this DC so StretchDIBits uses high-quality scaling
+		HDC hdc = pDC->GetSafeHdc();
+		XFORM oldX;
+		BOOL hadTransform = FALSE;
+		memset(&oldX, 0, sizeof(oldX));
+		if (GetWorldTransform(hdc, &oldX)) {
+			// set identity transform
+			XFORM id = { 1.0f,0.0f,0.0f,1.0f,0.0f,0.0f };
+			SetWorldTransform(hdc, &id);
+			hadTransform = TRUE;
+		}
 
-        CPalette* pOldPalette = NULL;
-        if(pImage && pImage->m_pPalette)
-            pOldPalette = pDC->SelectPalette(pImage->m_pPalette, TRUE);
-        // Use high-quality stretching for bitmap resampling
-        int prevMode = SetStretchBltMode(hdc, HALFTONE);
-        pDC->SetBrushOrg(rcDest.left % 8, rcDest.top % 8);
-        pImage->m_bUseHalftone = TRUE;
-        int ix = rcDIB.left, iy = rcDIB.top, iw = rcDIB.Width(), ih = rcDIB.Height();
-        pImage->StretchDIBits(pDC,
-            rcDest.left, rcDest.top, rcDest.Width(), rcDest.Height(),
-            ix, iy, iw, ih,
-            pImage->m_lpSrcBits,
-            pImage->m_lpBMI, DIB_RGB_COLORS,
-            SRCCOPY);
+		CPalette* pOldPalette = NULL;
+		if (pImage && pImage->m_pPalette)
+			pOldPalette = pDC->SelectPalette(pImage->m_pPalette, TRUE);
+		// Use high-quality stretching for bitmap resampling
+		int prevMode = SetStretchBltMode(hdc, HALFTONE);
+		pDC->SetBrushOrg(rcDest.left % 8, rcDest.top % 8);
+		pImage->m_bUseHalftone = TRUE;
+		int ix = rcDIB.left, iy = rcDIB.top, iw = rcDIB.Width(), ih = rcDIB.Height();
+		pImage->StretchDIBits(pDC,
+			rcDest.left, rcDest.top, rcDest.Width(), rcDest.Height(),
+			ix, iy, iw, ih,
+			pImage->m_lpSrcBits,
+			pImage->m_lpBMI, DIB_RGB_COLORS,
+			SRCCOPY);
 
-        if(pOldPalette)
-            pDC->SelectPalette(pOldPalette, TRUE);
-        // restore previous stretch mode
-        SetStretchBltMode(hdc, prevMode);
+		if (pOldPalette)
+			pDC->SelectPalette(pOldPalette, TRUE);
+		// restore previous stretch mode
+		SetStretchBltMode(hdc, prevMode);
 
-        // restore previous world transform
-        if (hadTransform) {
-            SetWorldTransform(hdc, &oldX);
-        }
-    }
-    else{
-        CRect clRect; GetClientRect(clRect);
-        pDC->FillRect(&clRect, &CBrush(RGB(0,0,0)));
-    }
+		// restore previous world transform
+		if (hadTransform) {
+			SetWorldTransform(hdc, &oldX);
+		}
+	}
+	else {
+		CRect clRect; GetClientRect(clRect);
+		pDC->FillRect(&clRect, &CBrush(RGB(0, 0, 0)));
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -190,121 +190,121 @@ CImageView::CImageView()
 
 CImageView::~CImageView()
 {
-//    ::DeleteObject(HGDIOBJ(bkColorBrush));
+	//    ::DeleteObject(HGDIOBJ(bkColorBrush));
 }
 
 bool CImageView::GetXPixelLine(CPoint d_P, double*& pR, double*& pF, int& nP)
 {
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CPoint l_P(d_P);
 	ClientToDoc(l_P);
 
-    int iy;
+	int iy;
 	int xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
 	int yDIB = pImCtrls->m_pDIB->m_dwHeight;
 	unsigned char* lpDIBBits = (unsigned char*)pImCtrls->m_pDIB->m_lpSrcBits;
-    CRect regDIB(pImCtrls->GetDIBRect());
+	CRect regDIB(pImCtrls->GetDIBRect());
 	CRect d_regDIB(regDIB);
 	DocToClient(d_regDIB);
 
 	iy = d_P.y;
-	for(int ix=0; ix < nP; ix++){
-       CPoint d_curP(ix, iy);
-	   if(d_regDIB.PtInRect(d_curP)){
-		  CPoint l_curP(d_curP);
-		  ClientToDoc(l_curP);
-          CDPoint dP(l_curP);
-	      int iix = (int)dP.x;
-	      int iiy = yDIB - (int)dP.y;
-		  if(iix > -1 && iiy > -1 && iix < xDIB && iiy < yDIB)
-            pF[ix] = (double)((int)lpDIBBits[xDIB*iiy+iix]/255.);
-		  else
-            pF[ix] = 0.;
+	for (int ix = 0; ix < nP; ix++) {
+		CPoint d_curP(ix, iy);
+		if (d_regDIB.PtInRect(d_curP)) {
+			CPoint l_curP(d_curP);
+			ClientToDoc(l_curP);
+			CDPoint dP(l_curP);
+			int iix = (int)dP.x;
+			int iiy = yDIB - (int)dP.y;
+			if (iix > -1 && iiy > -1 && iix < xDIB && iiy < yDIB)
+				pF[ix] = (double)((int)lpDIBBits[xDIB * iiy + iix] / 255.);
+			else
+				pF[ix] = 0.;
 		}
-		else{
-          pF[ix] = 0.;
+		else {
+			pF[ix] = 0.;
 		}
-          pR[ix] = ix;
-	   }
+		pR[ix] = ix;
+	}
 
-    return true;
+	return true;
 }
 
 bool CImageView::GetYPixelLine(CPoint d_P, double*& pR, double*& pF, int& nP)
 {
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CPoint l_P(d_P);
 	ClientToDoc(l_P);
 
-    int ix;
+	int ix;
 	int xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
 	int yDIB = pImCtrls->m_pDIB->m_dwHeight;
 	unsigned char* lpDIBBits = (unsigned char*)pImCtrls->m_pDIB->m_lpSrcBits;
-    CRect regDIB(pImCtrls->GetDIBRect());
+	CRect regDIB(pImCtrls->GetDIBRect());
 	CRect d_regDIB(regDIB);
 	DocToClient(d_regDIB);
 
 	int iScrollWidth = 0;
-    if(GetStyle() & WS_HSCROLL)
-      iScrollWidth = 15;
+	if (GetStyle() & WS_HSCROLL)
+		iScrollWidth = 15;
 
 	ix = d_P.x;
-	for(int iy=nP; iy > 0; iy--){
-       CPoint d_curP(ix, iy);
-	   if(d_regDIB.PtInRect(d_curP)){
-		  CPoint l_curP(d_curP);
-		  ClientToDoc(l_curP);
-          CDPoint dP(l_curP);
-	      int iix = (int)dP.x;
-	      int iiy = yDIB - (int)dP.y;
-		  if(iix > -1 && iiy > -1 && iix < xDIB && iiy < yDIB)
-            pF[nP-iy] = (double)((int)lpDIBBits[xDIB*iiy+iix]/255.);
-		  else
-            pF[nP-iy] = 0.;
+	for (int iy = nP; iy > 0; iy--) {
+		CPoint d_curP(ix, iy);
+		if (d_regDIB.PtInRect(d_curP)) {
+			CPoint l_curP(d_curP);
+			ClientToDoc(l_curP);
+			CDPoint dP(l_curP);
+			int iix = (int)dP.x;
+			int iiy = yDIB - (int)dP.y;
+			if (iix > -1 && iiy > -1 && iix < xDIB && iiy < yDIB)
+				pF[nP - iy] = (double)((int)lpDIBBits[xDIB * iiy + iix] / 255.);
+			else
+				pF[nP - iy] = 0.;
 		}
-		else{
-          pF[nP-iy] = 0.;
+		else {
+			pF[nP - iy] = 0.;
 		}
-          pR[nP-iy] = nP-iy;
-	   }
-    return true;
+		pR[nP - iy] = nP - iy;
+	}
+	return true;
 }
 
 BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	//{{AFX_MSG_MAP(CImageView)
 	ON_WM_CREATE()
-    ON_UPDATE_COMMAND_UI(ID_FILE_OPEN, OnUpdateFileOpen)
-    ON_COMMAND(IDD_MEASURE, OnMeasure)
-    ON_UPDATE_COMMAND_UI(IDD_MEASURE, OnUpdateMeasure)
-    ON_COMMAND(IDD_FOTO_SECTIONS, OnFotoSections)
-    ON_UPDATE_COMMAND_UI(IDD_FOTO_SECTIONS, OnUpdateFotoSections)
-    ON_COMMAND(IDD_BOUNDS_EXT, OnExtBounds)
-    ON_UPDATE_COMMAND_UI(IDD_BOUNDS_EXT, OnUpdateExtBounds)
-    ON_COMMAND(IDD_BOUNDS_INS, OnInsBounds)
-    ON_UPDATE_COMMAND_UI(IDD_BOUNDS_INS, OnUpdateInsBounds)
-    ON_COMMAND(IDD_ZOOM_IMAGE, OnZoom)
-    ON_UPDATE_COMMAND_UI(IDD_ZOOM_IMAGE, OnUpdateZoom)
-    ON_COMMAND(IDD_ZOOM_IN, OnZoomIn)
-    ON_COMMAND(IDD_ZOOM_OUT, OnZoomOut)
-    ON_COMMAND(IDD_ZOOM_FIT, OnZoomFit)
-    ON_COMMAND(IDD_EDIT_UNDO, OnUndo)
-    ON_UPDATE_COMMAND_UI(IDD_EDIT_UNDO, OnUpdateUndo)
-    ON_COMMAND(IDD_EDIT_REDO, OnEditRedo)
-    ON_UPDATE_COMMAND_UI(IDD_EDIT_REDO, OnUpdateEditRedo)
-    ON_COMMAND(IDD_AUTO_D, OnAutoDigit)
-    ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateAutoDigit)
+	ON_UPDATE_COMMAND_UI(ID_FILE_OPEN, OnUpdateFileOpen)
+	ON_COMMAND(IDD_MEASURE, OnMeasure)
+	ON_UPDATE_COMMAND_UI(IDD_MEASURE, OnUpdateMeasure)
+	ON_COMMAND(IDD_FOTO_SECTIONS, OnFotoSections)
+	ON_UPDATE_COMMAND_UI(IDD_FOTO_SECTIONS, OnUpdateFotoSections)
+	ON_COMMAND(IDD_BOUNDS_EXT, OnExtBounds)
+	ON_UPDATE_COMMAND_UI(IDD_BOUNDS_EXT, OnUpdateExtBounds)
+	ON_COMMAND(IDD_BOUNDS_INS, OnInsBounds)
+	ON_UPDATE_COMMAND_UI(IDD_BOUNDS_INS, OnUpdateInsBounds)
+	ON_COMMAND(IDD_ZOOM_IMAGE, OnZoom)
+	ON_UPDATE_COMMAND_UI(IDD_ZOOM_IMAGE, OnUpdateZoom)
+	ON_COMMAND(IDD_ZOOM_IN, OnZoomIn)
+	ON_COMMAND(IDD_ZOOM_OUT, OnZoomOut)
+	ON_COMMAND(IDD_ZOOM_FIT, OnZoomFit)
+	ON_COMMAND(IDD_EDIT_UNDO, OnUndo)
+	ON_UPDATE_COMMAND_UI(IDD_EDIT_UNDO, OnUpdateUndo)
+	ON_COMMAND(IDD_EDIT_REDO, OnEditRedo)
+	ON_UPDATE_COMMAND_UI(IDD_EDIT_REDO, OnUpdateEditRedo)
+	ON_COMMAND(IDD_AUTO_D, OnAutoDigit)
+	ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateAutoDigit)
 	ON_COMMAND(IDD_FC_MAX, OnFCMax)
-    ON_UPDATE_COMMAND_UI(IDD_FC_MAX, OnUpdateFCMax)
+	ON_UPDATE_COMMAND_UI(IDD_FC_MAX, OnUpdateFCMax)
 	ON_COMMAND(IDD_FC_MIN, OnFCMin)
-    ON_UPDATE_COMMAND_UI(IDD_FC_MIN, OnUpdateFCMin)
+	ON_UPDATE_COMMAND_UI(IDD_FC_MIN, OnUpdateFCMin)
 	ON_COMMAND(IDD_FC_MINMAX, OnFCMinMax)
-    ON_UPDATE_COMMAND_UI(IDD_FC_MINMAX, OnUpdateFCMinMax)
+	ON_UPDATE_COMMAND_UI(IDD_FC_MINMAX, OnUpdateFCMinMax)
 	ON_COMMAND(IDD_CLEAR_D, OnClearDigit)
-    ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateClearDigit)
+	ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateClearDigit)
 	ON_COMMAND(IDD_CALC_APROX, OnCalcAproximation)
-    ON_UPDATE_COMMAND_UI(IDD_CALC_APROX, OnUpdateCalcAproximation)
+	ON_UPDATE_COMMAND_UI(IDD_CALC_APROX, OnUpdateCalcAproximation)
 	ON_COMMAND(IDD_ADD_DOT_D, OnAddDot)
 	ON_UPDATE_COMMAND_UI(IDD_ADD_DOT_D, OnUpdateAddDot)
 	ON_COMMAND(IDD_DEL_DOT_D, OnRemoveDot)
@@ -312,9 +312,9 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_COMMAND(IDD_DEL_FR_D, OnRemoveFringe)
 	ON_UPDATE_COMMAND_UI(IDD_DEL_FR_D, OnUpdateRemoveFringe)
 	ON_COMMAND(IDD_ADD_SEC_D, OnAddZAPSection)
-    ON_UPDATE_COMMAND_UI(IDD_ADD_SEC_D, OnUpdateAddSection)
+	ON_UPDATE_COMMAND_UI(IDD_ADD_SEC_D, OnUpdateAddSection)
 	ON_COMMAND(IDD_DEL_SEC_D, OnDelZAPSection)
-    ON_UPDATE_COMMAND_UI(IDD_DEL_SEC_D, OnUpdateDelSection)
+	ON_UPDATE_COMMAND_UI(IDD_DEL_SEC_D, OnUpdateDelSection)
 	ON_COMMAND(IDD_SEC_LEFT_D, OnShiftDotLeft)
 	ON_UPDATE_COMMAND_UI(IDD_SEC_LEFT_D, OnUpdateShiftDotLeft)
 	ON_COMMAND(IDD_SEC_RIGHT_D, OnShiftDotRight)
@@ -327,23 +327,23 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_MINUS, OnUpdateNumberMinus)
 	ON_COMMAND(IDD_NUM_OFF_PLUS, OnNumberPlus)
 	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_PLUS, OnUpdateNumberPlus)
-    ON_WM_ERASEBKGND()
-    ON_WM_MOUSEMOVE()
-    ON_WM_MOUSEWHEEL()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_LBUTTONUP()
-    ON_WM_RBUTTONDOWN()
-    ON_WM_RBUTTONUP()
-    ON_WM_SETCURSOR()
-    ON_WM_SIZE()
+	ON_WM_ERASEBKGND()
+	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSEWHEEL()
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_RBUTTONDOWN()
+	ON_WM_RBUTTONUP()
+	ON_WM_SETCURSOR()
+	ON_WM_SIZE()
 	ON_WM_MOVE()
-    ON_WM_KILLFOCUS()
+	ON_WM_KILLFOCUS()
 	ON_WM_HSCROLL()
 	ON_WM_VSCROLL()
 	ON_WM_CONTEXTMENU()
 	ON_WM_SETFOCUS()
 	ON_WM_KEYDOWN()
-    ON_WM_KEYUP()
+	ON_WM_KEYUP()
 	ON_WM_TIMER()
 	ON_WM_LBUTTONDBLCLK()
 	ON_WM_RBUTTONDBLCLK()
@@ -352,282 +352,290 @@ END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
 // CImageView drawing
-BOOL CImageView::PreCreateWindow(CREATESTRUCT& cs) 
+BOOL CImageView::PreCreateWindow(CREATESTRUCT& cs)
 {
 	cs.style |= CS_BYTEALIGNCLIENT;
-/*    bkColorBrush = CreateSolidBrush(RGB(0,0,0));
-    cs.lpszClass = AfxRegisterWndClass(CS_OWNDC|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS, 
-      ::LoadCursor(NULL, IDC_ARROW), bkColorBrush, NULL);
-*/	
+	/*    bkColorBrush = CreateSolidBrush(RGB(0,0,0));
+		cs.lpszClass = AfxRegisterWndClass(CS_OWNDC|CS_HREDRAW|CS_VREDRAW|CS_DBLCLKS,
+		  ::LoadCursor(NULL, IDC_ARROW), bkColorBrush, NULL);
+	*/
 	return CBaseImageView::PreCreateWindow(cs);
 }
 
-int CImageView::OnCreate(LPCREATESTRUCT lpCreateStruct) 
+int CImageView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CBaseImageView::OnCreate(lpCreateStruct) == -1)
 		return -1;
-	
+
 	// TODO: Add your specialized creation code here
-	
+
 	return 0;
 }
 
 void CImageView::Init()
 {
-  CursorPos = CPoint(-1,-1);
-  MeasureLine = CRect(0,0,0,0);
-  m_bLinning = FALSE;
-  m_Captured = FALSE;
-  CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-  pMCtrls->Init();
+	CursorPos = CPoint(-1, -1);
+	MeasureLine = CRect(0, 0, 0, 0);
+	m_bLinning = FALSE;
+	m_Captured = FALSE;
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	pMCtrls->Init();
 }
 
 void CImageView::OnInitialUpdate()
 {
 	CBaseImageView::OnInitialUpdate();
 
-   CursorPos = CPoint(-1, -1);
-   CImageCtrls* pImage = GetImageCtrls(this);
-   CControls* pCtrls = GetControls();
-   
-   CRect wDIBRect = pImage->GetDIBRect();
-   CFrameWnd* pFr = GetParentFrame();
-   WINDOWPLACEMENT wp;
-   pFr->GetWindowPlacement(&wp);
-   pFr->CalcWindowRect(&wDIBRect, CWnd::adjustOutside);
-   int W = wDIBRect.Width()+20;
-   int H = wDIBRect.Height()+20;
-   CDC* pDC = GetDC();
-   int scr_W = pDC->GetDeviceCaps(HORZRES);
-   int scr_H = pDC->GetDeviceCaps(VERTRES);
-   ReleaseDC(pDC);
-   BOOL needFit=FALSE;
-   if(W > std::lround(scr_W*0.65)){
-      W = std::lround(scr_W*0.65);
-	  needFit=TRUE;
-   }
-   if(H > std::lround(scr_H*0.65)){
-      H = std::lround(scr_H*0.65);
-	  needFit=TRUE;
-   }
-   pFr->MoveWindow(wp.rcNormalPosition.left , wp.rcNormalPosition.top, W, H);
-   if(needFit){
-	   OnZoomFit();
-   }
+	CursorPos = CPoint(-1, -1);
+	CImageCtrls* pImage = GetImageCtrls(this);
+	CControls* pCtrls = GetControls();
 
-   CenterImageInView();
+	CRect wDIBRect = pImage->GetDIBRect();
+	CFrameWnd* pFr = GetParentFrame();
+	WINDOWPLACEMENT wp;
+	pFr->GetWindowPlacement(&wp);
+	pFr->CalcWindowRect(&wDIBRect, CWnd::adjustOutside);
+	int W = wDIBRect.Width() + 20;
+	int H = wDIBRect.Height() + 20;
+	CDC* pDC = GetDC();
+	int scr_W = pDC->GetDeviceCaps(HORZRES);
+	int scr_H = pDC->GetDeviceCaps(VERTRES);
+	ReleaseDC(pDC);
+	BOOL needFit = FALSE;
+	if (W > std::lround(scr_W * 0.65)) {
+		W = std::lround(scr_W * 0.65);
+		needFit = TRUE;
+	}
+	if (H > std::lround(scr_H * 0.65)) {
+		H = std::lround(scr_H * 0.65);
+		needFit = TRUE;
+	}
+	pFr->MoveWindow(wp.rcNormalPosition.left, wp.rcNormalPosition.top, W, H);
+	if (needFit) {
+		OnZoomFit();
+	}
 
-   // Initialize tooltip control for dynamic hover tooltips
-   if (!m_tooltip.m_hWnd) {
-       m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
-       m_tooltip.AddTool(this, _T(""));
-       m_tooltip.SetMaxTipWidth(300);
-       m_tooltip.Activate(TRUE);
-   }
+	CenterImageInView();
+
+	// Initialize tooltip control for dynamic hover tooltips
+	if (!m_tooltip.m_hWnd) {
+		m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
+		m_tooltip.AddTool(this, _T(""));
+		m_tooltip.SetMaxTipWidth(300);
+		m_tooltip.Activate(TRUE);
+	}
 }
 
 void CImageView::CenterImageInView()
 {
-    CImageCtrls* pImage = GetImageCtrls(this);
-    CRect imgRect = pImage->GetDIBRect();
-    if (imgRect.IsRectEmpty()) return;
+	CImageCtrls* pImage = GetImageCtrls(this);
+	CRect imgRect = pImage->GetDIBRect();
+	if (imgRect.IsRectEmpty()) return;
 
-    CRect clientR;
-    GetClientRect(clientR);
+	CRect clientR;
+	GetClientRect(clientR);
 
-    // Calculate scaled image size
-    double scale = m_viewTransform.GetScale();
-    int scaledW = (int)(imgRect.Width() * scale);
-    int scaledH = (int)(imgRect.Height() * scale);
+	// Calculate scaled image size
+	double scale = m_viewTransform.GetScale();
+	int scaledW = (int)(imgRect.Width() * scale);
+	int scaledH = (int)(imgRect.Height() * scale);
 
-    // Center the image in the client area
-    double offsetX = (clientR.Width() - scaledW) / 2.0;
-    double offsetY = (clientR.Height() - scaledH) / 2.0;
+	// Center the image in the client area
+	double offsetX = (clientR.Width() - scaledW) / 2.0;
+	double offsetY = (clientR.Height() - scaledH) / 2.0;
 
-    // Ensure offset doesn't go negative (if image is larger than client)
-    if (offsetX < 0) offsetX = 0;
-    if (offsetY < 0) offsetY = 0;
+	// Ensure offset doesn't go negative (if image is larger than client)
+	if (offsetX < 0) offsetX = 0;
+	if (offsetY < 0) offsetY = 0;
 
-    CPoint2d newOffset = {offsetX, offsetY};
-    m_viewTransform.SetOffset(newOffset);
-    
-    Invalidate(FALSE);
+	CPoint2d newOffset = { offsetX, offsetY };
+	m_viewTransform.SetOffset(newOffset);
+
+	Invalidate(FALSE);
 }
 
 void CImageView::OnZoomIn()
 {
-    CRect clientR;
-    GetClientRect(clientR);
-    CPoint center(clientR.Width()/2, clientR.Height()/2);
-    m_viewTransform.ZoomAt(center, 1.15);
-    Invalidate(FALSE);
+	CRect clientR;
+	GetClientRect(clientR);
+	CPoint center(clientR.Width() / 2, clientR.Height() / 2);
+	m_viewTransform.ZoomAt(center, 1.15);
+	Invalidate(FALSE);
 }
 
 void CImageView::OnZoomOut()
 {
-    CRect clientR;
-    GetClientRect(clientR);
-    CPoint center(clientR.Width()/2, clientR.Height()/2);
-    m_viewTransform.ZoomAt(center, 1.0/1.15);
-    Invalidate(FALSE);
+	CRect clientR;
+	GetClientRect(clientR);
+	CPoint center(clientR.Width() / 2, clientR.Height() / 2);
+	m_viewTransform.ZoomAt(center, 1.0 / 1.15);
+	Invalidate(FALSE);
 }
 
 void CImageView::OnZoomFit()
 {
-    CImageCtrls* pImage = GetImageCtrls(this);
-    CRect imgRect = pImage->GetDIBRect();
-    CRect clientR;
-    GetClientRect(clientR);
-    
-    m_viewTransform.ZoomToFit(imgRect, clientR);
-    Invalidate(FALSE);
+	CImageCtrls* pImage = GetImageCtrls(this);
+	CRect imgRect = pImage->GetDIBRect();
+	CRect clientR;
+	GetClientRect(clientR);
+
+	m_viewTransform.ZoomToFit(imgRect, clientR);
+	Invalidate(FALSE);
 }
 
 void CImageView::DrawDigitInfo(CDC* pDC)
 {
-    // Use single legacy drawing path: CDigitInfo::Draw expects the DC to have
-    // a world transform applied so coordinates inside Draw are in image/world
-    // space. We set the transform here from m_viewTransform, then call Draw.
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    CControls* pCtrls = GetControls();
-    if (!pDoc || !pCtrls) return;
+	// Use single legacy drawing path: CDigitInfo::Draw expects the DC to have
+	// a world transform applied so coordinates inside Draw are in image/world
+	// space. We set the transform here from m_viewTransform, then call Draw.
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	if (!pDoc || !pCtrls) return;
 
-    // Prepare HDC and save state
-    HDC hdc = pDC->GetSafeHdc();
-    int oldMode = SetGraphicsMode(hdc, GM_ADVANCED);
-    XFORM oldX; memset(&oldX, 0, sizeof(oldX));
-    bool hadOld = false;
-    if (GetWorldTransform(hdc, &oldX)) hadOld = true;
+	// Prepare HDC and save state
+	HDC hdc = pDC->GetSafeHdc();
+	int oldMode = SetGraphicsMode(hdc, GM_ADVANCED);
+	XFORM oldX; memset(&oldX, 0, sizeof(oldX));
+	bool hadOld = false;
+	if (GetWorldTransform(hdc, &oldX)) hadOld = true;
 
-    // Get current viewport origin to adjust translation when drawing into
-    // an offscreen DC that has offset viewport set by OnDraw.
-    POINT vp = {0,0};
-    ::GetViewportOrgEx(hdc, &vp);
+	// Get current viewport origin to adjust translation when drawing into
+	// an offscreen DC that has offset viewport set by OnDraw.
+	POINT vp = { 0,0 };
+	::GetViewportOrgEx(hdc, &vp);
 
-    double s = m_viewTransform.GetScale();
-    CPoint2d off = m_viewTransform.GetOffset();
-    XFORM xform;
-    xform.eM11 = (FLOAT)s; xform.eM12 = 0.0f;
-    xform.eM21 = 0.0f; xform.eM22 = (FLOAT)s;
-    xform.eDx = (FLOAT)(off.x - vp.x);
-    xform.eDy = (FLOAT)(off.y - vp.y);
-    SetWorldTransform(hdc, &xform);
+	double s = m_viewTransform.GetScale();
+	CPoint2d off = m_viewTransform.GetOffset();
+	XFORM xform;
+	xform.eM11 = (FLOAT)s; xform.eM12 = 0.0f;
+	xform.eM21 = 0.0f; xform.eM22 = (FLOAT)s;
+	xform.eDx = (FLOAT)(off.x - vp.x);
+	xform.eDy = (FLOAT)(off.y - vp.y);
+	SetWorldTransform(hdc, &xform);
 
-    // Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
-    // fringes and rubber-band consistently in world coordinates.
-    int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
-    CPoint active = m_inputHandler.GetActiveDot(&pDoc->Digit);
-    // CursorPos is already in world coordinates (set in OnMouseMove)
-    CPoint cursor = CursorPos;
-    bool rubber = m_inputHandler.GetRubberBand(&pDoc->Digit);
-    pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
+	// Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
+	// fringes and rubber-band consistently in world coordinates.
+	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
+	CPoint active = m_inputHandler.GetActiveDot(&pDoc->Digit);
+	// CursorPos is already in world coordinates (set in OnMouseMove)
+	CPoint cursor = CursorPos;
+	bool rubber = m_inputHandler.GetRubberBand(&pDoc->Digit);
+	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
 
-    // Restore previous transform/state
-    if (hadOld) SetWorldTransform(hdc, &oldX);
-    SetGraphicsMode(hdc, oldMode);
+	// Restore previous transform/state
+	if (hadOld) SetWorldTransform(hdc, &oldX);
+	SetGraphicsMode(hdc, oldMode);
 }
 
 void CImageView::DrawAproximation(CDC* pDC)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsAproximation() && (pCtrls->ViewState & V_APPROXIMATION)){
-	  gr = this;
-	  hDC = pDC->GetSafeHdc();
-	  if (pDoc->nLevel > 0)
-		  pDoc->pLevel[pDoc->nLevel - 1] *= 0.999999999;
-	  	
-	  ApproxContour(pDoc->pMatr, pDoc->nx, pDoc->ny, pDoc->pY, pDoc->pX, pDoc->nLevel, pDoc->pLevel, Polyline);
-  }
+	if (pDoc->IsAproximation() && (pCtrls->ViewState & V_APPROXIMATION)) {
+		gr = this;
+		hDC = pDC->GetSafeHdc();
+		if (pDoc->nLevel > 0)
+			pDoc->pLevel[pDoc->nLevel - 1] *= 0.999999999;
+
+		ApproxContour(pDoc->pMatr, pDoc->nx, pDoc->ny, pDoc->pY, pDoc->pX, pDoc->nLevel, pDoc->pLevel, Polyline);
+	}
 }
 
 void CImageView::OnDraw(CDC* pDC)
 {
-    CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-    // ViewTransform is used for coordinate conversions. We draw bitmap in
-    // device coords (no world-transform) for proper resampling, then apply
-    // a temporary GDI world-transform to the same DC for vector overlays
-    // so they scale/translate correctly. xForm is computed after rectClip so
-    // we can adjust translation when drawing to an offscreen bitmap.
+	// ViewTransform is used for coordinate conversions. We draw bitmap in
+	// device coords (no world-transform) for proper resampling, then apply
+	// a temporary GDI world-transform to the same DC for vector overlays
+	// so they scale/translate correctly. xForm is computed after rectClip so
+	// we can adjust translation when drawing to an offscreen bitmap.
 
-    CDC dc;
-    CDC* pDrawDC = pDC;
-    CBitmap bitmap;
-    CBitmap* pOldBitmap;
+	CDC dc;
+	CDC* pDrawDC = pDC;
+	CBitmap bitmap;
+	CBitmap* pOldBitmap;
 
-    CRect client, rectClip;
-    pDC->GetClipBox(&client);
-    rectClip = client;
-    pDC->LPtoDP(&rectClip);
-    rectClip.InflateRect(1, 1); // avoid rounding to nothing
+	CRect client, rectClip;
+	pDC->GetClipBox(&client);
+	rectClip = client;
+	pDC->LPtoDP(&rectClip);
+	rectClip.InflateRect(1, 1); // avoid rounding to nothing
 
-    // compute world transform based on current view
-    double s = m_viewTransform.GetScale();
-    CPoint2d off = m_viewTransform.GetOffset();
-    XFORM xForm;
-    xForm.eM11 = (FLOAT)s; xForm.eM12 = 0.0f;
-    xForm.eM21 = 0.0f; xForm.eM22 = (FLOAT)s;
-    // default translation assumes drawing to screen DC
-    xForm.eDx = (FLOAT)off.x; xForm.eDy = (FLOAT)off.y;
+	// compute world transform based on current view
+	double s = m_viewTransform.GetScale();
+	CPoint2d off = m_viewTransform.GetOffset();
+	XFORM xForm;
+	xForm.eM11 = (FLOAT)s; xForm.eM12 = 0.0f;
+	xForm.eM21 = 0.0f; xForm.eM22 = (FLOAT)s;
+	// default translation assumes drawing to screen DC
+	xForm.eDx = (FLOAT)off.x; xForm.eDy = (FLOAT)off.y;
 
-    if (dc.CreateCompatibleDC(pDC)){
-            if (bitmap.CreateCompatibleBitmap(pDC, rectClip.Width(), rectClip.Height()))
-            {
-                OnPrepareDC(&dc, NULL);
-                pDrawDC = &dc;
-                // offset origin more because bitmap is just piece of the whole drawing
-                dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
-                // When drawing into an offscreen bitmap the world transform's
-                // translation must be adjusted by the viewport offset.
-                xForm.eDx = (FLOAT)(off.x - rectClip.left);
-                xForm.eDy = (FLOAT)(off.y - rectClip.top);
-                pOldBitmap = dc.SelectObject(&bitmap);
-                dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
-                // might as well clip to the same rectangle
-                dc.IntersectClipRect(client);
-            }
-        }
+	if (dc.CreateCompatibleDC(pDC)) {
+		if (bitmap.CreateCompatibleBitmap(pDC, rectClip.Width(), rectClip.Height()))
+		{
+			OnPrepareDC(&dc, NULL);
+			pDrawDC = &dc;
+			// offset origin more because bitmap is just piece of the whole drawing
+			dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
+			// When drawing into an offscreen bitmap the world transform's
+			// translation must be adjusted by the viewport offset.
+		 xForm.eDx = (FLOAT)(off.x - rectClip.left);
+			xForm.eDy = (FLOAT)(off.y - rectClip.top);
+			pOldBitmap = dc.SelectObject(&bitmap);
+			dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
+			// might as well clip to the same rectangle
+			dc.IntersectClipRect(client);
+		}
+	}
+
+	DrawBackGround(pDrawDC);
+	DrawImage(pDrawDC);
+
+	// Draw vector overlays in screen (device) coordinates. Do not apply
+	// a GDI world-transform here - Draw* functions convert world points
+	// to screen via m_viewTransform.WorldToScreen when needed.
+
+	DrawMeasureLine(pDrawDC);
+	if (pCtrls->EnableCustomDots) {
+		DrawCustomDots(pDrawDC);
+		DrawCurBound(pDrawDC);
+	}
+	else if (pDoc->Tracker.GetEnableState()) {
+		pDoc->Tracker.DrawTracker(pDrawDC);
+		DrawCurBound(pDrawDC);
+	}
+	if (pDoc->IsFotoSections()) {
+		DrawCrossedLines(pDrawDC);
+		pDoc->ReSetSections(CursorPos);
+	}
+	DrawBounds(pDrawDC);
+	DrawDigitInfo(pDrawDC);
+	DrawAproximation(pDrawDC);
 	
-    DrawBackGround(pDrawDC);
-    DrawImage(pDrawDC);
-
-    // Draw vector overlays in screen (device) coordinates. Do not apply
-    // a GDI world-transform here - Draw* functions convert world points
-    // to screen via m_viewTransform.WorldToScreen when needed.
-
-    DrawMeasureLine(pDrawDC);
-    if(pCtrls->EnableCustomDots){
-       DrawCustomDots(pDrawDC);
-       DrawCurBound(pDrawDC);
-    }
-    else if(pDoc->Tracker.GetEnableState()){
-       pDoc->Tracker.DrawTracker(pDrawDC);
-       DrawCurBound(pDrawDC);
-    }
-    if(pDoc->IsFotoSections()){
-        DrawCrossedLines(pDrawDC);
-        pDoc->ReSetSections(CursorPos);
-    }
-    DrawBounds(pDrawDC);
-    DrawDigitInfo(pDrawDC);
-    DrawAproximation(pDrawDC);
-    // Drawing performed here... (no world-transform applied)
-    if (pDrawDC != pDC){
-        pDC->SetViewportOrg(0, 0);
-        pDC->SetWindowOrg(0,0);
-        pDC->SetMapMode(MM_TEXT);
-        dc.SetViewportOrg(0, 0);
-        dc.SetWindowOrg(0,0);
-        dc.SetMapMode(MM_TEXT);
-        pDC->BitBlt(rectClip.left, rectClip.top, rectClip.Width(), rectClip.Height(),
-            &dc, 0, 0, SRCCOPY);
-        dc.SelectObject(pOldBitmap);
-    }
-	if(pDoc)
-    	pDoc->SetZoomToTitle();
+	// Draw selection box rubber-band if active (Navigate mode)
+	// m_drag points are in world coordinates, pass viewTransform for screen conversion
+	using namespace DigitMode;
+	if (m_inputHandler.GetMode() == EditMode::Navigate) {
+		m_inputHandler.DrawSelectionBox(pDrawDC, &m_viewTransform);
+	}
+	
+	// Drawing performed here... (no world-transform applied)
+	if (pDrawDC != pDC) {
+		pDC->SetViewportOrg(0, 0);
+		pDC->SetWindowOrg(0, 0);
+		pDC->SetMapMode(MM_TEXT);
+		dc.SetViewportOrg(0, 0);
+		dc.SetWindowOrg(0, 0);
+		dc.SetMapMode(MM_TEXT);
+		pDC->BitBlt(rectClip.left, rectClip.top, rectClip.Width(), rectClip.Height(),
+			&dc, 0, 0, SRCCOPY);
+		dc.SelectObject(pOldBitmap);
+	}
+	if (pDoc)
+		pDoc->SetZoomToTitle();
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -651,63 +659,63 @@ void CImageView::OnUpdateFileOpen(CCmdUI* pCmdUI)
 {
 }
 
-void CImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) 
+void CImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView)
 {
-  CControls* pCtrls = GetControls();
-  CMainFrame* pFR = GetMainFrame();
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  
-  if(bActivate){
-	  Invalidate(FALSE);
-	  pDoc->OnActivate();
-	  pDoc->SetTextWndInfo();
-  	  pFR->SetCurrentNumber(pDoc->Digit.CurrentNumber);
-	  pFR->SetImageInfo(pDoc->Digit.Comments,pDoc->Digit.ScaleFactor,pDoc->Digit.Rotation);
-  }
-  else{
-	  pFR->GetImageInfo(pDoc->Digit.Comments,pDoc->Digit.ScaleFactor,pDoc->Digit.Rotation);
-  }
-  CBaseImageView::OnActivateView(bActivate, pActivateView, pDeactiveView);
+	CControls* pCtrls = GetControls();
+	CMainFrame* pFR = GetMainFrame();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
+	if (bActivate) {
+		Invalidate(FALSE);
+		pDoc->OnActivate();
+		pDoc->SetTextWndInfo();
+		pFR->SetCurrentNumber(pDoc->Digit.CurrentNumber);
+		pFR->SetImageInfo(pDoc->Digit.Comments, pDoc->Digit.ScaleFactor, pDoc->Digit.Rotation);
+	}
+	else {
+		pFR->GetImageInfo(pDoc->Digit.Comments, pDoc->Digit.ScaleFactor, pDoc->Digit.Rotation);
+	}
+	CBaseImageView::OnActivateView(bActivate, pActivateView, pDeactiveView);
 }
 
 void CImageView::OnMeasure()
 {
-    CMainFrame* pMFr = GetMainFrame();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    CControls* pCtrls = GetControls();
-    if(pCtrls->EnableOptions & I_MEASURELINE){
-       DeActivateMode(I_MEASURELINE);	
-	   pMFr->ShowMeasurePane(FALSE);
-    }
-    else{
-	   pCtrls->ActiveEditMode = -1;
-       DeActivateMode(I_FOTO_SECTIONS);	
-       DeActivateMode(I_BOUNDS_EXT);	
-       DeActivateMode(I_BOUNDS_INS);	
-       pDoc->ActivateMeasure(TRUE);
-	   pMFr->ShowMeasurePane(TRUE);
-    }
+	CMainFrame* pMFr = GetMainFrame();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	if (pCtrls->EnableOptions & I_MEASURELINE) {
+		DeActivateMode(I_MEASURELINE);
+		pMFr->ShowMeasurePane(FALSE);
+	}
+	else {
+		pCtrls->ActiveEditMode = -1;
+		DeActivateMode(I_FOTO_SECTIONS);
+		DeActivateMode(I_BOUNDS_EXT);
+		DeActivateMode(I_BOUNDS_INS);
+		pDoc->ActivateMeasure(TRUE);
+		pMFr->ShowMeasurePane(TRUE);
+	}
 }
 
 void CImageView::OnUpdateMeasure(CCmdUI* pCmdUI)
 {
-    CControls* pCtrls = GetControls();
-    pCmdUI->SetRadio(pCtrls->EnableOptions & I_MEASURELINE);
+	CControls* pCtrls = GetControls();
+	pCmdUI->SetRadio(pCtrls->EnableOptions & I_MEASURELINE);
 }
 
 void CImageView::OnFotoSections()
 {
-  CMainFrame* pMFr = GetMainFrame();
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
-  if(!pDoc->IsFotoSections()){
-    pCtrls->ActiveEditMode = -1;
-    pDoc->ActivateFotoSections(TRUE);
-    DeActivateMode(I_MEASURELINE);
-    DeActivateMode(I_BOUNDS_EXT);
-    DeActivateMode(I_BOUNDS_INS);
-    pMFr->ShowMeasurePane(FALSE);
-  }
+	CMainFrame* pMFr = GetMainFrame();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	if (!pDoc->IsFotoSections()) {
+		pCtrls->ActiveEditMode = -1;
+		pDoc->ActivateFotoSections(TRUE);
+		DeActivateMode(I_MEASURELINE);
+		DeActivateMode(I_BOUNDS_EXT);
+		DeActivateMode(I_BOUNDS_INS);
+		pMFr->ShowMeasurePane(FALSE);
+	}
 }
 
 void CImageView::OnUpdateFotoSections(CCmdUI* pCmdUI)
@@ -716,323 +724,312 @@ void CImageView::OnUpdateFotoSections(CCmdUI* pCmdUI)
 
 void CImageView::OnExtBounds()
 {
-    CMainFrame* pMFr = GetMainFrame();
-    CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	
-	if(pCtrls->EnableOptions & I_BOUNDS_EXT){
-	   DeActivateMode(I_BOUNDS_EXT);	
+	CMainFrame* pMFr = GetMainFrame();
+	CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
+	if (pCtrls->EnableOptions & I_BOUNDS_EXT) {
+		DeActivateMode(I_BOUNDS_EXT);
 	}
-	else{
-	   pCtrls->ActiveEditMode = -1;
-	   pDoc->ActivateExtBounds(TRUE);
-	   DeActivateMode(I_MEASURELINE);	
-	   DeActivateMode(I_FOTO_SECTIONS);	
-	   pMFr->ShowMeasurePane(FALSE);
+	else {
+		pCtrls->ActiveEditMode = -1;
+		pDoc->ActivateExtBounds(TRUE);
+		DeActivateMode(I_MEASURELINE);
+		DeActivateMode(I_FOTO_SECTIONS);
+		pMFr->ShowMeasurePane(FALSE);
 	}
 }
 
 void CImageView::OnUpdateExtBounds(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
-  CDigitInfo* pD = GetDigitInfo(this);
-  
-  pCmdUI->SetRadio(pCtrls->EnableOptions & I_BOUNDS_EXT);
-  if(pD->IsDigiting())
-	  pCmdUI->Enable(FALSE);
-  else
-	  pCmdUI->Enable(TRUE);
+	CControls* pCtrls = GetControls();
+	CDigitInfo* pD = GetDigitInfo(this);
+
+	pCmdUI->SetRadio(pCtrls->EnableOptions & I_BOUNDS_EXT);
+	if (pD->IsDigiting())
+		pCmdUI->Enable(FALSE);
+	else
+		pCmdUI->Enable(TRUE);
 }
 
 void CImageView::OnInsBounds()
 {
-    CMainFrame* pMFr = GetMainFrame();
-    CControls* pCtrls = GetControls();
-    CBoundCtrls* pBCtrls = GetBoundCtrls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	
-	if(pCtrls->EnableOptions & I_BOUNDS_INS){
-	   DeActivateMode(I_BOUNDS_INS);	
+	CMainFrame* pMFr = GetMainFrame();
+	CControls* pCtrls = GetControls();
+	CBoundCtrls* pBCtrls = GetBoundCtrls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+
+	if (pCtrls->EnableOptions & I_BOUNDS_INS) {
+		DeActivateMode(I_BOUNDS_INS);
 	}
-	else{
-	   pCtrls->ActiveEditMode = -1;
-	   pDoc->ActivateInsBounds(TRUE);
-	   DeActivateMode(I_MEASURELINE);	
-	   DeActivateMode(I_FOTO_SECTIONS);	
-	   pMFr->ShowMeasurePane(FALSE);
+	else {
+		pCtrls->ActiveEditMode = -1;
+		pDoc->ActivateInsBounds(TRUE);
+		DeActivateMode(I_MEASURELINE);
+		DeActivateMode(I_FOTO_SECTIONS);
+		pMFr->ShowMeasurePane(FALSE);
 	}
 }
 
 void CImageView::OnUpdateInsBounds(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
-  CDigitInfo* pD = GetDigitInfo(this);
-  CBoundCtrls* pB = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
+	CDigitInfo* pD = GetDigitInfo(this);
+	CBoundCtrls* pB = GetBoundCtrls(this);
 
-  if(pB->ExtBoundType != -1 && (pCtrls->EnableOptions & I_BOUNDS_INS))
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pB->ExtBoundType != -1 && (pCtrls->EnableOptions & I_BOUNDS_INS))
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 
-  if(pD->IsDigiting() || pB->ExtBoundType == -1)
-	  pCmdUI->Enable(FALSE);
-  else
-	  pCmdUI->Enable(TRUE);
+	if (pD->IsDigiting() || pB->ExtBoundType == -1)
+		pCmdUI->Enable(FALSE);
+	else
+		pCmdUI->Enable(TRUE);
 }
 
 void CImageView::OnZoom()
 {
-    CZoomDlg D(GetParentFrame());
-    D.SetNameINI(GetIniFile());
-    D.SetWndCap("Zoom");
-    D.DoModal();
+	CZoomDlg D(GetParentFrame());
+	D.SetNameINI(GetIniFile());
+	D.SetWndCap("Zoom");
+	D.DoModal();
 }
 
 void CImageView::OnUpdateZoom(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
+	CControls* pCtrls = GetControls();
 }
 
-BOOL CImageView::OnEraseBkgnd(CDC* pDC) 
+BOOL CImageView::OnEraseBkgnd(CDC* pDC)
 {
-    return CBaseImageView::OnEraseBkgnd(pDC);
+	return CBaseImageView::OnEraseBkgnd(pDC);
 }
 
 void CImageView::BeginLine(CPoint P)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CString s = pDoc->GetPathName();
-  CImageCtrls* pImCtrls = GetImageCtrls(this);
-  CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-  CControls* pCtrls = GetControls();
-  
-    int step = pCtrls->MarkerSide;
-    CPoint cP(P);
-    CRect rP(cP.x-step, cP.y-step, cP.x+step, cP.y+step);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CString s = pDoc->GetPathName();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	CControls* pCtrls = GetControls();
 
-    CPoint P1(MeasureLine.left, MeasureLine.top);
-    CPoint P2(MeasureLine.right, MeasureLine.bottom);
+	int step = pCtrls->MarkerSide;
+	CPoint cP(P);
+	CRect rP(cP.x - step, cP.y - step, cP.x + step, cP.y + step);
 
-    PisActive = 0;
-    // Check if clicking near existing measure endpoints (P, P1, P2 are all in world coords)
-    if(rP.PtInRect(P1)){
-      PisActive = 1;
-      // Snap cursor to P1 in screen space
-      CPoint screenP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)P1.x, (double)P1.y});
-      ClientToScreen(&screenP1);
-      SetCursorPos(screenP1.x, screenP1.y);
-    }   
-    else if(rP.PtInRect(P2)){
-      PisActive = 2;
-      CPoint screenP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)P2.x, (double)P2.y});
-      ClientToScreen(&screenP2);
-      SetCursorPos(screenP2.x, screenP2.y);
-    }
-    else{
-	  pCtrls->EnableOptions &= ~I_MEASURE_ACTIVE;	
-      Invalidate(FALSE);
-	  MakeLoopMessage();
-	  
-      // Start new measure line at clicked point (P is in world coords)
-      MeasureLine.left = P.x;
-      MeasureLine.top = P.y;
-      MeasureLine.right = P.x;
-      MeasureLine.bottom = P.y;
-      PisActive = 2;
-    }
-    m_bLinning = TRUE;
-    pCtrls->EnableOptions |= I_MEASURE_ACTIVE;
-    pCtrls->EnableOptions |= I_MEASURE_DRAW;
+	CPoint P1(MeasureLine.left, MeasureLine.top);
+	CPoint P2(MeasureLine.right, MeasureLine.bottom);
+
+	PisActive = 0;
+	// Check if clicking near existing measure endpoints (P, P1, P2 are all in world coords)
+	if (rP.PtInRect(P1)) {
+		PisActive = 1;
+		// Snap cursor to P1 in screen space
+		CPoint screenP1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)P1.x, (double)P1.y });
+		ClientToScreen(&screenP1);
+		SetCursorPos(screenP1.x, screenP1.y);
+	}
+	else if (rP.PtInRect(P2)) {
+		PisActive = 2;
+		CPoint screenP2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)P2.x, (double)P2.y });
+		ClientToScreen(&screenP2);
+		SetCursorPos(screenP2.x, screenP2.y);
+	}
+	else {
+		pCtrls->EnableOptions &= ~I_MEASURE_ACTIVE;
+		Invalidate(FALSE);
+		MakeLoopMessage();
+
+		// Start new measure line at clicked point (P is in world coords)
+		MeasureLine.left = P.x;
+		MeasureLine.top = P.y;
+		MeasureLine.right = P.x;
+		MeasureLine.bottom = P.y;
+		PisActive = 2;
+	}
+	m_bLinning = TRUE;
+	pCtrls->EnableOptions |= I_MEASURE_ACTIVE;
+	pCtrls->EnableOptions |= I_MEASURE_DRAW;
 }
 
 void CImageView::EndLine(CPoint P2)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CString s = pDoc->GetPathName();
-  CImageCtrls* pImCtrls = GetImageCtrls(this);
-  CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-   
-    if(PisActive==2){
-      MeasureLine.right   = P2.x;
-      MeasureLine.bottom  = P2.y;
-    }
-    else if(PisActive==1){
-      MeasureLine.left   = P2.x;
-      MeasureLine.top  = P2.y;
-    }
-    m_bLinning = FALSE;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CString s = pDoc->GetPathName();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
 
-    CPoint TL = MeasureLine.TopLeft();
-    CPoint BR = MeasureLine.BottomRight();
-    CRect rcDIB(pImCtrls->GetDIBRect());
-    CRect rcDest(pImCtrls->GetDIBRect());
-    pMCtrls->SetFirstPoint(rcDest, rcDIB, TL);
-    pMCtrls->SetSecondPoint(rcDest, rcDIB, BR);
-    pDoc->WriteMeasureCtrls();
+	if (PisActive == 2) {
+		MeasureLine.right = P2.x;
+		MeasureLine.bottom = P2.y;
+	}
+	else if (PisActive == 1) {
+		MeasureLine.left = P2.x;
+		MeasureLine.top = P2.y;
+	}
+	m_bLinning = FALSE;
+
+	CPoint TL = MeasureLine.TopLeft();
+	CPoint BR = MeasureLine.BottomRight();
+	CRect rcDIB(pImCtrls->GetDIBRect());
+	CRect rcDest(pImCtrls->GetDIBRect());
+	pMCtrls->SetFirstPoint(rcDest, rcDIB, TL);
+	pMCtrls->SetSecondPoint(rcDest, rcDIB, BR);
+	pDoc->WriteMeasureCtrls();
 }
 
 void CImageView::DrawMouseMoveMeasureLine(CPoint P2)
 {
-   if(GetCapture() != this)
-      return;
+	if (GetCapture() != this)
+		return;
 
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
 
-      COLORREF Color = InvColor;
-      CPen penLine;
-      penLine.CreatePen(PS_COSMETIC, 0, Color);
+	COLORREF Color = InvColor;
+	CPen penLine;
+	penLine.CreatePen(PS_COSMETIC, 0, Color);
 
-      CClientDC dc(this);
-      OnPrepareDC(&dc);
-      CPen *pOld = dc.SelectObject(&penLine);
-      int orop = dc.SetROP2(R2_XORPEN);
+	CClientDC dc(this);
+	OnPrepareDC(&dc);
+	CPen* pOld = dc.SelectObject(&penLine);
+	int orop = dc.SetROP2(R2_XORPEN);
 
-      // Convert world coords to screen for XOR drawing
-      CPoint scrP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.left, (double)MeasureLine.top});
-      CPoint scrP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.right, (double)MeasureLine.bottom});
-      dc.MoveTo(scrP1);
-      dc.LineTo(scrP2);
-      DrawMarker(&dc, scrP1);
-      DrawMarker(&dc, scrP2);
+	// Convert world coords to screen for XOR drawing
+	CPoint scrP1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)MeasureLine.left, (double)MeasureLine.top });
+	CPoint scrP2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)MeasureLine.right, (double)MeasureLine.bottom });
+	dc.MoveTo(scrP1);
+	dc.LineTo(scrP2);
+	DrawMarker(&dc, scrP1);
+	DrawMarker(&dc, scrP2);
 
-      // Update world coords with new position
-      if(PisActive==2){
-        MeasureLine.right   = P2.x;
-        MeasureLine.bottom  = P2.y;
-      }
-      else if(PisActive==1){
-        MeasureLine.left   = P2.x;
-        MeasureLine.top  = P2.y;
-      }
+	// Update world coords with new position
+	if (PisActive == 2) {
+		MeasureLine.right = P2.x;
+		MeasureLine.bottom = P2.y;
+	}
+	else if (PisActive == 1) {
+		MeasureLine.left = P2.x;
+		MeasureLine.top = P2.y;
+	}
 
-      if(PisActive==1 || PisActive==2){
-        scrP1 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.left, (double)MeasureLine.top});
-        scrP2 = m_viewTransform.WorldToScreen(CPoint2d{(double)MeasureLine.right, (double)MeasureLine.bottom});
-        dc.MoveTo(scrP1);
-        dc.LineTo(scrP2);
-        DrawMarker(&dc, scrP1);
-        DrawMarker(&dc, scrP2);
-      }
+	if (PisActive == 1 || PisActive == 2) {
+		scrP1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)MeasureLine.left, (double)MeasureLine.top });
+		scrP2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)MeasureLine.right, (double)MeasureLine.bottom });
+		dc.MoveTo(scrP1);
+		dc.LineTo(scrP2);
+		DrawMarker(&dc, scrP1);
+		DrawMarker(&dc, scrP2);
+	}
 
-      CPoint TL = MeasureLine.TopLeft();
-      CPoint BR = MeasureLine.BottomRight();
-      CRect rcDIB(pImCtrls->GetDIBRect());
-      CRect rcDest(pImCtrls->GetDIBRect());
-      pMCtrls->SetFirstPoint(rcDest, rcDIB, TL);
-      pMCtrls->SetSecondPoint(rcDIB, rcDest, BR);
-      pDoc->WriteMeasureCtrls();
+	CPoint TL = MeasureLine.TopLeft();
+	CPoint BR = MeasureLine.BottomRight();
+	CRect rcDIB(pImCtrls->GetDIBRect());
+	CRect rcDest(pImCtrls->GetDIBRect());
+	pMCtrls->SetFirstPoint(rcDest, rcDIB, TL);
+	pMCtrls->SetSecondPoint(rcDIB, rcDest, BR);
+	pDoc->WriteMeasureCtrls();
 
-      dc.SetROP2(orop);
-      CPen* pRetPen = dc.SelectObject(pOld);
-      if(pRetPen) pRetPen->DeleteObject();
+	dc.SetROP2(orop);
+	CPen* pRetPen = dc.SelectObject(pOld);
+	if (pRetPen) pRetPen->DeleteObject();
 }
 
 void CImageView::DrawMeasureLine(CDC* pDC)
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-   CControls* pCtrls = GetControls();
-   
-  if(pCtrls->EnableOptions & I_MEASURE_ACTIVE){
-    COLORREF Color = InvColor;
-    CPen* open = NULL;
-    CPen pen0;
-    pen0.CreatePen(PS_COSMETIC, 0, RGB(0,0,0));
-        open = pDC->SelectObject(&pen0);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	CControls* pCtrls = GetControls();
 
-    CRect rDIB(pImCtrls->GetDIBRect());
-    CRect rcDest = (pImCtrls->GetDIBRect());
+	if (pCtrls->EnableOptions & I_MEASURE_ACTIVE) {
+		COLORREF Color = InvColor;
+		CPen* open = NULL;
+		CPen pen0;
+		pen0.CreatePen(PS_COSMETIC, 0, RGB(0, 0, 0));
+		open = pDC->SelectObject(&pen0);
 
-    int orop = pDC->SetROP2(R2_XORPEN);
-    CPen pen1;
-    pen1.CreatePen(PS_COSMETIC, 0, Color);
-    CPen* pPen = pDC->SelectObject(&pen1);
-    pPen->DeleteObject();
+		CRect rDIB(pImCtrls->GetDIBRect());
+		CRect rcDest = (pImCtrls->GetDIBRect());
 
-    // convert measure endpoints from world to screen so markers align with view
-    CDPoint dP1 = pMCtrls->L.P1;
-    CDPoint dP2 = pMCtrls->L.P2;
-    CPoint cP1 = m_viewTransform.WorldToScreen(CPoint2d{dP1.x, dP1.y});
-    CPoint cP2 = m_viewTransform.WorldToScreen(CPoint2d{dP2.x, dP2.y});
-    DrawMarker(pDC, cP1);
-    DrawMarker(pDC, cP2);
+		int orop = pDC->SetROP2(R2_XORPEN);
+		CPen pen1;
+		pen1.CreatePen(PS_COSMETIC, 0, Color);
+		CPen* pPen = pDC->SelectObject(&pen1);
+		pPen->DeleteObject();
 
-    CPen pen2;
-    pen2.CreatePen(PS_COSMETIC, 0, Color);
-    pPen = pDC->SelectObject(&pen2);
-    pPen->DeleteObject();
+		// convert measure endpoints from world to screen so markers align with view
+		CDPoint dP1 = pMCtrls->L.P1;
+		CDPoint dP2 = pMCtrls->L.P2;
+		CPoint cP1 = m_viewTransform.WorldToScreen(CPoint2d{ dP1.x, dP1.y });
+		CPoint cP2 = m_viewTransform.WorldToScreen(CPoint2d{ dP2.x, dP2.y });
+		DrawMarker(pDC, cP1);
+		DrawMarker(pDC, cP2);
 
-    pDC->MoveTo(cP1.x , cP1.y);
-    pDC->LineTo(cP2.x , cP2.y);
+		CPen pen2;
+		pen2.CreatePen(PS_COSMETIC, 0, Color);
+		pPen = pDC->SelectObject(&pen2);
+		pPen->DeleteObject();
 
-    pDC->SetROP2(orop);
-    if(open){
-      CPen* pRetPen = pDC->SelectObject(open);
-      if(pRetPen) pRetPen->DeleteObject();
-    }
-  } 
+		pDC->MoveTo(cP1.x, cP1.y);
+		pDC->LineTo(cP2.x, cP2.y);
+
+		pDC->SetROP2(orop);
+		if (open) {
+			CPen* pRetPen = pDC->SelectObject(open);
+			if (pRetPen) pRetPen->DeleteObject();
+		}
+	}
 }
 
 void CImageView::DrawCrossedLines(CDC* pDC)
 {
-    CPen pen;
-    pen.CreatePen(PS_DOT, 0, InvColor);
-    CPen* open = pDC->SelectObject(&pen);
-    int orop = pDC->SetROP2(R2_XORPEN);
-    
-    CRect clientR;
-    GetClientRect(clientR);
-    // Convert client rect to screen coordinates via world->screen corners
-    CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{(double)clientR.left, (double)clientR.top});
-    CPoint br = m_viewTransform.WorldToScreen(CPoint2d{(double)clientR.right, (double)clientR.bottom});
-    CRect scrRect(tl, br);
-    CPoint P1, P2;
+	CPen pen;
+	pen.CreatePen(PS_DOT, 0, InvColor);
+	CPen* open = pDC->SelectObject(&pen);
+	int orop = pDC->SetROP2(R2_XORPEN);
 
-    if(CursorPos != CPoint(-1,-1)){
-        CPoint s = m_viewTransform.WorldToScreen(CPoint2d{(double)CursorPos.x, (double)CursorPos.y});
-        P1.x = scrRect.left; P1.y = s.y;
-        P2.x = scrRect.right; P2.y = s.y;
-        pDC->MoveTo(P1); pDC->LineTo(P2);
-        P1.x = s.x; P1.y = scrRect.top;
-        P2.x = s.x; P2.y = scrRect.bottom;
-        pDC->MoveTo(P1); pDC->LineTo(P2);
-    }
-	
-    pDC->SetROP2(orop);
-    CPen* retPen = pDC->SelectObject(open);
-    if(retPen)
-        retPen->DeleteObject();
+	CRect clientR;
+	GetClientRect(clientR);
+	// Convert client rect to screen coordinates via world->screen corners
+	CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)clientR.left, (double)clientR.top });
+	CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)clientR.right, (double)clientR.bottom });
+	CRect scrRect(tl, br);
+	CPoint P1, P2;
+
+	if (CursorPos != CPoint(-1, -1)) {
+		CPoint s = m_viewTransform.WorldToScreen(CPoint2d{ (double)CursorPos.x, (double)CursorPos.y });
+		P1.x = scrRect.left; P1.y = s.y;
+		P2.x = scrRect.right; P2.y = s.y;
+		pDC->MoveTo(P1); pDC->LineTo(P2);
+		P1.x = s.x; P1.y = scrRect.top;
+		P2.x = s.x; P2.y = scrRect.bottom;
+		pDC->MoveTo(P1); pDC->LineTo(P2);
+	}
+
+	pDC->SetROP2(orop);
+	CPen* retPen = pDC->SelectObject(open);
+	if (retPen)
+		retPen->DeleteObject();
 }
 
 void CImageView::DrawMouseMoveCrossedLines(CPoint P)
 {
-    CClientDC dc(this);
-    OnPrepareDC(&dc);
-    CPen pen;
-    pen.CreatePen(PS_DOT, 0, InvColor);
-    CPen* open = dc.SelectObject(&pen);
-    int orop = dc.SetROP2(R2_XORPEN);
-    
-    CRect clientR;
-    GetClientRect(clientR);
+	CClientDC dc(this);
+	OnPrepareDC(&dc);
+	CPen pen;
+	pen.CreatePen(PS_DOT, 0, InvColor);
+	CPen* open = dc.SelectObject(&pen);
+	int orop = dc.SetROP2(R2_XORPEN);
+
+	CRect clientR;
+	GetClientRect(clientR);
 	ClientToDoc(clientR);
-    CPoint P1, P2;
+	CPoint P1, P2;
 
-    if(CursorPos != CPoint(-1,-1)){
-        P1.x = clientR.left; P1.y = CursorPos.y;
-        P2.x = clientR.right; P2.y = CursorPos.y;
-        dc.MoveTo(P1);
-        dc.LineTo(P2);
-        P1.x = CursorPos.x; P1.y = clientR.top;
-        P2.x = CursorPos.x; P2.y = clientR.bottom;
-        dc.MoveTo(P1);
-        dc.LineTo(P2);
-    }
-
-		CursorPos = P;
+	if (CursorPos != CPoint(-1, -1)) {
 		P1.x = clientR.left; P1.y = CursorPos.y;
 		P2.x = clientR.right; P2.y = CursorPos.y;
 		dc.MoveTo(P1);
@@ -1041,18 +1038,29 @@ void CImageView::DrawMouseMoveCrossedLines(CPoint P)
 		P2.x = CursorPos.x; P2.y = clientR.bottom;
 		dc.MoveTo(P1);
 		dc.LineTo(P2);
-		dc.SetROP2(orop);
+	}
+
+	CursorPos = P;
+	P1.x = clientR.left; P1.y = CursorPos.y;
+	P2.x = clientR.right; P2.y = CursorPos.y;
+	dc.MoveTo(P1);
+	dc.LineTo(P2);
+	P1.x = CursorPos.x; P1.y = clientR.top;
+	P2.x = CursorPos.x; P2.y = clientR.bottom;
+	dc.MoveTo(P1);
+	dc.LineTo(P2);
+	dc.SetROP2(orop);
 
 	CPen* retPen = dc.SelectObject(open);
-    if(retPen)
-        retPen->DeleteObject();
+	if (retPen)
+		retPen->DeleteObject();
 }
 
 void CImageView::BeginDragDot(CPoint P)
 {
 	Invalidate(FALSE);
-    SetCapture();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	SetCapture();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CPoint P1;
 	pDoc->GetLockedDotPos(P1);
 	m_Captured = TRUE;
@@ -1061,60 +1069,60 @@ void CImageView::BeginDragDot(CPoint P)
 
 void CImageView::DragDot(CPoint P, BOOL newPos)
 {
-  if(m_Captured){
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	int DotSide;
-	pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	int DotSide12 = DotSide/2;
-    CClientDC dc(this);
-    OnPrepareDC(&dc);
+	if (m_Captured) {
+		CImageDoc* pDoc = (CImageDoc*)GetDocument();
+		CControls* pCtrls = GetControls();
+		int DotSide;
+		pCtrls->GetCorrectDotSize(DotSide, pDoc);
+		int DotSide12 = DotSide / 2;
+		CClientDC dc(this);
+		OnPrepareDC(&dc);
 
-    // Save DC state so selections and mapping are restored safely
-    int nSave = dc.SaveDC();
+		// Save DC state so selections and mapping are restored safely
+		int nSave = dc.SaveDC();
 
-    CPen pen;
-    pen.CreatePen(PS_SOLID, 0, InvColor);
-    CBrush br;
-    br.CreateSolidBrush(InvColor);
-    
-    dc.SelectObject(&pen);
-    dc.SelectObject(&br);
+		CPen pen;
+		pen.CreatePen(PS_SOLID, 0, InvColor);
+		CBrush br;
+		br.CreateSolidBrush(InvColor);
 
-    int orop = dc.SetROP2(R2_XORPEN);
-    
-    CPoint P1;
-	
-	pDoc->GetLockedDotPos(P1);
-    dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
+		dc.SelectObject(&pen);
+		dc.SelectObject(&br);
 
-	if(pCtrls->ViewState & V_ZAPSECTIONS){
-		P.y = P1.y;
-	}
-	
-	pDoc->SetLockedDotPos(P);
-	if(newPos){
+		int orop = dc.SetROP2(R2_XORPEN);
+
+		CPoint P1;
+
 		pDoc->GetLockedDotPos(P1);
-        dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
-    }
-    dc.SetROP2(orop);
+		dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
 
-    // restore the DC (reselects previous pen/brush, clip, mapping, etc.)
-    dc.RestoreDC(nSave);
-  }
+		if (pCtrls->ViewState & V_ZAPSECTIONS) {
+			P.y = P1.y;
+		}
+
+		pDoc->SetLockedDotPos(P);
+		if (newPos) {
+			pDoc->GetLockedDotPos(P1);
+			dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
+		}
+		dc.SetROP2(orop);
+
+		// restore the DC (reselects previous pen/brush, clip, mapping, etc.)
+		dc.RestoreDC(nSave);
+	}
 }
 
 void CImageView::DropDot(CPoint P)
 {
 	m_Captured = FALSE;
-    InvalidateRect(NULL, FALSE);
+	InvalidateRect(NULL, FALSE);
 }
 
 void CImageView::BeginDragZapSection(CPoint P)
 {
-//	Invalidate(FALSE);
-    SetCapture();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//	Invalidate(FALSE);
+	SetCapture();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	CPoint P1, P2;
 	pDoc->GetLockedZapSectionXYPos(P1, P2);
 	m_Captured = TRUE;
@@ -1123,354 +1131,335 @@ void CImageView::BeginDragZapSection(CPoint P)
 
 void CImageView::DragZapSection(CPoint P, BOOL newPos/*TRUE*/)
 {
-  if(m_Captured){
-    CClientDC dc(this);
-    OnPrepareDC(&dc);
-    CPen pen;
-    pen.CreatePen(PS_SOLID, 0, InvColor);
-    CPen* open = dc.SelectObject(&pen);
-    int orop = dc.SetROP2(R2_XORPEN);
-	
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CPoint P1, P2;
-	pDoc->GetLockedZapSectionXYPos(P1, P2);
- 	dc.MoveTo(P1);
-	dc.LineTo(P2);
-	pDoc->SetLockedZapSectionYPos(P.y);
-	if(newPos){
+	if (m_Captured) {
+		CClientDC dc(this);
+		OnPrepareDC(&dc);
+		CPen pen;
+		pen.CreatePen(PS_SOLID, 0, InvColor);
+		CPen* open = dc.SelectObject(&pen);
+		int orop = dc.SetROP2(R2_XORPEN);
+
+		CImageDoc* pDoc = (CImageDoc*)GetDocument();
+		CPoint P1, P2;
 		pDoc->GetLockedZapSectionXYPos(P1, P2);
 		dc.MoveTo(P1);
 		dc.LineTo(P2);
+		pDoc->SetLockedZapSectionYPos(P.y);
+		if (newPos) {
+			pDoc->GetLockedZapSectionXYPos(P1, P2);
+			dc.MoveTo(P1);
+			dc.LineTo(P2);
+		}
+		dc.SetROP2(orop);
+		CPen* retPen = dc.SelectObject(open);
+		if (retPen)
+			retPen->DeleteObject();
 	}
-    dc.SetROP2(orop);
-	CPen* retPen = dc.SelectObject(open);
-    if(retPen)
-        retPen->DeleteObject();
-  }
 }
 
 void CImageView::DropZapSection(CPoint P)
 {
 	m_Captured = FALSE;
-    InvalidateRect(NULL, FALSE);
+	InvalidateRect(NULL, FALSE);
 }
 
-void CImageView::OnMouseMove(UINT nFlags, CPoint point) 
+void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 {
 	CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CImageDoc* pActDoc = (CImageDoc*) GetWIActiveDocument();
-    // Convert screen point to world (document) coordinates using ViewTransform
-    CPoint worldPt = m_viewTransform.ScreenToWorld(point);
-    CursorPos = worldPt;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageDoc* pActDoc = (CImageDoc*)GetWIActiveDocument();
+	// Convert screen point to world (document) coordinates using ViewTransform
+	CPoint worldPt = m_viewTransform.ScreenToWorld(point);
+	CursorPos = worldPt;
 
-    if(pDoc == pActDoc){
+	if (pDoc == pActDoc) {
 
-        // Compute doc-space point and modifiers
-        using namespace DigitMode;
+		// Compute doc-space point and modifiers
+		using namespace DigitMode;
 
-        ModifierState mods = ModifierState::FromKeyboard();
-        m_inputHandler.SetMode(pCtrls->GetEditMode());
-    // Pan start / continue (space pressed) - use screen coords
-    if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
-        if (!m_inputHandler.m_isPanning) {
-            // start panning on first event
-            m_inputHandler.BeginPan(point);
-            SetCapture();
-            return;
-        }
-        else {
-            // continue panning while space is held and mouse moves
-            m_inputHandler.ContinuePan(point, &m_viewTransform);
-            Invalidate(FALSE);
-            return;
-        }
-    }
-        int hitSeg = -1, hitDot = -1;
-        // Hit test in world coordinates
-        SelectionLevel hoverLevel = m_hitTester.HitTest(worldPt, hitSeg, hitDot, pDoc->Digit.Fringes);
+		ModifierState mods = ModifierState::FromKeyboard();
+		m_inputHandler.SetMode(pCtrls->GetEditMode());
+		// Pan start / continue (space pressed) - use screen coords
+		if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
+			if (!m_inputHandler.m_isPanning) {
+				// start panning on first event
+				m_inputHandler.BeginPan(point);
+				SetCapture();
+				return;
+			}
+			else {
+				// continue panning while space is held and mouse moves
+				m_inputHandler.ContinuePan(point, &m_viewTransform);
+				Invalidate(FALSE);
+				return;
+			}
+		}
+		int hitSeg = -1, hitDot = -1;
+		// Hit test in world coordinates
+		SelectionLevel hoverLevel = m_hitTester.HitTest(worldPt, hitSeg, hitDot, pDoc->Digit.Fringes);
 
-        // Update cursor using hit test result
-        m_selectionMgr.SetHover(hoverLevel, hitSeg, hitDot);
+		// Update cursor using hit test result
+		m_selectionMgr.SetHover(hoverLevel, hitSeg, hitDot);
 
-        // If draw-mode active and we have a preview active, let InputHandler render preview via ImageView hooks
-        if (m_inputHandler.IsInDrawMode()) {
-            // Pass world coordinates to InputHandler
-            m_inputHandler.OnMouseMove(worldPt, mods, &pDoc->Digit, &m_cmdDispatcher);
-            Invalidate(FALSE);
-            //continue; still allow tooltip generation
-        }
+		// If draw-mode active and we have a preview active, let InputHandler render preview via ImageView hooks
+		if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
+			// Pass world coordinates to InputHandler
+			m_inputHandler.OnMouseMove(worldPt, mods, &pDoc->Digit, &m_cmdDispatcher);
+			Invalidate(FALSE);
+			//continue; still allow tooltip generation
+		}
 
-        // If panning is active, handle pan here
-        if (m_inputHandler.m_isPanning) {
-            m_inputHandler.ContinuePan(point, &m_viewTransform);
-            Invalidate(FALSE);
-            return;
-        }
-        
-        // Show tooltip for hovered selection (use CToolTipCtrl)
-        SelectionManager::SelectedObject hoverObj;
-        hoverObj.level = hoverLevel;
-        hoverObj.iSegment = hitSeg;
-        hoverObj.iDot = hitDot;
-        std::string tip = tooltipGen.GetTooltip(hoverObj, pDoc->Digit);
-        CString ctip(tip.c_str());
-        // Update tooltip text and position near cursor
-        if (m_tooltip.m_hWnd) {
-            // If there's no tooltip text for current hover, hide immediately
-            if (ctip.IsEmpty()) {
-                if (!m_lastTip.IsEmpty()) {
-                    m_tooltip.Pop(); // hide any visible tip now
-                    // reset last tip so future tips will re-show
-                    m_lastTip.Empty();
-                }
-            }
-            else {
-                // show/update only when text changed to avoid flicker
-                if (m_lastTip != ctip) {
-                    m_tooltip.UpdateTipText(ctip, this);
-                    m_lastTip = ctip;
-                }
-            }
-        }
+		// If panning is active, handle pan here
+		if (m_inputHandler.m_isPanning) {
+			m_inputHandler.ContinuePan(point, &m_viewTransform);
+			Invalidate(FALSE);
+			return;
+		}
 
-        /*
-        // Fallback to existing drag behaviours if legacy locking active
-        if (pDoc->IsLockedDot()) {
-            DragDot(l_point);
-            return;
-        }
-        if (pDoc->IsLockedZapSection()) {
-            DragZapSection(l_point);
-            return;
-        }
-        */
-        CImageCtrls* pImCtrls = GetImageCtrls(this);
-        CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+		// Show tooltip for hovered selection (use CToolTipCtrl)
+		SelectionManager::SelectedObject hoverObj;
+		hoverObj.level = hoverLevel;
+		hoverObj.iSegment = hitSeg;
+		hoverObj.iDot = hitDot;
+		std::string tip = tooltipGen.GetTooltip(hoverObj, pDoc->Digit);
+		CString ctip(tip.c_str());
+		// Update tooltip text and position near cursor
+		if (m_tooltip.m_hWnd) {
+			// If there's no tooltip text for current hover, hide immediately
+			if (ctip.IsEmpty()) {
+				if (!m_lastTip.IsEmpty()) {
+					m_tooltip.Pop(); // hide any visible tip now
+					// reset last tip so future tips will re-show
+					m_lastTip.Empty();
+				}
+			}
+			else {
+				// show/update only when text changed to avoid flicker
+				if (m_lastTip != ctip) {
+					m_tooltip.UpdateTipText(ctip, this);
+					m_lastTip = ctip;
+				}
+			}
+		}
+
+		/*
+		// Fallback to existing drag behaviours if legacy locking active
+		if (pDoc->IsLockedDot()) {
+			DragDot(l_point);
+			return;
+		}
+		if (pDoc->IsLockedZapSection()) {
+			DragZapSection(l_point);
+			return;
+		}
+		*/
+		CImageCtrls* pImCtrls = GetImageCtrls(this);
+		CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
 		BOOL keyDown = FALSE;
-		if((nFlags & MK_LBUTTON) || 
-			GetAsyncKeyState(VK_LEFT)<0 || GetAsyncKeyState(VK_RIGHT)<0 ||
-			GetAsyncKeyState(VK_UP)<0 || GetAsyncKeyState(VK_DOWN)<0)
-		      keyDown = TRUE;
-		
-        if(keyDown && pDoc->IsFotoSections()){
-            DrawMouseMoveCrossedLines(worldPt);
-            pDoc->ReSetSections(worldPt);
-            InvalidateRect(NULL,FALSE);
-        }
-		else if(pCtrls->EnableOptions & I_MEASURE_ACTIVE &&
-			pCtrls->EnableOptions & I_MEASURE_DRAW){
-            DrawMouseMoveMeasureLine(worldPt);
+		if ((nFlags & MK_LBUTTON) ||
+			GetAsyncKeyState(VK_LEFT) < 0 || GetAsyncKeyState(VK_RIGHT) < 0 ||
+			GetAsyncKeyState(VK_UP) < 0 || GetAsyncKeyState(VK_DOWN) < 0)
+			keyDown = TRUE;
+
+		if (keyDown && pDoc->IsFotoSections()) {
+			DrawMouseMoveCrossedLines(worldPt);
+			pDoc->ReSetSections(worldPt);
+			InvalidateRect(NULL, FALSE);
 		}
-		else if((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots){
-            DragCustomDot(worldPt);
+		else if (pCtrls->EnableOptions & I_MEASURE_ACTIVE &&
+			pCtrls->EnableOptions & I_MEASURE_DRAW) {
+			DrawMouseMoveMeasureLine(worldPt);
 		}
-		else if((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots){
-            DragCustomDot(worldPt);
+		else if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots) {
+			DragCustomDot(worldPt);
 		}
-		else if(pDoc->Tracker.GetDragingState()){
-            DragTracker(worldPt);
+		else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots) {
+			DragCustomDot(worldPt);
 		}
-		else if(pDoc->IsLockedDot()){
-            DragDot(worldPt);
+		else if (pDoc->Tracker.GetDragingState()) {
+			DragTracker(worldPt);
 		}
-		else if(pDoc->IsLockedZapSection()){
-            DragZapSection(worldPt);
+		else if (pDoc->IsLockedDot()) {
+			DragDot(worldPt);
+		}
+		else if (pDoc->IsLockedZapSection()) {
+			DragZapSection(worldPt);
 		}
 	}
-    CBaseImageView::OnMouseMove(nFlags, point);
+	CBaseImageView::OnMouseMove(nFlags, point);
 }
 
 BOOL CImageView::PreTranslateMessage(MSG* pMsg)
 {
-    if (pMsg && m_tooltip.m_hWnd && ::IsWindow(m_tooltip.m_hWnd)) {
-        // Relay to tooltip control only when it is a valid window and message available
-        m_tooltip.RelayEvent(pMsg);
-    }
-    
-    // Handle Ctrl+'+'/'-'/'0' for zoom
-    if (pMsg && pMsg->message == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0x8000)) {
-        if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS || pMsg->wParam == 0xBB) {
-            OnZoomIn();
-            return TRUE;
-        }
-        else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS || pMsg->wParam == 0xBD) {
-            OnZoomOut();
-            return TRUE;
-        }
-        else if (pMsg->wParam == '0' || pMsg->wParam == VK_NUMPAD0) {
-            OnZoomFit();
-            return TRUE;
-        }
-    }
-    
-    // Always call base PreTranslateMessage if available
-    return CBaseImageView::PreTranslateMessage(pMsg);
+	if (pMsg && m_tooltip.m_hWnd && ::IsWindow(m_tooltip.m_hWnd)) {
+		// Relay to tooltip control only when it is a valid window and message available
+		m_tooltip.RelayEvent(pMsg);
+	}
+
+	// Handle Ctrl+'+'/'-'/'0' for zoom
+	if (pMsg && pMsg->message == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0x8000)) {
+		if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS || pMsg->wParam == 0xBB) {
+			OnZoomIn();
+			return TRUE;
+		}
+		else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS || pMsg->wParam == 0xBD) {
+			OnZoomOut();
+			return TRUE;
+		}
+		else if (pMsg->wParam == '0' || pMsg->wParam == VK_NUMPAD0) {
+			OnZoomFit();
+			return TRUE;
+		}
+	}
+
+	// Always call base PreTranslateMessage if available
+	return CBaseImageView::PreTranslateMessage(pMsg);
 }
 
 BOOL CImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-    // Handle zooming here: Ctrl+wheel zooms at cursor, otherwise default scroll
-    if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
-        CPoint clientPt = pt; ScreenToClient(&clientPt);
-        double factor = (zDelta > 0) ? 1.15 : (1.0/1.15);
-        m_viewTransform.ZoomAt(clientPt, factor);
-        Invalidate(FALSE);
-        return TRUE;
-    }
-    // Fallback to InputHandler/paging
-    m_inputHandler.OnMouseWheel(pt, zDelta, &m_viewTransform);
-    Invalidate(FALSE);
-    return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
+	// Handle zooming here: Ctrl+wheel zooms at cursor, otherwise default scroll
+	if ((GetKeyState(VK_CONTROL) & 0x8000) != 0) {
+		CPoint clientPt = pt; ScreenToClient(&clientPt);
+		double factor = (zDelta > 0) ? 1.15 : (1.0 / 1.15);
+		m_viewTransform.ZoomAt(clientPt, factor);
+		Invalidate(FALSE);
+		return TRUE;
+	}
+	// Fallback to InputHandler/paging
+	m_inputHandler.OnMouseWheel(pt, zDelta, &m_viewTransform);
+	Invalidate(FALSE);
+	return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
 }
 
-void CImageView::OnLButtonDown(UINT nFlags, CPoint point) 
+void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-    CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-    // convert screen to world and set cursor
-    CPoint worldPt = m_viewTransform.ScreenToWorld(point);
-    CPoint l_point(worldPt);
-    CursorPos = worldPt;
+	// convert screen to world and set cursor
+	CPoint worldPt = m_viewTransform.ScreenToWorld(point);
+	CPoint l_point(worldPt);
+	CursorPos = worldPt;
 
-    // Forward to InputHandler for draw-mode / UI-requested draw interactions
-    using namespace DigitMode;
-    CControls* pCtrlsLocal = GetControls();
-    EditMode mode = pCtrls->GetEditMode();
+	// Forward to InputHandler for draw-mode / UI-requested draw interactions
+	using namespace DigitMode;
+	CControls* pCtrlsLocal = GetControls();
+	EditMode mode = pCtrls->GetEditMode();
 	m_inputHandler.SetMode(mode);
-    
-    TRACE("OnLButtonDown: mode=%d, IsInDrawMode=%d\n", static_cast<int>(mode), m_inputHandler.IsInDrawMode());
-    
-    // Handle Draw mode
-    if (m_inputHandler.IsInDrawMode()) {
-        // If panning is active, ignore draw clicks to avoid accidental dots
-        if (m_inputHandler.m_isPanning) {
-            return;
-        }
-        TRACE("OnLButtonDown: Forwarding to InputHandler (Draw mode)\n");
-        m_inputHandler.OnLButtonDown(nFlags, l_point, &((CImageDoc*)GetDocument())->Digit, &m_cmdDispatcher);
-        Invalidate(FALSE);
-        return;
-    }
-    
-    // Handle Navigate mode (CRITICAL: Must be before legacy code!)
-    if (m_inputHandler.GetMode() == EditMode::Navigate) {
-        // If panning is active, ignore selection clicks
-        if (m_inputHandler.m_isPanning) {
-            return;
-        }
-        TRACE("OnLButtonDown: Forwarding to InputHandler (Navigate mode) at (%d,%d)\n", l_point.x, l_point.y);
-        m_inputHandler.OnLButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
-        Invalidate(FALSE);
-        return;
-    }
 
-    TRACE("OnLButtonDown: Falling through to legacy code\n");
-    // Legacy code for other modes (measure, bounds, etc.)
-    if(pDoc->IsFotoSections()){
-    	DrawMouseMoveCrossedLines(worldPt);
-    	pDoc->ReSetSections(worldPt);
- 	    InvalidateRect(NULL, FALSE);
+	TRACE("OnLButtonDown: mode=%d, IsInDrawMode=%d\n", static_cast<int>(mode), m_inputHandler.IsInDrawMode());
+
+	// Handle Draw mode
+	if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
+		// If panning is active, ignore draw clicks to avoid accidental dots
+		if (m_inputHandler.m_isPanning) {
+			return;
+		}
+		TRACE("OnLButtonDown: Forwarding to InputHandler (Draw | Navigate mode)\n");
+		m_inputHandler.OnLButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+		Invalidate(FALSE);
+		return;
 	}
-    else if(pCtrls->EnableOptions & I_MEASURELINE){
-      BeginLine(l_point);
-      SetCapture();
-    }
-    else if((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots){
-      SetCustomDot(l_point);
-    }
-    else if((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots){
-      SetCustomDot(l_point);
-    }
-    else if((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableTracker){
-           SetCapture();
-		   BeginTracker(l_point);
-		   InvalidateRect(NULL, FALSE);
-    }
-    else if((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableTracker){
-           SetCapture();
-		   BeginTracker(l_point);
-		   InvalidateRect(NULL, FALSE);
-    }
-	else if(pCtrls->ActiveEditMode == E_ADD_DOT && pDoc->LockDot(l_point, TRUE)){
+
+	TRACE("OnLButtonDown: Falling through to legacy code\n");
+	// Legacy code for other modes (measure, bounds, etc.)
+	if (pDoc->IsFotoSections()) {
+		DrawMouseMoveCrossedLines(worldPt);
+		pDoc->ReSetSections(worldPt);
+		InvalidateRect(NULL, FALSE);
+	}
+	else if (pCtrls->EnableOptions & I_MEASURELINE) {
+		BeginLine(l_point);
+		SetCapture();
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots) {
+		SetCustomDot(l_point);
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots) {
+		SetCustomDot(l_point);
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableTracker) {
+		SetCapture();
+		BeginTracker(l_point);
+		InvalidateRect(NULL, FALSE);
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableTracker) {
+		SetCapture();
+		BeginTracker(l_point);
+		InvalidateRect(NULL, FALSE);
+	}
+	else if (pCtrls->ActiveEditMode == E_ADD_DOT && pDoc->LockDot(l_point, TRUE)) {
 		BeginDragDot(l_point);
 	}
-	else if(pCtrls->ActiveEditMode == E_ADD_SECTION && pDoc->LockZapSection(l_point, TRUE)){
+	else if (pCtrls->ActiveEditMode == E_ADD_SECTION && pDoc->LockZapSection(l_point, TRUE)) {
 		BeginDragZapSection(l_point);
 	}
-	else{
+	else {
 		pDoc->OnLButDown(l_point);
 	}
-   
-    
-    CBaseImageView::OnLButtonDown(nFlags, point);
+
+
+	CBaseImageView::OnLButtonDown(nFlags, point);
 }
 
-void CImageView::OnLButtonDblClk(UINT nFlags, CPoint point) 
+void CImageView::OnLButtonDblClk(UINT nFlags, CPoint point)
 {
 	CBaseImageView::OnLButtonDblClk(nFlags, point);
 }
 
-void CImageView::OnLButtonUp(UINT nFlags, CPoint point) 
+void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
 {
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-    CControls* pCtrls = GetControls();
-    
-    // Convert screen to world coordinates using ViewTransform
-    CPoint l_point = m_viewTransform.ScreenToWorld(point);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageCtrls* pImCtrls = GetImageCtrls(this);
+	CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
+	CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
 
-    if(pDoc->IsFotoSections()){
+	// Convert screen to world coordinates using ViewTransform
+	CPoint l_point = m_viewTransform.ScreenToWorld(point);
+
+	if (pDoc->IsFotoSections()) {
 		;
 	}
-    // Forward to InputHandler when in draw mode so it can commit/handle the click
-    using namespace DigitMode;
-    m_inputHandler.SetMode(pCtrls->GetEditMode());
-    if (m_inputHandler.IsInDrawMode()) {
-        m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
-        Invalidate(FALSE);
-        return;
-    }
-    
-    // Handle Navigate mode (box selection end)
-    if (m_inputHandler.GetMode() == EditMode::Navigate) {
-        m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
-        Invalidate(FALSE);
-        return;
-    }
-    
-    if (m_inputHandler.m_isPanning) {
-        m_inputHandler.EndPan();
-        ReleaseCapture();
-        Invalidate(FALSE);
-        return;
-    }
-    else if(pCtrls->EnableOptions & I_MEASURE_ACTIVE){
-      ReleaseCapture();
-      EndLine(l_point);
-      pCtrls->EnableOptions &= ~I_MEASURE_DRAW;
-      Invalidate(FALSE);
-   }    
-   else if((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots){
+	// Forward to InputHandler when in draw mode so it can commit/handle the click
+	using namespace DigitMode;
+	m_inputHandler.SetMode(pCtrls->GetEditMode());
+	if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
+		m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
+		Invalidate(FALSE);
+		return;
+	}
+
+	if (m_inputHandler.m_isPanning) {
+		m_inputHandler.EndPan();
+		ReleaseCapture();
+		Invalidate(FALSE);
+		return;
+	}
+	else if (pCtrls->EnableOptions & I_MEASURE_ACTIVE) {
+		ReleaseCapture();
+		EndLine(l_point);
+		pCtrls->EnableOptions &= ~I_MEASURE_DRAW;
+		Invalidate(FALSE);
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots) {
 		DropCustomDot(l_point);
-   }
-   else if((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots){
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots) {
 		DropCustomDot(l_point);
-   }
-   else if(pDoc->Tracker.GetDragingState()){
-        ReleaseCapture();
+	}
+	else if (pDoc->Tracker.GetDragingState()) {
+		ReleaseCapture();
 		DropTracker(l_point);
 		CRect R;
-        if(pDoc->Tracker.GetBoundRect(R)){
+		if (pDoc->Tracker.GetBoundRect(R)) {
 			pBCtrls->CustomDots.SetSize(4);
-			int W = R.Width()/2;
-			int H = R.Height()/2;
+			int W = R.Width() / 2;
+			int H = R.Height() / 2;
 			pBCtrls->CustomDots[0].x = R.left + W;
 			pBCtrls->CustomDots[0].y = R.top;
 			pBCtrls->CustomDots[1].x = R.right;
@@ -1480,279 +1469,279 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
 			pBCtrls->CustomDots[3].x = R.left;
 			pBCtrls->CustomDots[3].y = R.top + H;
 			pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-        }
-   }
-   else if(pDoc->IsLockedDot()){
-        ReleaseCapture();
+		}
+	}
+	else if (pDoc->IsLockedDot()) {
+		ReleaseCapture();
 		DropDot(l_point);
 		pDoc->LockDot(l_point, FALSE);
-   }
-   else if(pDoc->IsLockedZapSection()){
-        ReleaseCapture();
+	}
+	else if (pDoc->IsLockedZapSection()) {
+		ReleaseCapture();
 		DropZapSection(l_point);
 		pDoc->LockZapSection(l_point, FALSE);
-   }
+	}
 
-   CBaseImageView::OnLButtonUp(nFlags, point);
+	CBaseImageView::OnLButtonUp(nFlags, point);
 }
 
-void CImageView::OnRButtonDown(UINT nFlags, CPoint point) 
+void CImageView::OnRButtonDown(UINT nFlags, CPoint point)
 {
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    
-    // Convert screen to world coordinates using ViewTransform
-    CPoint l_point = m_viewTransform.ScreenToWorld(point);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-    // Let InputHandler handle right-button in draw mode (e.g., finish/cancel)
-    using namespace DigitMode;
-    m_inputHandler.SetMode(GetControls()->GetEditMode());
-    if (m_inputHandler.IsInDrawMode()) {
-        m_inputHandler.OnRButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
-        Invalidate(FALSE);
-        return;
-    }
+	// Convert screen to world coordinates using ViewTransform
+	CPoint l_point = m_viewTransform.ScreenToWorld(point);
 
-    pDoc->OnRButDown(l_point);
+	// Let InputHandler handle right-button in draw mode (e.g., finish/cancel)
+	using namespace DigitMode;
+	m_inputHandler.SetMode(GetControls()->GetEditMode());
+	if (m_inputHandler.IsInDrawMode()) {
+		m_inputHandler.OnRButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+		Invalidate(FALSE);
+		return;
+	}
 
-    CBaseImageView::OnRButtonDown(nFlags, point);
+	pDoc->OnRButDown(l_point);
+
+	CBaseImageView::OnRButtonDown(nFlags, point);
 }
 
-void CImageView::OnRButtonDblClk(UINT nFlags, CPoint point) 
+void CImageView::OnRButtonDblClk(UINT nFlags, CPoint point)
 {
 	CBaseImageView::OnRButtonDblClk(nFlags, point);
 }
 
-void CImageView::OnRButtonUp(UINT nFlags, CPoint point) 
+void CImageView::OnRButtonUp(UINT nFlags, CPoint point)
 {
-    // TODO: Add your message handler code here and/or call default
-    
-    CBaseImageView::OnRButtonUp(nFlags, point);
+	// TODO: Add your message handler code here and/or call default
+
+	CBaseImageView::OnRButtonUp(nFlags, point);
 }
 
-BOOL CImageView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message) 
+BOOL CImageView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 {
-	CImageDoc* pDoc = (CImageDoc*) GetDocument();
-	CImageDoc* pActDoc = (CImageDoc*) GetWIActiveDocument();
-	if(pDoc == pActDoc){
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageDoc* pActDoc = (CImageDoc*)GetWIActiveDocument();
+	if (pDoc == pActDoc) {
 		CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-		CBoundCtrls* pBCtrls =  GetBoundCtrls(this);
-        CControls* pCtrls = GetControls();
-		if(pWnd == this && ((pCtrls->EnableOptions & I_BOUNDS_EXT)||(pCtrls->EnableOptions & I_BOUNDS_INS)) && pCtrls->EnableTracker){
-            CClientDC dc(this);
-            OnPrepareDC(&dc);
-			if(pDoc->Tracker.SetCursor(this, &dc, nHitTest))
+		CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+		CControls* pCtrls = GetControls();
+		if (pWnd == this && ((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)) && pCtrls->EnableTracker) {
+			CClientDC dc(this);
+			OnPrepareDC(&dc);
+			if (pDoc->Tracker.SetCursor(this, &dc, nHitTest))
 				return TRUE;
-			else{
-			  HINSTANCE inst = AfxGetResourceHandle();
-			  HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_RECT_BOUND_CUR), IMAGE_CURSOR, 32,32, LR_SHARED);
-			  SetCursor(HCURSOR(han));
+			else {
+				HINSTANCE inst = AfxGetResourceHandle();
+				HANDLE han = LoadImage(inst, MAKEINTRESOURCE(IDC_RECT_BOUND_CUR), IMAGE_CURSOR, 32, 32, LR_SHARED);
+				SetCursor(HCURSOR(han));
 			}
 			return TRUE;
 		}
-		if(pCtrls->EnableOptions & I_MEASURELINE){
+		if (pCtrls->EnableOptions & I_MEASURELINE) {
 			HINSTANCE inst = AfxGetResourceHandle();
-			HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_MEASURE_CUR), IMAGE_CURSOR, 32,32, LR_SHARED);
+			HANDLE han = LoadImage(inst, MAKEINTRESOURCE(IDC_MEASURE_CUR), IMAGE_CURSOR, 32, 32, LR_SHARED);
 			SetCursor(HCURSOR(han));
 			return TRUE;
 		}
-		if(((pCtrls->EnableOptions & I_BOUNDS_EXT)||(pCtrls->EnableOptions & I_BOUNDS_INS)) && pCtrls->EnableCustomDots){
+		if (((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)) && pCtrls->EnableCustomDots) {
 			HINSTANCE inst = AfxGetResourceHandle();
-			HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_MARK_BOUND_CUR), IMAGE_CURSOR, 32,32, LR_SHARED);
+			HANDLE han = LoadImage(inst, MAKEINTRESOURCE(IDC_MARK_BOUND_CUR), IMAGE_CURSOR, 32, 32, LR_SHARED);
 			SetCursor(HCURSOR(han));
 			return TRUE;
 		}
-		if(pDoc->IsDotUnderCursor(CursorPos)){
+		if (pDoc->IsDotUnderCursor(CursorPos)) {
 			HINSTANCE inst = AfxGetResourceHandle();
-			HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_SEL_DOT), IMAGE_CURSOR, 32,32, LR_SHARED);
+			HANDLE han = LoadImage(inst, MAKEINTRESOURCE(IDC_SEL_DOT), IMAGE_CURSOR, 32, 32, LR_SHARED);
 			SetCursor(HCURSOR(han));
 			return TRUE;
 		}
-		if(pDoc->IsZapSectionUnderCursor(CursorPos)){
+		if (pDoc->IsZapSectionUnderCursor(CursorPos)) {
 			HINSTANCE inst = AfxGetResourceHandle();
-			HANDLE han = LoadImage(inst,MAKEINTRESOURCE(IDC_SEL_ZAP_SEC), IMAGE_CURSOR, 32,32, LR_SHARED);
-		 SetCursor(HCURSOR(han));
-		 return TRUE;
+			HANDLE han = LoadImage(inst, MAKEINTRESOURCE(IDC_SEL_ZAP_SEC), IMAGE_CURSOR, 32, 32, LR_SHARED);
+			SetCursor(HCURSOR(han));
+			return TRUE;
 		}
 	}
-    return CBaseImageView::OnSetCursor(pWnd, nHitTest, message);
+	return CBaseImageView::OnSetCursor(pWnd, nHitTest, message);
 }
 
-void CImageView::OnSize(UINT nType, int cx, int cy) 
+void CImageView::OnSize(UINT nType, int cx, int cy)
 {
-    CBaseImageView::OnSize(nType, cx, cy);
-    // Re-center image when window is resized (maximize/restore)
-    if (nType == SIZE_MAXIMIZED || nType == SIZE_RESTORED) {
-        CenterImageInView();
-    }
+	CBaseImageView::OnSize(nType, cx, cy);
+	// Re-center image when window is resized (maximize/restore)
+	if (nType == SIZE_MAXIMIZED || nType == SIZE_RESTORED) {
+		CenterImageInView();
+	}
 }
 
-void CImageView::OnMove(int x, int y) 
+void CImageView::OnMove(int x, int y)
 {
-    CBaseImageView::OnMove(x, y);
+	CBaseImageView::OnMove(x, y);
 }
 
-void CImageView::OnSetFocus(CWnd* pOldWnd) 
+void CImageView::OnSetFocus(CWnd* pOldWnd)
 {
-  CBaseImageView::OnSetFocus(pOldWnd);
+	CBaseImageView::OnSetFocus(pOldWnd);
 }
 
-void CImageView::OnKillFocus(CWnd* pNewWnd) 
+void CImageView::OnKillFocus(CWnd* pNewWnd)
 {
-    CBaseImageView::OnKillFocus(pNewWnd);
+	CBaseImageView::OnKillFocus(pNewWnd);
 }
 
-void CImageView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void CImageView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CursorPos = CPoint(-1, -1);
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-//	if(pDoc && pDoc->IsFotoSections())
-       InvalidateRect(NULL,FALSE);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//	if(pDoc && pDoc->IsFotoSections())
+	InvalidateRect(NULL, FALSE);
 	CBaseImageView::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-void CImageView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
+void CImageView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	CursorPos = CPoint(-1, -1);
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-//	if(pDoc && pDoc->IsFotoSections())
-       InvalidateRect(NULL,FALSE);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//	if(pDoc && pDoc->IsFotoSections())
+	InvalidateRect(NULL, FALSE);
 	CBaseImageView::OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
-void CImageView::OnContextMenu(CWnd* pWnd, CPoint point) 
+void CImageView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
-    CControls* pCtrls = GetControls();
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CImageCtrls* pI = GetImageCtrls();
-    int xDIB = pI->ImageSize.cx;
-    int yDIB = pI->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	CImageCtrls* pI = GetImageCtrls();
+	int xDIB = pI->ImageSize.cx;
+	int yDIB = pI->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pBCtrls->GetExtCorBound(pBCtrls->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
-	
-	if(pDoc->IsDots() && BoundR.PtInRect(CursorPos)){
-	    return;
-	}
-	
-    if(pDoc->IsFotoSections()){
-	   return;
+
+	if (pDoc->IsDots() && BoundR.PtInRect(CursorPos)) {
+		return;
 	}
 
-   CBaseImageView::OnContextMenu(pWnd, point);  
+	if (pDoc->IsFotoSections()) {
+		return;
+	}
+
+	CBaseImageView::OnContextMenu(pWnd, point);
 }
 
 void CImageView::OnUndo()
 {
-    m_cmdDispatcher.Undo();
-    Invalidate(FALSE);
+	m_cmdDispatcher.Undo();
+	Invalidate(FALSE);
 
-  //CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
-  //pDoc->LastOperationUndo();
+	//CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
+	//pDoc->LastOperationUndo();
 }
 
 void CImageView::OnUpdateUndo(CCmdUI* pCmdUI)
 {
 	pCmdUI->Enable(m_cmdDispatcher.CanUndo());
-    
-  //CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
-  //CControls* pCtrls = GetControls();
-  
-  //if(pDoc->LastOperationType == O_NO_UNDO)
-    //pCmdUI->Enable(FALSE);
-  //else
-    //pCmdUI->Enable(TRUE);
+
+	//CImageDoc* pDoc = (CImageDoc*)GetWIActiveDocument();
+	//CControls* pCtrls = GetControls();
+
+	//if(pDoc->LastOperationType == O_NO_UNDO)
+	  //pCmdUI->Enable(FALSE);
+	//else
+	  //pCmdUI->Enable(TRUE);
 }
 
 void CImageView::OnEditRedo()
 {
-    m_cmdDispatcher.Redo();
-    Invalidate(FALSE);
+	m_cmdDispatcher.Redo();
+	Invalidate(FALSE);
 }
 
 void CImageView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(m_cmdDispatcher.CanRedo());
+	pCmdUI->Enable(m_cmdDispatcher.CanRedo());
 }
 
-void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags) 
+void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-  CControls* pCtrls = GetControls();
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-  if((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)){
-	   if(nChar==VK_RETURN)
-		  OnApplyBound();
-	   else if(nChar==VK_ESCAPE)
-		  OnRemoveCurBound();
-	   else if(nChar==VK_DELETE)
-          OnRemoveLastBound();
-  }
-		
-  if(pDoc->IsFotoSections()){
-	CPoint cPos;
-	GetCursorPos(&cPos);
-	CRect clR;
-	GetClientRect(clR);
-	ClientToScreen(clR);
-	if(clR.PtInRect(cPos)){
-		if(nChar == VK_LEFT)
-			cPos.x -= 1; 	
-		else if(nChar == VK_RIGHT)
-			cPos.x += 1; 	
-		else if(nChar == VK_UP)
-			cPos.y -= 1; 	
-		else if(nChar == VK_DOWN)
-			cPos.y += 1; 	
-		SetCursorPos(cPos.x, cPos.y);
+	if ((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)) {
+		if (nChar == VK_RETURN)
+			OnApplyBound();
+		else if (nChar == VK_ESCAPE)
+			OnRemoveCurBound();
+		else if (nChar == VK_DELETE)
+			OnRemoveLastBound();
 	}
-  }
-  
-  m_inputHandler.OnKeyDown(nChar, &pDoc->Digit, &m_cmdDispatcher);
 
-  pDoc->OnKeyDown(nChar, nRepCnt, nFlags);
-  CBaseImageView::OnKeyDown(nChar, nRepCnt, nFlags);
+	if (pDoc->IsFotoSections()) {
+		CPoint cPos;
+		GetCursorPos(&cPos);
+		CRect clR;
+		GetClientRect(clR);
+		ClientToScreen(clR);
+		if (clR.PtInRect(cPos)) {
+			if (nChar == VK_LEFT)
+				cPos.x -= 1;
+			else if (nChar == VK_RIGHT)
+				cPos.x += 1;
+			else if (nChar == VK_UP)
+				cPos.y -= 1;
+			else if (nChar == VK_DOWN)
+				cPos.y += 1;
+			SetCursorPos(cPos.x, cPos.y);
+		}
+	}
+
+	m_inputHandler.OnKeyDown(nChar, &pDoc->Digit, &m_cmdDispatcher);
+
+	pDoc->OnKeyDown(nChar, nRepCnt, nFlags);
+	CBaseImageView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
 void CImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-    // Stop panning when space released
-    if (nChar == VK_SPACE && m_inputHandler.m_isPanning) {
-        m_inputHandler.EndPan();
-        ReleaseCapture();
-        Invalidate(FALSE);
-        return;
-    }
-    CBaseImageView::OnKeyUp(nChar, nRepCnt, nFlags);
+	// Stop panning when space released
+	if (nChar == VK_SPACE && m_inputHandler.m_isPanning) {
+		m_inputHandler.EndPan();
+		ReleaseCapture();
+		Invalidate(FALSE);
+		return;
+	}
+	CBaseImageView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
 
-void CImageView::OnTimer(UINT nIDEvent) 
+void CImageView::OnTimer(UINT nIDEvent)
 {
-    KillTimer(nIDEvent);
-    m_nTimer = 0;
-    CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	if(pDoc->IsFotoSections()){
-	   pDoc->AlignFotoSections();
+	KillTimer(nIDEvent);
+	m_nTimer = 0;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	if (pDoc->IsFotoSections()) {
+		pDoc->AlignFotoSections();
 	}
 	CBaseImageView::OnTimer(nIDEvent);
 }
 
 void CImageView::OnAutoDigit()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   DeActivateMode(I_BOUNDS_EXT);
-   DeActivateMode(I_BOUNDS_INS);
-   pDoc->AutoDigit();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	DeActivateMode(I_BOUNDS_EXT);
+	DeActivateMode(I_BOUNDS_INS);
+	pDoc->AutoDigit();
 }
 
 void CImageView::OnUpdateAutoDigit(CCmdUI* pCmdUI)
 {
 	CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls();
-    int xDIB = pI->ImageSize.cx;
-    int yDIB = pI->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageCtrls* pI = GetImageCtrls();
+	int xDIB = pI->ImageSize.cx;
+	int yDIB = pI->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
-	if(BoundR.IsRectNull())
+	if (BoundR.IsRectNull())
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
@@ -1760,19 +1749,19 @@ void CImageView::OnUpdateAutoDigit(CCmdUI* pCmdUI)
 
 void CImageView::OnClearDigit()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   pDoc->ClearDigit();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->ClearDigit();
 }
 
 void CImageView::OnUpdateClearDigit(CCmdUI* pCmdUI)
 {
 	CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls();
-    int xDIB = pI->ImageSize.cx;
-    int yDIB = pI->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageCtrls* pI = GetImageCtrls();
+	int xDIB = pI->ImageSize.cx;
+	int yDIB = pI->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
-	if(BoundR.IsRectNull())
+	if (BoundR.IsRectNull())
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
@@ -1780,418 +1769,418 @@ void CImageView::OnUpdateClearDigit(CCmdUI* pCmdUI)
 
 void CImageView::OnCalcAproximation()
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  pDoc->CalcAproximation();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->CalcAproximation();
 }
 
 void CImageView::OnUpdateCalcAproximation(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
 }
 
 void CImageView::OnFCMax()
 {
-  CControls* pCtrls = GetControls();
-  pCtrls->FringeCenterAs = FC_MAX;
+	CControls* pCtrls = GetControls();
+	pCtrls->FringeCenterAs = FC_MAX;
 }
 
 void CImageView::OnUpdateFCMax(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
-  if(pCtrls->FringeCenterAs == FC_MAX)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	CControls* pCtrls = GetControls();
+	if (pCtrls->FringeCenterAs == FC_MAX)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnFCMin()
 {
-  CControls* pCtrls = GetControls();
-  pCtrls->FringeCenterAs = FC_MIN;
+	CControls* pCtrls = GetControls();
+	pCtrls->FringeCenterAs = FC_MIN;
 }
 
 void CImageView::OnUpdateFCMin(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
-  if(pCtrls->FringeCenterAs == FC_MIN)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	CControls* pCtrls = GetControls();
+	if (pCtrls->FringeCenterAs == FC_MIN)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnFCMinMax()
 {
-  CControls* pCtrls = GetControls();
-  pCtrls->FringeCenterAs = FC_MINMAX;
+	CControls* pCtrls = GetControls();
+	pCtrls->FringeCenterAs = FC_MINMAX;
 }
 
 void CImageView::OnUpdateFCMinMax(CCmdUI* pCmdUI)
 {
-  CControls* pCtrls = GetControls();
-  if(pCtrls->FringeCenterAs == FC_MINMAX)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	CControls* pCtrls = GetControls();
+	if (pCtrls->FringeCenterAs == FC_MINMAX)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 
 void CImageView::OnAddDot()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_ADD_DOT)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_ADD_DOT;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_ADD_DOT)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_ADD_DOT;
 }
 
 void CImageView::OnUpdateAddDot(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls(this);
-    int xDIB = pI->ImageSize.cx;
-    int yDIB = pI->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CImageCtrls* pI = GetImageCtrls(this);
+	int xDIB = pI->ImageSize.cx;
+	int yDIB = pI->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-  if(!BoundR.IsRectNull())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_ADD_DOT)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (!BoundR.IsRectNull())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_ADD_DOT)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnRemoveDot()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_DELETE_DOT)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_DELETE_DOT;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_DELETE_DOT)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_DELETE_DOT;
 }
 
 void CImageView::OnUpdateRemoveDot(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-    CImageCtrls* pI = GetImageCtrls(this);
-    int xDIB = pI->ImageSize.cx;
-    int yDIB = pI->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CImageCtrls* pI = GetImageCtrls(this);
+	int xDIB = pI->ImageSize.cx;
+	int yDIB = pI->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-  if(!BoundR.IsRectNull())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_DELETE_DOT)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (!BoundR.IsRectNull())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_DELETE_DOT)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnRemoveFringe()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_DELETE_FRINGE)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_DELETE_FRINGE;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_DELETE_FRINGE)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_DELETE_FRINGE;
 }
 
 void CImageView::OnUpdateRemoveFringe(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_DELETE_FRINGE)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_DELETE_FRINGE)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnAddZAPSection()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_ADD_SECTION)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_ADD_SECTION;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_ADD_SECTION)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_ADD_SECTION;
 }
 
 void CImageView::OnUpdateAddSection(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-  CImageCtrls* pIm = GetImageCtrls(this);
-  CControls* pCtrls = GetControls();
-    int xDIB = pIm->ImageSize.cx;
-    int yDIB = pIm->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CImageCtrls* pIm = GetImageCtrls(this);
+	CControls* pCtrls = GetControls();
+	int xDIB = pIm->ImageSize.cx;
+	int yDIB = pIm->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-  if(!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && pIm->m_pDIB && (pCtrls->ViewState & V_ZAPSECTIONS))
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_ADD_SECTION)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && pIm->m_pDIB && (pCtrls->ViewState & V_ZAPSECTIONS))
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_ADD_SECTION)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 
 }
 
 void CImageView::OnDelZAPSection()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_DELETE_SECTION)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_DELETE_SECTION;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_DELETE_SECTION;
 }
 
 void CImageView::OnUpdateDelSection(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-  CControls* pCtrls = GetControls();
-  CImageCtrls* pIm = GetImageCtrls(this);
-    int xDIB = pIm->ImageSize.cx;
-    int yDIB = pIm->ImageSize.cy;
-    CRect BoundR(0,0,0,0);
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
+	CImageCtrls* pIm = GetImageCtrls(this);
+	int xDIB = pIm->ImageSize.cx;
+	int yDIB = pIm->ImageSize.cy;
+	CRect BoundR(0, 0, 0, 0);
 	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-  if(!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && (pCtrls->ViewState & V_ZAPSECTIONS))
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_DELETE_SECTION)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && (pCtrls->ViewState & V_ZAPSECTIONS))
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 
 }
 
 void CImageView::OnShiftDotLeft()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   CControls* pCtrls = GetControls();
-   pDoc->DeActivateAllMode();
-   if(pCtrls->ActiveEditMode == E_SECTION_LEFT)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_SECTION_LEFT;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
+	pDoc->DeActivateAllMode();
+	if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_SECTION_LEFT;
 }
 
 void CImageView::OnUpdateShiftDotLeft(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_SECTION_LEFT)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnShiftDotRight()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   pDoc->DeActivateAllMode();
-   CControls* pCtrls = GetControls();
-   if(pCtrls->ActiveEditMode == E_SECTION_RIGHT)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_SECTION_RIGHT;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->DeActivateAllMode();
+	CControls* pCtrls = GetControls();
+	if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_SECTION_RIGHT;
 }
 
 void CImageView::OnUpdateShiftDotRight(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CBoundCtrls* pB = GetBoundCtrls(this);
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CBoundCtrls* pB = GetBoundCtrls(this);
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_SECTION_RIGHT)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnRenumFringe()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   pDoc->DeActivateAllMode();
-   CControls* pCtrls = GetControls();
-   if(pCtrls->ActiveEditMode == E_RENUM_FRINGE)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_RENUM_FRINGE;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->DeActivateAllMode();
+	CControls* pCtrls = GetControls();
+	if (pCtrls->ActiveEditMode == E_RENUM_FRINGE)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_RENUM_FRINGE;
 }
 
 void CImageView::OnUpdateRenumFringe(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_RENUM_FRINGE)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_RENUM_FRINGE)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnRenumDot()
 {
-   CImageDoc* pDoc = (CImageDoc*)GetDocument();
-   pDoc->DeActivateAllMode();
-   CControls* pCtrls = GetControls();
-   if(pCtrls->ActiveEditMode == E_RENUM_DOT)
-	  pCtrls->ActiveEditMode = -1;
-   else
-	  pCtrls->ActiveEditMode = E_RENUM_DOT;
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->DeActivateAllMode();
+	CControls* pCtrls = GetControls();
+	if (pCtrls->ActiveEditMode == E_RENUM_DOT)
+		pCtrls->ActiveEditMode = -1;
+	else
+		pCtrls->ActiveEditMode = E_RENUM_DOT;
 }
 
 void CImageView::OnUpdateRenumDot(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
-  
-  if(pCtrls->ActiveEditMode == E_RENUM_DOT)
-    pCmdUI->SetRadio(TRUE);
-  else
-    pCmdUI->SetRadio(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
+
+	if (pCtrls->ActiveEditMode == E_RENUM_DOT)
+		pCmdUI->SetRadio(TRUE);
+	else
+		pCmdUI->SetRadio(FALSE);
 }
 
 void CImageView::OnNumberMinus()
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  pDoc->OnNumberMinus();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->OnNumberMinus();
 }
 
 void CImageView::OnUpdateNumberMinus(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
 }
 
 void CImageView::OnNumberPlus()
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  pDoc->OnNumberPlus();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	pDoc->OnNumberPlus();
 }
 
 void CImageView::OnUpdateNumberPlus(CCmdUI* pCmdUI)
 {
-  CImageDoc* pDoc = (CImageDoc*)GetDocument();
-  CControls* pCtrls = GetControls();
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CControls* pCtrls = GetControls();
 
-  if(pDoc->IsDots())
-    pCmdUI->Enable(TRUE);
-  else
-    pCmdUI->Enable(FALSE);
+	if (pDoc->IsDots())
+		pCmdUI->Enable(TRUE);
+	else
+		pCmdUI->Enable(FALSE);
 }
 
-void CImageView::SingleIsoline(int pn, ISO_POINT *plist, double level, int ilevel)
+void CImageView::SingleIsoline(int pn, ISO_POINT* plist, double level, int ilevel)
 {
-  if (pn < 2)
-    return;
+	if (pn < 2)
+		return;
 
-  CDC* pDC = CDC::FromHandle(hDC);
-  CControls* pCtrls = GetControls();
-  
-  int n = pn;
-  ISO_POINT *list = plist;
-  long int xC;
-  long int yC;
-  double z = level;
+	CDC* pDC = CDC::FromHandle(hDC);
+	CControls* pCtrls = GetControls();
 
-    COLORREF Color;
+	int n = pn;
+	ISO_POINT* list = plist;
+	long int xC;
+	long int yC;
+	double z = level;
+
+	COLORREF Color;
 	pCtrls->GetIndexColor(z, Color);
-    CPen pen;
-    pen.CreatePen(PS_DOT, 0, Color);
-    CPen* open = pDC->SelectObject(&pen);
+	CPen pen;
+	pen.CreatePen(PS_DOT, 0, Color);
+	CPen* open = pDC->SelectObject(&pen);
 
 	xC = (int)list->x;
 	yC = (int)list->y;
-    pDC->MoveTo(xC, yC);
-    list++;
+	pDC->MoveTo(xC, yC);
+	list++;
 
-    while (--n){
-	  xC = (int)list->x;
-	  yC = (int)list->y;
-      pDC->LineTo(xC, yC);
-      list++;
-    }
-/*
-    // Add text label to contour line.
-      if (pn > MINCELLS)
-      {
-      srand((unsigned)time(NULL));
+	while (--n) {
+		xC = (int)list->x;
+		yC = (int)list->y;
+		pDC->LineTo(xC, yC);
+		list++;
+	}
+	/*
+		// Add text label to contour line.
+		  if (pn > MINCELLS)
+		  {
+		  srand((unsigned)time(NULL));
 
-      static char s[80];
-      sprintf (s, "%d", ilevel + 1);
+		  static char s[80];
+		  sprintf (s, "%d", ilevel + 1);
 
-      int mincell = MINCELLS; //(int)((double)pn / 4.);
-      int index = (int)(((double)rand() / (double)RAND_MAX) * (double)mincell);
+		  int mincell = MINCELLS; //(int)((double)pn / 4.);
+		  int index = (int)(((double)rand() / (double)RAND_MAX) * (double)mincell);
 
-     }
-*/
-   CPen* retPen = pDC->SelectObject(open);
-   if(retPen) retPen->DeleteObject();
+		 }
+	*/
+	CPen* retPen = pDC->SelectObject(open);
+	if (retPen) retPen->DeleteObject();
 }
 

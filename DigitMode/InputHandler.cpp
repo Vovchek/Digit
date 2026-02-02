@@ -497,15 +497,24 @@ bool InputHandler::GetRubberBand(const ::CDigitInfo* doc) const
 	return IsInDrawMode() && !mods.alt && !m_drag.active && IsActiveSegmentValid(doc);
 }
 
-void InputHandler::DrawSelectionBox(CDC* pDC) const
+void InputHandler::DrawSelectionBox(CDC* pDC, const ViewTransform* viewTransform) const
 {
     if (!pDC || !m_drag.active || m_drag.type != DragState::Type::BoxSelect) {
         return;
     }
     
+    // Convert world coordinates to screen if transform provided
+    CPoint start = m_drag.start;
+    CPoint current = m_drag.current;
+    
+    if (viewTransform) {
+        start = viewTransform->WorldToScreen(::CPoint2d{(double)m_drag.start.x, (double)m_drag.start.y});
+        current = viewTransform->WorldToScreen(::CPoint2d{(double)m_drag.current.x, (double)m_drag.current.y});
+    }
+    
     // Create selection box rectangle
     CRect box;
-    box.SetRect(m_drag.start, m_drag.current);
+    box.SetRect(start, current);
     box.NormalizeRect();
     
     // Save DC state

@@ -157,6 +157,11 @@ public:
      */
     bool IsInDrawMode() const { return currentMode == EditMode::Draw; }
 
+    /**
+     * @brief Check if currently in Navigate mode
+     */
+    bool IsInNavigateMode() const { return currentMode == EditMode::Navigate; }
+
     // ===== Draw Mode Operations =====
 
     /**
@@ -244,9 +249,10 @@ public:
     
     /**
      * @brief Draw selection box (rubber band) during box select drag
-     * @param pDC Device context to draw on
+     * @param pDC Device context to draw on (in screen coordinates)
+     * @param viewTransform Pointer to view transform for world-to-screen conversion (optional, nullptr if m_drag points already in screen coords)
      */
-    void DrawSelectionBox(CDC* pDC) const;
+    void DrawSelectionBox(CDC* pDC, const class ViewTransform* viewTransform = nullptr) const;
     
     /**
      * @brief Check if currently dragging a selection box
