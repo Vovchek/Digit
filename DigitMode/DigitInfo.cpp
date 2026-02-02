@@ -38,7 +38,7 @@ void CDigitInfo::Init()
 	Rotation = 0.;
 	
 	// NEW: Initialize fringe model
-	m_bUseFringeModel = FALSE;
+	m_bUseFringeModel = TRUE;
 	idxDraggedPoint.Clear();
 	idxMainPoint.Clear();
 }

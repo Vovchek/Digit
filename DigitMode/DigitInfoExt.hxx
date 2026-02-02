@@ -1177,7 +1177,7 @@ BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int he
 BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 {
 	// TODO: switch to CFringeSegment array latter
-	m_bUseFringeModel = false;
+	m_bUseFringeModel = true;
 
 	CString FileName = fname;
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;

@@ -99,21 +99,27 @@
     <ClCompile Include="..\DigitMode\InputHandler.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
-    <ClCompile Include="DigitModeTests\DrawModeTest.cpp" />
     <ClCompile Include="..\DigitMode\Commands\AllCommands.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
-    <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
-    <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
-    <ClCompile Include="DigitModeTests\InputHandlerTest.cpp" />
     <ClCompile Include="DigitModeTests\NavigateModeTest.cpp" />
+    <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\AllCommandsTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\InputHandlerTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\DrawModeTest.cpp">
+      <Filter>EditorTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="InterfSolver\Tools\ELLIPSE_TEST_ANALYSIS.md" />
-    <None Include="InterfSolver\Tools\ISPUPIL_TEST_FIXES.md" />
     <None Include="packages.config" />
     <None Include="InterfSolver\Tools\REMAINING_TEST_FAILURES.md">
       <Filter>Docs</Filter>
@@ -155,6 +161,12 @@
       <Filter>Docs</Filter>
     </None>
     <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_COMPLETE_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\ELLIPSE_TEST_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="InterfSolver\Tools\ISPUPIL_TEST_FIXES.md">
       <Filter>Docs</Filter>
     </None>
   </ItemGroup>

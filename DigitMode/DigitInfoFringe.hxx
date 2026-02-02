@@ -293,7 +293,10 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
 	IntInfo.ImageSize[1] = pIm->ImageSize.cy;
-	IntInfo.ImageFileName = pIm->OriginalPath;
+	// save only relative path to image so it won't break when file is moved
+	//IntInfo.ImageFileName = pIm->OriginalPath;
+	namespace fs = std::filesystem;
+	IntInfo.ImageFileName = fs::path(LPCSTR(pIm->OriginalPath)).filename().c_str();
 
 	// m_bUseFringeModel = (Fringes.GetSize() > 0); // TODO: consider where to choose model
 

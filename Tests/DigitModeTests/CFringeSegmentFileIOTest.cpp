@@ -4,6 +4,7 @@
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>
 #include <vector>
+#include <filesystem>
 
 // Mock implementations of required global functions for testing
 // These would normally come from the application framework
