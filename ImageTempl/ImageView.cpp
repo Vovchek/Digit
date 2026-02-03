@@ -634,8 +634,12 @@ void CImageView::OnDraw(CDC* pDC)
 			&dc, 0, 0, SRCCOPY);
 		dc.SelectObject(pOldBitmap);
 	}
-	if (pDoc)
+	if (pDoc) {
+		// Update text controls
 		pDoc->SetZoomToTitle();
+		GetMainFrame()->SetCurrentNumber(pDoc->Digit.CurrentNumber);
+	}
+
 }
 
 /////////////////////////////////////////////////////////////////////////////

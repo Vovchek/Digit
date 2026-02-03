@@ -327,6 +327,28 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
             // flip rubber band status
             m_rubberBand = !m_rubberBand;
         }
+        else if((nChar == VK_ADD || nChar == VK_OEM_PLUS) && mods.None()) {
+            // Increase current number
+            if (pDigit) {
+                pDigit->CurrentNumber += pDigit->numStep;
+                if (IsActiveSegmentValid(pDigit)) {
+                    std::vector<size_t> segv = { static_cast<size_t>(iActiveSegment) };
+                    auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
+            }
+        }
+        else if ((nChar == VK_SUBTRACT || nChar == VK_OEM_MINUS) && mods.None()) {
+            // Decrease current number
+            if (pDigit) {
+                pDigit->CurrentNumber -= pDigit->numStep;
+				if (IsActiveSegmentValid(pDigit)) {
+                    std::vector<size_t> segv = { static_cast<size_t>(iActiveSegment) };
+                    auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
+            }
+        }
         else if (nChar == VK_TAB && IsActiveSegmentValid(pDigit)) {
             if (mods.shift) {
                 // switch to the previous segment if any
@@ -338,7 +360,7 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                 if (num_fringes > 1 && iActiveSegment < num_fringes - 1)
                     iActiveSegment++;
             }
-
+            pDigit->CurrentNumber = pDigit->Fringes[iActiveSegment].GetNumber();
         }
     }
     else if (IsInNavigateMode()) {
