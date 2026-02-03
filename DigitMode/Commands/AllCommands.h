@@ -156,4 +156,37 @@ private:
     CDPoint savedPoint;
 };
 
+// AutoNumberingCommand - Automatic fringe numbering
+class AutoNumberingCommand : public Command {
+public:
+    /**
+     * @brief Auto-number fringes using constraint-based solver
+     * 
+     * @param doc Reference to CDigitInfo document
+     * @param trustedSegmentIndices Indices of segments to use as reference (trusted values)
+     *                              If empty, uses first 2 segments as default
+     * @param step Scalar increment between adjacent fringes (default 1.0)
+     * @param confidenceThreshold Minimum confidence to accept inferred numbers (0-1, default 0.7)
+     */
+    AutoNumberingCommand(
+        CDigitInfo& doc,
+        const std::vector<size_t>& trustedSegmentIndices = {},
+        double step = 1.0,
+        double confidenceThreshold = 0.7
+    );
+    
+    void Execute() override;
+    void Undo() override;
+    std::string GetName() const override { return "Auto-Number Fringes"; }
+    
+private:
+    CDigitInfo& m_doc;
+    std::vector<size_t> m_trustedIndices;
+    double m_step;
+    double m_confidenceThreshold;
+    
+    // Save original Numbers for undo
+    std::vector<double> m_originalNumbers;
+};
+
 } // namespace DigitMode

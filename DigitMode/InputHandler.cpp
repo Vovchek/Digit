@@ -364,7 +364,42 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
         }
     }
     else if (IsInNavigateMode()) {
-
+        // Navigate mode: Handle keyboard shortcuts
+        if ((nChar == 'n' || nChar == 'N') && !mods.shift && !mods.ctrl && !mods.alt) {
+            // 'N' key: Auto-number fringes using selected segments as trusted
+            if (pDigit && pCmdDisp) {
+                std::vector<size_t> trustedIndices;
+                
+                // Collect segment indices from current selection
+                for (size_t i = 0; i < pDigit->selectionManager.GetCount(); ++i) {
+                    const auto& obj = pDigit->selectionManager.GetAt(i);
+                    // Accept Segment and Fringe-level selections
+                    if ((obj.level == SelectionLevel::Segment || obj.level == SelectionLevel::Fringe) 
+                        && obj.iSegment >= 0) {
+                        trustedIndices.push_back(static_cast<size_t>(obj.iSegment));
+                    }
+                }
+                
+                // If no selection, use 2 first segments as default
+                if (trustedIndices.empty() && pDigit->Fringes.size() >= 2) {
+                    trustedIndices = {0, 1};
+                } else if (trustedIndices.empty() && pDigit->Fringes.size() == 1) {
+                    trustedIndices = {0};
+                }
+                
+                // Execute auto-numbering command
+                auto cmd = std::make_unique<AutoNumberingCommand>(
+                    *pDigit,
+                    trustedIndices,
+                    pDigit->numStep,    // default step
+                    0.7     // default confidence threshold
+                );
+                pCmdDisp->Execute(std::move(cmd));
+                
+                TRACE("InputHandler::OnKeyDown: Auto-number triggered with %zu trusted segments\n", 
+                      trustedIndices.size());
+            }
+        }
     }
 }
 

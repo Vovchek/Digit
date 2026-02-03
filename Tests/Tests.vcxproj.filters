@@ -115,6 +115,7 @@
     <ClCompile Include="DigitModeTests\DrawModeTest.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

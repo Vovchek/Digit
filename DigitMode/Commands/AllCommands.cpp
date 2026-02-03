@@ -1,5 +1,6 @@
 ﻿#include "stdafx.h"
 #include "AllCommands.h"
+#include "AutoNumberingAlgorithm.h"
 #include <algorithm>
 
 namespace DigitMode {
@@ -175,6 +176,50 @@ void DeleteSegmentsCommand::Undo() {
     for (const auto& rs : m_removed) {
         m_doc.Fringes.insert(m_doc.Fringes.begin() + static_cast<int>(rs.index), rs.segment);
     }
+}
+
+// ---- AutoNumberingCommand definitions ----
+AutoNumberingCommand::AutoNumberingCommand(
+    CDigitInfo& doc,
+    const std::vector<size_t>& trustedSegmentIndices,
+    double step,
+    double confidenceThreshold)
+    : m_doc(doc), m_trustedIndices(trustedSegmentIndices), m_step(step), 
+      m_confidenceThreshold(confidenceThreshold) {
+    
+    // If no trusted indices provided, use first 2 segments as default
+    if (m_trustedIndices.empty() && m_doc.Fringes.size() >= 2) {
+        m_trustedIndices = {0, static_cast<size_t>(m_doc.Fringes.size() - 1)};
+    } else if (m_trustedIndices.empty() && m_doc.Fringes.size() == 1) {
+        m_trustedIndices = {0};
+    }
+    
+    // Save original Numbers for undo
+    for (const auto& fringe : m_doc.Fringes) {
+        m_originalNumbers.push_back(fringe.GetNumber());
+    }
+}
+
+void AutoNumberingCommand::Execute() {
+    // Call the automatic numbering algorithm
+    auto newTrusted = AutoNumberFringes(
+        m_doc.Fringes,
+        m_trustedIndices,
+        m_step,
+        m_confidenceThreshold
+    );
+    
+    TRACE("AutoNumberingCommand::Execute: %zu fringes numbered, %zu trusted\n",
+          m_doc.Fringes.size(), newTrusted.size());
+}
+
+void AutoNumberingCommand::Undo() {
+    // Restore original Numbers
+    for (size_t i = 0; i < m_doc.Fringes.size() && i < m_originalNumbers.size(); ++i) {
+        m_doc.Fringes[i].SetNumber(m_originalNumbers[i]);
+    }
+    
+    TRACE("AutoNumberingCommand::Undo: Restored original fringe numbers\n");
 }
 
 } // namespace DigitMode

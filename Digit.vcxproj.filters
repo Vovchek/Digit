@@ -371,6 +371,9 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -485,6 +488,17 @@
       <Filter>Docs</Filter>
     </None>
     <None Include="Docs\РЕДАКТОР.md" />
+    <None Include="Docs\AutoNumberingAlgorithm_Implementation.md" />
+    <None Include="Docs\AutoNumbering_DeliverySummary.md" />
+    <None Include="Docs\AutoNumbering_TechnicalReference.md" />
+    <None Include="IMPLEMENTATION_COMPLETE.md" />
+    <None Include="Docs\AutoNumbering_README.md" />
+    <None Include="Docs\AutoNumbering_Limitations_FutureWork.md" />
+    <None Include="ISSUE_RESOLUTION_AutoNumbering_CircularTest.md" />
+    <None Include="Docs\AutoNumberingCommand_Integration.md" />
+    <None Include="Docs\AutoNumberingCommand_QuickRef.md" />
+    <None Include="AUTONUMBERING_COMMAND_COMPLETE.md" />
+    <None Include="AUTONUMBERING_FINAL_STATUS.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
