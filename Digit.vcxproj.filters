@@ -456,6 +456,10 @@
     <None Include="Docs\NAVIGATE_MODE_IMPLEMENTATION.md" />
     <None Include="Docs\NAVIGATE_MODE_VISUALIZATION_FIXES.md" />
     <None Include="Docs\NAVIGATE_MODE_INTEGRATION_FIX.md" />
+    <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
+    <None Include="Docs\ZAP_SECTIONS_CORRECTION.md" />
+    <None Include="Docs\FRINGE_MODEL_TRANSITION_PLAN.md" />
+    <None Include="Docs\SPRINT1_FRINGE_CONSTRUCTION_GUIDE.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
