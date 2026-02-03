@@ -484,6 +484,7 @@
     <None Include="Docs\ZAP_SECTIONS_CORRECTION.md">
       <Filter>Docs</Filter>
     </None>
+    <None Include="Docs\РЕДАКТОР.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

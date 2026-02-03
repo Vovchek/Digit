@@ -300,28 +300,49 @@ void InputHandler::CancelDraw(CDigitInfo* pDigit) {
 }
 
 void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
-    if (!IsInDrawMode()) return;
-    if (nChar == VK_BACK) { 
-        // Delete last dot on active segment (if any)
-        if (IsActiveSegmentValid(pDigit) && pCmdDisp) {
-            int seg = iActiveSegment;
-            auto& s = pDigit->Fringes[seg];
-            int last = s.GetPointCount() - 1;
-            if (last >= 0) {
-                auto cmd = std::make_unique<RemoveLastDotCommand>(pDigit, seg);
-                pCmdDisp->Execute(std::move(cmd));
+
+    ModifierState mods = ModifierState::FromKeyboard();
+
+    if (IsInDrawMode()) {
+        if (nChar == VK_BACK) {
+            // Delete last dot on active segment (if any)
+            if (IsActiveSegmentValid(pDigit) && pCmdDisp) {
+                int seg = iActiveSegment;
+                auto& s = pDigit->Fringes[seg];
+                int last = s.GetPointCount() - 1;
+                if (last >= 0) {
+                    auto cmd = std::make_unique<RemoveLastDotCommand>(pDigit, seg);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
             }
         }
-    } else if (nChar == VK_ESCAPE) {
-        CancelDraw(pDigit);
+        else if (nChar == VK_ESCAPE) {
+            CancelDraw(pDigit);
+        }
+        else if (nChar == VK_RETURN) {
+            // Finalize active segment
+            EndCurrentSegment();
+        }
+        else if (nChar == 'b' || nChar == 'B') {
+            // flip rubber band status
+            m_rubberBand = !m_rubberBand;
+        }
+        else if (nChar == VK_TAB && IsActiveSegmentValid(pDigit)) {
+            if (mods.shift) {
+                // switch to the previous segment if any
+                if (iActiveSegment > 0)
+                    iActiveSegment--;
+            } else {
+                // progress to the next segment if any
+                int num_fringes = static_cast<int>(pDigit->Fringes.size());
+                if (num_fringes > 1 && iActiveSegment < num_fringes - 1)
+                    iActiveSegment++;
+            }
+
+        }
     }
-    else if (nChar == VK_RETURN) {
-        // Finalize active segment
-        EndCurrentSegment();
-    }
-	else if (nChar == 'b' || nChar == 'B') {
-        // flip rubber band status
-		m_rubberBand = !m_rubberBand;
+    else if (IsInNavigateMode()) {
+
     }
 }
 

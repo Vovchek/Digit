@@ -291,6 +291,7 @@
     <None Include="Docs\SPRINT1_FRINGE_CONSTRUCTION_GUIDE.md" />
     <None Include="Docs\TEST_SUITE_FIXES_SUMMARY.md" />
     <None Include="Docs\ZAP_SECTIONS_CORRECTION.md" />
+    <None Include="Docs\РЕДАКТОР.md" />
     <None Include="README_DIGITINFO_ANALYSIS.md" />
     <None Include="Scripts\Add_DrawModeTest.ps1" />
     <None Include="Scripts\Add_Phase1_Impl_To_Tests.ps1" />
