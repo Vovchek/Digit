@@ -24,7 +24,7 @@ Comprehensive Doxygen-style documentation has been added to the CDigitInfo class
 - **Purpose**: Initial fringe center detection
 
 #### ZAP Section Data
-- `ZapLines` - Vertical reference scan lines
+- `ZapLines` - Horizontal reference scan lines
 - `HandSetZapLines` - Manual vs. auto-generated flag
 - `idxDragZapLine` - Currently dragged section
 - **Purpose**: Fringe identification and numbering
@@ -99,7 +99,7 @@ Comprehensive Doxygen-style documentation has been added to the CDigitInfo class
 - `SelectNumber()` - Validate number assignment
 
 #### ZAP Section Management (6 methods)
-- `CreateZAPSections()` - Generate vertical lines
+- `CreateZAPSections()` - Generate horizontal lines
 - `SortZapLines()` - Order by position
 - `PutDotsOnZAPSections()` - Associate fringes
 
@@ -189,7 +189,7 @@ Documented:
 ### Detection Concepts
 - **Red Center**: Local intensity extremum (fringe center candidate)
 - **Extremum**: Maximum or minimum in intensity profile
-- **Scan Line**: Horizontal or vertical slice through image
+- **Scan Line**: Horizontal slice through image
 
 ### Geometric Concepts
 - **Aperture**: Outer boundary (usually circular)
@@ -272,7 +272,7 @@ bool hasObstruction = (buf_line[100][2] != -1);
 ### Additional Areas to Document
 - [ ] CFringeSegment class (referenced extensively)
 - [ ] CSectionInfo class (scan line data)
-- [ ] CZapLineInfo class (vertical sections)
+- [ ] CZapLineInfo class (horizontal sections)
 - [ ] CDotInfo class (legacy model)
 - [ ] NUMBERING_INTERFEROGRAM_INFO structure
 

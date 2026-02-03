@@ -345,6 +345,7 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit) {
     // Set as active segment & end
 	activeEnd = (iDot == 0) ? ActiveEnd::Head : ActiveEnd::Tail;
     iActiveSegment = iSegment;
+	pDigit->CurrentNumber = segment.GetNumber();
     
     TRACE("InputHandler::ContinueSegment: segment=%d, dot=%d\n", iSegment, iDot);
 }
