@@ -279,6 +279,27 @@ namespace impl {
     }
     
     /**
+     * @brief Point-in-polygon test (ray casting)
+     */
+    inline bool IsPointInsidePolygon(const CFringeSegment& poly, double x, double y)
+    {
+        int n = poly.GetPointCount();
+        if (n < 3) return false;
+
+        bool inside = false;
+        for (int i = 0, j = n - 1; i < n; j = i++) {
+            CDPoint pi = poly.GetPoint(i);
+            CDPoint pj = poly.GetPoint(j);
+
+            bool intersect = ((pi.y > y) != (pj.y > y)) &&
+                (x < (pj.x - pi.x) * (y - pi.y) / ((pj.y - pi.y) == 0 ? 1e-12 : (pj.y - pi.y)) + pi.x);
+            if (intersect)
+                inside = !inside;
+        }
+        return inside;
+    }
+
+    /**
      * @brief Phase 2.3 — Nested-ring adjacency (containment-based)
      */
     inline std::vector<AdjacencyEdge> BuildNestedRingAdjacency(
@@ -286,34 +307,36 @@ namespace impl {
         const std::vector<FringeNode>& nodes)
     {
         std::vector<AdjacencyEdge> edges;
-        
+
         for (size_t i = 0; i < nodes.size(); ++i) {
             if (!nodes[i].isClosed) continue;
             for (size_t j = 0; j < nodes.size(); ++j) {
                 if (i == j || !nodes[j].isClosed) continue;
-                
-                double di = std::sqrt(nodes[i].centroid_x * nodes[i].centroid_x +
-                                      nodes[i].centroid_y * nodes[i].centroid_y);
-                double dj = std::sqrt(nodes[j].centroid_x * nodes[j].centroid_x +
-                                      nodes[j].centroid_y * nodes[j].centroid_y);
-                
-                if (di < dj) {
+
+                const auto& inner = fringes[i];
+                const auto& outer = fringes[j];
+
+                // containment: centroid of inner inside outer polygon
+                if (IsPointInsidePolygon(outer, nodes[i].centroid_x, nodes[i].centroid_y)) {
                     size_t a = i, b = j;
                     if (a > b) std::swap(a, b);
-                    
+
                     AdjacencyEdge edge;
                     edge.i = a;
                     edge.j = b;
                     edge.weight = 1.0;
-                    edge.sign = -1;
-                    edge.distance = std::abs(dj - di);
+                    edge.sign = 0; // unknown, let solver decide
+                    edge.distance = std::sqrt(
+                        std::pow(nodes[i].centroid_x - nodes[j].centroid_x, 2) +
+                        std::pow(nodes[i].centroid_y - nodes[j].centroid_y, 2)
+                    );
                     edge.overlapLength = -1.0;
-                    
+
                     edges.push_back(edge);
                 }
             }
         }
-        
+
         // Deduplicate (keep highest weight)
         std::sort(edges.begin(), edges.end(),
             [](const AdjacencyEdge& a, const AdjacencyEdge& b) {
@@ -321,11 +344,11 @@ namespace impl {
                 if (a.j != b.j) return a.j < b.j;
                 return a.weight > b.weight;
             });
-        
+
         std::vector<AdjacencyEdge> deduped;
         typedef std::pair<size_t,size_t> Pair;
         std::set<Pair> seen;
-        
+
         for (size_t e = 0; e < edges.size(); ++e) {
             Pair key(edges[e].i < edges[e].j ? edges[e].i : edges[e].j,
                     edges[e].i < edges[e].j ? edges[e].j : edges[e].i);
@@ -334,7 +357,7 @@ namespace impl {
                 seen.insert(key);
             }
         }
-        
+
         return deduped;
     }
     
