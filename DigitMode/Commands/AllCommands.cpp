@@ -187,17 +187,10 @@ AutoNumberingCommand::AutoNumberingCommand(
     : m_doc(doc), m_trustedIndices(trustedSegmentIndices), m_step(step), 
       m_confidenceThreshold(confidenceThreshold) {
     
-    // If no trusted indices provided, use first 2 segments as default
-    if (m_trustedIndices.empty() && m_doc.Fringes.size() >= 2) {
-        m_trustedIndices = {0, static_cast<size_t>(m_doc.Fringes.size() - 1)};
-    } else if (m_trustedIndices.empty() && m_doc.Fringes.size() == 1) {
-        m_trustedIndices = {0};
-    }
+    // If no trusted indices provided, algo will guess
     
-    // Save original Numbers for undo
-    for (const auto& fringe : m_doc.Fringes) {
-        m_originalNumbers.push_back(fringe.GetNumber());
-    }
+    // Save original fringes for undo
+    m_originalFringes = m_doc.Fringes;
 }
 
 void AutoNumberingCommand::Execute() {
@@ -208,16 +201,14 @@ void AutoNumberingCommand::Execute() {
         m_step,
         m_confidenceThreshold
     );
-    
+    std::sort(m_doc.Fringes.begin(), m_doc.Fringes.end(), [](const auto& a, const auto& b) {return a.GetNumber() < b.GetNumber(); });
     TRACE("AutoNumberingCommand::Execute: %zu fringes numbered, %zu trusted\n",
           m_doc.Fringes.size(), newTrusted.size());
 }
 
 void AutoNumberingCommand::Undo() {
-    // Restore original Numbers
-    for (size_t i = 0; i < m_doc.Fringes.size() && i < m_originalNumbers.size(); ++i) {
-        m_doc.Fringes[i].SetNumber(m_originalNumbers[i]);
-    }
+    // Restore original fringes
+    m_doc.Fringes = m_originalFringes;
     
     TRACE("AutoNumberingCommand::Undo: Restored original fringe numbers\n");
 }

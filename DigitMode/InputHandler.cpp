@@ -33,8 +33,20 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
     if (mods.alt) {
         if (level == SelectionLevel::Dot) {
             if (pCmdDisp && pDigit) {
-                auto cmd = std::make_unique<DeleteDotCommand>(*pDigit, hitSeg, hitDot);
-                pCmdDisp->Execute(std::move(cmd));
+                if (pDigit->Fringes[iActiveSegment].GetPointCount() == 1) {
+					// delete entire segment if only one dot
+                    std::vector<size_t> segs(1, hitSeg);
+                    auto cmd = std::make_unique<DeleteSegmentsCommand>(*pDigit, segs);
+					pCmdDisp->Execute(std::move(cmd));
+                    if(hitSeg == iActiveSegment) {
+						iActiveSegment = -1; // clear active segment
+						activeEnd = ActiveEnd::None;
+					}
+                }
+                else {
+                    auto cmd = std::make_unique<DeleteDotCommand>(*pDigit, hitSeg, hitDot);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
             }
             return;
         }
@@ -303,6 +315,21 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
 
     ModifierState mods = ModifierState::FromKeyboard();
 
+    if(nChar == VK_ESCAPE) {
+		// always clear selection on Escape
+        pDigit->selectionManager.Clear();
+        // Always cancel drag or draw on Escape
+        if (m_drag.active) {
+            // Cancel active drag
+            m_drag = DragState();
+            return;
+        }
+        else if (IsInDrawMode()) {
+            CancelDraw(pDigit);
+            return;
+        }
+	}
+
     if (IsInDrawMode()) {
         if (nChar == VK_BACK) {
             // Delete last dot on active segment (if any)
@@ -310,7 +337,15 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                 int seg = iActiveSegment;
                 auto& s = pDigit->Fringes[seg];
                 int last = s.GetPointCount() - 1;
-                if (last >= 0) {
+                if (last == 0) {
+					std::vector<size_t> segs(1, seg);
+                    auto cmd = std::make_unique<DeleteSegmentsCommand>(*pDigit, segs);
+                    pCmdDisp->Execute(std::move(cmd));
+                    iActiveSegment = -1;
+                    activeEnd = ActiveEnd::None;
+					return;
+                }
+                else if (last > 0) {
                     auto cmd = std::make_unique<RemoveLastDotCommand>(pDigit, seg);
                     pCmdDisp->Execute(std::move(cmd));
                 }

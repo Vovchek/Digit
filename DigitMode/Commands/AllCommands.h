@@ -185,8 +185,8 @@ private:
     double m_step;
     double m_confidenceThreshold;
     
-    // Save original Numbers for undo
-    std::vector<double> m_originalNumbers;
+    // Save original fringes for undo
+    std::vector<CFringeSegment> m_originalFringes;
 };
 
 } // namespace DigitMode

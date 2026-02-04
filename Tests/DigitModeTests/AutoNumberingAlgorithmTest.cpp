@@ -3,6 +3,7 @@
 #include "DigitMode/Commands/AutoNumberingAlgorithm.h"
 #include "DigitMode/CFringeSegment.h"
 #include <cmath>
+#include <set>
 
 // Define M_PI if not available
 #ifndef M_PI
@@ -176,58 +177,72 @@ TEST_F(AutoNumberingAlgorithmTest, PreprocessingClosedCurveDetection) {
     EXPECT_TRUE(closedNode.isClosed);
 }
 
-// ========== Phase 2: Adjacency Graph Tests ==========
+// ========== Phase 2: Adjacency & Direction Tests ==========
 
-TEST_F(AutoNumberingAlgorithmTest, AdjacencyGraphProximity) {
+TEST_F(AutoNumberingAlgorithmTest, SingleAnchorUsesGlobalDirection) {
     std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateHorizontalLine(0.0, 100.0, 0.0));
+    fringes.push_back(CreateHorizontalLine(50.0, 100.0, 0.0));
 
-    // Two parallel horizontal lines close together
-    CFringeSegment line1 = CreateHorizontalLine(0.0, 100.0, 0.0);
-    line1.SetNumber(0.0);
-    fringes.push_back(line1);
+    fringes[0].SetNumber(0.0);
+    std::vector<size_t> trustedIndices = {0};
 
-    CFringeSegment line2 = CreateHorizontalLine(10.0, 100.0, 0.0);  // 10 pixels apart
-    line2.SetNumber(1.0);
-    fringes.push_back(line2);
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
 
-    std::vector<FringeNode> nodes;
-    for (size_t i = 0; i < fringes.size(); ++i) {
-        FringeNode node;
-        node.index = i;
-        node.isTrusted = false;
-        node.centroid_x = 50.0;
-        node.centroid_y = (i == 0) ? 0.0 : 10.0;
-        node.isClosed = false;
-        nodes.push_back(node);
-    }
-
-    AdjacencyParams params;
-    // Note: BuildAdjacencyGraph is internal, test through AutoNumberFringes instead
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
 }
 
-TEST_F(AutoNumberingAlgorithmTest, AdjacencyGraphFarFringes) {
+TEST_F(AutoNumberingAlgorithmTest, VerticalLinesMonotonic) {
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateVerticalLine(0.0, 100.0, 0.0));
+    fringes.push_back(CreateVerticalLine(20.0, 100.0, 0.0));
+    fringes.push_back(CreateVerticalLine(40.0, 100.0, 0.0));
+
+    fringes[0].SetNumber(0.0);
+    fringes[2].SetNumber(2.0);
+
+    std::vector<size_t> trustedIndices = {0, 2};
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, SlantedLinesMonotonic) {
     std::vector<CFringeSegment> fringes;
 
-    CFringeSegment line1 = CreateHorizontalLine(0.0, 100.0, 0.0);
-    line1.SetNumber(0.0);
-    fringes.push_back(line1);
-
-    CFringeSegment line2 = CreateHorizontalLine(200.0, 100.0, 0.0);  // 200 pixels apart
-    line2.SetNumber(1.0);
-    fringes.push_back(line2);
-
-    std::vector<FringeNode> nodes;
-    for (size_t i = 0; i < fringes.size(); ++i) {
-        FringeNode node;
-        node.index = i;
-        node.isTrusted = false;
-        node.centroid_x = 50.0;
-        node.centroid_y = (i == 0) ? 0.0 : 200.0;
-        node.isClosed = false;
-        nodes.push_back(node);
+    // Slanted lines: y = x + c
+    CFringeSegment s0 = CreateHorizontalLine(0.0, 100.0, 0.0);
+    for (int i = 0; i < s0.GetPointCount(); ++i) {
+        CDPoint p = s0.GetPoint(i);
+        p.y = p.x;
+        s0.SetPoint(i, p);
     }
 
-    // Test through AutoNumberFringes - distant fringes should not interfere
+    CFringeSegment s1 = CreateHorizontalLine(20.0, 100.0, 0.0);
+    for (int i = 0; i < s1.GetPointCount(); ++i) {
+        CDPoint p = s1.GetPoint(i);
+        p.y = p.x + 20.0;
+        s1.SetPoint(i, p);
+    }
+
+    CFringeSegment s2 = CreateHorizontalLine(40.0, 100.0, 0.0);
+    for (int i = 0; i < s2.GetPointCount(); ++i) {
+        CDPoint p = s2.GetPoint(i);
+        p.y = p.x + 40.0;
+        s2.SetPoint(i, p);
+    }
+
+    fringes.push_back(s0);
+    fringes.push_back(s1);
+    fringes.push_back(s2);
+
+    fringes[0].SetNumber(0.0);
+    fringes[2].SetNumber(2.0);
+
+    std::vector<size_t> trustedIndices = {0, 2};
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
 }
 
 // ========== Phase 4: Solver Tests ==========
@@ -326,15 +341,15 @@ TEST_F(AutoNumberingAlgorithmTest, ConfidenceThreshold) {
 // ========== Integration Tests ==========
 
 TEST_F(AutoNumberingAlgorithmTest, IntegrationSimpleGrid) {
-    // Grid of evenly-spaced parallel lines
+    // Grid of evenly-spaced parallel lines (reversed order)
     std::vector<CFringeSegment> fringes;
     for (int i = 0; i < 5; ++i) {
-        CFringeSegment line = CreateHorizontalLine(i * 25.0, 100.0, 0.0);
+        CFringeSegment line = CreateHorizontalLine((5 - i) * 25.0, 100.0, 0.0);
         line.SetNumber(0.0);  // Unknown
         fringes.push_back(line);
     }
 
-    // Trust only first and last
+    // Trust only first and last (consistent with step)
     fringes[0].SetNumber(0.0);
     fringes[4].SetNumber(4.0);
 
@@ -383,40 +398,62 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationLargeGap) {
     EXPECT_GE(result.size(), 2);  // At least keep the trusted ones
 }
 
-TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringes) {
-    // NOTE: Current algorithm cannot infer concentric circles without nested curve detection (Phase 3.3 TODO).
-    // This test verifies that isolated fringes behave correctly when marked as trusted.
-    
+TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPeak) {
+    // Nested rings with inner anchor
     std::vector<CFringeSegment> fringes;
-    fringes.push_back(CreateCircle(50.0, 50.0, 10.0));
-    fringes.push_back(CreateCircle(50.0, 50.0, 20.0));
-    fringes.push_back(CreateCircle(50.0, 50.0, 30.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 5.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 15.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 25.0));
 
-    // Trust all three circles explicitly (isolated fringes case)
     fringes[0].SetNumber(0.0);
-    fringes[1].SetNumber(1.0);
-    fringes[2].SetNumber(2.0);
-
-    std::vector<size_t> trustedIndices = {0, 1, 2};
+    std::vector<size_t> trustedIndices = {0};
 
     auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
 
-    // All should remain trusted (no edges to create residuals)
-    EXPECT_EQ(result.size(), 3);
-    EXPECT_EQ(fringes[0].GetNumber(), 0.0);
-    EXPECT_EQ(fringes[1].GetNumber(), 1.0);
-    EXPECT_EQ(fringes[2].GetNumber(), 2.0);
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.5);
 }
 
-TEST_F(AutoNumberingAlgorithmTest, IntegrationParallelCirclesAsLines) {
-    // Test with horizontal lines simulating parallel circular patterns
-    // This is what the algorithm is designed for (parallel curves)
+TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesReversed) {
+    // Nested rings with inner anchor
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateCircle(0.0, 0.0, 25.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 15.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 5.0));
+
+    fringes[0].SetNumber(0.0);
+    std::vector<size_t> trustedIndices = { 0 };
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.5);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPit) {
+    // Nested rings with inner anchor
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateCircle(0.0, 0.0, 25.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 15.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 5.0));
+
+    fringes[0].SetNumber(2.0);
+    fringes[2].SetNumber(0.0);
+    std::vector<size_t> trustedIndices = { 0, 2 };
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), 0.0, 0.5);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationParallelLines) {
+    // Parallel horizontal lines (band case)
     std::vector<CFringeSegment> fringes;
     fringes.push_back(CreateHorizontalLine(0.0, 100.0, 0.0));
     fringes.push_back(CreateHorizontalLine(15.0, 100.0, 0.0));
     fringes.push_back(CreateHorizontalLine(30.0, 100.0, 0.0));
 
-    // Trust first and last
     fringes[0].SetNumber(0.0);
     fringes[2].SetNumber(2.0);
 
@@ -424,9 +461,43 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationParallelCirclesAsLines) {
 
     auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
 
-    // Middle should be inferred
     EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
     EXPECT_GE(result.size(), 2);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandAndRing) {
+    // Mixed topology: bands + nested rings
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateHorizontalLine(0.0, 100.0, 0.0));
+    fringes.push_back(CreateHorizontalLine(20.0, 100.0, 0.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 10.0));
+    fringes.push_back(CreateCircle(0.0, 0.0, 25.0));
+
+    fringes[0].SetNumber(0.0);
+    fringes[3].SetNumber(2.0);
+    std::vector<size_t> trustedIndices = {0, 3};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, SaddleLikeCrossDoesNotCollapse) {
+    // Cross-like arrangement: multiple adjacencies around a region
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateHorizontalLine(-10.0, 40.0, -20.0));
+    fringes.push_back(CreateHorizontalLine(10.0, 40.0, -20.0));
+    fringes.push_back(CreateVerticalLine(-10.0, 40.0, -20.0));
+    fringes.push_back(CreateVerticalLine(10.0, 40.0, -20.0));
+
+    fringes[0].SetNumber(0.0);
+    std::vector<size_t> trustedIndices = {0};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    std::set<double> numbers;
+    for (const auto& f : fringes) numbers.insert(f.GetNumber());
+    EXPECT_GT(numbers.size(), 1u);
 }
 
 // ========== Edge Cases ==========
@@ -458,7 +529,7 @@ TEST_F(AutoNumberingAlgorithmTest, EdgeCaseNegativeNumbers) {
 
     auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
 
-    EXPECT_NEAR(fringes[1].GetNumber(), 0.0, 0.5);
+    EXPECT_NEAR(fringes[1].GetNumber(), -1.0, 0.5);
 }
 
 TEST_F(AutoNumberingAlgorithmTest, EdgeCaseNonUnitStep) {
@@ -476,4 +547,112 @@ TEST_F(AutoNumberingAlgorithmTest, EdgeCaseNonUnitStep) {
     auto result = AutoNumberFringes(fringes, trustedIndices, customStep, confidenceThreshold);
 
     EXPECT_NEAR(fringes[1].GetNumber(), 5.0, 1.0);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationLongBandSequence) {
+    // Many parallel bands with anchors at ends
+    std::vector<CFringeSegment> fringes;
+    const int count = 12;
+    for (int i = 0; i < count; ++i) {
+        CFringeSegment line = CreateHorizontalLine(i * 10.0, 120.0, 0.0);
+        line.SetNumber(0.0);
+        fringes.push_back(line);
+    }
+
+    fringes[0].SetNumber(0.0);
+    fringes[count - 1].SetNumber(static_cast<double>(count - 1));
+
+    std::vector<size_t> trustedIndices = {0, static_cast<size_t>(count - 1)};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    for (int i = 1; i < count - 1; ++i) {
+        EXPECT_NEAR(fringes[i].GetNumber(), static_cast<double>(i), 0.5);
+    }
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationLongBandSequenceReversed) {
+    // Many parallel bands with reversed order
+    std::vector<CFringeSegment> fringes;
+    const int count = 12;
+    for (int i = 0; i < count; ++i) {
+        CFringeSegment line = CreateHorizontalLine((count - 1 - i) * 10.0, 120.0, 0.0);
+        line.SetNumber(0.0);
+        fringes.push_back(line);
+    }
+
+    fringes[0].SetNumber(0.0);
+    fringes[count - 1].SetNumber(static_cast<double>(count - 1));
+
+    std::vector<size_t> trustedIndices = {0, static_cast<size_t>(count - 1)};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    for (int i = 1; i < count - 1; ++i) {
+        EXPECT_NEAR(fringes[i].GetNumber(), static_cast<double>(i), 0.5);
+    }
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationBandWithSparseAnchors) {
+    // Many bands with sparse anchors to verify propagation stability
+    std::vector<CFringeSegment> fringes;
+    const int count = 10;
+    for (int i = 0; i < count; ++i) {
+        CFringeSegment line = CreateHorizontalLine(i * 12.0, 120.0, 0.0);
+        line.SetNumber(0.0);
+        fringes.push_back(line);
+    }
+
+    fringes[2].SetNumber(2.0);
+    fringes[7].SetNumber(7.0);
+
+    std::vector<size_t> trustedIndices = {2, 7};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    for (int i = 0; i < count; ++i) {
+        EXPECT_NEAR(fringes[i].GetNumber(), static_cast<double>(i), 0.5);
+    }
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationBandManyFringesAnchorTop) {
+    std::vector<CFringeSegment> fringes;
+    const int count = 30;
+    for (int i = 0; i < count; ++i) {
+        CFringeSegment line = CreateHorizontalLine(i * 8.0, 160.0, 0.0);
+        line.SetNumber(0.0);
+        fringes.push_back(line);
+    }
+
+    // Anchor at topmost fringe
+    fringes[0].SetNumber(0.0);
+
+    std::vector<size_t> trustedIndices = {0};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    for (int i = 0; i < count; ++i) {
+        EXPECT_NEAR(fringes[i].GetNumber(), static_cast<double>(i), 0.5);
+    }
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationBandManyFringesAnchorBottom) {
+    std::vector<CFringeSegment> fringes;
+    const int count = 30;
+    for (int i = 0; i < count; ++i) {
+        CFringeSegment line = CreateHorizontalLine(i * 8.0, 160.0, 0.0);
+        line.SetNumber(0.0);
+        fringes.push_back(line);
+    }
+
+    // Anchor at bottommost fringe
+    fringes[count - 1].SetNumber(static_cast<double>(count - 1));
+
+    std::vector<size_t> trustedIndices = {static_cast<size_t>(count - 1)};
+
+    auto result = AutoNumberFringes(fringes, trustedIndices, step, confidenceThreshold);
+
+    for (int i = 0; i < count; ++i) {
+        EXPECT_NEAR(fringes[i].GetNumber(), static_cast<double>(i), 0.5);
+    }
 }

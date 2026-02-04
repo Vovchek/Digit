@@ -506,6 +506,7 @@
     <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
     <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
     <None Include="Docs\PHASE2_VERIFICATION.md" />
+    <None Include=".github\copilot-instructions.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
