@@ -372,6 +372,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm_Phase2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -499,6 +502,10 @@
     <None Include="Docs\AutoNumberingCommand_QuickRef.md" />
     <None Include="AUTONUMBERING_COMMAND_COMPLETE.md" />
     <None Include="AUTONUMBERING_FINAL_STATUS.md" />
+    <None Include="Docs\PHASE2_REWRITE_SUMMARY.md" />
+    <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
+    <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
+    <None Include="Docs\PHASE2_VERIFICATION.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

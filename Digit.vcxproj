@@ -216,6 +216,7 @@
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AllCommands.h" />
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h" />
+    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm_Phase2.h" />
     <ClInclude Include="DigitMode\Commands\Command.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />
     <ClInclude Include="DigitMode\CursorManager.h" />
@@ -296,6 +297,10 @@
     <None Include="Docs\NAVIGATE_MODE_INTEGRATION_FIX.md" />
     <None Include="Docs\NAVIGATE_MODE_VISUALIZATION_FIXES.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
+    <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
+    <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
+    <None Include="Docs\PHASE2_REWRITE_SUMMARY.md" />
+    <None Include="Docs\PHASE2_VERIFICATION.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
     <None Include="Docs\SPRINT1_FRINGE_CONSTRUCTION_GUIDE.md" />

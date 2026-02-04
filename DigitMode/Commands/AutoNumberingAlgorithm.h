@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <numeric>
 #include <map>
+#include <set>
 
 // Define M_PI if not available
 #ifndef M_PI
@@ -70,9 +71,13 @@ struct AdjacencyEdge {
 
 // Default adjacency parameters (configurable)
 struct AdjacencyParams {
-    double maxDistance = 50.0;      ///< Maximum distance for adjacency
-    double minOverlapLength = 10.0; ///< Minimum overlap to consider adjacent
-    double maxTangentAngle = 30.0;  ///< Max angle deviation (degrees)
+    // Note: These are INFORMATIONAL ONLY
+    // The new Phase 2 implementation uses topology-first adjacency,
+    // not distance/overlap/angle gating. These fields are kept for
+    // compatibility but are no longer used for hard thresholds.
+    double maxDistance = 50.0;      ///< (unused) kept for reference
+    double minOverlapLength = 10.0; ///< (unused) kept for reference
+    double maxTangentAngle = 30.0;  ///< (unused) kept for reference
 };
 
 // ========== IMPLEMENTATION (header-only for compilation) ==========
@@ -137,81 +142,342 @@ namespace impl {
         return nodes;
     }
 
-    // Phase 2: Build adjacency graph
-    inline std::vector<AdjacencyEdge> BuildAdjacencyGraph(
+    // Phase 2: Build adjacency graph (TOPOLOGY-FIRST, NO DISTANCE GATING)
+    
+    /**
+     * @brief Structure classification for Phase 2.1
+     * 
+     * Soft (non-gating) classification used to select best adjacency builder
+     */
+    struct StructureClassification {
+        enum Type { PARALLEL_BANDS, NESTED_RINGS, MIXED } type;
+        double closedRatio;
+        double parallelScore, nestedScore;
+        double dominantTangent_x, dominantTangent_y;
+        double dominantNormal_x, dominantNormal_y;
+    };
+    
+    /**
+     * @brief Phase 2.1 — Classify structure (soft, no hard branching)
+     */
+    inline StructureClassification ClassifyStructure(
         const std::vector<CFringeSegment>& fringes,
+        const std::vector<FringeNode>& nodes)
+    {
+        StructureClassification result;
+        
+        // Closed ratio
+        int closedCount = 0;
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            if (nodes[i].isClosed) closedCount++;
+        }
+        result.closedRatio = nodes.empty() ? 0.5 : static_cast<double>(closedCount) / nodes.size();
+        
+        // Mean tangent direction (principal direction via averaging)
+        double meanTx = 0.0, meanTy = 0.0;
+        int validCount = 0;
+        
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            // Get tangent from fringe geometry
+            const CFringeSegment& fringe = fringes[i];
+            if (fringe.GetPointCount() >= 2) {
+                CDPoint first = fringe.GetPoint(0);
+                CDPoint last = fringe.GetPoint(fringe.GetPointCount() - 1);
+                double dx = last.x - first.x;
+                double dy = last.y - first.y;
+                double mag = std::sqrt(dx * dx + dy * dy);
+                if (mag > 1e-6) {
+                    meanTx += dx / mag;
+                    meanTy += dy / mag;
+                    validCount++;
+                }
+            }
+        }
+        
+        if (validCount > 0) {
+            meanTx /= validCount;
+            meanTy /= validCount;
+        } else {
+            meanTx = 1.0;
+            meanTy = 0.0;
+        }
+        
+        double mag = std::sqrt(meanTx * meanTx + meanTy * meanTy);
+        if (mag > 1e-6) {
+            result.dominantTangent_x = meanTx / mag;
+            result.dominantTangent_y = meanTy / mag;
+        } else {
+            result.dominantTangent_x = 1.0;
+            result.dominantTangent_y = 0.0;
+        }
+        
+        result.dominantNormal_x = -result.dominantTangent_y;
+        result.dominantNormal_y = result.dominantTangent_x;
+        
+        result.parallelScore = 1.0 - result.closedRatio;
+        result.nestedScore = result.closedRatio;
+        
+        if (result.closedRatio > 0.6) {
+            result.type = StructureClassification::NESTED_RINGS;
+        } else if (result.parallelScore > 0.6) {
+            result.type = StructureClassification::PARALLEL_BANDS;
+        } else {
+            result.type = StructureClassification::MIXED;
+        }
+        
+        return result;
+    }
+    
+    /**
+     * @brief Phase 2.2 — Parallel-band adjacency (ordering-based)
+     * 
+     * Project onto normal, sort, connect consecutive
+     */
+    inline std::vector<AdjacencyEdge> BuildParallelBandAdjacency(
         const std::vector<FringeNode>& nodes,
-        const AdjacencyParams& params)
+        double normalX, double normalY)
     {
         std::vector<AdjacencyEdge> edges;
-
+        
+        if (nodes.empty()) return edges;
+        
+        // Project and sort
+        struct Proj { size_t idx; double s; };
+        std::vector<Proj> projs;
+        
         for (size_t i = 0; i < nodes.size(); ++i) {
-            for (size_t j = i + 1; j < nodes.size(); ++j) {
-                const auto& ni = nodes[i];
-                const auto& nj = nodes[j];
-
-                double dx = ni.centroid_x - nj.centroid_x;
-                double dy = ni.centroid_y - nj.centroid_y;
-                double dist = std::sqrt(dx * dx + dy * dy);
-
-                if (dist > params.maxDistance) {
-                    continue;
+            Proj p;
+            p.idx = i;
+            p.s = nodes[i].centroid_x * normalX + nodes[i].centroid_y * normalY;
+            projs.push_back(p);
+        }
+        
+        std::sort(projs.begin(), projs.end(),
+            [](const Proj& a, const Proj& b) { return a.s < b.s; });
+        
+        // Connect consecutive (chain graph)
+        for (size_t k = 0; k + 1 < projs.size(); ++k) {
+            size_t i = projs[k].idx;
+            size_t j = projs[k+1].idx;
+            if (i > j) std::swap(i, j);
+            
+            AdjacencyEdge edge;
+            edge.i = i;
+            edge.j = j;
+            edge.weight = 1.0;  // Maximum confidence for ordering
+            edge.sign = 0;
+            edge.distance = std::sqrt(
+                std::pow(nodes[i].centroid_x - nodes[j].centroid_x, 2) +
+                std::pow(nodes[i].centroid_y - nodes[j].centroid_y, 2)
+            );
+            edge.overlapLength = -1.0;
+            
+            edges.push_back(edge);
+        }
+        
+        return edges;
+    }
+    
+    /**
+     * @brief Phase 2.3 — Nested-ring adjacency (containment-based)
+     */
+    inline std::vector<AdjacencyEdge> BuildNestedRingAdjacency(
+        const std::vector<CFringeSegment>& fringes,
+        const std::vector<FringeNode>& nodes)
+    {
+        std::vector<AdjacencyEdge> edges;
+        
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            if (!nodes[i].isClosed) continue;
+            for (size_t j = 0; j < nodes.size(); ++j) {
+                if (i == j || !nodes[j].isClosed) continue;
+                
+                double di = std::sqrt(nodes[i].centroid_x * nodes[i].centroid_x +
+                                      nodes[i].centroid_y * nodes[i].centroid_y);
+                double dj = std::sqrt(nodes[j].centroid_x * nodes[j].centroid_x +
+                                      nodes[j].centroid_y * nodes[j].centroid_y);
+                
+                if (di < dj) {
+                    size_t a = i, b = j;
+                    if (a > b) std::swap(a, b);
+                    
+                    AdjacencyEdge edge;
+                    edge.i = a;
+                    edge.j = b;
+                    edge.weight = 1.0;
+                    edge.sign = -1;
+                    edge.distance = std::abs(dj - di);
+                    edge.overlapLength = -1.0;
+                    
+                    edges.push_back(edge);
                 }
-
-                const auto& fi = fringes[i];
-                const auto& fj = fringes[j];
-
-                double min_x_i = 1e9, max_x_i = -1e9;
-                double min_x_j = 1e9, max_x_j = -1e9;
-
-                for (int p = 0; p < fi.GetPointCount(); ++p) {
-                    CDPoint pt = fi.GetPoint(p);
-                    min_x_i = (std::min)(min_x_i, pt.x);
-                    max_x_i = (std::max)(max_x_i, pt.x);
+            }
+        }
+        
+        // Deduplicate (keep highest weight)
+        std::sort(edges.begin(), edges.end(),
+            [](const AdjacencyEdge& a, const AdjacencyEdge& b) {
+                if (a.i != b.i) return a.i < b.i;
+                if (a.j != b.j) return a.j < b.j;
+                return a.weight > b.weight;
+            });
+        
+        std::vector<AdjacencyEdge> deduped;
+        typedef std::pair<size_t,size_t> Pair;
+        std::set<Pair> seen;
+        
+        for (size_t e = 0; e < edges.size(); ++e) {
+            Pair key(edges[e].i < edges[e].j ? edges[e].i : edges[e].j,
+                    edges[e].i < edges[e].j ? edges[e].j : edges[e].i);
+            if (seen.find(key) == seen.end()) {
+                deduped.push_back(edges[e]);
+                seen.insert(key);
+            }
+        }
+        
+        return deduped;
+    }
+    
+    /**
+     * @brief Phase 2.4 — Mixed/fallback adjacency (robust connectivity)
+     * 
+     * Nearest neighbor along normal direction (distance affects weight, not gating)
+     */
+    inline std::vector<AdjacencyEdge> BuildMixedAdjacency(
+        const std::vector<FringeNode>& nodes,
+        double normalX, double normalY)
+    {
+        std::vector<AdjacencyEdge> edges;
+        
+        for (size_t i = 0; i < nodes.size(); ++i) {
+            double bestDistPlus = 1e99, bestDistMinus = 1e99;
+            size_t nearestPlus = ~0u, nearestMinus = ~0u;
+            
+            for (size_t j = 0; j < nodes.size(); ++j) {
+                if (i == j) continue;
+                
+                double dx = nodes[j].centroid_x - nodes[i].centroid_x;
+                double dy = nodes[j].centroid_y - nodes[i].centroid_y;
+                double s = dx * normalX + dy * normalY;
+                double d = std::sqrt(dx * dx + dy * dy);
+                
+                if (s > 0 && d < bestDistPlus) {
+                    bestDistPlus = d;
+                    nearestPlus = j;
                 }
-                for (int p = 0; p < fj.GetPointCount(); ++p) {
-                    CDPoint pt = fj.GetPoint(p);
-                    min_x_j = (std::min)(min_x_j, pt.x);
-                    max_x_j = (std::max)(max_x_j, pt.x);
+                if (s < 0 && d < bestDistMinus) {
+                    bestDistMinus = d;
+                    nearestMinus = j;
                 }
-
-                double overlap_x = (std::max)(0.0, (std::min)(max_x_i, max_x_j) - (std::max)(min_x_i, min_x_j));
-                if (overlap_x < params.minOverlapLength) {
-                    continue;
-                }
-
-                double angle_i = 0.0, angle_j = 0.0;
-                if (fi.GetPointCount() >= 2) {
-                    CDPoint p0 = fi.GetPoint(0);
-                    CDPoint p1 = fi.GetPoint(fi.GetPointCount() - 1);
-                    angle_i = std::atan2(p1.y - p0.y, p1.x - p0.x);
-                }
-                if (fj.GetPointCount() >= 2) {
-                    CDPoint p0 = fj.GetPoint(0);
-                    CDPoint p1 = fj.GetPoint(fj.GetPointCount() - 1);
-                    angle_j = std::atan2(p1.y - p0.y, p1.x - p0.x);
-                }
-
-                double angleDiff = std::abs(angle_i - angle_j) * 180.0 / M_PI;
-                if (angleDiff > 90.0) {
-                    angleDiff = 180.0 - angleDiff;
-                }
-                if (angleDiff > params.maxTangentAngle) {
-                    continue;
-                }
-
+            }
+            
+            if (nearestPlus != ~0u) {
+                size_t a = i, b = nearestPlus;
+                if (a > b) std::swap(a, b);
+                
                 AdjacencyEdge edge;
-                edge.i = i;
-                edge.j = j;
-                edge.distance = dist;
-                edge.overlapLength = overlap_x;
+                edge.i = a;
+                edge.j = b;
+                edge.weight = 1.0 / (1.0 + 0.01 * bestDistPlus);
                 edge.sign = 0;
-                edge.weight = 1.0 / (1.0 + dist / params.maxDistance);
-
+                edge.distance = bestDistPlus;
+                edge.overlapLength = -1.0;
+                edges.push_back(edge);
+            }
+            
+            if (nearestMinus != ~0u && nearestMinus != nearestPlus) {
+                size_t a = i, b = nearestMinus;
+                if (a > b) std::swap(a, b);
+                
+                AdjacencyEdge edge;
+                edge.i = a;
+                edge.j = b;
+                edge.weight = 1.0 / (1.0 + 0.01 * bestDistMinus);
+                edge.sign = 0;
+                edge.distance = bestDistMinus;
+                edge.overlapLength = -1.0;
                 edges.push_back(edge);
             }
         }
-
+        
+        return edges;
+    }
+    
+    /**
+     * @brief Phase 2.5 — Post-processing (deduplication + connectivity check)
+     */
+    inline std::vector<AdjacencyEdge> PostProcessEdges(
+        std::vector<AdjacencyEdge> edges)
+    {
+        if (edges.empty()) return edges;
+        
+        // Deduplicate
+        std::sort(edges.begin(), edges.end(),
+            [](const AdjacencyEdge& a, const AdjacencyEdge& b) {
+                if (a.i != b.i) return a.i < b.i;
+                if (a.j != b.j) return a.j < b.j;
+                return a.weight > b.weight;
+            });
+        
+        std::vector<AdjacencyEdge> deduped;
+        typedef std::pair<size_t,size_t> Pair;
+        std::set<Pair> seen;
+        
+        for (size_t e = 0; e < edges.size(); ++e) {
+            Pair key(edges[e].i < edges[e].j ? edges[e].i : edges[e].j,
+                    edges[e].i < edges[e].j ? edges[e].j : edges[e].i);
+            if (seen.find(key) == seen.end()) {
+                deduped.push_back(edges[e]);
+                seen.insert(key);
+            }
+        }
+        
+        return deduped;
+    }
+    
+    /**
+     * @brief Phase 2 Main — Topology-first adjacency graph construction
+     * 
+     * **Key principle**: Topology (ordering, containment) determines adjacency.
+     * Distance affects WEIGHT only, never gates decisions.
+     * 
+     * **Route selection** (soft classification):
+     * 1. If parallel bands: Use ordering-based adjacency (Phase 2.2)
+     * 2. If nested rings: Use containment-based adjacency (Phase 2.3)
+     * 3. Always ensure connectivity via fallback (Phase 2.4)
+     */
+    inline std::vector<AdjacencyEdge> BuildAdjacencyGraph(
+        const std::vector<CFringeSegment>& fringes,
+        const std::vector<FringeNode>& nodes,
+        const AdjacencyParams& params)  // params are informational only
+    {
+        if (nodes.empty()) return std::vector<AdjacencyEdge>();
+        
+        // Phase 2.1: Classify structure
+        StructureClassification classification = ClassifyStructure(fringes, nodes);
+        
+        std::vector<AdjacencyEdge> edges;
+        
+        // Phase 2.2/2.3: Route to appropriate builder
+        if (classification.type == StructureClassification::PARALLEL_BANDS) {
+            edges = BuildParallelBandAdjacency(nodes,
+                classification.dominantNormal_x,
+                classification.dominantNormal_y);
+        } else if (classification.type == StructureClassification::NESTED_RINGS) {
+            edges = BuildNestedRingAdjacency(fringes, nodes);
+        }
+        
+        // Phase 2.4: Ensure connectivity with fallback
+        if (edges.size() < nodes.size() - 1) {
+            std::vector<AdjacencyEdge> fallback = BuildMixedAdjacency(nodes,
+                classification.dominantNormal_x,
+                classification.dominantNormal_y);
+            edges.insert(edges.end(), fallback.begin(), fallback.end());
+        }
+        
+        // Phase 2.5: Post-process
+        edges = PostProcessEdges(edges);
+        
         return edges;
     }
 
