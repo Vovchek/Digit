@@ -33,7 +33,7 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
     if (mods.alt) {
         if (level == SelectionLevel::Dot) {
             if (pCmdDisp && pDigit) {
-                if (pDigit->Fringes[iActiveSegment].GetPointCount() == 1) {
+                if (pDigit->Fringes[hitSeg].GetPointCount() == 1) {
 					// delete entire segment if only one dot
                     std::vector<size_t> segs(1, hitSeg);
                     auto cmd = std::make_unique<DeleteSegmentsCommand>(*pDigit, segs);
