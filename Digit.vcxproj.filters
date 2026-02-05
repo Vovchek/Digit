@@ -374,6 +374,9 @@
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithmSaddles.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -514,6 +517,7 @@
     <None Include="Docs\IMPLEMENTATION_VERIFICATION.md" />
     <None Include="Docs\HONEST_ADMISSION.md" />
     <None Include="Docs\REAL_TEST_ANALYSIS.md" />
+    <None Include="IMPLEMENTATION_STATUS.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

@@ -216,6 +216,7 @@
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AllCommands.h" />
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h" />
+    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithmSaddles.h" />
     <ClInclude Include="DigitMode\Commands\Command.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />
     <ClInclude Include="DigitMode\CursorManager.h" />
@@ -318,6 +319,7 @@
     <None Include="Docs\ZAP_SECTIONS_CORRECTION.md" />
     <None Include="Docs\РЕДАКТОР.md" />
     <None Include="IMPLEMENTATION_COMPLETE.md" />
+    <None Include="IMPLEMENTATION_STATUS.md" />
     <None Include="ISSUE_RESOLUTION_AutoNumbering_CircularTest.md" />
     <None Include="README_DIGITINFO_ANALYSIS.md" />
     <None Include="Scripts\Add_DrawModeTest.ps1" />
