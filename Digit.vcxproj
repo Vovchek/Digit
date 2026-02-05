@@ -216,7 +216,6 @@
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AllCommands.h" />
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h" />
-    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm_Phase2.h" />
     <ClInclude Include="DigitMode\Commands\Command.h" />
     <ClInclude Include="DigitMode\CreateNumLines.hxx" />
     <ClInclude Include="DigitMode\CursorManager.h" />
@@ -281,7 +280,11 @@
     <None Include="Docs\AutoNumbering_DeliverySummary.md" />
     <None Include="Docs\AutoNumbering_Limitations_FutureWork.md" />
     <None Include="Docs\AutoNumbering_README.md" />
+    <None Include="Docs\AUTONUMBERING_REFINED_TESTS.md" />
     <None Include="Docs\AutoNumbering_TechnicalReference.md" />
+    <None Include="Docs\AUTONUMBERING_TEST_REFINEMENT_COMPLETE.md" />
+    <None Include="Docs\BOXSELECTION_TEST_FAILURE_ANALYSIS.md" />
+    <None Include="Docs\BOXSELECTION_TEST_FIX_COMPLETE.md" />
     <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
     <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
     <None Include="Docs\DRAWMODETEST_FIX_SUMMARY.md" />
@@ -290,6 +293,8 @@
     <None Include="Docs\FRINGE_MODEL_TRANSITION_PLAN.md" />
     <None Include="Docs\HitTester_BeyondEndpoint_Fix.md" />
     <None Include="Docs\HitTester_Tolerance_Fix.md" />
+    <None Include="Docs\HONEST_ADMISSION.md" />
+    <None Include="Docs\IMPLEMENTATION_VERIFICATION.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
     <None Include="Docs\INPUTHANDLERTEST_REWRITE.md" />
     <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
@@ -302,10 +307,14 @@
     <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
     <None Include="Docs\PHASE2_REWRITE_SUMMARY.md" />
     <None Include="Docs\PHASE2_VERIFICATION.md" />
+    <None Include="Docs\REAL_TEST_ANALYSIS.md" />
     <None Include="Docs\ROADMAP_UX.md" />
+    <None Include="Docs\SADDLETOPOLOGY_TEST_IS_CORRECT.md" />
     <None Include="Docs\SEGMENT_PRIMARY_MIGRATION.md" />
     <None Include="Docs\SPRINT1_FRINGE_CONSTRUCTION_GUIDE.md" />
+    <None Include="Docs\TESTS_ARE_SPECIFICATION.md" />
     <None Include="Docs\TEST_SUITE_FIXES_SUMMARY.md" />
+    <None Include="Docs\TWO_TESTS_GREEN.md" />
     <None Include="Docs\ZAP_SECTIONS_CORRECTION.md" />
     <None Include="Docs\РЕДАКТОР.md" />
     <None Include="IMPLEMENTATION_COMPLETE.md" />

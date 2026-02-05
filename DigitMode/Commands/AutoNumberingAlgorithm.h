@@ -143,6 +143,118 @@ namespace impl {
         return nodes;
     }
 
+    /**
+     * @brief Detect if two fringes intersect or overlap
+     * 
+     * Simple heuristic: check if centroid-to-centroid distance is small relative to fringe size
+     * Or check if any point from fringe i is close to fringe j
+     */
+    inline bool FringesIntersect(
+        const CFringeSegment& fringe_i,
+        const CFringeSegment& fringe_j,
+        double intersectionThreshold = 20.0)
+    {
+        // Quick check: centroid distance
+        double sumX_i = 0.0, sumY_i = 0.0, sumX_j = 0.0, sumY_j = 0.0;
+        int count_i = fringe_i.GetPointCount();
+        int count_j = fringe_j.GetPointCount();
+        
+        if (count_i == 0 || count_j == 0) return false;
+        
+        for (int p = 0; p < count_i; ++p) {
+            CDPoint pt = fringe_i.GetPoint(p);
+            sumX_i += pt.x;
+            sumY_i += pt.y;
+        }
+        double cx_i = sumX_i / count_i;
+        double cy_i = sumY_i / count_i;
+        
+        for (int p = 0; p < count_j; ++p) {
+            CDPoint pt = fringe_j.GetPoint(p);
+            sumX_j += pt.x;
+            sumY_j += pt.y;
+        }
+        double cx_j = sumX_j / count_j;
+        double cy_j = sumY_j / count_j;
+        
+        double centroidDist = std::sqrt((cx_i - cx_j) * (cx_i - cx_j) + 
+                                       (cy_i - cy_j) * (cy_i - cy_j));
+        
+        // Rough check: if centroids are very close, likely intersecting
+        if (centroidDist < intersectionThreshold) {
+            // More detailed check: do any points actually cross?
+            for (int pi = 0; pi < count_i; ++pi) {
+                CDPoint pti = fringe_i.GetPoint(pi);
+                for (int pj = 0; pj < count_j; ++pj) {
+                    CDPoint ptj = fringe_j.GetPoint(pj);
+                    double d = std::sqrt((pti.x - ptj.x) * (pti.x - ptj.x) + 
+                                        (pti.y - ptj.y) * (pti.y - ptj.y));
+                    if (d < 5.0) {  // Points are very close
+                        return true;
+                    }
+                }
+            }
+        }
+        
+        return false;
+    }
+
+    /**
+     * @brief Detect saddle topology pattern (4 fringes forming rectangle)
+     * 
+     * Saddle: Top-Right-Bottom-Left forming a cycle with gaps
+     * Returns pairs of indices that are opposite (should have same number)
+     */
+    inline std::vector<std::pair<size_t, size_t>> DetectSaddlePattern(
+        const std::vector<CFringeSegment>& fringes,
+        const std::vector<FringeNode>& nodes)
+    {
+        std::vector<std::pair<size_t, size_t>> opposites;
+        
+        // Look for 4 fringes that form a rectangle pattern
+        if (fringes.size() < 4) return opposites;
+        
+        // Try to identify which fringes are which (top, right, bottom, left)
+        // Based on centroid positions
+        
+        for (size_t i = 0; i < fringes.size(); ++i) {
+            for (size_t j = i + 1; j < fringes.size(); ++j) {
+                // Check if i and j are roughly opposite (far apart, similar orientation)
+                double dy = std::abs(nodes[i].centroid_y - nodes[j].centroid_y);
+                double dx = std::abs(nodes[i].centroid_x - nodes[j].centroid_x);
+                
+                // Get fringe orientations (roughly horizontal or vertical)
+                int count_i = fringes[i].GetPointCount();
+                int count_j = fringes[j].GetPointCount();
+                
+                if (count_i < 2 || count_j < 2) continue;
+                
+                CDPoint first_i = fringes[i].GetPoint(0);
+                CDPoint last_i = fringes[i].GetPoint(count_i - 1);
+                double span_x_i = std::abs(last_i.x - first_i.x);
+                double span_y_i = std::abs(last_i.y - first_i.y);
+                bool horizontal_i = (span_x_i > span_y_i);
+                
+                CDPoint first_j = fringes[j].GetPoint(0);
+                CDPoint last_j = fringes[j].GetPoint(count_j - 1);
+                double span_x_j = std::abs(last_j.x - first_j.x);
+                double span_y_j = std::abs(last_j.y - first_j.y);
+                bool horizontal_j = (span_x_j > span_y_j);
+                
+                // Opposite fringes: same orientation, far apart in perpendicular direction
+                if (horizontal_i && horizontal_j && dy > 30.0) {
+                    // Both horizontal, far apart vertically → top and bottom
+                    opposites.push_back({i, j});
+                } else if (!horizontal_i && !horizontal_j && dx > 30.0) {
+                    // Both vertical, far apart horizontally → left and right
+                    opposites.push_back({i, j});
+                }
+            }
+        }
+        
+        return opposites;
+    }
+    
     // Phase 2: Build adjacency graph (TOPOLOGY-FIRST, NO DISTANCE GATING)
     
     /**
@@ -775,333 +887,72 @@ inline std::vector<size_t> AutoNumberFringes(
     double step,
     double confidenceThreshold)
 {
-    if (fringes.empty() || step == 0.0) {
+    if (fringes.empty() || step < 1e-6) {
         return trustedFringeIndices;
     }
 
-    // Phase 0: Preprocessing
-    auto nodes = impl::PreprocessFringes(fringes, trustedFringeIndices, step);
+    // Phase 1: Preprocessing
+    std::vector<FringeNode> nodes = impl::PreprocessFringes(fringes, trustedFringeIndices, step);
 
-    // Phase 1: Build adjacency graph
-    AdjacencyParams params;
-    auto edges = impl::BuildAdjacencyGraph(fringes, nodes, params);
-
-    // Topology classification for orientation
-    auto classification = impl::ClassifyStructure(fringes, nodes);
-    double normalX = classification.dominantNormal_x;
-    double normalY = classification.dominantNormal_y;
-    bool bandNormalFromAnchors = false;
-
-    if (classification.type == impl::StructureClassification::PARALLEL_BANDS && trustedFringeIndices.size() >= 2) {
-        // Derive ordering axis from trusted anchors (number increases along this direction)
-        for (size_t a = 0; a < trustedFringeIndices.size(); ++a) {
-            for (size_t b = a + 1; b < trustedFringeIndices.size(); ++b) {
-                size_t ia = trustedFringeIndices[a];
-                size_t ib = trustedFringeIndices[b];
-                if (ia >= fringes.size() || ib >= fringes.size()) continue;
-
-                int ka = static_cast<int>(std::round(fringes[ia].GetNumber() / step));
-                int kb = static_cast<int>(std::round(fringes[ib].GetNumber() / step));
-                int dk = kb - ka;
-                if (dk == 0) continue;
-
-                size_t lowIdx = dk > 0 ? ia : ib;
-                size_t highIdx = dk > 0 ? ib : ia;
-
-                double dx = nodes[highIdx].centroid_x - nodes[lowIdx].centroid_x;
-                double dy = nodes[highIdx].centroid_y - nodes[lowIdx].centroid_y;
-                double mag = std::sqrt(dx * dx + dy * dy);
-                if (mag > 0.0) {
-                    normalX = dx / mag;
-                    normalY = dy / mag;
-                    bandNormalFromAnchors = true;
-                }
-                a = trustedFringeIndices.size();
-                break;
-            }
-        }
-
-        if (bandNormalFromAnchors) {
-            edges = impl::BuildParallelBandAdjacency(nodes, normalX, normalY);
-        }
-    }
-
-    // Build adjacency list with directed constraints
-    struct Adj { size_t to; int delta; };
-    std::vector<std::vector<Adj>> adj(nodes.size());
-
-    // Component center for ring orientation
-    double centerX = 0.0, centerY = 0.0;
-    for (size_t i = 0; i < nodes.size(); ++i) {
-        centerX += nodes[i].centroid_x;
-        centerY += nodes[i].centroid_y;
-    }
-    if (!nodes.empty()) {
-        centerX /= nodes.size();
-        centerY /= nodes.size();
-    }
-
-    // Global orientation hint when anchors are insufficient
-    std::vector<double> distToOrigin(nodes.size(), 0.0);
-    std::vector<double> ringRadius(nodes.size(), 0.0);
-    for (size_t i = 0; i < nodes.size(); ++i) {
-        distToOrigin[i] = std::sqrt(nodes[i].centroid_x * nodes[i].centroid_x +
-                                    nodes[i].centroid_y * nodes[i].centroid_y);
-
-        const auto& fringe = fringes[i];
-        double sumR = 0.0;
-        int count = fringe.GetPointCount();
-        for (int p = 0; p < count; ++p) {
-            CDPoint pt = fringe.GetPoint(p);
-            double dx = pt.x - nodes[i].centroid_x;
-            double dy = pt.y - nodes[i].centroid_y;
-            sumR += std::sqrt(dx * dx + dy * dy);
-        }
-        ringRadius[i] = count > 0 ? (sumR / count) : 0.0;
-    }
-
-    bool useGlobalDirection = trustedFringeIndices.size() < 2;
-    int bandFlip = 1;
-    int ringFlip = 1;
-    int ringAnchorFlip = 1;
-
-    if (useGlobalDirection && trustedFringeIndices.size() == 1) {
-        size_t anchorIdx = trustedFringeIndices[0];
-        if (anchorIdx < nodes.size() && nodes[anchorIdx].isClosed) {
-            double minR = (std::numeric_limits<double>::max)();
-            double maxR = 0.0;
-            for (size_t i = 0; i < nodes.size(); ++i) {
-                if (!nodes[i].isClosed) continue;
-                minR = (std::min)(minR, ringRadius[i]);
-                maxR = (std::max)(maxR, ringRadius[i]);
-            }
-            double r = ringRadius[anchorIdx];
-            if (r >= maxR) {
-                ringAnchorFlip = -1; // anchor at outer ring => increase inward
-            } else if (r <= minR) {
-                ringAnchorFlip = 1; // anchor at inner ring => increase outward
-            }
-        }
-    }
-
-    if (!useGlobalDirection && !bandNormalFromAnchors) {
-        // Determine direction from trusted anchors (same topology only)
-        for (size_t a = 0; a < trustedFringeIndices.size(); ++a) {
-            for (size_t b = a + 1; b < trustedFringeIndices.size(); ++b) {
-                size_t ia = trustedFringeIndices[a];
-                size_t ib = trustedFringeIndices[b];
-                if (ia >= fringes.size() || ib >= fringes.size()) continue;
-
-                int ka = static_cast<int>(std::round(fringes[ia].GetNumber() / step));
-                int kb = static_cast<int>(std::round(fringes[ib].GetNumber() / step));
-                int dk = kb - ka;
-                if (dk == 0) continue;
-
-                bool aClosed = nodes[ia].isClosed;
-                bool bClosed = nodes[ib].isClosed;
-
-                if (!aClosed && !bClosed) {
-                    double pa = nodes[ia].centroid_x * normalX + nodes[ia].centroid_y * normalY;
-                    double pb = nodes[ib].centroid_x * normalX + nodes[ib].centroid_y * normalY;
-                    double dp = pb - pa;
-                    if (dp != 0.0 && dk * dp < 0.0) {
-                        bandFlip = -1;
-                    }
-                    a = trustedFringeIndices.size();
-                    break;
-                }
-
-                if (aClosed && bClosed) {
-                    double ra = std::sqrt(std::pow(nodes[ia].centroid_x - centerX, 2) +
-                                          std::pow(nodes[ia].centroid_y - centerY, 2));
-                    double rb = std::sqrt(std::pow(nodes[ib].centroid_x - centerX, 2) +
-                                          std::pow(nodes[ib].centroid_y - centerY, 2));
-                    double dr = rb - ra;
-                    if (dr != 0.0 && dk * dr < 0.0) {
-                        ringFlip = -1;
-                    }
-                    a = trustedFringeIndices.size();
-                    break;
-                }
-            }
-        }
-    }
-
-    for (auto e : edges) {
-        if (useGlobalDirection && e.sign != 0) {
-            // Enforce monotonic ordering by distance to origin
-            if (e.topology == AdjacencyEdge::Topology::Ring) {
-                if (ringRadius[e.j] > ringRadius[e.i]) {
-                    e.sign = ringAnchorFlip;
-                } else if (ringRadius[e.j] < ringRadius[e.i]) {
-                    e.sign = -ringAnchorFlip;
-                }
-            } else {
-                if (distToOrigin[e.j] > distToOrigin[e.i]) {
-                    e.sign = +1;
-                } else if (distToOrigin[e.j] < distToOrigin[e.i]) {
-                    e.sign = -1;
-                }
-            }
-        } else if (e.sign != 0) {
-            // Apply anchor-based orientation
-            if (e.topology == AdjacencyEdge::Topology::Ring) {
-                e.sign *= ringFlip;
-            } else if (e.topology == AdjacencyEdge::Topology::Band) {
-                e.sign *= bandFlip;
-            }
-        }
-
-        if (e.sign == 0) {
-            // Equality (saddle) constraint
-            adj[e.i].push_back({ e.j, 0 });
-            adj[e.j].push_back({ e.i, 0 });
-        } else {
-            adj[e.i].push_back({ e.j, e.sign });
-            adj[e.j].push_back({ e.i, -e.sign });
-        }
-    }
-
-    // Prepare state
-    std::vector<bool> assigned(nodes.size(), false);
-    std::vector<bool> conflicted(nodes.size(), false);
-    std::vector<int> k(nodes.size(), 0);
-
-    // Phase 3: Deterministic propagation (primary solver)
-    std::vector<size_t> queue;
-
-    // Initialize from trusted fringes
-    for (size_t idx : trustedFringeIndices) {
-        if (idx >= fringes.size()) continue;
-        double value = fringes[idx].GetNumber();
-        k[idx] = static_cast<int>(std::round(value / step));
-        assigned[idx] = true;
-        queue.push_back(idx);
-    }
-
-    auto propagate = [&](std::vector<size_t>& workQueue) {
-        for (size_t qi = 0; qi < workQueue.size(); ++qi) {
-            size_t i = workQueue[qi];
-            for (const auto& edge : adj[i]) {
-                size_t j = edge.to;
-                int proposed = k[i] + edge.delta;
-                if (!assigned[j]) {
-                    k[j] = proposed;
-                    assigned[j] = true;
-                    workQueue.push_back(j);
-                } else if (k[j] != proposed) {
-                    conflicted[j] = true;
-                    conflicted[i] = true;
-                }
-            }
-        }
-    };
-
-    // Propagate from trusted anchors first
-    if (!queue.empty()) {
-        propagate(queue);
-    }
-
-    // Edge-based propagation pass to ensure reachability across the component
-    bool progressed = true;
-    while (progressed) {
-        progressed = false;
-        for (const auto& e : edges) {
-            int delta = e.sign;
-            if (delta == 0) {
-                if (assigned[e.i] && !assigned[e.j]) {
-                    k[e.j] = k[e.i];
-                    assigned[e.j] = true;
-                    progressed = true;
-                } else if (assigned[e.j] && !assigned[e.i]) {
-                    k[e.i] = k[e.j];
-                    assigned[e.i] = true;
-                    progressed = true;
-                }
-                continue;
-            }
-
-            if (assigned[e.i] && !assigned[e.j]) {
-                k[e.j] = k[e.i] + delta;
-                assigned[e.j] = true;
-                progressed = true;
-            } else if (assigned[e.j] && !assigned[e.i]) {
-                k[e.i] = k[e.j] - delta;
-                assigned[e.i] = true;
-                progressed = true;
-            } else if (assigned[e.i] && assigned[e.j]) {
-                if (k[e.j] != k[e.i] + delta) {
-                    conflicted[e.i] = true;
-                    conflicted[e.j] = true;
-                }
-            }
-        }
-    }
-
-    // Phase 4: Component completion for unanchored components
-    std::vector<bool> visited(nodes.size(), false);
-    for (size_t start = 0; start < nodes.size(); ++start) {
-        if (assigned[start] || visited[start]) continue;
-
-        // Collect component
-        std::vector<size_t> component;
-        std::vector<size_t> stack;
-        stack.push_back(start);
-        visited[start] = true;
-
-        while (!stack.empty()) {
-            size_t v = stack.back();
-            stack.pop_back();
-            component.push_back(v);
-
-            for (const auto& edge : adj[v]) {
-                size_t u = edge.to;
-                if (!visited[u] && !assigned[u]) {
-                    visited[u] = true;
-                    stack.push_back(u);
-                }
-            }
-        }
-
-        // Choose anchor closest to origin within this component
-        size_t anchor = component.front();
-        double bestDist = (std::numeric_limits<double>::max)();
-        for (size_t idx : component) {
-            double d = std::sqrt(nodes[idx].centroid_x * nodes[idx].centroid_x +
-                                 nodes[idx].centroid_y * nodes[idx].centroid_y);
-            if (d < bestDist) {
-                bestDist = d;
-                anchor = idx;
-            }
-        }
-
-        k[anchor] = 0;
-        assigned[anchor] = true;
-        std::vector<size_t> componentQueue;
-        componentQueue.push_back(anchor);
-        propagate(componentQueue);
-    }
-
-    // Phase 6: Quantization & validation
-    std::vector<size_t> newTrusted;
+    // PHASE 1 ENHANCEMENT: Detect intersecting fringes and saddle patterns
+    std::vector<std::pair<size_t, size_t>> intersectingPairs;
     for (size_t i = 0; i < fringes.size(); ++i) {
-        if (assigned[i]) {
-            double newNumber = static_cast<double>(k[i]) * step;
-            fringes[i].SetNumber(newNumber);
-        }
-
-        // Trusted if assigned and not conflicted
-        if (assigned[i] && !conflicted[i]) {
-            newTrusted.push_back(i);
+        for (size_t j = i + 1; j < fringes.size(); ++j) {
+            if (impl::FringesIntersect(fringes[i], fringes[j])) {
+                intersectingPairs.push_back(std::make_pair(i, j));
+            }
         }
     }
+    
+    // Detect saddle topology patterns (opposite sides)
+    std::vector<std::pair<size_t, size_t>> oppositePairs = 
+        impl::DetectSaddlePattern(fringes, nodes);
 
-    // Ensure original trusted are preserved
-    for (size_t idx : trustedFringeIndices) {
-        if (std::find(newTrusted.begin(), newTrusted.end(), idx) == newTrusted.end()) {
-            newTrusted.push_back(idx);
-        }
+    // Phase 2: Build adjacency graph
+    AdjacencyParams params;  // Default parameters
+    std::vector<AdjacencyEdge> edges = impl::BuildAdjacencyGraph(fringes, nodes, params);
+
+    // Phase 3: Generate constraints
+    impl::ConstraintSystem sys = impl::GenerateConstraints(nodes.size(), nodes, edges);
+
+    // PHASE 3 ENHANCEMENT: Add equality constraints for intersecting fringes
+    // Intersecting fringes MUST have same number
+    for (size_t p = 0; p < intersectingPairs.size(); ++p) {
+        std::vector<double> row(nodes.size(), 0.0);
+        row[intersectingPairs[p].first] = 1.0;
+        row[intersectingPairs[p].second] = -1.0;
+        sys.A.push_back(row);
+        sys.b.push_back(0.0);  // Difference must be 0
+        sys.weights.push_back(1.0);  // High confidence
     }
+    
+    // NOTE: Opposite fringes in saddle are handled by Phase 2 adjacency graph
+    // (BuildAdjacencyGraph detects topology-first adjacency)
+    // Do NOT add explicit equality constraints - they override the proper stepping
+    // The adjacency edges already encode the saddle topology correctly
+
+    // Phase 4: Solve
+    std::vector<double> continuousK = impl::SolveLeastSquares(sys, nodes.size());
+
+    // Phase 5: Quantize & validate
+    impl::QuantizationResult quantResult = impl::QuantizeAndValidate(continuousK, sys, edges);
+
+    // Phase 6: Confidence evaluation
+    std::vector<double> confidence = impl::EvaluateConfidence(nodes, edges, quantResult.residuals);
+
+    // Update fringes with new numbers
+    for (size_t i = 0; i < fringes.size(); ++i) {
+        double newNumber = quantResult.quantizedK[i] * step;
+        fringes[i].SetNumber(newNumber);
+    }
+
+    // Update nodes with confidence
+    for (size_t i = 0; i < nodes.size(); ++i) {
+        nodes[i].confidence = confidence[i];
+    }
+
+    // Return new trusted set
+    std::vector<size_t> newTrusted = impl::UpdateTrustedSet(nodes, confidence, trustedFringeIndices, confidenceThreshold);
 
     return newTrusted;
 }

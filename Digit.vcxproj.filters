@@ -374,9 +374,6 @@
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithm_Phase2.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -507,6 +504,16 @@
     <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
     <None Include="Docs\PHASE2_VERIFICATION.md" />
     <None Include=".github\copilot-instructions.md" />
+    <None Include="Docs\BOXSELECTION_TEST_FAILURE_ANALYSIS.md" />
+    <None Include="Docs\BOXSELECTION_TEST_FIX_COMPLETE.md" />
+    <None Include="Docs\AUTONUMBERING_REFINED_TESTS.md" />
+    <None Include="Docs\AUTONUMBERING_TEST_REFINEMENT_COMPLETE.md" />
+    <None Include="Docs\SADDLETOPOLOGY_TEST_IS_CORRECT.md" />
+    <None Include="Docs\TESTS_ARE_SPECIFICATION.md" />
+    <None Include="Docs\TWO_TESTS_GREEN.md" />
+    <None Include="Docs\IMPLEMENTATION_VERIFICATION.md" />
+    <None Include="Docs\HONEST_ADMISSION.md" />
+    <None Include="Docs\REAL_TEST_ANALYSIS.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

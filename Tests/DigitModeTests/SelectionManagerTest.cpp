@@ -310,34 +310,31 @@ TEST_F(SelectionManagerTest, LargeSelectionPerformance) {
 // ===== Box Selection Tests =====
 
 TEST_F(SelectionManagerTest, BoxSelectionSelectsDots) {
-    // Setup test segments
-    std::vector<CFringeSegment> segments;
-    CFringeSegment seg1(1.0, 0);
-    seg1.AddPoint(CDPoint(10, 10));
-    seg1.AddPoint(CDPoint(20, 20));
-    segments.push_back(seg1);
-
-    CFringeSegment seg2(2.0, 1);
-    seg2.AddPoint(CDPoint(30, 30));
-    seg2.AddPoint(CDPoint(40, 40));
-    segments.push_back(seg2);
-
-    // Define selection box
-    CRect box(5, 5, 25, 25);
+    // Use existing testSegments from SetUp (member variable) instead of local copy
+    // This ensures vectors stay valid throughout the test
+    
+    // Define selection box that contains points (10,10) and (20,20)
+    // but NOT (30,30), (40,40), etc.
+    CRect box(5, 5, 25, 25);  // (left=5, top=5, right=25, bottom=25)
 
     // Perform box selection
-    size_t count = selectionMgr.SelectBox(box, segments);
+    size_t count = selectionMgr.SelectBox(box, testSegments);  // ← Use testSegments (member), not local
 
-    // Verify selection
-    EXPECT_EQ(2, count);
+    // Verify selection count
+    EXPECT_EQ(2, count);  // Should select 2 dots: (10,10) and (20,20) from segment 0
+    
     EXPECT_EQ(SelectionLevel::Dot, selectionMgr.GetLevel());
     EXPECT_EQ(2, selectionMgr.GetCount());
 
+    // Verify first selected dot
     const auto& obj1 = selectionMgr.GetAt(0);
-    EXPECT_EQ(0, obj1.iSegment);
-    EXPECT_EQ(0, obj1.iDot);
+    EXPECT_EQ(SelectionLevel::Dot, obj1.level);
+    EXPECT_EQ(0, obj1.iSegment);  // Segment 0
+    EXPECT_EQ(0, obj1.iDot);       // Dot 0 at (10,10)
 
+    // Verify second selected dot
     const auto& obj2 = selectionMgr.GetAt(1);
-    EXPECT_EQ(0, obj2.iSegment);
-    EXPECT_EQ(1, obj2.iDot);
+    EXPECT_EQ(SelectionLevel::Dot, obj2.level);
+    EXPECT_EQ(0, obj2.iSegment);  // Segment 0
+    EXPECT_EQ(1, obj2.iDot);       // Dot 1 at (20,20)
 }
