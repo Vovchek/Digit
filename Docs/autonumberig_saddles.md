@@ -36,7 +36,7 @@ The solver outputs:
 
 Assign `Number` to all segments such that:
 
-* Adjacent fringes differ by ±`step`
+* Adjacent fringes differ by ±`step` or 0 (rare, saddle or forced by anchors ridge/dip case)
 * Nested fringes are monotone
 * Saddle topology preserves alternating parity
 * Global inconsistencies are minimized
@@ -47,12 +47,14 @@ Assign `Number` to all segments such that:
 
 ### Phase 1 — Preclassification (no numbering yet)
 
-Classify all fringes into **topological regions**:
+#### 2.1 All crossing or connected (epsilon proximity) fringes merge into a single node
+
+#### 2.2 Classify all fringes into **topological regions**:
 
 1. **Band regions**
    – approximately parallel, non-closing fringes
 2. **Ring regions**
-   – nested closed curves
+   – nested curves, outmost curve is closed, inner curves might not be
 3. **Saddle regions**
    – cyclic adjacency, no nesting, no monotone axis
 
@@ -60,7 +62,27 @@ Classify all fringes into **topological regions**:
 
 ---
 
-## 3. Phase 2 — Band Resolution (strongest)
+## 3. Phase 2 — Ring structure arrangement (strongest)
+
+### Rule
+
+If fringes form nested closed loops:
+
+* Sort by containment depth
+* Inner vs outer direction is left as adjustable
+* Assign monotone numbers to nested rings (relative to outmost ring)
+* Each nested family forms complex node represented by its outermost fringe
+
+### Output
+
+* All nested ring fringes packed into single nodes
+* Nodes (Outmost fringes) numbered either **trusted** if it is defined with an anchor or weak otherwise
+* Nested fringes either **trusted** if defined with anchors or relative to outmost ring with unresolved direction
+* Export adjacency constraints
+
+---
+
+## 4. Phase 3a — Band Resolution (strongest)
 
 ### Rule
 
@@ -69,6 +91,10 @@ If fringes form a band:
 * Define a dominant direction (PCA on centroids)
 * Sort fringes along perpendicular direction
 * Assign numbers monotonically by `step`
+* If any fringe has an anchor, use it to fix the sequence and mark as **trusted**
+* Adjacent fringes can only differ by ±`step` or 0. 
+* Zero difference can only be defined by anchor enforsment - ridge or dip case.
+* Zero-difference edge splits area into 2 with oposite gradient directions
 
 ### Output
 
@@ -78,19 +104,23 @@ If fringes form a band:
 
 ---
 
-## 4. Phase 3 — Ring Resolution (strongest)
+## 5. Phase 3b — Rings embeding (strong)
 
 ### Rule
 
-If fringes form nested closed loops:
+If node is a ring, simple or packed:
 
-* Sort by containment depth
-* Inner vs outer direction chosen to minimize conflicts with neighbors
-* Assign monotone numbers
+* It either has its band fringe counterpart (same k) or has first or last k
+* Counterpart is found by the proximity to adjacent bands
+* If 2 adjacant bands are found, and they are trusted, and have k difference of 1, assign ring number to one of the closest
+* If 2 adjacant bands are found, and they are trusted, and have same k, assign ring number to their k+1 or k-1, gradient-dependent
+* If only one adjacent band fringe is found, and it is trusted, default to its k, but mark it as weak, because it can be either k+1 or k-1 
+* Assign a gradient to node based on band gradient in this area
+* Resolve nested fringes according to outermost ring number and gradient
 
 ### Output
 
-* All ring fringes numbered
+* All ring nodes numbered
 * Mark as **trusted**
 * Export adjacency constraints
 
