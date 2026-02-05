@@ -1289,9 +1289,11 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 		TRACE("LoadFRN: Image path resolved to: %s\n", resolved.c_str());
 	}
 
+	
 	//Вызов LoadImage для инициализации m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
-	BOOL imageLoaded = FALSE;
+	
+	/*BOOL imageLoaded = FALSE;
 
 	if (!IntInfo.ImageFileName.IsEmpty()) {
 		imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
@@ -1312,7 +1314,7 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
 			TRACE("LoadFRN: Failed to create fake image\n");
 		}
-	}
+	}*/
 
 	if (!ExamineNumberingInterferogramInfo(IntInfo))
 		return FALSE;
