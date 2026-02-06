@@ -1344,6 +1344,28 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
 	CControls* pCtrls = GetControls();
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
+	// TODO: remove this after migrating all modes to InputHandler
+	if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableCustomDots) {
+			SetCustomDot(CPoint(point));
+			return;
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableCustomDots) {
+			SetCustomDot(CPoint(point));
+			return;
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_EXT) && pCtrls->EnableTracker) {
+			SetCapture();
+			BeginTracker(CPoint(point));
+			InvalidateRect(NULL, FALSE);
+			return;
+	}
+	else if ((pCtrls->EnableOptions & I_BOUNDS_INS) && pCtrls->EnableTracker) {
+			SetCapture();
+			BeginTracker(CPoint(point));
+			InvalidateRect(NULL, FALSE);
+			return;
+	}
+
 	// convert screen to world and set cursor
 	CPoint worldPt = m_viewTransform.ScreenToWorld(point);
 	CPoint l_point(worldPt);
