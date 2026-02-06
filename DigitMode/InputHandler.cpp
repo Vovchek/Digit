@@ -416,9 +416,7 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                 }
                 
                 // If no selection, use 2 first segments as default
-                if (trustedIndices.empty() && pDigit->Fringes.size() >= 2) {
-                    trustedIndices = {0, 1};
-                } else if (trustedIndices.empty() && pDigit->Fringes.size() == 1) {
+                if (trustedIndices.empty() && pDigit->Fringes.size() > 0) {
                     trustedIndices = {0};
                 }
                 

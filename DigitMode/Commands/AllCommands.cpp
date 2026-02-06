@@ -1,6 +1,6 @@
 ﻿#include "stdafx.h"
 #include "AllCommands.h"
-#include "AutoNumberingAlgorithm.h"
+#include "AutoNumberingAlgorithmSaddles.h"
 #include <algorithm>
 
 namespace DigitMode {

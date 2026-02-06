@@ -51,6 +51,17 @@ AutoNumberingResult AutoNumberFringesSaddles(
     double step
 );
 
+std::vector<size_t> AutoNumberFringes(
+    std::vector<CFringeSegment>& fringes,
+    const std::vector<size_t>& trustedFringeIndices,
+    double step,
+    double confidenceThreshold
+) {
+    auto res = AutoNumberFringesSaddles(fringes, trustedFringeIndices, step);
+	return res.trustedFringes;
+}
+
+
 // ========== Internal structures and helpers (implementation details) ==========
 
 namespace impl_saddles {
