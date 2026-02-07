@@ -105,9 +105,9 @@ namespace impl_saddles {
         if (count < 3) return false;
         CDPoint first = fringe.GetPoint(0);
         CDPoint last = fringe.GetPoint(count - 1);
-        double d = std::sqrt((first.x - last.x) * (first.x - last.x) +
+        double d2 = ((first.x - last.x) * (first.x - last.x) +
             (first.y - last.y) * (first.y - last.y));
-        return d < closureTol;
+        return d2 < closureTol*closureTol;
     }
 
     /**
@@ -530,6 +530,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         node.primaryIndex = mergeMetadata[g].primaryIndex;
         node.centroid_x = mergeMetadata[g].centroidX;
         node.centroid_y = mergeMetadata[g].centroidY;
+		node.boundingBox = mergeMetadata[g].boundingBox;
 
         node.isClosed = IsFringeClosed(fringes[node.primaryIndex]);
         node.isTrusted = mergeMetadata[g].isTrusted;
