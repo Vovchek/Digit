@@ -51,16 +51,15 @@ AutoNumberingResult AutoNumberFringesSaddles(
     double step
 );
 
-std::vector<size_t> AutoNumberFringes(
+inline std::vector<size_t> AutoNumberFringes(
     std::vector<CFringeSegment>& fringes,
     const std::vector<size_t>& trustedFringeIndices,
     double step,
     double confidenceThreshold
 ) {
     auto res = AutoNumberFringesSaddles(fringes, trustedFringeIndices, step);
-	return res.trustedFringes;
+    return res.trustedFringes;
 }
-
 
 // ========== Internal structures and helpers (implementation details) ==========
 
@@ -81,6 +80,7 @@ namespace impl_saddles {
         double knownValue;             ///< Number if trusted anchor
         bool isTrusted;                ///< True if has anchor
         double centroid_x, centroid_y; ///< Centroid of primary fringe
+        CDRect boundingBox;            ///< Bounding box of fringes
         bool isClosed;                 ///< True if primary fringe is closed
         int assignedK;                 ///< Assigned number (in units of step)
         bool isAssigned;               ///< Has number been assigned?
@@ -97,31 +97,6 @@ namespace impl_saddles {
     };
 
     /**
-     * @brief Check if two fringes are connected (epsilon proximity)
-     */
-    inline bool FringesConnected(
-        const CFringeSegment& a, const CFringeSegment& b,
-        double proximityThreshold = 5.0)
-    {
-        int countA = a.GetPointCount();
-        int countB = b.GetPointCount();
-        if (countA == 0 || countB == 0) return false;
-
-        for (int i = 0; i < countA; ++i) {
-            CDPoint pa = a.GetPoint(i);
-            for (int j = 0; j < countB; ++j) {
-                CDPoint pb = b.GetPoint(j);
-                double d = std::sqrt((pa.x - pb.x) * (pa.x - pb.x) + 
-                                    (pa.y - pb.y) * (pa.y - pb.y));
-                if (d < proximityThreshold) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
      * @brief Check if fringe is closed
      */
     inline bool IsFringeClosed(const CFringeSegment& fringe, double closureTol = 5.0)
@@ -131,7 +106,7 @@ namespace impl_saddles {
         CDPoint first = fringe.GetPoint(0);
         CDPoint last = fringe.GetPoint(count - 1);
         double d = std::sqrt((first.x - last.x) * (first.x - last.x) +
-                           (first.y - last.y) * (first.y - last.y));
+            (first.y - last.y) * (first.y - last.y));
         return d < closureTol;
     }
 
@@ -151,6 +126,23 @@ namespace impl_saddles {
         }
         cx /= count;
         cy /= count;
+    }
+
+    /**
+     * @brief Compute bounding box of fringe
+     */
+    inline void ComputeBoundingBox(const CFringeSegment& fringe, CDRect& box)
+    {
+        int count = fringe.GetPointCount();
+        box = { 1e10, 1e10, -1e10, -1e10 };
+        if (count == 0) return;
+        for (int i = 0; i < count; ++i) {
+            CDPoint pt = fringe.GetPoint(i);
+            box.left = (std::min)(box.left, pt.x);
+            box.right = (std::max)(box.right, pt.x);
+            box.top = (std::min)(box.top, pt.y);
+            box.bottom = (std::max)(box.bottom, pt.y);
+        }
     }
 
     /**
@@ -187,6 +179,319 @@ namespace impl_saddles {
         return true;
     }
 
+    struct HelperNode {
+        const CFringeSegment& m_fringe;
+        size_t m_i;
+        CDRect m_boundingBox;
+        double m_centroidX;
+        double m_centroidY;
+        HelperNode(const CFringeSegment& fr, size_t i) :m_fringe(fr), m_i(i) {
+            ComputeBoundingBox(m_fringe, m_boundingBox);
+            ComputeCentroid(m_fringe, m_centroidX, m_centroidY);
+        };
+        bool isSeparateFrom(const HelperNode& other) const {
+            return
+                (m_boundingBox.left > other.m_boundingBox.right) ||
+                (other.m_boundingBox.left > m_boundingBox.right) ||
+                (m_boundingBox.top > other.m_boundingBox.bottom) ||
+                (other.m_boundingBox.top > m_boundingBox.bottom);
+        }
+    };
+
+    struct GroupMetadata {
+        CDRect boundingBox;
+        double centroidX;
+        double centroidY;
+        size_t primaryIndex;
+        bool isTrusted;
+        double knownValue;
+        std::vector<size_t> indices;
+    };
+
+    /**
+     * @brief Check if two fringes are connected (epsilon proximity)
+     */
+    enum Orientation {
+        COLLINEAR = 0,
+        CLOCKWISE = 1,
+        COUNTER_CLOCKWISE = 2
+    };
+
+    inline Orientation orientation(const CDPoint& p, const CDPoint& q, const CDPoint& r) {
+        double val = (q.y - p.y) * (r.x - q.x) - (q.x - p.x) * (r.y - q.y);
+
+        if (std::abs(val) < 1e-9) return COLLINEAR;
+        return (val > 0) ? CLOCKWISE : COUNTER_CLOCKWISE;
+    }
+
+    inline bool onSegment(const CDPoint& p, const CDPoint& r, const CDPoint& q, double tolerance = 1e-9) {
+        // Проверяем, лежит ли q на отрезке pr с заданной точностью
+        double cross = (q.y - p.y) * (r.x - p.x) - (q.x - p.x) * (r.y - p.y);
+
+        // Если не коллинеарны (с учетом точности)
+        if (std::abs(cross) > tolerance) {
+            return false;
+        }
+
+        // Проверяем, находится ли q между p и r (с учетом точности)
+        double dot = (q.x - p.x) * (r.x - p.x) + (q.y - p.y) * (r.y - p.y);
+        if (dot < -tolerance) {
+            return false;
+        }
+
+        double segLengthSquared = (r.x - p.x) * (r.x - p.x) + (r.y - p.y) * (r.y - p.y);
+        if (dot > segLengthSquared + tolerance) {
+            return false;
+        }
+
+        return true;
+    }
+
+    inline bool segmentsIntersect(const CDPoint& p1, const CDPoint& p2,
+        const CDPoint& p3, const CDPoint& p4,
+        bool includeTouching = true) {
+        // Вычисляем ориентации для всех комбинаций
+        Orientation o1 = orientation(p1, p2, p3);
+        Orientation o2 = orientation(p1, p2, p4);
+        Orientation o3 = orientation(p3, p4, p1);
+        Orientation o4 = orientation(p3, p4, p2);
+
+        // Общий случай: отрезки пересекаются
+        if (o1 != o2 && o3 != o4) {
+            return true;
+        }
+        if (includeTouching) {
+            // Проверка специальных случаев коллинеарности
+            if (o1 == COLLINEAR && onSegment(p1, p2, p3)) return true;
+            if (o2 == COLLINEAR && onSegment(p1, p2, p4)) return true;
+            if (o3 == COLLINEAR && onSegment(p3, p4, p1)) return true;
+            if (o4 == COLLINEAR && onSegment(p3, p4, p2)) return true;
+
+            // Проверка совпадения конечных точек
+            if (p1 == p3 || p1 == p4 || p2 == p3 || p2 == p4) return true;
+        }
+
+        return false;
+    }
+
+    inline bool checkPointsProximity(const CDPoint& p1, const CDPoint& p2, double distance) {
+        if (distance <= 0.0) {
+            return p1 == p2; // Точное совпадение
+        }
+        double dx = p1.x - p2.x;
+        double dy = p1.y - p2.y;
+        return (dx * dx + dy * dy) <= (distance * distance);
+    }
+
+    inline bool pointsAreClose(const CDPoint& p1, const CDPoint& p2, double distance) {
+        return checkPointsProximity(p1, p2, distance);
+    }
+
+    // Функция для проверки близости точки к отрезку
+    inline bool pointNearSegment(const CDPoint& point, const CDPoint& segStart,
+        const CDPoint& segEnd, double distance) {
+        if (distance <= 0.0) {
+            // Если distance = 0, проверяем точное попадание на отрезок
+            return onSegment(segStart, segEnd, point);
+        }
+
+        // Вектор отрезка
+        double segVecX = segEnd.x - segStart.x;
+        double segVecY = segEnd.y - segStart.y;
+
+        // Вектор от начала отрезка к точке
+        double pointVecX = point.x - segStart.x;
+        double pointVecY = point.y - segStart.y;
+
+        // Длина отрезка в квадрате
+        double segLengthSquared = segVecX * segVecX + segVecY * segVecY;
+
+        // Если отрезок - точка
+        if (segLengthSquared < 1e-9) {
+            return checkPointsProximity(point, segStart, distance);
+        }
+
+        // Проекция точки на отрезок (параметр t)
+        double t = (pointVecX * segVecX + pointVecY * segVecY) / segLengthSquared;
+
+        // Ограничиваем t в пределах [0, 1]
+        t = (std::max)(0.0, (std::min)(1.0, t));
+
+        // Находим ближайшую точку на отрезке
+        CDPoint closestPoint;
+        closestPoint.x = segStart.x + t * segVecX;
+        closestPoint.y = segStart.y + t * segVecY;
+
+        // Проверяем расстояние до ближайшей точки
+        return checkPointsProximity(point, closestPoint, distance);
+    }
+
+    inline bool FringesConnected(
+        const HelperNode& a, const HelperNode& b,
+        double proximityThreshold = 0.5)
+    {
+        size_t countA = a.m_fringe.GetPointCount();
+        size_t countB = b.m_fringe.GetPointCount();
+
+        if (countA == 0 || countB == 0) return false;
+
+        if (a.isSeparateFrom(b))
+            return false;
+
+        bool isPoint1 = (countA == 1);
+        bool isPoint2 = (countB == 1);
+
+        if (isPoint1 && isPoint2) {
+            return checkPointsProximity(a.m_fringe.GetPoint(0), b.m_fringe.GetPoint(0), proximityThreshold);
+        }
+
+        if (proximityThreshold > 0.0) {
+            // Check if any points are within proximity threshold 
+            for (size_t i = 0; i < countA; ++i) {
+                const CDPoint& pa = a.m_fringe.GetPoint(i);
+                for (size_t j = 0; j < countB; ++j) {
+                    const CDPoint& pb = b.m_fringe.GetPoint(j);
+                    if (pointsAreClose(pa, pb, proximityThreshold)) {
+                        return true;
+                    }
+                }
+            }
+
+            // Проверка близости точек к отрезкам
+            // Точки первой полилинии к отрезкам второй
+            for (size_t i = 0; i < countA; ++i) {
+                const CDPoint& point = a.m_fringe.GetPoint(i);
+                for (size_t j = 0; j < countB - 1; ++j) {
+                    const CDPoint& pb1 = b.m_fringe.GetPoint(j);
+                    const CDPoint& pb2 = b.m_fringe.GetPoint(j + 1);
+                    if (pointNearSegment(point, pb1, pb2, proximityThreshold)) {
+                        return true;
+                    }
+                }
+            }
+
+            // Точки второй полилинии к отрезкам первой
+            for (size_t i = 0; i < countB; ++i) {
+                const CDPoint& point = b.m_fringe.GetPoint(i);
+                for (size_t j = 0; j < countA - 1; ++j) {
+                    const CDPoint& pa1 = a.m_fringe.GetPoint(j);
+                    const CDPoint& pa2 = a.m_fringe.GetPoint(j + 1);
+                    if (pointNearSegment(point, pa1, pa2, proximityThreshold)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        // 3. Проверка пересечения отрезков (обычная проверка)
+        if (!isPoint1 && !isPoint2) { // Только если обе полилинии имеют отрезки
+            for (size_t i = 0; i < countA - 1; ++i) {
+                const CDPoint& pa1 = a.m_fringe.GetPoint(i);
+                const CDPoint& pa2 = a.m_fringe.GetPoint(i + 1);
+                for (size_t j = 0; j < countB - 1; ++j) {
+                    const CDPoint& pb1 = b.m_fringe.GetPoint(j);
+                    const CDPoint& pb2 = b.m_fringe.GetPoint(j + 1);
+                    if (segmentsIntersect(pa1, pa2, pb1, pb2)) {
+                        return true;
+                    }
+                }
+            }
+        }
+
+        // 4. Специальные случаи для полилиний-точек
+        if (isPoint1) {
+            // polyline1 - точка, проверяем её близость к отрезкам polyline2
+            const CDPoint& point = a.m_fringe.GetPoint(0);
+            for (size_t j = 0; j < countB - 1; ++j) {
+                const CDPoint& pb1 = b.m_fringe.GetPoint(j);
+                const CDPoint& pb2 = b.m_fringe.GetPoint(j + 1);
+                if (pointNearSegment(point, pb1, pb2, proximityThreshold)) {
+                    return true;
+                }
+            }
+        }
+
+        if (isPoint2) {
+            // polyline2 - точка, проверяем её близость к отрезкам polyline1
+            const CDPoint& point = b.m_fringe.GetPoint(0);
+            for (size_t i = 0; i < countA - 1; ++i) {
+                const CDPoint& pa1 = a.m_fringe.GetPoint(i);
+                const CDPoint& pa2 = a.m_fringe.GetPoint(i + 1);
+                if (pointNearSegment(point, pa1, pa2, proximityThreshold)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    inline std::vector<GroupMetadata> MergeConnected(const std::vector<CFringeSegment>& fringes,
+        const std::map<size_t, bool>& trustedMap, double step)
+    {
+        std::vector<std::vector<HelperNode>> mergeGroups;
+        std::vector<bool> processed(fringes.size(), false);
+
+        for (size_t i = 0; i < fringes.size(); ++i) {
+            if (processed[i]) continue;
+            std::vector<HelperNode> group;
+            std::queue<HelperNode> q;
+            HelperNode n_i(fringes[i], i);
+
+            q.push(n_i);
+            processed[i] = true;
+
+            while (!q.empty()) {
+                HelperNode n_u = q.front();
+                q.pop();
+                group.push_back(n_u);
+
+                for (size_t v = 0; v < fringes.size(); ++v) {
+                    HelperNode n_v(fringes[v], v);
+                    if (!processed[v] && FringesConnected(n_u, n_v)) {
+                        processed[v] = true;
+                        q.push(n_v);
+                    }
+                }
+            }
+
+            mergeGroups.push_back(group);
+        }
+
+        std::vector<GroupMetadata> mergeMetadata;
+
+        // postprocess groupes to derive metadata
+        for (auto& group : mergeGroups) {
+            CDRect mergedBox = { 1e10, 1e10, -1e10, -1e10 };
+            double sumX = 0.0, sumY = 0.0;
+            bool hasTrusted = false;
+            double k = 0.0;
+            size_t primaryIndex = group[0].m_i;
+            std::vector<size_t> indices;
+            for (const auto& node : group) {
+                mergedBox.left = (std::min)(mergedBox.left, node.m_boundingBox.left);
+                mergedBox.right = (std::max)(mergedBox.right, node.m_boundingBox.right);
+                mergedBox.top = (std::min)(mergedBox.top, node.m_boundingBox.top);
+                mergedBox.bottom = (std::max)(mergedBox.bottom, node.m_boundingBox.bottom);
+                sumX += node.m_centroidX;
+                sumY += node.m_centroidY;
+                bool isNodeTrusted = (trustedMap.count(node.m_i) > 0);
+                if (isNodeTrusted) {
+                    k = std::round(node.m_fringe.GetNumber() / step);
+                    primaryIndex = node.m_i; // Override primary index to trusted fringe
+                }
+                hasTrusted = hasTrusted || isNodeTrusted;
+                indices.push_back(node.m_i);
+            }
+            double count = static_cast<double>(group.size());
+            double centroidX = (count > 0) ? (sumX / count) : 0.0;
+            double centroidY = (count > 0) ? (sumY / count) : 0.0;
+            mergeMetadata.push_back({ mergedBox, centroidX, centroidY, primaryIndex, hasTrusted, k, indices });
+        }
+
+        return mergeMetadata;
+    }
+
+
 } // namespace impl_saddles
 
 // Main algorithm implementation
@@ -196,7 +501,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     double step)
 {
     AutoNumberingResult result;
-    result.trustedFringes = trustedFringeIndices;
+	result.trustedFringes.clear(); // trustedFringeIndices may be reviewed
     result.weakFringes.clear();
 
     if (fringes.empty() || step < 1e-6) {
@@ -206,68 +511,34 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     using namespace impl_saddles;
 
     // ===== PHASE 1: Preclassification & Merging =====
-    
+
     std::map<size_t, bool> trustedMap;
     for (size_t idx : trustedFringeIndices) {
         trustedMap[idx] = true;
     }
 
     // Step 1.1: Merge connected fringes
-    std::vector<std::vector<size_t>> mergeGroups;
-    std::vector<bool> processed(fringes.size(), false);
 
-    for (size_t i = 0; i < fringes.size(); ++i) {
-        if (processed[i]) continue;
-        
-        std::vector<size_t> group;
-        std::queue<size_t> q;
-        q.push(i);
-        processed[i] = true;
-
-        while (!q.empty()) {
-            size_t u = q.front();
-            q.pop();
-            group.push_back(u);
-
-            for (size_t v = 0; v < fringes.size(); ++v) {
-                if (!processed[v] && FringesConnected(fringes[u], fringes[v])) {
-                    processed[v] = true;
-                    q.push(v);
-                }
-            }
-        }
-
-        mergeGroups.push_back(group);
-    }
+    std::vector<GroupMetadata> mergeMetadata = MergeConnected(fringes, trustedMap, step);
 
     // Step 1.2: Create nodes from merge groups
     std::vector<FringeNode> nodes;
-    std::map<size_t, size_t> fringeToNodeIdx;
 
-    for (size_t g = 0; g < mergeGroups.size(); ++g) {
+    for (size_t g = 0; g < mergeMetadata.size(); ++g) {
         FringeNode node;
-        node.indices = mergeGroups[g];
-        node.primaryIndex = mergeGroups[g][0];  // First in group is primary
-        
-        ComputeCentroid(fringes[node.primaryIndex], node.centroid_x, node.centroid_y);
+        node.indices = mergeMetadata[g].indices;
+        node.primaryIndex = mergeMetadata[g].primaryIndex;
+        node.centroid_x = mergeMetadata[g].centroidX;
+        node.centroid_y = mergeMetadata[g].centroidY;
+
         node.isClosed = IsFringeClosed(fringes[node.primaryIndex]);
-        node.isTrusted = (trustedMap.count(node.primaryIndex) > 0);
-        
-        if (node.isTrusted) {
-            double k = fringes[node.primaryIndex].GetNumber() / step;
-            node.knownValue = std::round(k);
-        } else {
-            node.knownValue = 0.0;
-        }
+        node.isTrusted = mergeMetadata[g].isTrusted;
+        node.knownValue = mergeMetadata[g].knownValue;
 
         node.isAssigned = node.isTrusted;
         node.assignedK = static_cast<int>(node.knownValue);
         node.isWeak = false;
         node.region = FringeRegion::Unknown;
-
-        for (size_t idx : mergeGroups[g]) {
-            fringeToNodeIdx[idx] = nodes.size();
-        }
 
         nodes.push_back(node);
     }
@@ -283,7 +554,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
 
     if (isRingDominated) {
         // ===== PHASE 2: Ring Structure Arrangement =====
-        
+
         struct RingOrder { size_t nodeIdx; double avgRadius; };
         std::vector<RingOrder> rings;
 
@@ -316,7 +587,8 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
                 // Infer from anchors or global direction
                 if (r == 0) {
                     nodes[nodeIdx].assignedK = 0;  // Innermost default
-                } else {
+                }
+                else {
                     nodes[nodeIdx].assignedK = static_cast<int>(r);  // Increment by radius
                 }
                 nodes[nodeIdx].isAssigned = true;
@@ -324,9 +596,26 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
                 result.weakFringes.push_back(nodes[nodeIdx].primaryIndex);
             }
         }
-    } else {
+    }
+    else {
         // ===== PHASE 3a: Band Resolution =====
-        
+        CDPoint alignmentDir = { 1.0, 1.0 };
+
+        // Use trusted anchors to estimate alignment direction
+        if (trustedFringeIndices.size() >= 2) {
+            CDPoint p1 = fringes[trustedFringeIndices[0]].GetPoint(0);
+            CDPoint p2 = fringes[trustedFringeIndices[1]].GetPoint(0);
+            if (fringes[trustedFringeIndices[1]].GetNumber() >
+                fringes[trustedFringeIndices[0]].GetNumber()) {
+                alignmentDir.x = p2.x - p1.x;
+                alignmentDir.y = p2.y - p1.y;
+            }
+            else {
+                alignmentDir.x = p1.x - p2.x;
+                alignmentDir.y = p1.y - p2.y;
+            }
+        }
+
         // Compute dominant direction via PCA-like heuristic on centroids
         double meanX = 0.0, meanY = 0.0;
         for (const auto& node : nodes) {
@@ -353,9 +642,17 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         if (mag > 1e-6) {
             normalX /= mag;
             normalY /= mag;
-        } else {
+        }
+        else {
             normalX = 1.0;
             normalY = 0.0;
+        }
+
+        // Choose direction that maches alignmentDir
+        double dot = normalX * alignmentDir.x + normalY * alignmentDir.y;
+        if (dot < 0) {
+            normalX = -normalX;
+            normalY = -normalY;
         }
 
         // Sort nodes along normal direction
@@ -370,24 +667,55 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         std::sort(sorted.begin(), sorted.end(),
             [](const NodeProj& a, const NodeProj& b) { return a.proj < b.proj; });
 
-        // Assign numbers monotonically
+        // Find first assigned node in sorted order
         int currentK = 0;
+        size_t firstAssigned = 0;
         for (size_t s = 0; s < sorted.size(); ++s) {
-            size_t nodeIdx = sorted[s].idx;
-            if (nodes[nodeIdx].isAssigned) {
-                currentK = nodes[nodeIdx].assignedK;
-            } else {
-                nodes[nodeIdx].assignedK = currentK;
-                nodes[nodeIdx].isAssigned = true;
-                nodes[nodeIdx].isWeak = false;
-                result.trustedFringes.push_back(nodes[nodeIdx].primaryIndex);
+            size_t anchorIdx = sorted[s].idx;
+            if (nodes[anchorIdx].isAssigned) {
+                currentK = nodes[anchorIdx].assignedK;
+                firstAssigned = s;
+                result.trustedFringes.push_back(nodes[anchorIdx].primaryIndex);
+                break;
             }
-            currentK++;  // Next band is +1
+        }
+
+        // Assign numbers monotonically forward
+        for (size_t t = firstAssigned + 1; t < sorted.size(); ++t) {
+            size_t idx = sorted[t].idx;
+            if (nodes[idx].isAssigned) {
+                // Check consistency
+                int expectedDelta = (nodes[idx].assignedK - currentK);
+                if (std::abs(expectedDelta) > 1) {
+                    // Inconsistent, mark as weak
+                    nodes[idx].isWeak = true;
+                    result.weakFringes.push_back(nodes[idx].primaryIndex);
+                }
+                currentK = nodes[idx].assignedK;
+            }
+            else {
+                ++currentK;  // Next fringe is +1
+                nodes[idx].assignedK = currentK;
+                nodes[idx].isAssigned = true;
+                nodes[idx].isWeak = false;
+                result.trustedFringes.push_back(nodes[idx].primaryIndex);
+            }
+        }
+        // Backward proparation
+        if (firstAssigned > 0) {
+            currentK = nodes[sorted[firstAssigned].idx].assignedK;
+            for (int s = static_cast<int>(firstAssigned) - 1; s >= 0; --s) {
+                size_t idx = sorted[s].idx;
+                --currentK;  // Previous band is -1
+                nodes[idx].assignedK = currentK;
+                nodes[idx].isAssigned = true;
+                nodes[idx].isWeak = false;
+                result.trustedFringes.push_back(nodes[idx].primaryIndex);
+            }
         }
     }
-
     // ===== PHASE 8: Iterative Propagation (simplified) =====
-    
+
     // Propagate trusted numbers to connected unassigned nodes
     bool changed = true;
     int iterCount = 0;
@@ -422,7 +750,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     }
 
     // ===== PHASE 9: Validation & Output =====
-    
+
     for (size_t n = 0; n < nodes.size(); ++n) {
         for (size_t fringeIdx : nodes[n].indices) {
             double newNumber = static_cast<double>(nodes[n].assignedK) * step;
