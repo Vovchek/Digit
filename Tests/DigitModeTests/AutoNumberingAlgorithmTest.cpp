@@ -958,8 +958,8 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesReversed) {
 
     auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
 
-    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
-    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.5);
+    EXPECT_NEAR(fringes[1].GetNumber(), -1.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), -2.0, 0.5);
 }
 
 TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPit) {
