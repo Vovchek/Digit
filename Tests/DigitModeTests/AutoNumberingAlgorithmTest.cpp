@@ -41,6 +41,36 @@ protected:
     }
 
     /**
+     * Helper: Create a simple slant line fringe
+     */
+    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+        CFringeSegment seg(0.0, 0);
+        int numPoints = static_cast<int>(length / 10.0) + 1;
+        for (int i = 0; i < numPoints; ++i) {
+            CDPoint pt;
+            pt.x = startX + i * 10.0;
+            pt.y = startY + i * 10.0;
+            seg.AddPoint(pt);
+        }
+        return seg;
+    }
+
+    /**
+     * Helper: Create a simple slant line fringe
+     */
+    CFringeSegment CreateSlantLineReverseX(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+        CFringeSegment seg(0.0, 0);
+        int numPoints = static_cast<int>(length / 10.0) + 1;
+        for (int i = 0; i < numPoints; ++i) {
+            CDPoint pt;
+            pt.x = startX - i * 10.0;
+            pt.y = startY + i * 10.0;
+            seg.AddPoint(pt);
+        }
+        return seg;
+    }
+
+    /**
      * Helper: Create a vertical line fringe
      */
     CFringeSegment CreateVerticalLine(double x, double length = 100.0, double startY = 0.0) {
@@ -592,6 +622,36 @@ protected:
     }
 
     /**
+ * Helper: Create a simple slant line fringe
+ */
+    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+        CFringeSegment seg(0.0, 0);
+        int numPoints = static_cast<int>(length / 10.0) + 1;
+        for (int i = 0; i < numPoints; ++i) {
+            CDPoint pt;
+            pt.x = startX + i * 10.0;
+            pt.y = startY + i * 10.0;
+            seg.AddPoint(pt);
+        }
+        return seg;
+    }
+
+    /**
+     * Helper: Create a simple slant line fringe
+     */
+    CFringeSegment CreateSlantLineReverseX(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+        CFringeSegment seg(0.0, 0);
+        int numPoints = static_cast<int>(length / 10.0) + 1;
+        for (int i = 0; i < numPoints; ++i) {
+            CDPoint pt;
+            pt.x = startX - i * 10.0;
+            pt.y = startY + i * 10.0;
+            seg.AddPoint(pt);
+        }
+        return seg;
+    }
+
+    /**
      * Helper: Create a closed circular fringe
      */
     CFringeSegment CreateCircle(double cx, double cy, double radius) {
@@ -941,7 +1001,7 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPit) {
     EXPECT_NEAR(fringes[2].GetNumber(), 0.0, 0.5);
 }
 
-TEST_F(AutoNumberingAlgorithmTest, IntegrationParallelLines) {
+TEST_F(AutoNumberingAlgorithmTest, IntegrationHorizontalLines) {
     // Parallel horizontal lines (band case)
     std::vector<CFringeSegment> fringes;
     fringes.push_back(CreateHorizontalLine(0.0, 100.0, 0.0));
@@ -958,6 +1018,43 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationParallelLines) {
     EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
     EXPECT_GE(result.trustedFringes.size(), 2u);
 }
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationVerticalLines) {
+    // Parallel horizontal lines (band case)
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateVerticalLine(0.0, 100.0, 0.0));
+    fringes.push_back(CreateVerticalLine(15.0, 100.0, 0.0));
+    fringes.push_back(CreateVerticalLine(30.0, 100.0, 0.0));
+
+    fringes[0].SetNumber(0.0);
+    fringes[2].SetNumber(2.0);
+
+    std::vector<size_t> trustedIndices = { 0, 2 };
+
+    auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_GE(result.trustedFringes.size(), 2u);
+}
+
+TEST_F(AutoNumberingAlgorithmTest, IntegrationSlantLines) {
+    // Parallel horizontal lines (band case)
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateSlantLine(0.0, 0.0, 100.0));
+    fringes.push_back(CreateSlantLine(15.0, 0.0, 100.0));
+    fringes.push_back(CreateSlantLine(30.0, 0.0, 100.0));
+
+    fringes[0].SetNumber(0.0);
+    fringes[2].SetNumber(2.0);
+
+    std::vector<size_t> trustedIndices = { 0, 2 };
+
+    auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
+
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_GE(result.trustedFringes.size(), 2u);
+}
+
 
 TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandAndRing) {
     // Mixed topology: bands + nested rings

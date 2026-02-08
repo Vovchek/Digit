@@ -638,24 +638,30 @@ namespace impl_saddles {
             covYY += dy * dy;
         }
 
-        // Normal direction (perpendicular to band)
-        double normalX = covYY - covXX;
-        double normalY = 2.0 * covXY;
-        double mag = std::sqrt(normalX * normalX + normalY * normalY);
-        if (mag > 1e-6) {
-            normalX /= mag;
-            normalY /= mag;
+        // Compute principal direction using angle formula
+        // For covariance matrix [[a, b], [b, c]]
+        // The angle θ of principal axis (eigenvector for largest eigenvalue) is:
+        // θ = 0.5 * atan2(2*b, a - c)
+
+        double a = covXX, b = covXY, c = covYY;
+        double dirX, dirY;
+
+        if (std::abs(b) < 1e-9 && std::abs(a - c) < 1e-9) {
+            // Isotropic (circular) distribution
+            dirX = 1.0;
+            dirY = 0.0;
         }
         else {
-            normalX = 1.0;
-            normalY = 0.0;
+            double angle = 0.5 * std::atan2(2.0 * b, a - c);
+            dirX = std::cos(angle);
+            dirY = std::sin(angle);
         }
 
         // Choose direction that matches alignmentDir
-        double dot = normalX * alignmentDir.x + normalY * alignmentDir.y;
+        double dot = dirX * alignmentDir.x + dirY * alignmentDir.y;
         if (dot < 0) {
-            normalX = -normalX;
-            normalY = -normalY;
+            dirX = -dirX;
+            dirY = -dirY;
         }
 
         // Sort nodes along normal direction
@@ -664,7 +670,7 @@ namespace impl_saddles {
         for (size_t n = 0; n < nodes.size(); ++n) {
             NodeProj np;
             np.idx = n;
-            np.proj = nodes[n].centroid_x * normalX + nodes[n].centroid_y * normalY;
+            np.proj = nodes[n].centroid_x * dirX + nodes[n].centroid_y * dirY;
             sorted.push_back(np);
         }
         std::sort(sorted.begin(), sorted.end(),
@@ -693,7 +699,8 @@ namespace impl_saddles {
                     // Inconsistent, mark as weak
                     nodes[idx].isWeak = true;
                     result.weakFringes.push_back(nodes[idx].primaryIndex);
-                }
+                } else
+                    result.trustedFringes.push_back(nodes[idx].primaryIndex);
                 currentK = nodes[idx].assignedK;
             }
             else {
