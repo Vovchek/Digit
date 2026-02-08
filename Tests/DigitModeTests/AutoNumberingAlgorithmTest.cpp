@@ -1054,6 +1054,30 @@ TEST_F(AutoNumberingAlgorithmTest, MergeMixedBandAndRing) {
 
 }
 
+TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandsAndRings) {
+    // Mixed topology: bands + nested rings
+    std::vector<CFringeSegment> fringes;
+    fringes.push_back(CreateSlantLine(0.0, 0.0, 10.0, 100.0, 5));
+    fringes.push_back(CreateSlantLine(10.0, 0.0, 10.0, 100.0, 5));
+    fringes.push_back(CreateCircle(50.0, 50.0, 20.0, 3));
+    fringes.push_back(CreateCircle(50.0, 50.0, 10.0, 3));
+    fringes.push_back(CreateCircle(50.0, 50.0, 5.0, 3));
+
+    fringes[3].SetNumber(1.0);
+    fringes[4].SetNumber(0.0);
+    std::vector<size_t> trustedIndices = { 3, 4 };
+
+    auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
+
+    EXPECT_NEAR(fringes[0].GetNumber(), 0.0, 0.1);
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.1);
+    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.1);
+    EXPECT_NEAR(fringes[3].GetNumber(), 1.0, 0.1);
+    EXPECT_NEAR(fringes[4].GetNumber(), 0.0, 0.1);
+
+}
+
+
 TEST_F(AutoNumberingAlgorithmTest, SaddleLikeTopology) {
     // CORRECTED: Real saddle topology
     // Saddle = 4 fringes arranged in a rectangle with GAPS (no connections)

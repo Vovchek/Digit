@@ -829,6 +829,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         // Numbering radiates from trusted anchors
         
         const size_t NO_PARENT = SIZE_MAX;
+		int parentToChildDelta = 1; // Children are one step inward
         
         // Step 2.1: Mark all trusted anchors first
         std::vector<size_t> trustedAnchors;
@@ -838,14 +839,46 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
             trustedAnchors.push_back(nodeIdx);
             result.trustedFringes.push_back(nodes[nodeIdx].primaryIndex);
         }
-        
+		// check progression direction on rings through trusted anchors, if any
+        auto IsParent = [&nodes](size_t parentNodeIdx, size_t childNodeIdx) -> bool {
+            size_t current = childNodeIdx;
+            const size_t NO_PARENT = SIZE_MAX;
+
+            while (current != NO_PARENT) {
+                if (current == parentNodeIdx) return true;
+                current = nodes[current].outerNodeIdx;
+            }
+            return false;
+            };
+
+		if (!trustedAnchors.empty()) {
+            // Find direction inwards/outwards of rings.
+            // If 2 trusted anchors are of the same family
+			// then parentToChildDelta is 1 if child achor has
+			// bigger number, -1 if smaller number. 
+            // If only 1 anchor, default is +1 (children rise).
+			size_t anchor1 = trustedAnchors[0];
+            for (size_t anchorIdx : trustedAnchors) {
+                if (anchorIdx == anchor1) continue;
+				if (IsParent(anchor1, anchorIdx)) { // anchor1 is parent, anchorIdx is child
+                    // dK = sign(K_child-K_parent)
+                    parentToChildDelta = (nodes[anchorIdx].assignedK - nodes[anchor1].assignedK) > 0 ? 1 : -1;
+                    break;
+                }
+				else if (IsParent(anchorIdx, anchor1)) { // anchorIdx is parent, anchor1 is child
+                    // dK = sign(K_child - K_parent)
+                    parentToChildDelta = (nodes[anchor1].assignedK - nodes[anchorIdx].assignedK) > 0 ? 1 : -1;
+                    break; // Only need to compare one pair of anchors
+                }
+            }
+        }
         // Step 2.2: Helper lambda for recursive hierarchy propagation
         auto propagateHierarchy = [&](auto& self, size_t curIdx, int curK) -> void {
             // Find and assign immediate children (rings enclosed by this one)
             for (size_t childIdx : topology.ringNodeIndices) {
                 if (!nodes[childIdx].isClosed) continue;
                 if (nodes[childIdx].outerNodeIdx == curIdx && !nodes[childIdx].isAssigned) {
-                    nodes[childIdx].assignedK = curK - 1;  // Children go inward: K - 1
+                    nodes[childIdx].assignedK = curK + parentToChildDelta;  // Children go south
                     nodes[childIdx].isAssigned = true;
                     nodes[childIdx].isWeak = true;
                     result.weakFringes.push_back(nodes[childIdx].primaryIndex);
@@ -857,7 +890,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
             if (nodes[curIdx].outerNodeIdx != NO_PARENT) {
                 size_t parentIdx = nodes[curIdx].outerNodeIdx;
                 if (!nodes[parentIdx].isAssigned) {
-                    nodes[parentIdx].assignedK = curK + 1;  // Parent goes outward: K + 1
+                    nodes[parentIdx].assignedK = curK - parentToChildDelta;  // Parent goes north
                     nodes[parentIdx].isAssigned = true;
                     nodes[parentIdx].isWeak = true;
                     result.weakFringes.push_back(nodes[parentIdx].primaryIndex);
