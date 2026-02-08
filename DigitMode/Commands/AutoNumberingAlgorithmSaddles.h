@@ -85,6 +85,14 @@ namespace impl_saddles {
         int assignedK;                 ///< Assigned number (in units of step)
         bool isAssigned;               ///< Has number been assigned?
         bool isWeak;                   ///< Marked as weak confidence?
+        bool isSeparateFrom(const FringeNode& other) const {
+            return
+                (boundingBox.left > other.boundingBox.right) ||
+                (other.boundingBox.left > boundingBox.right) ||
+                (boundingBox.top > other.boundingBox.bottom) ||
+                (other.boundingBox.top > boundingBox.bottom);
+        }
+
     };
 
     /**
@@ -94,6 +102,14 @@ namespace impl_saddles {
         size_t i, j;                   ///< Node indices
         int expectedDelta;             ///< Expected difference: ±step or 0
         bool isSaddle;                 ///< Part of saddle cycle?
+    };
+
+    /**
+     * @brief Result of band resolution
+     */
+    struct BandResolutionResult {
+        std::vector<size_t> trustedFringes;
+        std::vector<size_t> weakFringes;
     };
 
     /**
@@ -177,6 +193,85 @@ namespace impl_saddles {
             }
         }
         return true;
+    }
+
+    /**
+     * @brief Check if inner node is fully inside outer node (optimized with bounding box check)
+     * 
+     * @param inner Inner node to test
+     * @param outer Outer node (must be closed to contain anything)
+     * @param fringes Original fringe geometries
+     * @return true if inner is fully contained within outer
+     */
+    inline bool IsFullyInside(
+        const FringeNode& inner, 
+        const FringeNode& outer, 
+        const std::vector<CFringeSegment>& fringes)
+    {
+        // Quick reject: if bounding boxes don't overlap, can't be inside
+        if (inner.isSeparateFrom(outer)) {
+            return false;
+        }
+        
+        // Outer must be closed to contain something
+        if (!outer.isClosed) {
+            return false;
+        }
+        
+        // Perform actual geometric containment test
+        return IsFullyInside(fringes[inner.primaryIndex], fringes[outer.primaryIndex]);
+    }
+
+    /**
+     * @brief Topology classification result
+     */
+    struct TopologyClassification {
+        std::vector<size_t> bandNodeIndices;  ///< Topmost band-like fringes (not enclosed in any ring)
+        std::vector<size_t> ringNodeIndices;  ///< Ring structures (rings + anything inside them)
+    };
+
+    /**
+     * @brief Classify nodes into topmost bands and ring structures
+     * 
+     * Separates nodes into two categories:
+     * - Band nodes: Open fringes NOT enclosed in any ring (topmost bands)
+     * - Ring nodes: Closed rings OR any fringe (open/closed) enclosed in a ring
+     * 
+     * @param nodes Node array to classify
+     * @param fringes Original fringe geometries
+     * @return TopologyClassification with band and ring node index lists
+     */
+    inline TopologyClassification ClassifyTopology(
+        const std::vector<FringeNode>& nodes,
+        const std::vector<CFringeSegment>& fringes)
+    {
+        TopologyClassification result;
+        
+        // For each node, check if it's enclosed in any ring
+        for (size_t n = 0; n < nodes.size(); ++n) {
+            bool isEnclosedInRing = false;
+            
+            // Check if this node is inside any closed ring
+            for (size_t r = 0; r < nodes.size(); ++r) {
+                if (n == r) continue;  // Skip self
+                
+                if (nodes[r].isClosed && IsFullyInside(nodes[n], nodes[r], fringes)) {
+                    isEnclosedInRing = true;
+                    break;
+                }
+            }
+            
+            // Classify based on enclosure and closure
+            if (isEnclosedInRing || nodes[n].isClosed) {
+                // Part of ring structure (either is a ring or inside one)
+                result.ringNodeIndices.push_back(n);
+            } else {
+                // Topmost band (open and not enclosed)
+                result.bandNodeIndices.push_back(n);
+            }
+        }
+        
+        return result;
     }
 
     struct HelperNode {
@@ -491,6 +586,140 @@ namespace impl_saddles {
         return mergeMetadata;
     }
 
+    /**
+     * @brief Resolve band topology: assign monotonic numbers along dominant direction
+     * 
+     * @param nodes [i/o] Node array to assign numbers to
+     * @param fringes [i] Original fringe geometries
+     * @param trustedFringeIndices [i] Trusted anchor indices
+     * @param step [i] Step value for numbering
+     * @return BandResolutionResult with trusted and weak fringe lists
+     */
+    inline BandResolutionResult ResolveBandTopology(
+        std::vector<FringeNode>& nodes,
+        const std::vector<CFringeSegment>& fringes,
+        const std::vector<size_t>& trustedFringeIndices,
+        double step)
+    {
+        BandResolutionResult result;
+        
+        // Estimate alignment direction from trusted anchors
+        CDPoint alignmentDir = { 1.0, 1.0 };
+        if (trustedFringeIndices.size() >= 2) {
+            CDPoint p1 = fringes[trustedFringeIndices[0]].GetPoint(0);
+            CDPoint p2 = fringes[trustedFringeIndices[1]].GetPoint(0);
+            if (fringes[trustedFringeIndices[1]].GetNumber() >
+                fringes[trustedFringeIndices[0]].GetNumber()) {
+                alignmentDir.x = p2.x - p1.x;
+                alignmentDir.y = p2.y - p1.y;
+            }
+            else {
+                alignmentDir.x = p1.x - p2.x;
+                alignmentDir.y = p1.y - p2.y;
+            }
+        }
+
+        // Compute dominant direction via PCA-like heuristic on centroids
+        double meanX = 0.0, meanY = 0.0;
+        for (const auto& node : nodes) {
+            meanX += node.centroid_x;
+            meanY += node.centroid_y;
+        }
+        meanX /= nodes.size();
+        meanY /= nodes.size();
+
+        // Covariance approximation
+        double covXX = 0.0, covXY = 0.0, covYY = 0.0;
+        for (const auto& node : nodes) {
+            double dx = node.centroid_x - meanX;
+            double dy = node.centroid_y - meanY;
+            covXX += dx * dx;
+            covXY += dx * dy;
+            covYY += dy * dy;
+        }
+
+        // Normal direction (perpendicular to band)
+        double normalX = covYY - covXX;
+        double normalY = 2.0 * covXY;
+        double mag = std::sqrt(normalX * normalX + normalY * normalY);
+        if (mag > 1e-6) {
+            normalX /= mag;
+            normalY /= mag;
+        }
+        else {
+            normalX = 1.0;
+            normalY = 0.0;
+        }
+
+        // Choose direction that matches alignmentDir
+        double dot = normalX * alignmentDir.x + normalY * alignmentDir.y;
+        if (dot < 0) {
+            normalX = -normalX;
+            normalY = -normalY;
+        }
+
+        // Sort nodes along normal direction
+        struct NodeProj { size_t idx; double proj; };
+        std::vector<NodeProj> sorted;
+        for (size_t n = 0; n < nodes.size(); ++n) {
+            NodeProj np;
+            np.idx = n;
+            np.proj = nodes[n].centroid_x * normalX + nodes[n].centroid_y * normalY;
+            sorted.push_back(np);
+        }
+        std::sort(sorted.begin(), sorted.end(),
+            [](const NodeProj& a, const NodeProj& b) { return a.proj < b.proj; });
+
+        // Find first assigned node in sorted order
+        int currentK = 0;
+        size_t firstAssigned = 0;
+        for (size_t s = 0; s < sorted.size(); ++s) {
+            size_t anchorIdx = sorted[s].idx;
+            if (nodes[anchorIdx].isAssigned) {
+                currentK = nodes[anchorIdx].assignedK;
+                firstAssigned = s;
+                result.trustedFringes.push_back(nodes[anchorIdx].primaryIndex);
+                break;
+            }
+        }
+
+        // Assign numbers monotonically forward
+        for (size_t t = firstAssigned + 1; t < sorted.size(); ++t) {
+            size_t idx = sorted[t].idx;
+            if (nodes[idx].isAssigned) {
+                // Check consistency
+                int expectedDelta = (nodes[idx].assignedK - currentK);
+                if (std::abs(expectedDelta) > 1) {
+                    // Inconsistent, mark as weak
+                    nodes[idx].isWeak = true;
+                    result.weakFringes.push_back(nodes[idx].primaryIndex);
+                }
+                currentK = nodes[idx].assignedK;
+            }
+            else {
+                ++currentK;  // Next fringe is +1
+                nodes[idx].assignedK = currentK;
+                nodes[idx].isAssigned = true;
+                nodes[idx].isWeak = false;
+                result.trustedFringes.push_back(nodes[idx].primaryIndex);
+            }
+        }
+        
+        // Backward propagation
+        if (firstAssigned > 0) {
+            currentK = nodes[sorted[firstAssigned].idx].assignedK;
+            for (int s = static_cast<int>(firstAssigned) - 1; s >= 0; --s) {
+                size_t idx = sorted[s].idx;
+                --currentK;  // Previous band is -1
+                nodes[idx].assignedK = currentK;
+                nodes[idx].isAssigned = true;
+                nodes[idx].isWeak = false;
+                result.trustedFringes.push_back(nodes[idx].primaryIndex);
+            }
+        }
+
+        return result;
+    }
 
 } // namespace impl_saddles
 
@@ -545,13 +774,11 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     }
 
     // Step 1.3: Classify regions (Band vs Ring vs Saddle)
-    int closedCount = 0;
-    for (const auto& node : nodes) {
-        if (node.isClosed) closedCount++;
-    }
-
-    // Simple heuristic: if mostly closed → rings, if mostly open → bands
-    bool isRingDominated = (closedCount > static_cast<int>(nodes.size()) / 2);
+    
+    TopologyClassification topology = ClassifyTopology(nodes, fringes);
+    
+    // Determine dominant topology based on classification
+    bool isRingDominated = (!topology.ringNodeIndices.empty());
 
     if (isRingDominated) {
         // ===== PHASE 2: Ring Structure Arrangement =====
@@ -559,21 +786,22 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         struct RingOrder { size_t nodeIdx; double avgRadius; };
         std::vector<RingOrder> rings;
 
-        for (size_t n = 0; n < nodes.size(); ++n) {
-            if (!nodes[n].isClosed) continue;
+        // Process only ring nodes
+        for (size_t nodeIdx : topology.ringNodeIndices) {
+            if (!nodes[nodeIdx].isClosed) continue;
 
-            const auto& fringe = fringes[nodes[n].primaryIndex];
+            const auto& fringe = fringes[nodes[nodeIdx].primaryIndex];
             double sumR = 0.0;
             int count = fringe.GetPointCount();
             for (int p = 0; p < count; ++p) {
                 CDPoint pt = fringe.GetPoint(p);
-                double dx = pt.x - nodes[n].centroid_x;
-                double dy = pt.y - nodes[n].centroid_y;
+                double dx = pt.x - nodes[nodeIdx].centroid_x;
+                double dy = pt.y - nodes[nodeIdx].centroid_y;
                 sumR += std::sqrt(dx * dx + dy * dy);
             }
 
             RingOrder ro;
-            ro.nodeIdx = n;
+            ro.nodeIdx = nodeIdx;
             ro.avgRadius = (count > 0) ? (sumR / count) : 0.0;
             rings.push_back(ro);
         }
@@ -597,124 +825,44 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
                 result.weakFringes.push_back(nodes[nodeIdx].primaryIndex);
             }
         }
+        
+        // Process band nodes if any exist in ring-dominated topology
+        if (!topology.bandNodeIndices.empty()) {
+            // Build subset of band nodes for band resolution
+            std::vector<FringeNode> bandNodes;
+            std::map<size_t, size_t> bandNodeMap;  // originalIdx -> bandNodesIdx
+            
+            for (size_t origIdx : topology.bandNodeIndices) {
+                bandNodeMap[origIdx] = bandNodes.size();
+                bandNodes.push_back(nodes[origIdx]);
+            }
+            
+            BandResolutionResult bandResult = ResolveBandTopology(bandNodes, fringes, trustedFringeIndices, step);
+            
+            // Map results back to original nodes
+            for (size_t i = 0; i < bandNodes.size(); ++i) {
+                size_t origIdx = topology.bandNodeIndices[i];
+                nodes[origIdx] = bandNodes[i];
+            }
+            
+            result.trustedFringes.insert(result.trustedFringes.end(), 
+                bandResult.trustedFringes.begin(), bandResult.trustedFringes.end());
+            result.weakFringes.insert(result.weakFringes.end(), 
+                bandResult.weakFringes.begin(), bandResult.weakFringes.end());
+        }
     }
     else {
         // ===== PHASE 3a: Band Resolution =====
-        CDPoint alignmentDir = { 1.0, 1.0 };
-
-        // Use trusted anchors to estimate alignment direction
-        if (trustedFringeIndices.size() >= 2) {
-            CDPoint p1 = fringes[trustedFringeIndices[0]].GetPoint(0);
-            CDPoint p2 = fringes[trustedFringeIndices[1]].GetPoint(0);
-            if (fringes[trustedFringeIndices[1]].GetNumber() >
-                fringes[trustedFringeIndices[0]].GetNumber()) {
-                alignmentDir.x = p2.x - p1.x;
-                alignmentDir.y = p2.y - p1.y;
-            }
-            else {
-                alignmentDir.x = p1.x - p2.x;
-                alignmentDir.y = p1.y - p2.y;
-            }
-        }
-
-        // Compute dominant direction via PCA-like heuristic on centroids
-        double meanX = 0.0, meanY = 0.0;
-        for (const auto& node : nodes) {
-            meanX += node.centroid_x;
-            meanY += node.centroid_y;
-        }
-        meanX /= nodes.size();
-        meanY /= nodes.size();
-
-        // Covariance approximation
-        double covXX = 0.0, covXY = 0.0, covYY = 0.0;
-        for (const auto& node : nodes) {
-            double dx = node.centroid_x - meanX;
-            double dy = node.centroid_y - meanY;
-            covXX += dx * dx;
-            covXY += dx * dy;
-            covYY += dy * dy;
-        }
-
-        // Normal direction (perpendicular to band)
-        double normalX = covYY - covXX;
-        double normalY = 2.0 * covXY;
-        double mag = std::sqrt(normalX * normalX + normalY * normalY);
-        if (mag > 1e-6) {
-            normalX /= mag;
-            normalY /= mag;
-        }
-        else {
-            normalX = 1.0;
-            normalY = 0.0;
-        }
-
-        // Choose direction that maches alignmentDir
-        double dot = normalX * alignmentDir.x + normalY * alignmentDir.y;
-        if (dot < 0) {
-            normalX = -normalX;
-            normalY = -normalY;
-        }
-
-        // Sort nodes along normal direction
-        struct NodeProj { size_t idx; double proj; };
-        std::vector<NodeProj> sorted;
-        for (size_t n = 0; n < nodes.size(); ++n) {
-            NodeProj np;
-            np.idx = n;
-            np.proj = nodes[n].centroid_x * normalX + nodes[n].centroid_y * normalY;
-            sorted.push_back(np);
-        }
-        std::sort(sorted.begin(), sorted.end(),
-            [](const NodeProj& a, const NodeProj& b) { return a.proj < b.proj; });
-
-        // Find first assigned node in sorted order
-        int currentK = 0;
-        size_t firstAssigned = 0;
-        for (size_t s = 0; s < sorted.size(); ++s) {
-            size_t anchorIdx = sorted[s].idx;
-            if (nodes[anchorIdx].isAssigned) {
-                currentK = nodes[anchorIdx].assignedK;
-                firstAssigned = s;
-                result.trustedFringes.push_back(nodes[anchorIdx].primaryIndex);
-                break;
-            }
-        }
-
-        // Assign numbers monotonically forward
-        for (size_t t = firstAssigned + 1; t < sorted.size(); ++t) {
-            size_t idx = sorted[t].idx;
-            if (nodes[idx].isAssigned) {
-                // Check consistency
-                int expectedDelta = (nodes[idx].assignedK - currentK);
-                if (std::abs(expectedDelta) > 1) {
-                    // Inconsistent, mark as weak
-                    nodes[idx].isWeak = true;
-                    result.weakFringes.push_back(nodes[idx].primaryIndex);
-                }
-                currentK = nodes[idx].assignedK;
-            }
-            else {
-                ++currentK;  // Next fringe is +1
-                nodes[idx].assignedK = currentK;
-                nodes[idx].isAssigned = true;
-                nodes[idx].isWeak = false;
-                result.trustedFringes.push_back(nodes[idx].primaryIndex);
-            }
-        }
-        // Backward proparation
-        if (firstAssigned > 0) {
-            currentK = nodes[sorted[firstAssigned].idx].assignedK;
-            for (int s = static_cast<int>(firstAssigned) - 1; s >= 0; --s) {
-                size_t idx = sorted[s].idx;
-                --currentK;  // Previous band is -1
-                nodes[idx].assignedK = currentK;
-                nodes[idx].isAssigned = true;
-                nodes[idx].isWeak = false;
-                result.trustedFringes.push_back(nodes[idx].primaryIndex);
-            }
-        }
+        
+        BandResolutionResult bandResult = ResolveBandTopology(nodes, fringes, trustedFringeIndices, step);
+        
+        // Merge results into main result
+        result.trustedFringes.insert(result.trustedFringes.end(), 
+            bandResult.trustedFringes.begin(), bandResult.trustedFringes.end());
+        result.weakFringes.insert(result.weakFringes.end(), 
+            bandResult.weakFringes.begin(), bandResult.weakFringes.end());
     }
+    
     // ===== PHASE 8: Iterative Propagation (simplified) =====
 
     // Propagate trusted numbers to connected unassigned nodes
@@ -751,10 +899,15 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     }
 
     // ===== PHASE 9: Validation & Output =====
-
+    
+    // Apply assigned numbers to all fringes in each node
+    // IMPORTANT: Nodes with multiple indices (merged fringes) will have ALL their fringes
+    // set to the same number (assignedK * step) from the primary fringe
     for (size_t n = 0; n < nodes.size(); ++n) {
+        double newNumber = static_cast<double>(nodes[n].assignedK) * step;
+        
+        // Set number for ALL fringes in this node (handles merged groups)
         for (size_t fringeIdx : nodes[n].indices) {
-            double newNumber = static_cast<double>(nodes[n].assignedK) * step;
             fringes[fringeIdx].SetNumber(newNumber);
         }
     }
