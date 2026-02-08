@@ -85,12 +85,12 @@ namespace impl_saddles {
         int assignedK;                 ///< Assigned number (in units of step)
         bool isAssigned;               ///< Has number been assigned?
         bool isWeak;                   ///< Marked as weak confidence?
-        bool isSeparateFrom(const FringeNode& other) const {
+        bool isSeparateFrom(const FringeNode& other, double proximityThreshold = 0.0) const {
             return
-                (boundingBox.left > other.boundingBox.right) ||
-                (other.boundingBox.left > boundingBox.right) ||
-                (boundingBox.top > other.boundingBox.bottom) ||
-                (other.boundingBox.top > boundingBox.bottom);
+                (boundingBox.left > other.boundingBox.right + proximityThreshold) ||
+                (other.boundingBox.left > boundingBox.right + proximityThreshold) ||
+                (boundingBox.top > other.boundingBox.bottom + proximityThreshold) ||
+                (other.boundingBox.top > boundingBox.bottom + proximityThreshold);
         }
 
     };
@@ -184,8 +184,8 @@ namespace impl_saddles {
      */
     inline bool IsFullyInside(const CFringeSegment& inner, const CFringeSegment& outer)
     {
+        if (!IsFringeClosed(outer)) return false;
         int count = inner.GetPointCount();
-        if (count < 3) return false;
         for (int i = 0; i < count; ++i) {
             CDPoint pt = inner.GetPoint(i);
             if (!IsPointInsidePolygon(outer, pt.x, pt.y)) {
@@ -212,14 +212,22 @@ namespace impl_saddles {
         if (inner.isSeparateFrom(outer)) {
             return false;
         }
-        
-        // Outer must be closed to contain something
-        if (!outer.isClosed) {
-            return false;
+		// If multiple fringes, check all closed rings in outer 
+        // if ANY of them contain ALL inner fringes
+        for (auto idxOut : outer.indices) {
+            // Geometric containment test is superfluious here
+            // because crossing fringes are already merged within node
+            // --- not nessesary ----
+            // if(std::all_of(inner.indices.begin(), inner.indices.end(),
+            //        [&fringes, idxOut](size_t idx) { return IsFullyInside(fringes[idx], fringes[idxOut]); }))
+            //    return true;
+            // ----------------------
+            // it's either fully outside or inside, any sample point will do:
+            CDPoint pt = fringes[inner.primaryIndex].GetPoint(0);
+            if (IsPointInsidePolygon(fringes[idxOut], pt.x, pt.y))
+                return true;
         }
-        
-        // Perform actual geometric containment test
-        return IsFullyInside(fringes[inner.primaryIndex], fringes[outer.primaryIndex]);
+        return false;
     }
 
     /**
@@ -284,12 +292,12 @@ namespace impl_saddles {
             ComputeBoundingBox(m_fringe, m_boundingBox);
             ComputeCentroid(m_fringe, m_centroidX, m_centroidY);
         };
-        bool isSeparateFrom(const HelperNode& other) const {
+        bool isSeparateFrom(const HelperNode& other, double proximityThreshold = 0.0) const {
             return
-                (m_boundingBox.left > other.m_boundingBox.right) ||
-                (other.m_boundingBox.left > m_boundingBox.right) ||
-                (m_boundingBox.top > other.m_boundingBox.bottom) ||
-                (other.m_boundingBox.top > m_boundingBox.bottom);
+                (m_boundingBox.left > other.m_boundingBox.right + proximityThreshold) ||
+                (other.m_boundingBox.left > m_boundingBox.right + proximityThreshold) ||
+                (m_boundingBox.top > other.m_boundingBox.bottom + proximityThreshold) ||
+                (other.m_boundingBox.top > m_boundingBox.bottom + proximityThreshold);
         }
     };
 
@@ -430,7 +438,7 @@ namespace impl_saddles {
 
         if (countA == 0 || countB == 0) return false;
 
-        if (a.isSeparateFrom(b))
+        if (a.isSeparateFrom(b, proximityThreshold))
             return false;
 
         bool isPoint1 = (countA == 1);
@@ -768,7 +776,8 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
         node.centroid_y = mergeMetadata[g].centroidY;
 		node.boundingBox = mergeMetadata[g].boundingBox;
 
-        node.isClosed = IsFringeClosed(fringes[node.primaryIndex]);
+        node.isClosed = std::any_of(node.indices.begin(), node.indices.end(),
+            [&fringes](size_t idx) { return IsFringeClosed(fringes[idx]); });
         node.isTrusted = mergeMetadata[g].isTrusted;
         node.knownValue = mergeMetadata[g].knownValue;
 
@@ -830,6 +839,10 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
                 nodes[nodeIdx].isAssigned = true;
                 nodes[nodeIdx].isWeak = true;
                 result.weakFringes.push_back(nodes[nodeIdx].primaryIndex);
+            }
+            else {
+                nodes[nodeIdx].isWeak = false;
+                result.trustedFringes.push_back(nodes[nodeIdx].primaryIndex);
             }
         }
         

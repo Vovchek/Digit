@@ -41,30 +41,19 @@ protected:
     }
 
     /**
-     * Helper: Create a simple slant line fringe
+     * Helper: Create a line fringe @ arbitrary slant with optional jitter
      */
-    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0,
+        double lengthX = 100.0, double lengthY = 100.0,
+        double jitter = 0.0) {
         CFringeSegment seg(0.0, 0);
-        int numPoints = static_cast<int>(length / 10.0) + 1;
+        int numPoints = static_cast<int>((std::max)(lengthX, lengthY) / 10.0) + 1;
+        double stepX = lengthX / (numPoints - 1);
+        double stepY = lengthY / (numPoints - 1);
         for (int i = 0; i < numPoints; ++i) {
             CDPoint pt;
-            pt.x = startX + i * 10.0;
-            pt.y = startY + i * 10.0;
-            seg.AddPoint(pt);
-        }
-        return seg;
-    }
-
-    /**
-     * Helper: Create a simple slant line fringe
-     */
-    CFringeSegment CreateSlantLineReverseX(double startX = 0.0, double startY = 0.0, double length = 100.0) {
-        CFringeSegment seg(0.0, 0);
-        int numPoints = static_cast<int>(length / 10.0) + 1;
-        for (int i = 0; i < numPoints; ++i) {
-            CDPoint pt;
-            pt.x = startX - i * 10.0;
-            pt.y = startY + i * 10.0;
+            pt.x = startX + i * stepX + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
+            pt.y = startY + i * stepY + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
             seg.AddPoint(pt);
         }
         return seg;
@@ -88,14 +77,14 @@ protected:
     /**
      * Helper: Create a closed circular fringe
      */
-    CFringeSegment CreateCircle(double cx, double cy, double radius) {
+    CFringeSegment CreateCircle(double cx, double cy, double radius, double jitter = 0.0) {
         CFringeSegment seg(0.0, 0);
         int numPoints = 16;
         for (int i = 0; i < numPoints; ++i) {
             double angle = 2.0 * M_PI * i / numPoints;
             CDPoint pt;
-            pt.x = cx + radius * std::cos(angle);
-            pt.y = cy + radius * std::sin(angle);
+            pt.x = cx + radius * std::cos(angle) + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
+            pt.y = cy + radius * std::sin(angle) + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
             seg.AddPoint(pt);
         }
         // Close the curve
@@ -622,30 +611,19 @@ protected:
     }
 
     /**
- * Helper: Create a simple slant line fringe
- */
-    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0, double length = 100.0) {
-        CFringeSegment seg(0.0, 0);
-        int numPoints = static_cast<int>(length / 10.0) + 1;
-        for (int i = 0; i < numPoints; ++i) {
-            CDPoint pt;
-            pt.x = startX + i * 10.0;
-            pt.y = startY + i * 10.0;
-            seg.AddPoint(pt);
-        }
-        return seg;
-    }
-
-    /**
-     * Helper: Create a simple slant line fringe
+	 * Helper: Create a line fringe @ arbitrary slant with optional jitter
      */
-    CFringeSegment CreateSlantLineReverseX(double startX = 0.0, double startY = 0.0, double length = 100.0) {
+    CFringeSegment CreateSlantLine(double startX = 0.0, double startY = 0.0, 
+                                   double lengthX = 100.0, double lengthY = 100.0,
+                                    double jitter = 0.0) {
         CFringeSegment seg(0.0, 0);
-        int numPoints = static_cast<int>(length / 10.0) + 1;
+        int numPoints = static_cast<int>((std::max)(lengthX, lengthY) / 10.0) + 1;
+		double stepX = lengthX / (numPoints - 1);
+		double stepY = lengthY / (numPoints - 1);
         for (int i = 0; i < numPoints; ++i) {
             CDPoint pt;
-            pt.x = startX - i * 10.0;
-            pt.y = startY + i * 10.0;
+            pt.x = startX + i * stepX + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
+            pt.y = startY + i * stepY + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
             seg.AddPoint(pt);
         }
         return seg;
@@ -654,14 +632,14 @@ protected:
     /**
      * Helper: Create a closed circular fringe
      */
-    CFringeSegment CreateCircle(double cx, double cy, double radius) {
+    CFringeSegment CreateCircle(double cx, double cy, double radius, double jitter = 0.0) {
         CFringeSegment seg(0.0, 0);
         int numPoints = 16;
         for (int i = 0; i < numPoints; ++i) {
             double angle = 2.0 * M_PI * i / numPoints;
             CDPoint pt;
-            pt.x = cx + radius * std::cos(angle);
-            pt.y = cy + radius * std::sin(angle);
+            pt.x = cx + radius * std::cos(angle) + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
+            pt.y = cy + radius * std::sin(angle) + (jitter > 0.0 ? (std::rand() % 1000 / 1000.0 * jitter) - (jitter / 2.0) : 0.0);
             seg.AddPoint(pt);
         }
         // Close the curve
@@ -1056,7 +1034,7 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationSlantLines) {
 }
 
 
-TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandAndRing) {
+TEST_F(AutoNumberingAlgorithmTest, MergeMixedBandAndRing) {
     // Mixed topology: bands + nested rings
     std::vector<CFringeSegment> fringes;
     fringes.push_back(CreateHorizontalLine(0.0, 100.0, 0.0));
@@ -1070,7 +1048,10 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandAndRing) {
 
     auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
 
-    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_EQ(fringes[0].GetNumber(), fringes[1].GetNumber());
+    EXPECT_EQ(fringes[1].GetNumber(), fringes[2].GetNumber());
+    EXPECT_EQ(fringes[2].GetNumber(), fringes[3].GetNumber());
+
 }
 
 TEST_F(AutoNumberingAlgorithmTest, SaddleLikeTopology) {
