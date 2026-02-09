@@ -69,6 +69,14 @@ This project restores and modernizes the **bounds (apertures) editing functional
 
 ## 🎯 Key Concepts
 
+### Aperture Shape and Input Methods (Must Support)
+
+- **Shapes**: circle, ellipse, rectangle, polygon (external and internal bounds).
+- **Input methods**:
+  - **Tracker-based** (legacy `CMTraker` rectangle/handles): required for circle, ellipse, rectangle.
+  - **Point-based** (legacy custom dots): required for circle, ellipse, rectangle, polygon.
+- **Behavioral parity**: the modern flow must preserve both methods, including switching between tracker and dots, and committing via Apply/Remove commands.
+
 ### Three Core Components
 
 ```
@@ -370,6 +378,7 @@ main/develop
 | CBoundCtrls | `Controls/BoundCtrls.h` | Data model interface |
 | CMTraker | `Utils/Tracker.h` | Legacy implementation (to replace) |
 | CImageView | `ImageTempl/ImageView.cpp` | UI integration point |
+| CBaseImageView | `ImageTempl/BaseImageView.cpp` | Legacy bounds workflow (tracker vs custom dots) |
 
 ### External References
 

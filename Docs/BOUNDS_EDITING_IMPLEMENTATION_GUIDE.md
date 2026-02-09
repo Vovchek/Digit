@@ -6,6 +6,16 @@ This document provides ready-to-implement code templates for the bounds editing 
 
 ---
 
+## Required Workflow Coverage
+
+- **Shapes**: circle, ellipse, rectangle, polygon (external and internal bounds).
+- **Setup methods**:
+  - **Tracker-based** (rectangle handles) for circle, ellipse, rectangle.
+  - **Point-based** (custom dots) for circle, ellipse, rectangle, polygon.
+- **Parity requirement**: modernized BoundsHandler/InputHandler flow must preserve tracker vs dot setup selection and Apply/Remove semantics.
+
+---
+
 ## 1. BoundsHandler Header Template
 
 **File**: `DigitMode/BoundsHandler.h`

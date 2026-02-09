@@ -18,6 +18,13 @@ These modes rely on:
 2. **Direct Tracker manipulation** in `ImageView` via `BeginTracker/DragTracker/DropTracker`
 3. **Manual coordinate transformations** that don't account for the new `ViewTransform` system
 
+**Required workflow coverage**:
+- **Shapes**: circle, ellipse, rectangle, polygon.
+- **Input methods**:
+  - **Tracker-based** (rectangle handles) for circle, ellipse, rectangle.
+  - **Point-based** (custom dots) for circle, ellipse, rectangle, polygon.
+- **Parity**: the modernized flow must preserve the ability to switch setup type (tracker vs dots), and commit/cancel bounds via the same Apply/Remove semantics.
+
 **Goals**:
 1. **Restore functionality**: Make bounds editing work with the new `ViewTransform`
 2. **Modernize architecture**: Move bounds editing into `InputHandler` following the established `EditMode` pattern
@@ -67,6 +74,21 @@ ImageView::OnLButtonDown(CPoint)
   ↓
   CBoundCtrls::SetBound() — Commit to document
 ```
+
+### 2a. Legacy Setup Type Workflow (Tracker vs Custom Dots)
+
+- **Setup type toggles** live in `CBaseImageView`:
+  - `OnSetupDotsBound()` → `EnableCustomDots = true`, `EnableTracker = false`.
+  - `OnSetupRectBound()` → `EnableTracker = true`, `EnableCustomDots = false`.
+- **Point-based setup**:
+  - `SetCustomDot()` → `AddCustomDot()` → `SetCurBound()`.
+  - Commit via `OnApplyBound()` which calls `CBoundCtrls::AddBound()`.
+- **Tracker-based setup**:
+  - `BeginTracker()` / `DragTracker()` / `DropTracker()` manipulate `CMTraker`.
+  - `OnApplyBound()` converts tracker rect to 4 dots (top/mid/right/left) before `AddBound()`.
+- **Shape restrictions**:
+  - Tracker is disabled for polygon (`OnScrPlgBound()` forces dot mode).
+  - Circle/ellipse/rectangle can be defined by tracker or dots.
 
 ### 3. Tracker Class (`Utils/Tracker.h`)
 
@@ -322,6 +344,7 @@ private:
 3. **Preview**: Calculate new bound during drag without committing
 4. **Rendering**: Draw handles and preview feedback
 5. **Coordinate transformation**: Central point for ViewTransform integration
+6. **Setup modes**: Preserve tracker-based rectangle handles and point-based custom-dot entry (circle/ellipse/rect via either; polygon via dots only)
 
 ### Integration with InputHandler
 ```cpp

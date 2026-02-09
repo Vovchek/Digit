@@ -3,30 +3,30 @@
 ## Current Architecture (Legacy)
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                         ImageView                               │
+┌────────────────────────────────────────────────────────────────┐
+│                         ImageView                              │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │ Message Handlers (OnLButtonDown, OnMouseMove, OnDraw)  │  │
+│  │ Message Handlers (OnLButtonDown, OnMouseMove, OnDraw)    │  │
 │  └──────────────────────────────────────────────────────────┘  │
-│                             ↓                                   │
+│                             ↓                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
-│  │ BeginTracker / DragTracker / DropTracker                │  │
+│  │ BeginTracker / DragTracker / DropTracker                 │  │
 │  │  (Direct Tracker manipulation)                           │  │
 │  └──────────────────────────────────────────────────────────┘  │
-│                             ↓                                   │
+│                             ↓                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │          CMTraker (Utils/Tracker.h)                      │  │
-│  │  • Manages 4 corner handles                             │  │
-│  │  • Uses legacy m_zoomLevel from BaseImageView          │  │
-│  │  • Manual coordinate transformations                    │  │
-│  │  • No ViewTransform awareness                           │  │
+│  │  • Manages 4 corner handles                              │  │
+│  │  • Uses legacy m_zoomLevel from BaseImageView            │  │
+│  │  • Manual coordinate transformations                     │  │
+│  │  • No ViewTransform awareness                            │  │
 │  └──────────────────────────────────────────────────────────┘  │
-│                             ↓                                   │
+│                             ↓                                  │
 │  ┌──────────────────────────────────────────────────────────┐  │
 │  │     CBoundCtrls / CImageCtrls                            │  │
-│  │  (Bounds data model from CBaseImageDoc)                │  │
+│  │  (Bounds data model from CBaseImageDoc)                  │  │
 │  └──────────────────────────────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────────┘
+└────────────────────────────────────────────────────────────────┘
 
 ⚠️  Issues:
     • No coordination with InputHandler (separate from main event flow)
@@ -40,51 +40,51 @@
 ```
 ┌──────────────────────────────────────────────────────────────────────────┐
 │                         ImageView                                        │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ Message Handlers (OnLButtonDown, OnMouseMove, OnDraw)            │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ Message Handlers (OnLButtonDown, OnMouseMove, OnDraw)              │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
 │                             ↓                                            │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ Route through InputHandler (unified event flow)                   │ │
-│  │  • Check current EditMode (Navigate/Draw/DotEdit/BoundsExt/...)  │ │
-│  │  • Delegate to appropriate mode handler                          │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
-│                             ↓ (if BoundsExt/BoundsIns)                  │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ InputHandler + BoundsHandler Interaction                         │ │
-│  │  ┌──────────────────────────────────────────────────────────┐   │ │
-│  │  │ BoundsHandler (DigitMode/BoundsHandler.h)              │   │ │
-│  │  │  • HitTest for handles using ViewTransform            │   │ │
-│  │  │  • BeginDrag / UpdateDrag / EndDrag state machine     │   │ │
-│  │  │  • Preview bound calculation                          │   │ │
-│  │  │  • Handle drawing / feedback rendering                │   │ │
-│  │  │  • ALL coordinate transforms via ViewTransform        │   │ │
-│  │  └──────────────────────────────────────────────────────────┘   │ │
-│  │                                                                    │ │
-│  │  Integrated into InputHandler as nested component:               │ │
-│  │    InputHandler {                                                │ │
-│  │      EditMode currentMode;                                       │ │
-│  │      BoundsHandler m_boundsHandler;  // ← NEW                   │ │
-│  │    }                                                              │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ Route through InputHandler (unified event flow)                    │  │
+│  │  • Check current EditMode (Navigate/Draw/DotEdit/BoundsExt/...)    │  │
+│  │  • Delegate to appropriate mode handler                            │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
+│                             ↓ (if BoundsExt/BoundsIns)                   │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ InputHandler + BoundsHandler Interaction                           │  │
+│  │  ┌──────────────────────────────────────────────────────────┐      │  │
+│  │  │ BoundsHandler (DigitMode/BoundsHandler.h)                │      │  │
+│  │  │  • HitTest for handles using ViewTransform               │      │  │
+│  │  │  • BeginDrag / UpdateDrag / EndDrag state machine        │      │  │
+│  │  │  • Preview bound calculation                             │      │  │
+│  │  │  • Handle drawing / feedback rendering                   │      │  │
+│  │  │  • ALL coordinate transforms via ViewTransform           │      │  │
+│  │  └──────────────────────────────────────────────────────────┘      │  │
+│  │                                                                    │  │
+│  │  Integrated into InputHandler as nested component:                 │  │
+│  │    InputHandler {                                                  │  │
+│  │      EditMode currentMode;                                         │  │
+│  │      BoundsHandler m_boundsHandler;  // ← NEW                      │  │
+│  │    }                                                               │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
 │                             ↓                                            │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ ViewTransform (unified coordinate system)                        │ │
-│  │  • ScreenToWorld() — input conversion                           │ │
-│  │  • WorldToScreen() — render feedback                            │ │
-│  │  • Handles zoom, pan, offset all transparently                  │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ ViewTransform (unified coordinate system)                          │  │
+│  │  • ScreenToWorld() — input conversion                              │  │
+│  │  • WorldToScreen() — render feedback                               │  │
+│  │  • Handles zoom, pan, offset all transparently                     │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
 │                             ↓                                            │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ CommandDispatcher (undo/redo)                                    │ │
-│  │  • MoveBoundCommand                                              │ │
-│  │  • AddBoundCommand                                               │ │
-│  │  • RemoveBoundCommand                                            │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ CommandDispatcher (undo/redo)                                      │  │
+│  │  • MoveBoundCommand                                                │  │
+│  │  • AddBoundCommand                                                 │  │
+│  │  • RemoveBoundCommand                                              │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
 │                             ↓                                            │
-│  ┌────────────────────────────────────────────────────────────────────┐ │
-│  │ CBoundCtrls / CImageCtrls (data model)                           │ │
-│  └────────────────────────────────────────────────────────────────────┘ │
+│  ┌────────────────────────────────────────────────────────────────────┐  │
+│  │ CBoundCtrls / CImageCtrls (data model)                             │  │
+│  └────────────────────────────────────────────────────────────────────┘  │
 └──────────────────────────────────────────────────────────────────────────┘
 
 ✅ Benefits:
@@ -234,7 +234,7 @@ Input Event (screen coordinates)
     └─────────────────────────────────────┘
     ↓
     ┌─────────────────────────────────────┐
-    │ Pass to InputHandler/BoundsHandler   │
+    │ Pass to InputHandler/BoundsHandler  │
     ├─────────────────────────────────────┤
     │ BoundsHandler::HitTest(screenPt)    │
     │  • Call ViewTransform::WorldToScreen│
@@ -244,7 +244,7 @@ Input Event (screen coordinates)
     └─────────────────────────────────────┘
     ↓
     ┌─────────────────────────────────────┐
-    │ On drag:                             │
+    │ On drag:                            │
     │ BoundsHandler::UpdateDrag(screenPt) │
     ├─────────────────────────────────────┤
     │ 1. screenStart = m_dragStart        │
@@ -302,7 +302,7 @@ regardless of zoom level, pan offset, or scaling
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                 CImageView (UI Layer)                       │
-│  • OnLButtonDown / OnMouseMove / OnLButtonUp               │
+│  • OnLButtonDown / OnMouseMove / OnLButtonUp                │
 │  • OnDraw / Invalidate                                      │
 │  • References:                                              │
 │    - m_inputHandler (InputHandler)                          │
