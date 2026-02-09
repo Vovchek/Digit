@@ -4,6 +4,14 @@
 
 **I_BOUNDS_EXT** and **I_BOUNDS_INS** modes - the ability to edit external apertures (bounds) and internal obstructions interactively on the image display.
 
+**Required coverage**:
+- **Shapes**: circle, ellipse, rectangle, polygon.
+- **Setup methods**:
+  - **Tracker-based** (rectangle handles) for circle, ellipse, rectangle.
+  - **Point-based** (custom dots) for circle, ellipse, rectangle, polygon.
+- **Hit testing**: handles, polygon dots, and outline hits with selection level (handle/dot/edge/interior).
+- **Interaction model (O1)**: single add/edit bounds mode with explicit Add Bound command and modal edit session until commit/discard.
+
 ## The Problem
 
 Current implementation:

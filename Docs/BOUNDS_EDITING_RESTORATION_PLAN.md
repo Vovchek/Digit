@@ -24,6 +24,13 @@ These modes rely on:
   - **Tracker-based** (rectangle handles) for circle, ellipse, rectangle.
   - **Point-based** (custom dots) for circle, ellipse, rectangle, polygon.
 - **Parity**: the modernized flow must preserve the ability to switch setup type (tracker vs dots), and commit/cancel bounds via the same Apply/Remove semantics.
+- **Hit testing**: must detect handles, polygon dots, and outline hits, returning a selection level (handle/dot/edge/interior) so polygon bounds can be edited.
+
+**Interaction model (O1)**:
+- Single add/edit bounds mode for creation and editing.
+- Explicit Add Bound command enters a modal edit session until commit/discard.
+- After commit, the bound remains editable without leaving bounds mode; new bounds are created via the explicit command.
+- Shape selection remains via context menu and should be reachable via a command/toolbar for discoverability.
 
 **Goals**:
 1. **Restore functionality**: Make bounds editing work with the new `ViewTransform`
@@ -345,6 +352,8 @@ private:
 4. **Rendering**: Draw handles and preview feedback
 5. **Coordinate transformation**: Central point for ViewTransform integration
 6. **Setup modes**: Preserve tracker-based rectangle handles and point-based custom-dot entry (circle/ellipse/rect via either; polygon via dots only)
+7. **Selection levels**: Provide selection level (handle/dot/edge/interior) for polygon editing and outline hit-testing
+8. **O1 interaction**: Support explicit Add Bound command and modal edit session with commit/discard
 
 ### Integration with InputHandler
 ```cpp

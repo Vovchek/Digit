@@ -13,6 +13,8 @@ This document provides ready-to-implement code templates for the bounds editing 
   - **Tracker-based** (rectangle handles) for circle, ellipse, rectangle.
   - **Point-based** (custom dots) for circle, ellipse, rectangle, polygon.
 - **Parity requirement**: modernized BoundsHandler/InputHandler flow must preserve tracker vs dot setup selection and Apply/Remove semantics.
+- **Hit testing**: include handles, polygon dots, and outline hits with selection level (handle/dot/edge/interior).
+- **Interaction model (O1)**: single add/edit bounds mode with explicit Add Bound command and modal edit session until commit/discard.
 
 ---
 

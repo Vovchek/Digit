@@ -1,5 +1,7 @@
 ﻿# Bounds Editing Architecture Diagrams
 
+**Required coverage**: circle, ellipse, rectangle, polygon; tracker setup for circle/ellipse/rect; point setup for all shapes (polygon via dots only); hit testing returns selection level (handle/dot/edge/interior); single add/edit bounds mode with explicit Add Bound command.
+
 ## Current Architecture (Legacy)
 
 ```
@@ -35,6 +37,11 @@
     • Manual coordinate transforms are error-prone
 ```
 
+Legacy setup modes:
+- **Tracker setup**: `EnableTracker = true` → rectangle handles drive circle/ellipse/rect bounds.
+- **Dot setup**: `EnableCustomDots = true` → custom dots drive circle/ellipse/rect/polygon bounds.
+- **Polygon**: forces dot setup (`OnScrPlgBound`).
+
 ## Target Architecture (New)
 
 ```
@@ -54,7 +61,7 @@
 │  │ InputHandler + BoundsHandler Interaction                           │  │
 │  │  ┌──────────────────────────────────────────────────────────┐      │  │
 │  │  │ BoundsHandler (DigitMode/BoundsHandler.h)                │      │  │
-│  │  │  • HitTest for handles using ViewTransform               │      │  │
+│  │  │  • HitTest for handles/dots/edges using ViewTransform     │      │  │
 │  │  │  • BeginDrag / UpdateDrag / EndDrag state machine        │      │  │
 │  │  │  • Preview bound calculation                             │      │  │
 │  │  │  • Handle drawing / feedback rendering                   │      │  │
@@ -93,12 +100,13 @@
    • Testable BoundsHandler with injected dependencies
    • Undo/redo support via CommandDispatcher
    • Mode isolation prevents state leakage
+   • Single bounds mode supports add/edit without mode switching
 ```
 
 ## Data Flow: Bounds Drag Operation
 
 ```
-User clicks on bound handle
+User invokes Add Bound command (or clicks existing bound in bounds mode)
     ↓
 ImageView::OnLButtonDown(CPoint screenPt)
     ↓
@@ -106,14 +114,14 @@ InputHandler::GetMode() == EditMode::BoundsExt?
     ├─→ YES: Continue
     └─→ NO: Route to other handler
     ↓
-BoundsHandler::HitTestBoundHandle(screenPt, &boundIdx, &handleIdx)
-    ├─ Uses ViewTransform::WorldToScreen() to get handle positions
-    ├─ Checks if screenPt is near any handle
-    ├─ Returns: boundIdx (which bound), handleIdx (which corner: 0-3)
+BoundsHandler::HitTestBoundElement(screenPt, &boundIdx, &selection)
+    ├─ Uses ViewTransform::WorldToScreen() to get handle/dot/edge positions
+    ├─ Returns selection level: handle/dot/edge/interior
+    ├─ Determines bound index and element
     ↓
-BoundsHandler::BeginDrag(boundIdx, handleIdx, screenPt)
+BoundsHandler::BeginDrag(boundIdx, selection, screenPt)
     ├─ Store: m_boundIndex = boundIdx
-    ├─ Store: m_handleIndex = handleIdx
+    ├─ Store: m_selection = selection
     ├─ Store: m_dragStart = screenPt
     ├─ Snapshot: m_boundSnapshot = GetCurrentBound(boundIdx)
     ├─ Set: m_isDragging = true
@@ -131,8 +139,7 @@ BoundsHandler::UpdateDrag(screenPt)
     │   worldStart = ViewTransform::ScreenToWorld(m_dragStart)
     │   worldCurr = ViewTransform::ScreenToWorld(screenPt)
     │   Δworld = (worldCurr.x - worldStart.x, worldCurr.y - worldStart.y)
-    ├─ Compute new bound:
-    │   newBound = ComputeNewBoundFromDrag(m_boundSnapshot, m_handleIndex, Δworld)
+    ├─ Compute new bound/point based on selection level
     ├─ Update preview: m_previewBound = newBound
     ├─ Store: m_dragCurrent = screenPt
     ↓
@@ -144,10 +151,10 @@ OnDraw() calls:
     │   ├─ Draws bound outline at preview position
     │   └─ Uses ViewTransform::WorldToScreen() for all corners
     ├─ BoundsHandler::DrawHandles(pDC)
-    │   ├─ For each corner of preview bound:
+    │   ├─ For each handle/dot of preview bound:
     │   │   ├─ screenPt = ViewTransform::WorldToScreen(worldPt)
     │   │   ├─ Draw small square/circle at screenPt
-    │   └─ Highlight active handle
+    │   └─ Highlight active handle/dot/edge
     ↓
 
 User releases mouse
@@ -171,7 +178,7 @@ BoundsHandler::EndDrag(bCommit=true)
     │   └─ Revert silently (no command)
     ├─ Clean up state:
     │   ├─ m_isDragging = false
-    │   ├─ m_handleIndex = -1
+    │   ├─ m_selection = None
     │   ├─ m_boundIndex = -1
     ├─ Release capture
     ↓
@@ -194,7 +201,7 @@ Undo buffer updated (can undo via Ctrl+Z)
          ┌──────────────────────────┐
          │   BoundsExt Mode         │
          │  • isDragging state      │
-         │  • handleIndex, boundIdx │
+         │  • selection/boundIdx    │
          │  • previewBound          │
          └──────────────────────────┘
                      ↑            ↓
@@ -238,9 +245,9 @@ Input Event (screen coordinates)
     ├─────────────────────────────────────┤
     │ BoundsHandler::HitTest(screenPt)    │
     │  • Call ViewTransform::WorldToScreen│
-    │    for each handle position         │
-    │  • Compare screenPt to handle pos   │
-    │  • Determine if hit or miss         │
+    │    for each handle/dot/edge position│
+    │  • Compare screenPt to element pos  │
+    │  • Determine selection level        │
     └─────────────────────────────────────┘
     ↓
     ┌─────────────────────────────────────┐
@@ -267,7 +274,7 @@ Input Event (screen coordinates)
     │    oldBound = m_boundSnapshot       │
     │    newBound =                       │
     │      ApplyDeltaToBound(oldBound,    │
-    │                        handleIdx,   │
+    │                        selection,   │
     │                        Δx, Δy)      │
     │                                     │
     │ 5. Store preview:                   │
@@ -325,7 +332,7 @@ regardless of zoom level, pan offset, or scaling
               ↓                          ↑
 ┌─────────────────────────────────────────────────────────────┐
 │          BoundsHandler (Bounds Logic)                       │
-│  • HitTestBoundHandle()                                     │
+│  • HitTestBoundElement()                                    │
 │  • BeginDrag / UpdateDrag / EndDrag                         │
 │  • ComputeNewBoundFromDrag()                                │
 │  • DrawHandles / DrawPreviewBound                           │
@@ -390,4 +397,3 @@ Additionally:
 │      • MoveBoundCommand execute/undo           │
 └────────────────────────────────────────────────┘
 ```
-

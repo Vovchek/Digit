@@ -76,6 +76,14 @@ This project restores and modernizes the **bounds (apertures) editing functional
   - **Tracker-based** (legacy `CMTraker` rectangle/handles): required for circle, ellipse, rectangle.
   - **Point-based** (legacy custom dots): required for circle, ellipse, rectangle, polygon.
 - **Behavioral parity**: the modern flow must preserve both methods, including switching between tracker and dots, and committing via Apply/Remove commands.
+- **Edit hit-testing**: must detect handles, polygon dots, and outline hits, returning a selection level (handle/dot/edge/interior) so polygon bounds can be edited.
+
+### Interaction Model (Chosen: O1)
+
+- **Single add/edit bounds mode** for both creation and editing.
+- **Explicit Add Bound command** enters a modal edit session (tracker or dots) until commit or discard.
+- **After commit**, the bound remains editable in the same mode; users can add another bound via the explicit command without leaving bounds mode.
+- **Shape selection** remains available via context menu but should also be reachable via a command/toolbar for discoverability.
 
 ### Three Core Components
 
