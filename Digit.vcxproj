@@ -284,6 +284,11 @@
     <None Include="Docs\AUTONUMBERING_REFINED_TESTS.md" />
     <None Include="Docs\AutoNumbering_TechnicalReference.md" />
     <None Include="Docs\AUTONUMBERING_TEST_REFINEMENT_COMPLETE.md" />
+    <None Include="Docs\BOUNDS_EDITING_ARCHITECTURE.md" />
+    <None Include="Docs\BOUNDS_EDITING_IMPLEMENTATION_GUIDE.md" />
+    <None Include="Docs\BOUNDS_EDITING_PROJECT_SUMMARY.md" />
+    <None Include="Docs\BOUNDS_EDITING_QUICK_REFERENCE.md" />
+    <None Include="Docs\BOUNDS_EDITING_RESTORATION_PLAN.md" />
     <None Include="Docs\BOXSELECTION_TEST_FAILURE_ANALYSIS.md" />
     <None Include="Docs\BOXSELECTION_TEST_FIX_COMPLETE.md" />
     <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
@@ -297,6 +302,7 @@
     <None Include="Docs\HONEST_ADMISSION.md" />
     <None Include="Docs\IMPLEMENTATION_VERIFICATION.md" />
     <None Include="Docs\IMPLEMENT_UX.md" />
+    <None Include="Docs\INDEX.md" />
     <None Include="Docs\INPUTHANDLERTEST_REWRITE.md" />
     <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
     <None Include="Docs\MFC_Auxiliary_Audit.md" />
