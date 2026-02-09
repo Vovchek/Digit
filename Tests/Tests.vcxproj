@@ -112,6 +112,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\DigitMode\BoundsHandler.cpp" />
     <ClCompile Include="..\DigitMode\CFringeSegment.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -177,6 +178,7 @@
     </ClCompile>
     <ClCompile Include="DigitModeTests\AllCommandsTest.cpp" />
     <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
+    <ClCompile Include="DigitModeTests\BoundsHandlerTest.cpp" />
     <ClCompile Include="DigitModeTests\CommandDispatcherTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>

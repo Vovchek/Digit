@@ -116,6 +116,8 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
+    <ClCompile Include="DigitModeTests\BoundsHandlerTest.cpp" />
+    <ClCompile Include="..\DigitMode\BoundsHandler.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
