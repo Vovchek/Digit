@@ -42,6 +42,12 @@ public:
     bool HitTestBoundHandle(const CPoint& screenPt, 
                             int& outBoundIdx, 
                             int& outHandleIdx) const;
+
+    // =========== Drag Lifecycle ===========
+    void BeginDrag(int boundIdx, int handleIdx, const CPoint& screenStart);
+    void UpdateDrag(const CPoint& screenCurrent);
+    void EndDrag(bool bCommit);
+    void CancelDrag();
     
     // =========== Coordinate Transforms ===========
     /**
@@ -64,6 +70,9 @@ public:
     
     // =========== State Query ===========
     bool IsInitialized() const { return m_pView != nullptr; }
+    bool IsDragging() const { return m_isDragging; }
+    CRect GetPreviewBound() const { return m_previewBound; }
+    CRect GetOriginalBound() const { return m_boundSnapshot; }
 
 private:
     // =========== Internal Helpers ===========
@@ -84,11 +93,25 @@ private:
     bool IsNearHandle(const CPoint& screenPt, 
                       const CPoint& handleScreenPos,
                       int tolerance = 5) const;
+
+    CRect GetCurrentBound(int boundIdx) const;
+    CRect ComputeNewBoundFromDrag(const CRect& original,
+                                  int handleIdx,
+                                  double worldDx,
+                                  double worldDy) const;
     
     // =========== State ===========
     IBoundsData* m_pBounds = nullptr;  // ← Interface instead of concrete type
     IImageData* m_pImage = nullptr;     // ← Interface instead of concrete type
     ViewTransform* m_pView = nullptr;
+
+    bool m_isDragging = false;
+    int m_boundIndex = -1;
+    int m_handleIndex = -1;
+    CPoint m_dragStart;
+    CPoint m_dragCurrent;
+    CRect m_boundSnapshot;
+    CRect m_previewBound;
     
     // Constants
     static constexpr int HANDLE_TOLERANCE = 5;  // Pixels for hit testing

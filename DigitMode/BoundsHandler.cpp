@@ -1,6 +1,7 @@
 ﻿#include "stdafx.h"
 #include "BoundsHandler.h"
 #include "AppDef.h"  // For BOUND_RECT, BOUND_ROUND, etc.
+#include <cmath>
 
 namespace DigitMode {
 
@@ -114,6 +115,137 @@ bool BoundsHandler::HitTestBoundHandle(const CPoint& screenPt,
     // TODO: Test internal bounds (boundIdx = 1, 2, ...)
     
     return false;
+}
+
+// ========================================================================
+// Drag Lifecycle
+// ========================================================================
+
+void BoundsHandler::BeginDrag(int boundIdx, int handleIdx, const CPoint& screenStart)
+{
+    ASSERT(m_pBounds && m_pImage && m_pView && "BoundsHandler must be initialized");
+    if (m_isDragging) {
+        return;
+    }
+
+    m_boundIndex = boundIdx;
+    m_handleIndex = handleIdx;
+    m_dragStart = screenStart;
+    m_dragCurrent = screenStart;
+    m_boundSnapshot = GetCurrentBound(boundIdx);
+    m_previewBound = m_boundSnapshot;
+
+    if (!m_boundSnapshot.IsRectEmpty()) {
+        m_isDragging = true;
+    }
+}
+
+void BoundsHandler::UpdateDrag(const CPoint& screenCurrent)
+{
+    if (!m_isDragging) {
+        return;
+    }
+
+    m_dragCurrent = screenCurrent;
+
+    CPoint2d worldStart = ScreenToWorldDouble(m_dragStart);
+    CPoint2d worldCurr = ScreenToWorldDouble(screenCurrent);
+
+    double worldDx = worldCurr.x - worldStart.x;
+    double worldDy = worldCurr.y - worldStart.y;
+
+    m_previewBound = ComputeNewBoundFromDrag(m_boundSnapshot, m_handleIndex, worldDx, worldDy);
+}
+
+void BoundsHandler::EndDrag(bool bCommit)
+{
+    if (!m_isDragging) {
+        return;
+    }
+
+    if (bCommit) {
+        m_boundSnapshot = m_previewBound;
+    } else {
+        m_previewBound = m_boundSnapshot;
+    }
+
+    m_isDragging = false;
+    m_boundIndex = -1;
+    m_handleIndex = -1;
+}
+
+void BoundsHandler::CancelDrag()
+{
+    EndDrag(false);
+}
+
+// ========================================================================
+// Internal Helpers
+// ========================================================================
+
+CRect BoundsHandler::GetCurrentBound(int boundIdx) const
+{
+    if (!m_pBounds || !m_pImage || boundIdx != 0) {
+        return CRect(0, 0, 0, 0);
+    }
+
+    CSize imageSize = m_pImage->GetImageSize();
+    if (imageSize.cx == 0 || imageSize.cy == 0) {
+        return CRect(0, 0, 0, 0);
+    }
+
+    int boundType = m_pBounds->GetExtBoundType();
+    if (boundType == -1) {
+        return CRect(0, 0, 0, 0);
+    }
+
+    CRect bound;
+    CArray<CPoint, CPoint> plgPoints;
+    if (!m_pBounds->GetExtRealBound(boundType, imageSize.cx, imageSize.cy, bound, plgPoints)) {
+        return CRect(0, 0, 0, 0);
+    }
+
+    return bound;
+}
+
+CRect BoundsHandler::ComputeNewBoundFromDrag(const CRect& original,
+                                             int handleIdx,
+                                             double worldDx,
+                                             double worldDy) const
+{
+    CRect newBound = original;
+    int dx = static_cast<int>(std::lround(worldDx));
+    int dy = static_cast<int>(std::lround(worldDy));
+
+    switch (handleIdx) {
+        case 0:
+            newBound.left += dx;
+            newBound.top += dy;
+            break;
+        case 1:
+            newBound.right += dx;
+            newBound.top += dy;
+            break;
+        case 2:
+            newBound.right += dx;
+            newBound.bottom += dy;
+            break;
+        case 3:
+            newBound.left += dx;
+            newBound.bottom += dy;
+            break;
+        default:
+            break;
+    }
+
+    if (newBound.left >= newBound.right) {
+        newBound.left = newBound.right - 1;
+    }
+    if (newBound.top >= newBound.bottom) {
+        newBound.top = newBound.bottom - 1;
+    }
+
+    return newBound;
 }
 
 // ========================================================================
