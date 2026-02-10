@@ -24,6 +24,9 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ApertureCore", "ApertureCore\ApertureCore.vcxproj", "{AABBD5D2-FF8B-F35C-56F2-C8078DD93C37}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MFringe", "MFringe\MFringe.vcxproj", "{A1B2C3D4-E5F6-4A7B-8C9D-0E1F2A3B4C5D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{85762550-5D04-4917-BD43-07241A2869DF} = {85762550-5D04-4917-BD43-07241A2869DF}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

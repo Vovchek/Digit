@@ -225,6 +225,7 @@
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
     <ClInclude Include="DigitMode\HitTester.h" />
+    <ClInclude Include="DigitMode\IBoundsData.h" />
     <ClInclude Include="DigitMode\InputHandler.h" />
     <ClInclude Include="DigitMode\SelectionManager.h" />
     <ClInclude Include="DigitMode\SelectNumber.hxx" />

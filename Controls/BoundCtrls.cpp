@@ -1,4 +1,4 @@
-#include "BoundCtrls.h"
+п»ї#include "BoundCtrls.h"
 #include "Utils\mutils.h"
 
 CBoundCtrls::CBoundCtrls()
@@ -251,6 +251,13 @@ BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB,int& idx, CRect& 
 	return FALSE;
 }
 
+// IBoundsData interface implementation - wrapper for the overload above
+BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints)
+{
+    int idx = 0;
+    return GetInsRealBound(Type, xDIB, yDIB, idx, Bound, PlgPoints);
+}
+
 BOOL CBoundCtrls::IsCurArea()
 {
    CControls* pCtrls = GetControls();
@@ -422,7 +429,7 @@ bool CBoundCtrls::SetBound(int _Type, int idxExtIns)
 	 }
 
 	 CalcContour(ArrEll, ArrRect, ArrPlg, ArrContour, NPntNax);
-	 if(TypeLimits == INTERNAL && ArrContour.GetSize()==1) // граница - серп
+	 if(TypeLimits == INTERNAL && ArrContour.GetSize()==1) // РіСЂР°РЅРёС†Р° - СЃРµСЂРї
 		ExtBoundType = BOUND_POLYGON; 
 
 	 

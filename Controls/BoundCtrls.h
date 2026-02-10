@@ -1,4 +1,4 @@
-#if !defined(AFX_BOUND_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
+﻿#if !defined(AFX_BOUND_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_BOUND_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 //C:\Ilya\Programming\cpp\Numbering\Controls\BoundCtrls.h
 #include "MGTools\stdafx.h"
@@ -6,8 +6,9 @@
 #include "MGTools\Include\Utils\BaseDataType.h"
 
 #include "InterfSolver\Tools\CalcLimits.h"
+#include "DigitMode\IBoundsData.h"  // ← Add interface
 
-class CBoundCtrls
+class CBoundCtrls : public IBoundsData  // ← Implement interface
 {
 public:
    CRect CurBound;
@@ -41,9 +42,17 @@ public:
 	BOOL IsInsBound();
 	BOOL IsCurArea();
     BOOL GetPartsOfContours(int Type, CArrayXYEllipse& _ArrEll, CArrayXYRect& _ArrRect, CArrayXYPolygon& _ArrPlg);
-	BOOL GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints);
+	
+    // IBoundsData interface implementation
+    virtual int GetExtBoundType() const override { return ExtBoundType; }
+    virtual int GetInsBoundType() const override { return InsBoundType; }
+    virtual BOOL GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) override;
+    virtual BOOL GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) override;
+    
+    // Legacy overload with idx parameter (keep for existing code)
+    BOOL GetInsRealBound(int Type, int xDIB, int yDIB, int& idx, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints);
+    
     BOOL GetExtCorBound(int Type, int xDIB, int yDIB, CRect& Bound, BOOL XCor, BOOL YCor);
-	BOOL GetInsRealBound(int Type, int xDIB, int yDIB, int& idx, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints);
     BOOL GetInsCorBound(int Type, int xDIB, int yDIB, CRect& Bound, BOOL XCor, BOOL YCor);
     void RemoveExtBound();
     void RemoveInsBound();

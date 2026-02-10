@@ -41,6 +41,10 @@ protected:
         imageCtrls.ImageSize = CSize(800, 600);  // Mock image size
         
         // Initialize handler with bounds and view data (required for all tests)
+        ASSERT_VALID(&boundCtrls.ArrRect);
+        void* addrBefore = &boundCtrls;
+        TRACE("Before call: boundCtrls at %p\n", addrBefore);
+
         handler.SetBoundsData(&boundCtrls, &imageCtrls);
         handler.SetViewTransform(&viewTransform);
     }
@@ -63,6 +67,7 @@ protected:
         // Create XYRect from bounds (external, measuring coordinates)
         XYRect rect(bnd, EXTERNAL, MEASURING);
         
+        ASSERT_VALID(&boundCtrls.ArrRect);
         boundCtrls.ArrRect.RemoveAll();
         boundCtrls.ArrRect.Add(rect);
     }

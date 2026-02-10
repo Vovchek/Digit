@@ -2,10 +2,7 @@
 
 #include <afxwin.h>
 #include "ImageTempl/ViewTransform.h"
-
-// Forward declarations
-class CBoundCtrls;
-class CImageCtrls;
+#include "IBoundsData.h"  // ← Use interfaces instead of forward declarations
 
 namespace DigitMode {
 
@@ -30,7 +27,7 @@ public:
      * Set pointers to required data/view objects
      * Must call before any interaction
      */
-    void SetBoundsData(CBoundCtrls* pBounds, CImageCtrls* pImage);
+    void SetBoundsData(IBoundsData* pBounds, IImageData* pImage);
     void SetViewTransform(ViewTransform* pView);
     
     // =========== Hit-Testing ===========
@@ -89,8 +86,8 @@ private:
                       int tolerance = 5) const;
     
     // =========== State ===========
-    CBoundCtrls* m_pBounds = nullptr;
-    CImageCtrls* m_pImage = nullptr;
+    IBoundsData* m_pBounds = nullptr;  // ← Interface instead of concrete type
+    IImageData* m_pImage = nullptr;     // ← Interface instead of concrete type
     ViewTransform* m_pView = nullptr;
     
     // Constants

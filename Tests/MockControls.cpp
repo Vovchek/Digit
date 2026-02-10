@@ -10,10 +10,13 @@ void CBoundCtrls::Init() {
     ExtBoundType = -1;
     InsBoundType = -1;
 }
+
 BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) {
     if (ExtBoundType == -1 || ExtBoundType != Type) {
         return FALSE;
     }
+
+    ASSERT_VALID(&ArrRect);
 
     if (Type == 2 && ArrRect.GetSize() > 0) { // BOUND_RECT = 2
         const XYRect& rect = ArrRect[0];
@@ -33,5 +36,10 @@ BOOL CBoundCtrls::GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
         return TRUE;
     }
 
+    return FALSE;
+}
+
+BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) {
+    // Not implemented in mock - internal bounds not needed for Phase 1 tests
     return FALSE;
 }

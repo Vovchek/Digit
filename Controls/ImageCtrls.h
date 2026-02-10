@@ -1,4 +1,4 @@
-#if !defined(AFX_IMAGE_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
+﻿#if !defined(AFX_IMAGE_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_IMAGE_CONTROLS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 
 #include "stdafx.h"
@@ -6,8 +6,9 @@
 //C:\Ilya\Programming\cpp\Numbering\Controls\ImageCtrls.h
 #include "MGTools\Include\Utils\BaseDataType.h"
 #include "MGTools\Include\Image\SecDib.h"
+#include "DigitMode\IBoundsData.h"  // ← Add interface
 
-class CImageCtrls
+class CImageCtrls : public IImageData  // ← Implement interface
 {
 public:	
     double kZoom;
@@ -57,6 +58,9 @@ public:
      }
 
     CImageCtrls& operator=(const CImageCtrls& rhs);
+    
+    // IImageData interface implementation
+    virtual CSize GetImageSize() const override { return ImageSize; }
 
 };
 

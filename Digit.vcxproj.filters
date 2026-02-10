@@ -383,6 +383,9 @@
     <ClInclude Include="DigitMode\BoundsHandler.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\IBoundsData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />

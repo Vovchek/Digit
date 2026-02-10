@@ -1,7 +1,5 @@
 ﻿#include "stdafx.h"
 #include "BoundsHandler.h"
-#include "Controls/BoundCtrls.h"
-#include "Controls/ImageCtrls.h"
 #include "AppDef.h"  // For BOUND_RECT, BOUND_ROUND, etc.
 
 namespace DigitMode {
@@ -20,7 +18,7 @@ BoundsHandler::~BoundsHandler()
 // Initialization
 // ========================================================================
 
-void BoundsHandler::SetBoundsData(CBoundCtrls* pBounds, CImageCtrls* pImage)
+void BoundsHandler::SetBoundsData(IBoundsData* pBounds, IImageData* pImage)
 {
     m_pBounds = pBounds;
     m_pImage = pImage;
@@ -76,16 +74,17 @@ bool BoundsHandler::HitTestBoundHandle(const CPoint& screenPt,
     outBoundIdx = -1;
     outHandleIdx = -1;
     
-    // Get image dimensions
-    int xDIB = m_pImage->ImageSize.cx;
-    int yDIB = m_pImage->ImageSize.cy;
+    // Get image dimensions via interface
+    CSize imageSize = m_pImage->GetImageSize();
+    int xDIB = imageSize.cx;
+    int yDIB = imageSize.cy;
     
     if (xDIB == 0 || yDIB == 0) {
         return false;  // No image loaded
     }
     
-    // Test external bound (boundIdx = 0)
-    int extBoundType = m_pBounds->ExtBoundType;
+    // Test external bound (boundIdx = 0) via interface
+    int extBoundType = m_pBounds->GetExtBoundType();
     if (extBoundType != -1) {
         CRect bound;
         CArray<CPoint, CPoint> plgPoints;
