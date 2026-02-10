@@ -9,27 +9,7 @@
 // Mock implementations of required global functions for testing
 // These would normally come from the application framework
 
-// Minimal mock classes with fields used by DigitInfoFringe methods
-class CBoundCtrls {
-public:
-    CArrayXYEllipse ArrEll;
-    CArrayXYRect ArrRect;
-    CArrayXYPolygon ArrPlg;
-    CArrayXYPolygon ArrContour;
-    int ExtBoundType = -1;
-    int InsBoundType = -1;
-
-    void FormBoundsOnLoadFile() {}
-};
-
-class CControls {};
-
-class CImageCtrls {
-public:
-    CSize ImageSize;
-    CString ImageFileName;
-    CString OriginalPath;
-};
+#include "Tests/MockControls.h"
 
 static CDocument* g_pMockDoc = nullptr;
 static CImageCtrls* g_pMockImageCtrls = nullptr;

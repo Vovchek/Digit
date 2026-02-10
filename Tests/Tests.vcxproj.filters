@@ -118,6 +118,7 @@
     <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
     <ClCompile Include="DigitModeTests\BoundsHandlerTest.cpp" />
     <ClCompile Include="..\DigitMode\BoundsHandler.cpp" />
+    <ClCompile Include="MockControls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
