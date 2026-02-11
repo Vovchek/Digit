@@ -52,7 +52,7 @@ TEST_F(NavigateModeTest, BoxSelect_Default_SelectsDotsInside) {
     CRect box(5, 5, 55, 55);
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
-    EXPECT_EQ(2, count);  // Dots at (10,10) and (50,50)
+    EXPECT_EQ(2u, count);  // Dots at (10,10) and (50,50)
     EXPECT_EQ(SelectionLevel::Dot, digitInfo.selectionManager.GetLevel());
 }
 
@@ -62,7 +62,7 @@ TEST_F(NavigateModeTest, BoxSelect_Default_SelectsEdgesIntersecting) {
     CRect box(30, 5, 70, 15);  // Crosses edge but doesn't contain dots
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
-    EXPECT_GT(count, 0);  // Should select edge
+    EXPECT_GT(count, 0u);  // Should select edge
     // Note: May select edge OR dots depending on intersection logic
 }
 
@@ -72,7 +72,7 @@ TEST_F(NavigateModeTest, BoxSelect_Default_SelectsSegmentWhenAllEdgesIncluded) {
     CRect box(5, 5, 95, 95);  // Includes entire segment
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
-    EXPECT_EQ(1, count);  // Should promote to segment
+    EXPECT_EQ(1u, count);  // Should promote to segment
     EXPECT_EQ(SelectionLevel::Segment, digitInfo.selectionManager.GetLevel());
 }
 
@@ -86,7 +86,7 @@ TEST_F(NavigateModeTest, BoxSelect_SegmentMode_SelectsIfAnyPartIntersects) {
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes, 
                                                          BoxSelectionMode::Segment);
     
-    EXPECT_EQ(1, count);
+    EXPECT_EQ(1u, count);
     EXPECT_EQ(SelectionLevel::Segment, digitInfo.selectionManager.GetLevel());
     EXPECT_EQ(0, digitInfo.selectionManager.GetAt(0).iSegment);
 }
@@ -99,7 +99,7 @@ TEST_F(NavigateModeTest, BoxSelect_SegmentMode_MultipleSegments) {
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Segment);
     
-    EXPECT_EQ(2, count);  // Both segments intersect
+    EXPECT_EQ(2u, count);  // Both segments intersect
     EXPECT_EQ(SelectionLevel::Segment, digitInfo.selectionManager.GetLevel());
 }
 
@@ -114,7 +114,7 @@ TEST_F(NavigateModeTest, BoxSelect_FringeMode_SelectsAllSegmentsWithSameNumber) 
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Fringe);
     
-    EXPECT_EQ(2, count);  // Both segments with Number=1.0
+    EXPECT_EQ(2u, count);  // Both segments with Number=1.0
     EXPECT_EQ(SelectionLevel::Fringe, digitInfo.selectionManager.GetLevel());
     EXPECT_DOUBLE_EQ(1.0, digitInfo.selectionManager.GetAt(0).Number);
     EXPECT_DOUBLE_EQ(1.0, digitInfo.selectionManager.GetAt(1).Number);
@@ -130,7 +130,7 @@ TEST_F(NavigateModeTest, BoxSelect_FringeMode_MultipleFringes) {
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Fringe);
     
-    EXPECT_EQ(4, count);  // All segments selected (2 fringes)
+    EXPECT_EQ(4u, count);  // All segments selected (2 fringes)
 }
 
 // ===== Box Selection - Add Mode (Ctrl) =====
@@ -159,7 +159,7 @@ TEST_F(NavigateModeTest, ClickDot_SelectsSingle) {
     
     inputHandler.OnLButtonDown(0, CPoint(10, 10), &digitInfo, &cmdDispatcher);
     
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());
     EXPECT_EQ(SelectionLevel::Dot, digitInfo.selectionManager.GetLevel());
 }
 
@@ -168,7 +168,7 @@ TEST_F(NavigateModeTest, CtrlClickDot_TogglesSelection) {
     
     // Select first dot
     digitInfo.selectionManager.SelectDot(0, 0);
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());
     
     // Ctrl+Click second dot (add)
     SelectionManager::SelectedObject obj;
@@ -177,12 +177,12 @@ TEST_F(NavigateModeTest, CtrlClickDot_TogglesSelection) {
     obj.iDot = 1;
     digitInfo.selectionManager.AddToSelection(obj);
     
-    EXPECT_EQ(2, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(2u, digitInfo.selectionManager.GetCount());
     
     // Ctrl+Click second dot again (toggle off)
     digitInfo.selectionManager.AddToSelection(obj);
     
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());
 }
 
 TEST_F(NavigateModeTest, AltClick_PromotesToFringe) {
@@ -229,7 +229,7 @@ TEST_F(NavigateModeTest, SelectionPersistsAcrossModeSwitch) {
     inputHandler.SetMode(EditMode::Draw);
     inputHandler.SetMode(EditMode::Navigate);
     
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());  // Selection persisted
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());  // Selection persisted
 }
 
 // ===== Edge Cases =====
@@ -256,18 +256,18 @@ TEST_F(NavigateModeTest, AddToSelection_DifferentLevels_Rejected) {
     bool added = digitInfo.selectionManager.AddToSelection(obj);
     
     EXPECT_FALSE(added);  // Rejected
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());  // Unchanged
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());  // Unchanged
 }
 
 TEST_F(NavigateModeTest, ClearSelection_Works) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(50, 50)});
     
     digitInfo.selectionManager.SelectDot(0, 0);
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());
     
     digitInfo.selectionManager.Clear();
     
-    EXPECT_EQ(0, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(0u, digitInfo.selectionManager.GetCount());
     EXPECT_EQ(SelectionLevel::None, digitInfo.selectionManager.GetLevel());
 }
 
@@ -286,12 +286,12 @@ TEST_F(NavigateModeTest, HandleBoxSelection_UsesModifiers) {
     // Default mode
     size_t count1 = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                           BoxSelectionMode::Default);
-    EXPECT_GT(count1, 0);
+    EXPECT_GT(count1, 0u);
     
     // Fringe mode (Alt)
     size_t count2 = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                           BoxSelectionMode::Fringe);
-    EXPECT_EQ(2, count2);  // Both segments with Number=1.0
+    EXPECT_EQ(2u, count2);  // Both segments with Number=1.0
 }
 
 // ===== Complex Scenarios =====
@@ -304,18 +304,18 @@ TEST_F(NavigateModeTest, ComplexWorkflow_SelectModifyDeselect) {
     CRect box(0, 0, 60, 60);
     digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     size_t initialCount = digitInfo.selectionManager.GetCount();
-    EXPECT_GT(initialCount, 0);
+    EXPECT_GT(initialCount, 0u);
     
     // Clear
     digitInfo.selectionManager.Clear();
-    EXPECT_EQ(0, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(0u, digitInfo.selectionManager.GetCount());
     
     // Select single segment
     digitInfo.selectionManager.SelectSegment(0);
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());
     
     // Promote to fringe
     digitInfo.selectionManager.PromoteToFringe(digitInfo.Fringes);
-    EXPECT_EQ(1, digitInfo.selectionManager.GetCount());  // Only 1 segment with Number=1.0
+    EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());  // Only 1 segment with Number=1.0
     EXPECT_EQ(SelectionLevel::Fringe, digitInfo.selectionManager.GetLevel());
 }

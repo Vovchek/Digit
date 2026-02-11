@@ -6,6 +6,7 @@
 #include "InterfSolver/Tools/XYPolygon.h"
 
 // Minimal mock classes with fields used by DigitInfoFringe methods
+/*
 class CBoundCtrls : public IBoundsData {
 public:
     CBoundCtrls() {
@@ -35,7 +36,7 @@ public:
 
     void FormBoundsOnLoadFile() {}
 };
-
+*/
 class CControls {};
 
 class CImageCtrls : public IImageData {

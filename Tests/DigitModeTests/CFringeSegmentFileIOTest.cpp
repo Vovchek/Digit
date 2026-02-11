@@ -2,6 +2,7 @@
 #include "../DigitMode/DigitInfo.h"
 #include "../InterfSolver/Tools/ReadWriteData.h"
 #include "../MGTools/Include/Utils/BaseDataType.h"
+#include "Controls/BoundCtrls.h"
 #include <cmath>
 #include <vector>
 #include <filesystem>
@@ -17,7 +18,7 @@ static CBoundCtrls* g_pMockBoundCtrls = nullptr;
 static CControls* g_pMockControls = nullptr;
 
 CDocument* GetWIActiveDocument() { return g_pMockDoc; }
-CImageCtrls* GetImageCtrls() { return g_pMockImageCtrls; }
+CImageCtrls* GetImageCtrls(CView *pView = nullptr) { return g_pMockImageCtrls; }
 CBoundCtrls* GetBoundCtrls() { return g_pMockBoundCtrls; }
 CControls* GetControls() { return g_pMockControls; }
 

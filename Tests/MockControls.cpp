@@ -1,7 +1,7 @@
 ﻿#include "../DigitMode/DigitInfo.h"
 
 #include "tests/MockControls.h"
-
+/*
 void CBoundCtrls::Init() {
     ArrEll.RemoveAll();
     ArrRect.RemoveAll();
@@ -43,3 +43,4 @@ BOOL CBoundCtrls::GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CA
     // Not implemented in mock - internal bounds not needed for Phase 1 tests
     return FALSE;
 }
+*/

@@ -267,7 +267,7 @@ TEST_F(InputHandlerTest, NavigateMode_BoxSelection) {
     inputHandler.OnLButtonDown(0, CPoint(5, 5), &digitInfo, &cmdDispatcher);
     inputHandler.OnLButtonUp(CPoint(35, 35), &digitInfo, &cmdDispatcher);
     
-    EXPECT_GT(digitInfo.selectionManager.GetCount(), 0);
+    EXPECT_GT(digitInfo.selectionManager.GetCount(), 0u);
 }
 
 // ===== IsActiveSegmentValid Tests =====

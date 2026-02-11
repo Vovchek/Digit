@@ -9,9 +9,10 @@
 // ===== Mock Classes for Testing =====
 // Define these BEFORE including BoundsHandler.h which forward-declares them
 
-// Mock CBoundCtrls - minimal implementation for testing BoundsHandler
+// Mock CImagetrls - minimal implementation for testing BoundsHandler
 
 #include "Tests/MockControls.h"
+#include "Controls/BoundCtrls.h"
 
 // NOW include BoundsHandler.h after mock definitions
 #include "DigitMode/BoundsHandler.h"
