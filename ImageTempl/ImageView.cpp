@@ -582,7 +582,7 @@ void CImageView::OnDraw(CDC* pDC)
 			dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
 			// When drawing into an offscreen bitmap the world transform's
 			// translation must be adjusted by the viewport offset.
-		 xForm.eDx = (FLOAT)(off.x - rectClip.left);
+			xForm.eDx = (FLOAT)(off.x - rectClip.left);
 			xForm.eDy = (FLOAT)(off.y - rectClip.top);
 			pOldBitmap = dc.SelectObject(&bitmap);
 			dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
