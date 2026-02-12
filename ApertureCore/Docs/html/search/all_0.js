@@ -11,5 +11,6 @@ var searchData=
   ['aperture_8',['APERTURE',['../namespaceaperture.html#a6c510f882db6288767e25451c1643504af93a452a5f48b6b8a5426e7fc040485a',1,'aperture']]],
   ['aperturechecks_9',['apertureChecks',['../structaperture_1_1_visibility_checker_1_1_stats.html#ac92cb8f6c6f05f8bfc992e42ecee252a',1,'aperture::VisibilityChecker::Stats']]],
   ['area_10',['area',['../classaperture_1_1_bounds.html#a2fff7ba888e408403933648e00b925a5',1,'aperture::Bounds::area()'],['../classaperture_1_1_ellipse.html#a62a61fb0b59bc0103c31b0ae351e854f',1,'aperture::Ellipse::area()'],['../classaperture_1_1_polygon.html#ac427d978dd69a23e6c6a25161bdc087a',1,'aperture::Polygon::area()'],['../classaperture_1_1_rectangle.html#aef7b678c4c14dfd4382af8917cf4f9af',1,'aperture::Rectangle::area()'],['../classaperture_1_1_shape.html#adc307ace3abca86b7173ca0e51b69882',1,'aperture::Shape::area()']]],
-  ['areboundsvalid_11',['areBoundsValid',['../classaperture_1_1_coordinate_system.html#a0d1eeacb40b9df038736d5fc396527ea',1,'aperture::CoordinateSystem']]]
+  ['areboundsvalid_11',['areBoundsValid',['../classaperture_1_1_coordinate_system.html#a0d1eeacb40b9df038736d5fc396527ea',1,'aperture::CoordinateSystem']]],
+  ['visibility_12',['visibility',['../namespaceaperture_1_1visibility.html',1,'aperture']]]
 ];

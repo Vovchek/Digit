@@ -66,6 +66,15 @@
     <ClInclude Include="include\aperturecore\geometry\CoordinateSystem.h">
       <Filter>Header Files\geometry</Filter>
     </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMask.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMaskBuilder.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMaskProvider.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\geometry\Point.cpp">

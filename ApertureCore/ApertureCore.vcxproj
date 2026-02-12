@@ -141,6 +141,9 @@
     <ClInclude Include="include\aperturecore\geometry\Ellipse.h" />
     <ClInclude Include="include\aperturecore\geometry\Polygon.h" />
     <ClInclude Include="include\aperturecore\geometry\Rectangle.h" />
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMask.h" />
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMaskBuilder.h" />
+    <ClInclude Include="include\aperturecore\visibility\VisibilityMaskProvider.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->

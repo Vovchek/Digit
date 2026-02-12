@@ -55,7 +55,7 @@ protected:
 TEST_F(PolygonTest, DefaultConstructor) {
     Polygon polygon;
     
-    EXPECT_EQ(polygon.vertexCount(), 0);
+    EXPECT_EQ(polygon.vertexCount(), 0u);
     EXPECT_EQ(polygon.getTypeLimits(), TypeLimits::EXTERNAL);
     EXPECT_TRUE(polygon.isMeasuring());
 }
@@ -70,7 +70,7 @@ TEST_F(PolygonTest, VectorConstructor) {
     
     Polygon polygon(vertices);
     
-    EXPECT_EQ(polygon.vertexCount(), 4);
+    EXPECT_EQ(polygon.vertexCount(), 4u);
     EXPECT_DOUBLE_EQ(polygon.vertex(0).x, 0.0);
     EXPECT_DOUBLE_EQ(polygon.vertex(0).y, 0.0);
 }
@@ -83,7 +83,7 @@ TEST_F(PolygonTest, InitializerListConstructor) {
         {0.0, 10.0}
     });
     
-    EXPECT_EQ(polygon.vertexCount(), 4);
+    EXPECT_EQ(polygon.vertexCount(), 4u);
 }
 
 TEST_F(PolygonTest, AddVertex) {
@@ -93,7 +93,7 @@ TEST_F(PolygonTest, AddVertex) {
     polygon.addVertex({10.0, 0.0});
     polygon.addVertex({10.0, 10.0});
     
-    EXPECT_EQ(polygon.vertexCount(), 3);
+    EXPECT_EQ(polygon.vertexCount(), 3u);
 }
 
 // ============================================================================
@@ -266,7 +266,7 @@ TEST_F(PolygonTest, getContour_ClosedLoop) {
     Polygon square = createSquare(10.0);
     auto contour = square.getContour(1.0);
     
-    ASSERT_GT(contour.size(), 1);
+    ASSERT_GT(contour.size(), 1u);
     
     // First and last points should be close or identical
     double dist = contour.front().distanceTo(contour.back());
@@ -340,7 +340,7 @@ TEST_F(PolygonTest, ensureClosed) {
     polygon.ensureClosed();
     
     EXPECT_TRUE(polygon.isClosed());
-    EXPECT_EQ(polygon.vertexCount(), 4);  // Should add closing vertex
+    EXPECT_EQ(polygon.vertexCount(), 4u);  // Should add closing vertex
 }
 
 TEST_F(PolygonTest, isDegenerate_Empty) {
@@ -508,17 +508,17 @@ TEST_F(PolygonTest, Clone) {
 TEST_F(PolygonTest, Clear) {
     Polygon polygon = createSquare(10.0);
     
-    EXPECT_GT(polygon.vertexCount(), 0);
+    EXPECT_GT(polygon.vertexCount(), 0u);
     
     polygon.clear();
     
-    EXPECT_EQ(polygon.vertexCount(), 0);
+    EXPECT_EQ(polygon.vertexCount(), 0u);
 }
 
 TEST_F(PolygonTest, VertexAccess) {
     Polygon square = createSquare(10.0);
     
-    EXPECT_EQ(square.vertexCount(), 4);
+    EXPECT_EQ(square.vertexCount(), 4u);
     EXPECT_DOUBLE_EQ(square.vertex(0).x, -5.0);
     EXPECT_DOUBLE_EQ(square.vertex(0).y, -5.0);
 }
@@ -528,7 +528,7 @@ TEST_F(PolygonTest, VerticesVector) {
     
     const auto& vertices = square.vertices();
     
-    EXPECT_EQ(vertices.size(), 4);
+    EXPECT_EQ(vertices.size(), 4u);
     EXPECT_DOUBLE_EQ(vertices[0].x, -5.0);
 }
 
@@ -567,7 +567,7 @@ TEST_F(PolygonTest, ManyVertices) {
     
     Polygon circle(vertices);
     
-    EXPECT_EQ(circle.vertexCount(), nPoints);
+    EXPECT_EQ(circle.vertexCount(), static_cast<size_t>(nPoints));
     EXPECT_FALSE(circle.isDegenerate());
     
     // Center should be inside
@@ -589,7 +589,7 @@ TEST_F(PolygonTest, StarPolygon) {
     
     Polygon star(vertices);
     
-    EXPECT_GT(star.vertexCount(), 0);
+    EXPECT_GT(star.vertexCount(), 0u);
     EXPECT_FALSE(star.isDegenerate());
     EXPECT_FALSE(star.isConvex());
 }
@@ -605,7 +605,7 @@ TEST_F(PolygonTest, SelfIntersecting) {
     
     // Self-intersecting polygons are considered degenerate by most implementations
     // since they don't have well-defined area or inside/outside regions
-    EXPECT_GT(figureEight.vertexCount(), 0);
+    EXPECT_GT(figureEight.vertexCount(), 0u);
     // Don't test isDegenerate() as it may correctly identify self-intersecting as degenerate
 }
 

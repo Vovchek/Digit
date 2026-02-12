@@ -24,24 +24,28 @@ void ShapeCollection::addShape(std::unique_ptr<Shape> shape) {
             apertures_.push_back(std::move(shape));
             break;
     }
+    version_++;
 }
 
 void ShapeCollection::addExternal(std::unique_ptr<Shape> shape) {
     if (!shape) return;
     shape->setTypeLimits(TypeLimits::EXTERNAL);
     external_.push_back(std::move(shape));
+    version_++;
 }
 
 void ShapeCollection::addInternal(std::unique_ptr<Shape> shape) {
     if (!shape) return;
     shape->setTypeLimits(TypeLimits::INTERNAL);
     internal_.push_back(std::move(shape));
+    version_++;
 }
 
 void ShapeCollection::addAperture(std::unique_ptr<Shape> shape) {
     if (!shape) return;
     shape->setTypeLimits(TypeLimits::APERTURE);
     apertures_.push_back(std::move(shape));
+    version_++;
 }
 
 Bounds ShapeCollection::getCombinedBounds() const {
@@ -132,6 +136,7 @@ void ShapeCollection::clear() {
     external_.clear();
     internal_.clear();
     apertures_.clear();
+    version_++;
 }
 
 size_t ShapeCollection::countByType(TypeLimits type) const {

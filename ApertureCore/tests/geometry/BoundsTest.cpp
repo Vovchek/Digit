@@ -106,7 +106,7 @@ TEST(BoundsTest, Corners) {
     Bounds b{1.0, 2.0, 5.0, 8.0};
     auto corners = b.corners();
     
-    EXPECT_EQ(corners.size(), 4);
+    EXPECT_EQ(corners.size(), 4u);
     EXPECT_EQ(corners[0], Point(1.0, 2.0));   // Top-left
     EXPECT_EQ(corners[1], Point(5.0, 2.0));   // Top-right
     EXPECT_EQ(corners[2], Point(5.0, 8.0));   // Bottom-right

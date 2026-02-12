@@ -41,6 +41,7 @@ bool VisibilityChecker::isVisible(const Point& point) const {
         if (!shape->isInside(point)) {
             // Outside any EXTERNAL ? blocked (but APERTURE can still open)
             visible = false;
+            break;
             // Don't return here! Continue to check APERTURE shapes
         }
     }
@@ -48,16 +49,20 @@ bool VisibilityChecker::isVisible(const Point& point) const {
     // Step 4: Check APERTURE shapes (openings)
     // Point inside ANY APERTURE ? force visible (union)
     // This can override the visible=false from EXTERNAL check
-    const auto& apertures = shapes_.getApertures();
-    for (const auto& shape : apertures) {
-        stats_.apertureChecks++;
-        if (shape->isInside(point)) {
-            // Inside APERTURE ? force visible (overrides EXTERNAL blocking)
-            visible = true;
-            stats_.earlyExits++;
-            break;  // Early exit optimization - APERTURE found
+    if (!visible) {
+        const auto& apertures = shapes_.getApertures();
+        for (const auto& shape : apertures) {
+            stats_.apertureChecks++;
+            if (shape->isInside(point)) {
+                // Inside APERTURE ? force visible (overrides EXTERNAL blocking)
+                visible = true;
+                stats_.earlyExits++;
+                break;  // Early exit optimization - APERTURE found
+            }
         }
-    }
+    } else
+        stats_.earlyExits++;
+
     
     return visible;
 }

@@ -88,8 +88,8 @@ $(function() {
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a id="pub-methods" name="pub-methods"></a>
 Public Member Functions</h2></td></tr>
-<tr class="memitem:afe3feb175021ee5be5208535b9168967"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#afe3feb175021ee5be5208535b9168967">ShapeCollection</a> ()=default</td></tr>
-<tr class="separator:afe3feb175021ee5be5208535b9168967"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:aee0573db6c9a4cf62983fcbf995b7bc2"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#aee0573db6c9a4cf62983fcbf995b7bc2">ShapeCollection</a> ()</td></tr>
+<tr class="separator:aee0573db6c9a4cf62983fcbf995b7bc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a1894d25b399d152c212fb69ea7fec54d"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#a1894d25b399d152c212fb69ea7fec54d">~ShapeCollection</a> ()=default</td></tr>
 <tr class="separator:a1894d25b399d152c212fb69ea7fec54d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:acf704726963fe066d4e44acbbed9ead7"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#acf704726963fe066d4e44acbbed9ead7">ShapeCollection</a> (const <a class="el" href="classaperture_1_1_shape_collection.html">ShapeCollection</a> &amp;)=delete</td></tr>
@@ -112,6 +112,12 @@ Public Member Functions</h2></td></tr>
 <tr class="memitem:a927eaed5abab3fa10a3661269d47c82a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#a927eaed5abab3fa10a3661269d47c82a">addAperture</a> (std::unique_ptr&lt; <a class="el" href="classaperture_1_1_shape.html">Shape</a> &gt; shape)</td></tr>
 <tr class="memdesc:a927eaed5abab3fa10a3661269d47c82a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Add APERTURE shape (opening)  <br /></td></tr>
 <tr class="separator:a927eaed5abab3fa10a3661269d47c82a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a61a2850cd3608f97172b484ab24cb9e0"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#a61a2850cd3608f97172b484ab24cb9e0">getVersion</a> () const</td></tr>
+<tr class="memdesc:a61a2850cd3608f97172b484ab24cb9e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get current collection version.  <br /></td></tr>
+<tr class="separator:a61a2850cd3608f97172b484ab24cb9e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:a4ac4fed1a245e5c2b1d9e058c29fa836"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#a4ac4fed1a245e5c2b1d9e058c29fa836">notifyShapeModified</a> ()</td></tr>
+<tr class="memdesc:a4ac4fed1a245e5c2b1d9e058c29fa836"><td class="mdescLeft">&#160;</td><td class="mdescRight">Notify that shape geometry was modified.  <br /></td></tr>
+<tr class="separator:a4ac4fed1a245e5c2b1d9e058c29fa836"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:a55422fee38f7c6daf0cec3ad2d2ce64b"><td class="memItemLeft" align="right" valign="top">const std::vector&lt; std::unique_ptr&lt; <a class="el" href="classaperture_1_1_shape.html">Shape</a> &gt; &gt; &amp;&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classaperture_1_1_shape_collection.html#a55422fee38f7c6daf0cec3ad2d2ce64b">getExternal</a> () const</td></tr>
 <tr class="memdesc:a55422fee38f7c6daf0cec3ad2d2ce64b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Get all EXTERNAL shapes.  <br /></td></tr>
 <tr class="separator:a55422fee38f7c6daf0cec3ad2d2ce64b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -147,8 +153,8 @@ Public Member Functions</h2></td></tr>
 <div class="textblock"><p>Collection of shapes organized by visibility type. </p>
 <p>Stores shapes in separate containers based on TypeLimits for efficient visibility checking. Provides queries for shape management and bounds. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
-<a id="afe3feb175021ee5be5208535b9168967" name="afe3feb175021ee5be5208535b9168967"></a>
-<h2 class="memtitle"><span class="permalink"><a href="#afe3feb175021ee5be5208535b9168967">&#9670;&#160;</a></span>ShapeCollection() <span class="overload">[1/3]</span></h2>
+<a id="aee0573db6c9a4cf62983fcbf995b7bc2" name="aee0573db6c9a4cf62983fcbf995b7bc2"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#aee0573db6c9a4cf62983fcbf995b7bc2">&#9670;&#160;</a></span>ShapeCollection() <span class="overload">[1/3]</span></h2>
 
 <div class="memitem">
 <div class="memproto">
@@ -165,7 +171,7 @@ Public Member Functions</h2></td></tr>
       </table>
   </td>
   <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">default</span></span>  </td>
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
   </tr>
 </table>
 </div><div class="memdoc">
@@ -508,6 +514,34 @@ Public Member Functions</h2></td></tr>
 
 </div>
 </div>
+<a id="a61a2850cd3608f97172b484ab24cb9e0" name="a61a2850cd3608f97172b484ab24cb9e0"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a61a2850cd3608f97172b484ab24cb9e0">&#9670;&#160;</a></span>getVersion()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t aperture::ShapeCollection::getVersion </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td> const</td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Get current collection version. </p>
+<dl class="section return"><dt>Returns</dt><dd>Version number (increments on any modification) </dd></dl>
+
+</div>
+</div>
 <a id="ae4f07552c5594f53d22e3fef76bb6c28" name="ae4f07552c5594f53d22e3fef76bb6c28"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#ae4f07552c5594f53d22e3fef76bb6c28">&#9670;&#160;</a></span>getVisibleRegion()</h2>
 
@@ -573,9 +607,9 @@ Public Member Functions</h2></td></tr>
 <div class="ttc" id="aclassaperture_1_1_bounds_html_aa611c0ef4279cf54caa257d6cac97c3b"><div class="ttname"><a href="classaperture_1_1_bounds.html#aa611c0ef4279cf54caa257d6cac97c3b">aperture::Bounds::bottom</a></div><div class="ttdeci">double bottom</div><div class="ttdoc">Bottom edge (meaning depends on coordinate system)</div><div class="ttdef"><b>Definition:</b> Bounds.h:204</div></div>
 <div class="ttc" id="aclassaperture_1_1_bounds_html_ad9c441ef5fe69e1f52cd027b27a1b756"><div class="ttname"><a href="classaperture_1_1_bounds.html#ad9c441ef5fe69e1f52cd027b27a1b756">aperture::Bounds::right</a></div><div class="ttdeci">double right</div><div class="ttdoc">Maximum X coordinate (right edge)</div><div class="ttdef"><b>Definition:</b> Bounds.h:203</div></div>
 <div class="ttc" id="aclassaperture_1_1_shape_collection_html"><div class="ttname"><a href="classaperture_1_1_shape_collection.html">aperture::ShapeCollection</a></div><div class="ttdoc">Collection of shapes organized by visibility type.</div><div class="ttdef"><b>Definition:</b> ShapeCollection.h:21</div></div>
-<div class="ttc" id="aclassaperture_1_1_shape_collection_html_a84ba3dbd33fb7bb55d399e8ba7f450a9"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#a84ba3dbd33fb7bb55d399e8ba7f450a9">aperture::ShapeCollection::addInternal</a></div><div class="ttdeci">void addInternal(std::unique_ptr&lt; Shape &gt; shape)</div><div class="ttdoc">Add INTERNAL shape (obstruction)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:35</div></div>
-<div class="ttc" id="aclassaperture_1_1_shape_collection_html_a8c275287179964be309adc08f794dc33"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#a8c275287179964be309adc08f794dc33">aperture::ShapeCollection::addExternal</a></div><div class="ttdeci">void addExternal(std::unique_ptr&lt; Shape &gt; shape)</div><div class="ttdoc">Add EXTERNAL shape (aperture)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:29</div></div>
-<div class="ttc" id="aclassaperture_1_1_shape_collection_html_ae4f07552c5594f53d22e3fef76bb6c28"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#ae4f07552c5594f53d22e3fef76bb6c28">aperture::ShapeCollection::getVisibleRegion</a></div><div class="ttdeci">Bounds getVisibleRegion() const</div><div class="ttdoc">Get visible region bounds (conservative ROI for optimization)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:88</div></div>
+<div class="ttc" id="aclassaperture_1_1_shape_collection_html_a84ba3dbd33fb7bb55d399e8ba7f450a9"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#a84ba3dbd33fb7bb55d399e8ba7f450a9">aperture::ShapeCollection::addInternal</a></div><div class="ttdeci">void addInternal(std::unique_ptr&lt; Shape &gt; shape)</div><div class="ttdoc">Add INTERNAL shape (obstruction)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:37</div></div>
+<div class="ttc" id="aclassaperture_1_1_shape_collection_html_a8c275287179964be309adc08f794dc33"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#a8c275287179964be309adc08f794dc33">aperture::ShapeCollection::addExternal</a></div><div class="ttdeci">void addExternal(std::unique_ptr&lt; Shape &gt; shape)</div><div class="ttdoc">Add EXTERNAL shape (aperture)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:30</div></div>
+<div class="ttc" id="aclassaperture_1_1_shape_collection_html_ae4f07552c5594f53d22e3fef76bb6c28"><div class="ttname"><a href="classaperture_1_1_shape_collection.html#ae4f07552c5594f53d22e3fef76bb6c28">aperture::ShapeCollection::getVisibleRegion</a></div><div class="ttdeci">Bounds getVisibleRegion() const</div><div class="ttdoc">Get visible region bounds (conservative ROI for optimization)</div><div class="ttdef"><b>Definition:</b> ShapeCollection.cpp:92</div></div>
 <div class="ttc" id="astructaperture_1_1_point_html"><div class="ttname"><a href="structaperture_1_1_point.html">aperture::Point</a></div><div class="ttdoc">2D point in Cartesian coordinates</div><div class="ttdef"><b>Definition:</b> Point.h:75</div></div>
 </div><!-- fragment --><dl class="section note"><dt>Note</dt><dd>Returns conservative bounds - use isVisible() for exact visibility </dd>
 <dd>
@@ -637,6 +671,34 @@ INTERNAL shapes require per-point checking even within ROI </dd></dl>
 
 <p>Check if collection is empty. </p>
 <dl class="section return"><dt>Returns</dt><dd>true if no shapes in any category </dd></dl>
+
+</div>
+</div>
+<a id="a4ac4fed1a245e5c2b1d9e058c29fa836" name="a4ac4fed1a245e5c2b1d9e058c29fa836"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#a4ac4fed1a245e5c2b1d9e058c29fa836">&#9670;&#160;</a></span>notifyShapeModified()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void aperture::ShapeCollection::notifyShapeModified </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Notify that shape geometry was modified. </p>
+<p>Call this after modifying a shape's geometry to increment version and invalidate caches. </p>
 
 </div>
 </div>

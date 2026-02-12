@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['earlyexits_0',['earlyExits',['../structaperture_1_1_visibility_checker_1_1_stats.html#a3e6a698142348827037f900dc2ec2abe',1,'aperture::VisibilityChecker::Stats']]],
-  ['externalchecks_1',['externalChecks',['../structaperture_1_1_visibility_checker_1_1_stats.html#a3a651c8fbe708b5486ef1957f1845c69',1,'aperture::VisibilityChecker::Stats']]]
+  ['data_0',['data',['../classaperture_1_1visibility_1_1_visibility_mask.html#a6f055e971602753e12ceda4b175e9ad2',1,'aperture::visibility::VisibilityMask']]]
 ];
