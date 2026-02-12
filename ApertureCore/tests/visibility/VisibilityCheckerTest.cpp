@@ -200,10 +200,10 @@ TEST_F(VisibilityCheckerTest, InternalCheckedFirstForPerformance) {
     
     // Check that we got early exit (INTERNAL blocked)
     auto stats = checker.getStats();
-    EXPECT_EQ(stats.internalChecks, 1) << "Should check INTERNAL first";
-    EXPECT_EQ(stats.earlyExits, 1) << "Should exit early on INTERNAL block";
-    EXPECT_EQ(stats.externalChecks, 0) << "Should NOT check EXTERNAL (early exit)";
-    EXPECT_EQ(stats.apertureChecks, 0) << "Should NOT check APERTURE (early exit)";
+    EXPECT_EQ(stats.internalChecks, 1u) << "Should check INTERNAL first";
+    EXPECT_EQ(stats.earlyExits, 1u) << "Should exit early on INTERNAL block";
+    EXPECT_EQ(stats.externalChecks, 0u) << "Should NOT check EXTERNAL (early exit)";
+    EXPECT_EQ(stats.apertureChecks, 0u) << "Should NOT check APERTURE (early exit)";
 }
 
 TEST_F(VisibilityCheckerTest, ApertureEarlyExitOptimization) {
@@ -227,8 +227,8 @@ TEST_F(VisibilityCheckerTest, ApertureEarlyExitOptimization) {
     EXPECT_TRUE(visible);
     
     auto stats = checker.getStats();
-    EXPECT_EQ(stats.apertureChecks, 1) << "Should exit after finding first APERTURE";
-    EXPECT_EQ(stats.earlyExits, 1) << "APERTURE should trigger early exit";
+    EXPECT_EQ(stats.apertureChecks, 1u) << "Should exit after finding first APERTURE";
+    EXPECT_EQ(stats.earlyExits, 1u) << "APERTURE should trigger early exit";
 }
 
 // ============================================================================
@@ -415,14 +415,14 @@ TEST_F(VisibilityCheckerTest, StatisticsTracking) {
     checker.isVisible(p);
     
     auto stats = checker.getStats();
-    EXPECT_EQ(stats.totalChecks, 1);
-    EXPECT_GT(stats.internalChecks, 0);
+    EXPECT_EQ(stats.totalChecks, 1u);
+    EXPECT_GT(stats.internalChecks, 0u);
     
     // Reset and check again
     checker.resetStats();
     stats = checker.getStats();
-    EXPECT_EQ(stats.totalChecks, 0);
-    EXPECT_EQ(stats.internalChecks, 0);
+    EXPECT_EQ(stats.totalChecks, 0u);
+    EXPECT_EQ(stats.internalChecks, 0u);
 }
 
 // ============================================================================
@@ -445,7 +445,7 @@ TEST_F(VisibilityCheckerTest, BatchCheckPoints) {
     
     auto results = checker.checkPoints(points);
     
-    ASSERT_EQ(results.size(), 4);
+    ASSERT_EQ(results.size(), 4u);
     EXPECT_TRUE(results[0]);   // Inside
     EXPECT_FALSE(results[1]);  // Outside
     EXPECT_TRUE(results[2]);   // Inside

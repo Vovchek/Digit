@@ -227,7 +227,7 @@ TEST_F(RectangleTest, getContour_PointCount) {
     Rectangle rect(10.0, 5.0, 0.0, 0.0);
     auto contour = rect.getContour(0.5);
     
-    EXPECT_GT(contour.size(), 4);  // At least more than just corners
+    EXPECT_GT(contour.size(), 4u);  // At least more than just corners
     
     // All contour points should be close to boundary
     for (const auto& point : contour) {
@@ -247,7 +247,7 @@ TEST_F(RectangleTest, getContour_ClosedLoop) {
     Rectangle rect(10.0, 5.0, 0.0, 0.0);
     auto contour = rect.getContour(1.0);
     
-    ASSERT_GT(contour.size(), 1);
+    ASSERT_GT(contour.size(), 1u);
     
     // First and last points should be very close
     double dist = contour.front().distanceTo(contour.back());
@@ -258,7 +258,7 @@ TEST_F(RectangleTest, getContour_RotatedRectangle) {
     Rectangle rect(10.0, 5.0, 20.0, 30.0, 30.0);
     auto contour = rect.getContour(0.5);
     
-    EXPECT_GT(contour.size(), 4);
+    EXPECT_GT(contour.size(), 4u);
     
     // All points should be approximately at the same distance from center
     // as the rotated corners (within the rectangle bounds)
@@ -279,7 +279,7 @@ TEST_F(RectangleTest, Corners_AxisAligned) {
     Rectangle rect(10.0, 6.0, 0.0, 0.0);
     auto corners = rect.corners();
     
-    EXPECT_EQ(corners.size(), 4);
+    EXPECT_EQ(corners.size(), 4u);
     
     // For axis-aligned rectangle centered at origin
     // Corners should be at (±5, ±3)

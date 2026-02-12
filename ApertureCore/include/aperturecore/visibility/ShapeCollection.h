@@ -20,7 +20,7 @@ namespace aperture {
  */
 class ShapeCollection {
 public:
-    ShapeCollection() = default;
+    ShapeCollection() : version_(1) {}; // Start at 1, 0 means uninitialized
     ~ShapeCollection() = default;
     
     // Non-copyable (shapes are unique_ptr)
@@ -66,7 +66,25 @@ public:
      * Convenience method that sets the shape's TypeLimits before adding.
      */
     void addAperture(std::unique_ptr<Shape> shape);
-    
+
+    /**
+     * @brief Get current collection version
+     * @return Version number (increments on any modification)
+     */
+    uint64_t getVersion() const {
+        return version_;
+    }
+
+    /**
+     * @brief Notify that shape geometry was modified
+     *
+     * Call this after modifying a shape's geometry
+     * to increment version and invalidate caches.
+     */
+    void notifyShapeModified() {
+        version_++;
+    }
+
     // Query shapes by type
     
     /**
@@ -199,6 +217,7 @@ private:
     std::vector<std::unique_ptr<Shape>> external_;   ///< EXTERNAL shapes
     std::vector<std::unique_ptr<Shape>> internal_;   ///< INTERNAL shapes
     std::vector<std::unique_ptr<Shape>> apertures_;  ///< APERTURE shapes
+    uint64_t version_{ 0 };  ///< Version counter for change tracking
 };
 
 } // namespace aperture

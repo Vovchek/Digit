@@ -204,7 +204,7 @@ TEST_F(EllipseTest, getContour_PointCount) {
     Ellipse ellipse(5.0, 3.0, 0.0, 0.0);
     auto contour = ellipse.getContour(0.5);
     
-    EXPECT_GT(contour.size(), 10);
+    EXPECT_GT(contour.size(), 10u);
     
     // Verify points are close to the ellipse boundary
     // Due to floating-point precision, exact boundary points may fail isInside()
@@ -230,7 +230,7 @@ TEST_F(EllipseTest, getContour_ClosedLoop) {
     Ellipse ellipse(5.0, 3.0, 0.0, 0.0);
     auto contour = ellipse.getContour(1.0);
     
-    ASSERT_GT(contour.size(), 1);
+    ASSERT_GT(contour.size(), 1u);
     
     // First and last points should be very close
     double dist = contour.front().distanceTo(contour.back());
@@ -241,7 +241,7 @@ TEST_F(EllipseTest, getContour_RotatedEllipse) {
     Ellipse ellipse(5.0, 3.0, 10.0, 20.0, 30.0);
     auto contour = ellipse.getContour(0.5);
     
-    EXPECT_GT(contour.size(), 10);
+    EXPECT_GT(contour.size(), 10u);
     
     // Verify points are close to the ellipse boundary (accounting for rotation)
     for (const auto& point : contour) {
