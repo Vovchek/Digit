@@ -399,18 +399,18 @@ public:
      * @brief Calculate area
      * @return Area in square units
      * 
-     * Area = π * a * b
+     * Area = π × a × b
      * 
      * Exact formula. Rotation-invariant.
      * 
      * @code{.cpp}
      * // Circle radius 10
      * Ellipse circle(10, 10, 0, 0);
-     * assert(circle.area() == M_PI * 100);  // π*10²
+     * assert(circle.area() == M_PI * 100);  // π×10²
      * 
      * // Ellipse 15x8
      * Ellipse ellipse(15, 8, 0, 0);
-     * assert(ellipse.area() == M_PI * 15 * 8);  // π*15*8
+     * assert(ellipse.area() == M_PI * 15 * 8);  // π×15×8
      * 
      * // Rotation doesn't change area
      * Ellipse rotated(15, 8, 0, 0, 45);
@@ -590,7 +590,7 @@ public:
      * double c = ellipse.focalDistance();
      * // c ≈ 8.66 (foci at ±8.66 along major axis)
      * @endcode
-     * 
+
      * @note Returns 0 for circles
      * @see eccentricity() - Related measure of elongation
      */

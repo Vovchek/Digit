@@ -22,8 +22,8 @@ enum class CoordinateSystemType {
      * 
      * Convention:
      * - Origin: Top-left corner
-     * - X-axis: Left to right (positive ?)
-     * - Y-axis: Top to bottom (positive ?)
+     * - X-axis: Left to right (positive →)
+     * - Y-axis: Top to bottom (positive ↓)
      * - Rotation: Clockwise is positive
      * - Bounds: top < bottom
      * 
@@ -35,9 +35,9 @@ enum class CoordinateSystemType {
      * 
      * Visual:
      * ```
-     * (0,0) -------- X+ ?
+     * (0,0) -------- X+ →
      *   |
-     *   | Y+ ?
+     *   | Y+ ↓
      *   |
      *   V
      * ```
@@ -49,8 +49,8 @@ enum class CoordinateSystemType {
      * 
      * Convention:
      * - Origin: Arbitrary (often center or bottom-left)
-     * - X-axis: Left to right (positive ?)
-     * - Y-axis: Bottom to top (positive ?)
+     * - X-axis: Left to right (positive →)
+     * - Y-axis: Bottom to top (positive ↑)
      * - Rotation: Counter-clockwise is positive
      * - Bounds: bottom < top
      * 
@@ -62,11 +62,11 @@ enum class CoordinateSystemType {
      * 
      * Visual:
      * ```
-     *   Y+ ?
+     *   Y+ ↑
      *   |
      *   |
      *   |
-     * (0,0) -------- X+ ?
+     * (0,0) -------- X+ →
      * ```
      */
     MATH
@@ -82,7 +82,7 @@ enum class CoordinateSystemType {
  * 
  * ### Creating Context
  * ```cpp
- * // Screen coordinates for 1024?768 image
+ * // Screen coordinates for 1024×768 image
  * CoordinateSystem screenSys = CoordinateSystem::screen(768.0);
  * 
  * // Mathematical coordinates (no height needed for pure math)
@@ -103,9 +103,9 @@ enum class CoordinateSystemType {
  * 
  * ### Converting Angles
  * ```cpp
- * double screenAngle = 45.0;  // 45� clockwise in screen
+ * double screenAngle = 45.0;  // 45° clockwise in screen
  * double mathAngle = screenSys.convertAngle(screenAngle, mathSys);
- * // mathAngle = -45.0  // 45� counter-clockwise in math
+ * // mathAngle = -45.0  // 45° counter-clockwise in math
  * ```
  */
 class CoordinateSystem {
@@ -195,16 +195,16 @@ public:
      * @return Angle in radians in target system
      * 
      * Screen to Math (or vice versa): negates angle
-     * - Screen: CW is positive ? Math: CCW is positive
-     * - Math: CCW is positive ? Screen: CW is positive
+     * - Screen: CW is positive → Math: CCW is positive
+     * - Math: CCW is positive → Screen: CW is positive
      * 
      * @code{.cpp}
      * CoordinateSystem screen = CoordinateSystem::screen();
      * CoordinateSystem math = CoordinateSystem::math();
      * 
-     * double screenAngle = M_PI / 4;  // 45� CW in screen
+     * double screenAngle = M_PI / 4;  // 45° CW in screen
      * double mathAngle = screen.convertAngle(screenAngle, math);
-     * // mathAngle = -?/4  // 45� CCW in math
+     * // mathAngle = -?/4  // 45° CCW in math
      * @endcode
      */
     double convertAngle(double angleRadians, const CoordinateSystem& targetSystem) const {

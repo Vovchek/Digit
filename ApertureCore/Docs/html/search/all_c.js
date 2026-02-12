@@ -1,18 +1,15 @@
 var searchData=
 [
-  ['gauss_20s_20area_20formula_0',['Shoelace Formula (Gauss&apos;s Area Formula)',['../_polygon_8h.html#autotoc_md63',1,'']]],
-  ['geometric_20properties_1',['Geometric Properties',['../_ellipse_8h.html#autotoc_md27',1,'4. Geometric Properties'],['../_polygon_8h.html#autotoc_md60',1,'Geometric Properties']]],
-  ['geometric_20queries_2',['Geometric Queries',['../classaperture_1_1_polygon.html#autotoc_md72',1,'']]],
-  ['geometry_20operations_3',['Basic Geometry Operations',['../classaperture_1_1_shape.html#autotoc_md126',1,'']]],
-  ['getapertures_4',['getApertures',['../classaperture_1_1_shape_collection.html#ab54cb5cf972978b2246192733c223f95',1,'aperture::ShapeCollection']]],
-  ['getbounds_5',['getBounds',['../classaperture_1_1_ellipse.html#a15f9f2d1c130ff0bbeaf8c61f2a5f745',1,'aperture::Ellipse::getBounds()'],['../classaperture_1_1_polygon.html#a348b1a2022523c055535408b0b358f66',1,'aperture::Polygon::getBounds()'],['../classaperture_1_1_rectangle.html#a507a0bf10b5e76677e789a6d1682736f',1,'aperture::Rectangle::getBounds()'],['../classaperture_1_1_shape.html#a4980db43f5501b612b73bf615c740071',1,'aperture::Shape::getBounds()']]],
-  ['getcombinedbounds_6',['getCombinedBounds',['../classaperture_1_1_shape_collection.html#a1c58283ea90b29052b3c497e3c7e3746',1,'aperture::ShapeCollection']]],
-  ['getcontour_7',['getContour',['../classaperture_1_1_ellipse.html#a71831808d38f596a29dd051952d844ad',1,'aperture::Ellipse::getContour()'],['../classaperture_1_1_polygon.html#a361ed5cd711cf74470b3f34d36821710',1,'aperture::Polygon::getContour()'],['../classaperture_1_1_rectangle.html#a418f9f32a30ed6073f78f802e0864a92',1,'aperture::Rectangle::getContour()'],['../classaperture_1_1_shape.html#ae823ec27758a4bdb0c6f013e8a61d247',1,'aperture::Shape::getContour()']]],
-  ['getexternal_8',['getExternal',['../classaperture_1_1_shape_collection.html#a55422fee38f7c6daf0cec3ad2d2ce64b',1,'aperture::ShapeCollection']]],
-  ['getinternal_9',['getInternal',['../classaperture_1_1_shape_collection.html#aed68bbd520340f03b466311228fcb187',1,'aperture::ShapeCollection']]],
-  ['getnormalizationstate_10',['getNormalizationState',['../classaperture_1_1_shape.html#aadef5f85e0bc3fe6e6bbef3d88116ea2',1,'aperture::Shape']]],
-  ['getspatialsystem_11',['getSpatialSystem',['../classaperture_1_1_shape.html#a94ccd1e1b4b733826646ffe90467990f',1,'aperture::Shape']]],
-  ['getstats_12',['getStats',['../classaperture_1_1_visibility_checker.html#a437114ebf68efd6910efd3fd373e2d08',1,'aperture::VisibilityChecker']]],
-  ['gettypelimits_13',['getTypeLimits',['../classaperture_1_1_shape.html#afa076d32d39a6d0983f2a685b7f6374f',1,'aperture::Shape']]],
-  ['getvisibleregion_14',['getVisibleRegion',['../classaperture_1_1_shape_collection.html#ae4f07552c5594f53d22e3fef76bb6c28',1,'aperture::ShapeCollection::getVisibleRegion()'],['../classaperture_1_1_visibility_checker.html#a2345af210cff5a2dbf51ade72b10c10c',1,'aperture::VisibilityChecker::getVisibleRegion()']]]
+  ['operator_21_3d_0',['operator!=',['../classaperture_1_1_bounds.html#afeef2104094289233a40fb0a09e17b3b',1,'aperture::Bounds::operator!=()'],['../classaperture_1_1_coordinate_system.html#a0b83f4332ab711f21df86b00ed46e9d7',1,'aperture::CoordinateSystem::operator!=()'],['../structaperture_1_1_point.html#af149082e7cd122177a54fad9596653b1',1,'aperture::Point::operator!=(const Point &amp;other) const']]],
+  ['operator_2a_1',['operator*',['../structaperture_1_1_point.html#ae57dcc2b2b9cfc9f3048732890d06ef0',1,'aperture::Point::operator*(double scalar) const'],['../structaperture_1_1_point.html#a50c557f52146522563811f7cd1ff24be',1,'aperture::Point::operator*(double scalar, const Point &amp;p)']]],
+  ['operator_2a_3d_2',['operator*=',['../structaperture_1_1_point.html#a31c89765aeafa818a45e16bed24a12ae',1,'aperture::Point']]],
+  ['operator_2b_3',['operator+',['../structaperture_1_1_point.html#a0f2b51d3fe1661d492e69a80ed537027',1,'aperture::Point']]],
+  ['operator_2b_3d_4',['operator+=',['../structaperture_1_1_point.html#a6ea644856bceffb1edb5e8796b21cc57',1,'aperture::Point']]],
+  ['operator_2d_5',['operator-',['../structaperture_1_1_point.html#a020c2a097c76c68c532b4b803f38759d',1,'aperture::Point::operator-(const Point &amp;other) const'],['../structaperture_1_1_point.html#a7c38a2718b586ea986d15b330cfe1696',1,'aperture::Point::operator-() const']]],
+  ['operator_2d_3d_6',['operator-=',['../structaperture_1_1_point.html#aec72303ed612459a7d28cec357e8df9b',1,'aperture::Point']]],
+  ['operator_2f_7',['operator/',['../structaperture_1_1_point.html#a67b650aef75188995e07826f3542dfc3',1,'aperture::Point']]],
+  ['operator_2f_3d_8',['operator/=',['../structaperture_1_1_point.html#aebec5ea9ded73671d431b6c5e61d9b94',1,'aperture::Point']]],
+  ['operator_3c_3c_9',['operator&lt;&lt;',['../classaperture_1_1_bounds.html#aed7a7fda1095a9b1c04f32ed2b113f9b',1,'aperture::Bounds::operator&lt;&lt;()'],['../structaperture_1_1_point.html#ab322db2b5457c54c9b959c6336792d2d',1,'aperture::Point::operator&lt;&lt;()'],['../namespaceaperture.html#ac5621b5713a2d6dec40bd504ce54fee4',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Bounds &amp;b)'],['../namespaceaperture.html#a36ff9d201e281e4f81c678b1ccc0f739',1,'aperture::operator&lt;&lt;(std::ostream &amp;os, const Point &amp;p)']]],
+  ['operator_3d_10',['operator=',['../classaperture_1_1_shape_collection.html#a9ff6e11876b5ebe9d3d7f253b1424c98',1,'aperture::ShapeCollection::operator=(const ShapeCollection &amp;)=delete'],['../classaperture_1_1_shape_collection.html#a061e307c5d4558ebcfa7d755a65e1536',1,'aperture::ShapeCollection::operator=(ShapeCollection &amp;&amp;)=default']]],
+  ['operator_3d_3d_11',['operator==',['../classaperture_1_1_bounds.html#a9486bd7d486ccf7d0bf73f0f461ea902',1,'aperture::Bounds::operator==()'],['../classaperture_1_1_coordinate_system.html#af0294786d14343ebdd3029b40a58d72a',1,'aperture::CoordinateSystem::operator==()'],['../structaperture_1_1_point.html#a28f6e4cc1fee7920c231f8f1b2931c31',1,'aperture::Point::operator==()']]]
 ];

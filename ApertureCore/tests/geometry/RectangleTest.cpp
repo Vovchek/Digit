@@ -138,7 +138,7 @@ TEST_F(RectangleTest, isInside_Center) {
 TEST_F(RectangleTest, isInside_Corner) {
     Rectangle rect(10.0, 5.0, 0.0, 0.0);
     
-    // Corners at (±5, ±2.5) for axis-aligned rectangle
+    // Corners at (Â±5, Â±2.5) for axis-aligned rectangle
     // Test slightly inside to avoid boundary precision issues
     Point corner{4.99, 2.49};
     
@@ -196,11 +196,11 @@ TEST_F(RectangleTest, getBounds_Rotated45Degrees) {
     Rectangle rect(10.0, 6.0, 0.0, 0.0, 45.0);
     Bounds bounds = rect.getBounds();
     
-    // For 45° rotation, bounding box should be larger than original
+    // For 45Â° rotation, bounding box should be larger than original
     double width = bounds.width();
     double height = bounds.height();
     
-    // At 45°, both dimensions contribute equally
+    // At 45Â°, both dimensions contribute equally
     EXPECT_GT(width, 10.0);
     EXPECT_GT(height, 6.0);
     
@@ -282,7 +282,7 @@ TEST_F(RectangleTest, Corners_AxisAligned) {
     EXPECT_EQ(corners.size(), 4);
     
     // For axis-aligned rectangle centered at origin
-    // Corners should be at (±5, ±3)
+    // Corners should be at (Â±5, Â±3)
     EXPECT_NEAR(corners[0].x, -5.0, TOLERANCE);  // TL
     EXPECT_NEAR(corners[0].y, -3.0, TOLERANCE);
     

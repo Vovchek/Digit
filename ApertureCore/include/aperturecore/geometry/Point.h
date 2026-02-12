@@ -31,7 +31,7 @@
  * Point direction = p1.normalized();      // {0.6, 0.8}
  * 
  * // Rotation
- * Point rotated = p1.rotated(M_PI / 2);  // Rotate 90° CCW
+ * Point rotated = p1.rotated(M_PI / 2);  // Rotate 90Â° CCW
  * 
  * // Comparison with tolerance
  * if (p1.isNear(Point{3.0, 4.0})) {
@@ -62,7 +62,7 @@ namespace aperture {
  * ### Memory Layout
  * ```
  * Point p{x, y};
- * sizeof(Point) == 16 bytes (2 ? sizeof(double))
+ * sizeof(Point) == 16 bytes (2 Ã— sizeof(double))
  * ```
  * 
  * ### Coordinate System
@@ -349,7 +349,7 @@ struct Point {
     /**
      * @brief Dot product with another point (treating as vectors)
      * @param other Second point/vector
-     * @return Scalar dot product: x?·x? + y?·y?
+     * @return Scalar dot product: x?Â·x? + y?Â·y?
      * 
      * Useful for:
      * - Calculating angles between vectors
@@ -373,7 +373,7 @@ struct Point {
     /**
      * @brief Cross product (z-component of 3D cross product)
      * @param other Second point/vector
-     * @return Z-component of cross product: x?·y? - y?·x?
+     * @return Z-component of cross product: x?Â·y? - y?Â·x?
      * 
      * Useful for:
      * - Determining rotation direction (sign indicates CW/CCW)
@@ -431,9 +431,9 @@ struct Point {
      * 
      * @code{.cpp}
      * Point p{1.0, 0.0};
-     * Point rotated = p.rotated(M_PI / 2);  // Rotate 90° CCW ? {0.0, 1.0}
+     * Point rotated = p.rotated(M_PI / 2);  // Rotate 90Â° CCW ? {0.0, 1.0}
      * 
-     * // Rotate 180°
+     * // Rotate 180Â°
      * Point reversed = p.rotated(M_PI);  // ? {-1.0, 0.0}
      * @endcode
      * 
@@ -460,7 +460,7 @@ struct Point {
      * @code{.cpp}
      * Point p{10.0, 5.0};
      * Point center{5.0, 5.0};
-     * Point rotated = p.rotatedAround(center, M_PI);  // Rotate 180° around center
+     * Point rotated = p.rotatedAround(center, M_PI);  // Rotate 180Â° around center
      * // Result: {0.0, 5.0}
      * @endcode
      * 

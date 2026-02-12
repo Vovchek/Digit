@@ -1,28 +1,4 @@
 var searchData=
 [
-  ['m_5fpi_0',['M_PI',['../_ellipse_8h.html#ae71449b1cc6e6250b91f539153a7a0d3',1,'M_PI:&#160;Ellipse.h'],['../_rectangle_8cpp.html#ae71449b1cc6e6250b91f539153a7a0d3',1,'M_PI:&#160;Rectangle.cpp']]],
-  ['magnitude_1',['magnitude',['../structaperture_1_1_point.html#af96e8341fe5a3a072aa89b86e87d05cf',1,'aperture::Point']]],
-  ['magnitudesquared_2',['magnitudeSquared',['../structaperture_1_1_point.html#a7557548b7aac012bd335479c66b4fa96',1,'aperture::Point']]],
-  ['management_3',['Management',['../classaperture_1_1_shape.html#autotoc_md132',1,'Memory Management'],['../classaperture_1_1_shape.html#autotoc_md131',1,'State Management']]],
-  ['manipulation_4',['Vertex Manipulation',['../classaperture_1_1_polygon.html#autotoc_md71',1,'']]],
-  ['math_5',['MATH',['../namespaceaperture.html#a9d72cc6080eb0b825713639959ae40c1a65571aa0536447fb1cf47a2b5a98954b',1,'aperture']]],
-  ['math_6',['math',['../classaperture_1_1_coordinate_system.html#a39e9be18f6a92c962c86dc9f3ea83feb',1,'aperture::CoordinateSystem']]],
-  ['math_20coordinates_7',['MATH Coordinates',['../_bounds_8h.html#autotoc_md6',1,'MATH Coordinates'],['../_bounds_8h.html#autotoc_md4',1,'SCREEN vs MATH Coordinates']]],
-  ['mathematical_20background_8',['Mathematical Background',['../_polygon_8h.html#autotoc_md61',1,'Mathematical Background'],['../_rectangle_8h.html#autotoc_md93',1,'Mathematical Background']]],
-  ['mathematical_20definition_9',['Mathematical Definition',['../classaperture_1_1_ellipse.html#autotoc_md28',1,'']]],
-  ['mathematical_20references_10',['Mathematical References',['../classaperture_1_1_ellipse.html#autotoc_md38',1,'']]],
-  ['max_20accessors_11',['Recommended: Use fromMinMax() and min/max accessors',['../_bounds_8h.html#autotoc_md8',1,'']]],
-  ['maxx_12',['maxX',['../classaperture_1_1_bounds.html#a52dceac19cd8fc79f5b0d5702d9396be',1,'aperture::Bounds']]],
-  ['maxy_13',['maxY',['../classaperture_1_1_bounds.html#a8e1c25f8d99bb97e4710c4a7635358a0',1,'aperture::Bounds::maxY()'],['../classaperture_1_1_coordinate_system.html#a42e682b08f2a272727582ae2a5510935',1,'aperture::CoordinateSystem::maxY()']]],
-  ['measuring_14',['MEASURING',['../namespaceaperture.html#ab153f863dad50d7c335dc66c09556257a9b7df9879757641ee2e74593308ad606',1,'aperture']]],
-  ['memory_20layout_15',['Memory Layout',['../classaperture_1_1_bounds.html#autotoc_md15',1,'Memory Layout'],['../classaperture_1_1_ellipse.html#autotoc_md29',1,'Memory Layout'],['../structaperture_1_1_point.html#autotoc_md41',1,'Memory Layout'],['../classaperture_1_1_polygon.html#autotoc_md68',1,'Memory Layout'],['../classaperture_1_1_rectangle.html#autotoc_md99',1,'Memory Layout']]],
-  ['memory_20management_16',['Memory Management',['../classaperture_1_1_shape.html#autotoc_md132',1,'']]],
-  ['merge_17',['merge',['../classaperture_1_1_bounds.html#ae6a8b75469164ee9c450d664e22f28f8',1,'aperture::Bounds']]],
-  ['method_18',['Convexity Test (Cross Product Method)',['../_polygon_8h.html#autotoc_md64',1,'']]],
-  ['methods_20must_20implement_19',['Pure Virtual Methods (Must Implement)',['../classaperture_1_1_shape.html#autotoc_md122',1,'']]],
-  ['migration_20example_20',['Migration Example',['../classaperture_1_1_polygon.html#autotoc_md74',1,'Migration Example'],['../classaperture_1_1_rectangle.html#autotoc_md105',1,'Migration Example'],['../_visibility_checker_8h.html#autotoc_md150',1,'Migration Example']]],
-  ['min_20max_20accessors_21',['Recommended: Use fromMinMax() and min/max accessors',['../_bounds_8h.html#autotoc_md8',1,'']]],
-  ['minx_22',['minX',['../classaperture_1_1_bounds.html#a4cae640aa3b2b5cfdec2734c6a480eb9',1,'aperture::Bounds']]],
-  ['miny_23',['minY',['../classaperture_1_1_bounds.html#a421b832c9092a7c8827fb0fd82a28790',1,'aperture::Bounds::minY()'],['../classaperture_1_1_coordinate_system.html#a30ea6c19defafed7c9fc8e36ab29de06',1,'aperture::CoordinateSystem::minY()']]],
-  ['must_20implement_24',['Pure Virtual Methods (Must Implement)',['../classaperture_1_1_shape.html#autotoc_md122',1,'']]]
+  ['unionwith_0',['unionWith',['../classaperture_1_1_bounds.html#a1cd58e9f0e9a20d28567a7cdfc44b0bf',1,'aperture::Bounds']]]
 ];

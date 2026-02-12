@@ -40,7 +40,7 @@
  * - Y-axis: **bottom to top** (bottom < top)
  * - Origin: arbitrary
  * - Used by: geometry, wavefront analysis
- * - Field mapping: `top = maxY`, `bottom = minY` ??
+ * - Field mapping: `top = maxY`, `bottom = minY` ⚠️
  * 
  * ## Usage Examples
  * 
@@ -74,7 +74,7 @@
  * assert(screenBox.top == 0);     // top is min_y
  * assert(screenBox.bottom == 50); // bottom is max_y
  * 
- * // MATH coordinates - ?? CONFUSING field order!
+ * // MATH coordinates - ⚠️ CONFUSING field order!
  * Bounds mathBox{0.0, 50.0, 100.0, 0.0, CoordinateSystem::math()};
  * // top=50 (max_y), bottom=0 (min_y) - opposite of SCREEN!
  * @endcode
@@ -125,19 +125,19 @@ namespace aperture {
  * 
  * | Field | SCREEN Meaning | MATH Meaning |
  * |-------|----------------|--------------|
- * | `left` | min X ? | min X ? |
- * | `right` | max X ? | max X ? |
- * | `top` | min Y (top of screen) | **max Y** (top of graph) ?? |
- * | `bottom` | max Y (bottom of screen) | **min Y** (bottom of graph) ?? |
+ * | `left` | min X ✓ | min X ✓ |
+ * | `right` | max X ✓ | max X ✓ |
+ * | `top` | min Y (top of screen) | **max Y** (top of graph) ⚠️ |
+ * | `bottom` | max Y (bottom of screen) | **min Y** (bottom of graph) ⚠️ |
  * 
  * ### System-Agnostic Accessors (Always Clear)
  * 
  * | Accessor | Returns | Works with |
  * |----------|---------|------------|
- * | `minX()` | Smaller X | Both systems ? |
- * | `maxX()` | Larger X | Both systems ? |
- * | `minY()` | Smaller Y | Both systems ? |
- * | `maxY()` | Larger Y | Both systems ? |
+ * | `minX()` | Smaller X | Both systems ✓ |
+ * | `maxX()` | Larger X | Both systems ✓ |
+ * | `minY()` | Smaller Y | Both systems ✓ |
+ * | `maxY()` | Larger Y | Both systems ✓ |
  * 
  * ### Coordinate System Details
  * 
@@ -150,8 +150,8 @@ namespace aperture {
  * (left, bottom) = (minX, maxY) -- (right, bottom) = (maxX, maxY)
  * ```
  * - Y+ downward: top < bottom
- * - Validation: `left ? right && top ? bottom`
- * - Equivalent: `minX() ? maxX() && minY() ? maxY()`
+ * - Validation: `left <= right && top <= bottom`
+ * - Equivalent: `minX() <= maxX() && minY() <= maxY()`
  * 
  * **MATH coordinates:**
  * ```
@@ -162,13 +162,13 @@ namespace aperture {
  * (left, bottom) = (minX, minY) -- (right, bottom) = (maxX, minY)
  * ```
  * - Y+ upward: bottom < top
- * - Validation: `left ? right && bottom ? top`
- * - Equivalent: `minX() ? maxX() && minY() ? maxY()`
+ * - Validation: `left <= right && bottom <= top`
+ * - Equivalent: `minX() <= maxX() && minY() <= maxY()`
  * 
  * ### Memory Layout
  * ```
  * Bounds b{left, top, right, bottom};
- * sizeof(Bounds) == 40 bytes (4 ? sizeof(double) + CoordinateSystem)
+ * sizeof(Bounds) == 40 bytes (4 × sizeof(double) + CoordinateSystem)
  * ```
  * 
  * ### Empty Bounds
@@ -177,13 +177,13 @@ namespace aperture {
  * 
  * ### Usage Recommendations
  * 
- * ? **DO:** Use `fromMinMax()` and `minY()/maxY()` for clarity
+ * ✓ **DO:** Use `fromMinMax()` and `minY()/maxY()` for clarity
  * ```cpp
  * Bounds bounds = Bounds::fromMinMax(0, 0, 100, 50, system);
  * if (y >= bounds.minY() && y <= bounds.maxY()) { ... }
  * ```
  * 
- * ?? **CAUTION:** Direct field access requires knowing the coordinate system
+ * ⚠️ **CAUTION:** Direct field access requires knowing the coordinate system
  * ```cpp
  * // SCREEN
  * if (y >= bounds.top && y <= bounds.bottom) { ... }  // OK
@@ -235,7 +235,7 @@ public:
      * 
      * @note No validation performed - use isValid() to check
      * @warning Ensure coordinates match intended system:
-     *          SCREEN: top ? bottom, MATH: bottom ? top
+     *          SCREEN: top <= bottom, MATH: bottom <= top
      */
     Bounds(double l, double t, double r, double b)
         : left(l), top(t), right(r), bottom(b), spatialSystem(CoordinateSystem::screen()) {}
@@ -330,7 +330,7 @@ public:
      * @param sys Coordinate system (defaults to SCREEN)
      * @return Bounds with inverted infinity values
      * 
-     * Creates bounds with left/top = +? and right/bottom = -?.
+     * Creates bounds with left/top = +∞ and right/bottom = -∞.
      * Used as starting point for expanding to fit multiple points/shapes.
      * 
      * @code{.cpp}
@@ -390,7 +390,7 @@ public:
      * assert(math.isValid());
      * @endcode
      * 
-     * @note Guarantees min_x ? max_x and min_y ? max_y
+     * @note Guarantees min_x <= max_x and min_y <= max_y
      * @see fromCorners(), fromCenterAndSize()
      */
     static Bounds fromMinMax(double min_x, double min_y, double max_x, double max_y,
@@ -464,7 +464,7 @@ public:
      * assert(math.minY() < math.maxY());
      * @endcode
      * 
-     * @note Always guarantees minY() ? maxY() regardless of coordinate system
+     * @note Always guarantees minY() <= maxY() regardless of coordinate system
      * @see maxY(), minX(), maxX()
      */
     double minY() const {
@@ -491,7 +491,7 @@ public:
      * assert(math.maxY() > math.minY());
      * @endcode
      * 
-     * @note Always guarantees maxY() ? minY() regardless of coordinate system
+     * @note Always guarantees maxY() >= minY() regardless of coordinate system
      * @see minY(), minX(), maxX()
      */
     double maxY() const {
@@ -532,11 +532,11 @@ public:
      * @code{.cpp}
      * // SCREEN coordinates
      * Bounds screen = Bounds::fromMinMax(0, 0, 10, 10);
-     * assert(screen.isValid());  // minY(0) ? maxY(10) ?
+     * assert(screen.isValid());  // minY(0) <= maxY(10) ✓
      * 
      * // MATH coordinates
      * Bounds math = Bounds::fromMinMax(0, 0, 10, 10, CoordinateSystem::math());
-     * assert(math.isValid());    // minY(0) ? maxY(10) ?
+     * assert(math.isValid());    // minY(0) <= maxY(10) ✓
      * 
      * // Invalid bounds
      * Bounds invalid{10, 0, 0, 10};  // left > right
@@ -583,7 +583,7 @@ public:
     
     /**
      * @brief Get area
-     * @return Area of bounds (width ? height)
+     * @return Area of bounds (width × height)
      * 
      * @code{.cpp}
      * Bounds box{0, 0, 10, 5};
@@ -611,7 +611,7 @@ public:
     
     /**
      * @brief Get perimeter
-     * @return Total length of boundary (2 ? (width + height))
+     * @return Total length of boundary (2 × (width + height))
      * 
      * @code{.cpp}
      * Bounds box{0, 0, 10, 5};
