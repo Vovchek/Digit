@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['queries_0',['Geometric Queries',['../classaperture_1_1_polygon.html#autotoc_md72',1,'']]]
+  ['y_0',['y',['../structaperture_1_1_point.html#afa34c376edf742cc5a59893a8ff48f87',1,'aperture::Point']]]
 ];

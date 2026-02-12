@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['2_20efficient_20point_20containment_0',['2. Efficient Point Containment',['../_rectangle_8h.html#autotoc_md79',1,'']]],
-  ['2_20ellipse_20fitting_20from_20points_1',['2. Ellipse Fitting from Points',['../_ellipse_8h.html#autotoc_md25',1,'']]],
-  ['2_20optimized_20checking_20order_2',['2. Optimized Checking Order',['../_visibility_checker_8h.html#autotoc_md139',1,'']]],
-  ['2_20ray_20casting_20point_20in_20polygon_20test_3',['2. Ray-Casting Point-in-Polygon Test',['../_polygon_8h.html#autotoc_md46',1,'']]],
-  ['2_20visibility_20control_20typelimits_4',['2. Visibility Control (TypeLimits)',['../_shape_8h.html#autotoc_md111',1,'']]]
+  ['blocksinside_0',['blocksInside',['../namespaceaperture.html#a59bc80e4a73e54821b9bd45f26b6d5f5',1,'aperture']]],
+  ['bottom_1',['bottom',['../classaperture_1_1_bounds.html#aa611c0ef4279cf54caa257d6cac97c3b',1,'aperture::Bounds']]],
+  ['bounds_2',['Bounds',['../classaperture_1_1_bounds.html',1,'aperture::Bounds'],['../classaperture_1_1_bounds.html#a69173262b54107dbab36bd874a3a1b51',1,'aperture::Bounds::Bounds()=default'],['../classaperture_1_1_bounds.html#a809c78b40620086455f1af2eb34a63e2',1,'aperture::Bounds::Bounds(double l, double t, double r, double b)'],['../classaperture_1_1_bounds.html#a16e162b2301f960d1d6d8371de962eca',1,'aperture::Bounds::Bounds(double l, double t, double r, double b, CoordinateSystem sys)']]],
+  ['bounds_2ecpp_3',['Bounds.cpp',['../_bounds_8cpp.html',1,'']]],
+  ['bounds_2eh_4',['Bounds.h',['../_bounds_8h.html',1,'']]]
 ];

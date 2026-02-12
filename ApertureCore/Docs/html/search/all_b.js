@@ -1,25 +1,8 @@
 var searchData=
 [
-  ['fallback_20behavior_0',['Fallback Behavior',['../classaperture_1_1_ellipse.html#autotoc_md37',1,'']]],
-  ['features_1',['Features',['../_bounds_8h.html#autotoc_md0',1,'Key Features'],['../_ellipse_8h.html#autotoc_md23',1,'Key Features'],['../_point_8h.html#autotoc_md39',1,'Key Features'],['../_polygon_8h.html#autotoc_md44',1,'Key Features'],['../_rectangle_8h.html#autotoc_md77',1,'Key Features'],['../_shape_8h.html#autotoc_md109',1,'Key Features'],['../_visibility_checker_8h.html#autotoc_md137',1,'Key Features']]],
-  ['field_20access_20when_20system_20is_20known_2',['Traditional: Direct field access (when system is known)',['../_bounds_8h.html#autotoc_md9',1,'']]],
-  ['field_20names_20traditional_3',['Field Names (Traditional)',['../_bounds_8h.html#autotoc_md2',1,'']]],
-  ['field_20semantics_20by_20coordinate_20system_4',['Field Semantics by Coordinate System',['../classaperture_1_1_bounds.html#autotoc_md12',1,'']]],
-  ['fit_5',['Fit',['../classaperture_1_1_ellipse.html#autotoc_md33',1,'5 Points - Exact Ellipse Fit'],['../classaperture_1_1_ellipse.html#autotoc_md34',1,'6+ Points - Least Squares Ellipse Fit']]],
-  ['fitting_20from_20points_6',['2. Ellipse Fitting from Points',['../_ellipse_8h.html#autotoc_md25',1,'']]],
-  ['focaldistance_7',['focalDistance',['../classaperture_1_1_ellipse.html#a4dd723a394376bd1338b99740eefaf2b',1,'aperture::Ellipse']]],
-  ['for_20area_8',['3. Shoelace Formula for Area',['../_polygon_8h.html#autotoc_md47',1,'']]],
-  ['for_20rotated_20rectangle_9',['Bounding Box for Rotated Rectangle',['../_rectangle_8h.html#autotoc_md95',1,'']]],
-  ['for_20shape_20implementers_10',['For Shape Implementers',['../classaperture_1_1_shape.html#autotoc_md135',1,'']]],
-  ['formula_11',['Shoelace Formula (Gauss&apos;s Area Formula)',['../_polygon_8h.html#autotoc_md63',1,'']]],
-  ['formula_20for_20area_12',['3. Shoelace Formula for Area',['../_polygon_8h.html#autotoc_md47',1,'']]],
-  ['formula_20gauss_20s_20area_20formula_13',['Shoelace Formula (Gauss&apos;s Area Formula)',['../_polygon_8h.html#autotoc_md63',1,'']]],
-  ['from_20points_14',['2. Ellipse Fitting from Points',['../_ellipse_8h.html#autotoc_md25',1,'']]],
-  ['fromcenterandsize_15',['fromCenterAndSize',['../classaperture_1_1_bounds.html#a3cbf215ed0839872c66b1886e812f09d',1,'aperture::Bounds']]],
-  ['fromcorners_16',['fromCorners',['../classaperture_1_1_bounds.html#a022ac45b45d560408c3be6fd898e352c',1,'aperture::Bounds']]],
-  ['fromlegacyint_17',['fromLegacyInt',['../namespaceaperture.html#a61273fbdfbfedfd6c4872229c4870497',1,'aperture']]],
-  ['fromminmax_18',['fromMinMax',['../classaperture_1_1_bounds.html#a299aaa190ab9a934c4132f83fdabe329',1,'aperture::Bounds']]],
-  ['fromminmax_20and_20min_20max_20accessors_19',['Recommended: Use fromMinMax() and min/max accessors',['../_bounds_8h.html#autotoc_md8',1,'']]],
-  ['fromstring_20',['fromString',['../namespaceaperture.html#a6aa04be35ef702e47069674c79b8ef1e',1,'aperture']]],
-  ['functionality_20non_20virtual_21',['Provided Functionality (Non-Virtual)',['../classaperture_1_1_shape.html#autotoc_md123',1,'']]]
+  ['normalizationstate_0',['NormalizationState',['../namespaceaperture.html#ab153f863dad50d7c335dc66c09556257',1,'aperture']]],
+  ['normalize_1',['normalize',['../classaperture_1_1_ellipse.html#afc6e6580c2fe2b45dd56e4dec4f3d526',1,'aperture::Ellipse::normalize()'],['../classaperture_1_1_polygon.html#a04a1e66a94e9048c8882ecf6335495e8',1,'aperture::Polygon::normalize()'],['../classaperture_1_1_rectangle.html#adb7be8318e29853904af865240b48690',1,'aperture::Rectangle::normalize()'],['../classaperture_1_1_shape.html#a16bc77b033f4ad41be25c1048276941d',1,'aperture::Shape::normalize()']]],
+  ['normalized_2',['normalized',['../structaperture_1_1_point.html#a62aefc8d29a2f43f1282ba0afb56d8da',1,'aperture::Point']]],
+  ['normalized_3',['NORMALIZED',['../namespaceaperture.html#ab153f863dad50d7c335dc66c09556257a5dce94de2a2a2772111f3af42badb16f',1,'aperture']]],
+  ['normstate_5f_4',['normState_',['../classaperture_1_1_shape.html#a6aef694c036a8b2ffd842be26e4f072f',1,'aperture::Shape']]]
 ];

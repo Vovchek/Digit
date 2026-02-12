@@ -178,7 +178,7 @@ TEST_F(EllipseTest, getBounds_Rotated45Degrees) {
     Ellipse ellipse(8.0, 5.0, 0.0, 0.0, 45.0);
     Bounds bounds = ellipse.getBounds();
     
-    // For 45° rotation, extents should be equal
+    // For 45Â° rotation, extents should be equal
     double width = bounds.width();
     double height = bounds.height();
     
