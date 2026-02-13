@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "VisibilityMask.h"
 #include "ShapeCollection.h"
 #include "VisibilityChecker.h"

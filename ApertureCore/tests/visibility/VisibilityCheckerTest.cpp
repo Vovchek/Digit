@@ -1,4 +1,4 @@
-/**
+﻿/**
  * @file VisibilityCheckerTest.cpp
  * @brief Tests for VisibilityChecker visibility logic correctness
  * 
