@@ -1,69 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="..\InterfSolver\Tools\Matrix.cpp" />
-    <ClCompile Include="..\InterfSolver\Tools\Vector.cpp" />
     <ClCompile Include="..\MGTools\Source\Utils\BaseDataType.cpp" />
     <ClCompile Include="gtest_main.cpp" />
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="..\InterfSolver\Tools\CalcContour.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\CalcContourClassificationBugTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\CalcContourDegenerateTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\CalcContourTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\ConnectSegmentsTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\isPupil.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\isPupilTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
     <ClCompile Include="UtilsTests\middle_integrated_test.cpp">
       <Filter>ApertureTests</Filter>
     </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\XYBrokenLine.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\XYEllipse.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\XYEllipseTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\XYPolygon.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\XYPolygonAreaTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\XYPolygonTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\XYRect.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\XYRectTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\InterfSolver\Tools\XYShape.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
-    <ClCompile Include="InterfSolver\Tools\XYShapeTest.cpp">
-      <Filter>ApertureTests</Filter>
-    </ClCompile>
     <ClCompile Include="..\DigitMode\CFringeSegment.cpp">
-      <Filter>EditorTests</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitModeTests\CFringeSegmentFileIOTest.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\CFringeSegmentTest.cpp">
@@ -85,9 +29,6 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="..\DigitMode\SelectionManager.cpp">
-      <Filter>EditorTests</Filter>
-    </ClCompile>
-    <ClCompile Include="..\DigitMode\TooltipGenerator.cpp">
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="..\DigitMode\CursorManager.cpp">
@@ -116,9 +57,8 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
-    <ClCompile Include="DigitModeTests\BoundsHandlerTest.cpp" />
-    <ClCompile Include="..\DigitMode\BoundsHandler.cpp" />
-    <ClCompile Include="..\Controls\BoundCtrls.cpp" />
+    <ClCompile Include="DigitModeTests\ApertureCtrls Test.cpp" />
+    <ClCompile Include="..\Controls\CApertureCtrls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

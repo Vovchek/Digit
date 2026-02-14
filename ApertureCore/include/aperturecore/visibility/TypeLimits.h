@@ -6,6 +6,14 @@
 
 #include <cstdint>
 
+ // Protect against legacy macro pollution from MFC/Windows headers
+#ifdef EXTERNAL
+#undef EXTERNAL
+#endif
+#ifdef INTERNAL
+#undef INTERNAL
+#endif
+
 namespace aperture {
 
 /**

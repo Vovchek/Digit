@@ -1,4 +1,4 @@
-#include <malloc.h>
+﻿#include <malloc.h>
 #include <memory>
 
 #include "stdafx.h"
@@ -30,12 +30,8 @@ void CImageCtrls::Init()
 
 void CImageCtrls::PrepareNewImage()
 {
-    kZoom = 1.;
     kContrast = 1.;
     kBright = 1.;
-    kZoomHorz = 1.;
-    kZoomVert = 1.;
-	ScrollPosPoint = CPoint(-1,-1);
 
     if(m_pDIB)
 		delete m_pDIB;
@@ -54,12 +50,8 @@ CImageCtrls::~CImageCtrls()
 CImageCtrls& CImageCtrls::operator=(const CImageCtrls& rhs)
 {
   if(this==&rhs) return *this;
-    kZoom = rhs.kZoom;
     kContrast = rhs.kContrast;
     kBright = rhs.kBright;
-    kZoomHorz = rhs.kZoomHorz;
-    kZoomVert = rhs.kZoomVert;
-	ScrollPosPoint = rhs.ScrollPosPoint;
     m_pDIB = rhs.m_pDIB;
     ImageSize = rhs.ImageSize;
     for(int i=0; i < 256; i++){
@@ -67,18 +59,6 @@ CImageCtrls& CImageCtrls::operator=(const CImageCtrls& rhs)
     }
 
     return *this;
-}
-
-void CImageCtrls::SetkZoomHorz(int Procent)
-{
-	double kZ = Procent*0.01;
-	kZoomHorz = kZ;
-}
-
-void CImageCtrls::SetkZoomVert(int Procent)
-{
-	double kZ = Procent*0.01;
-	kZoomVert = kZ;
 }
 
 CRect CImageCtrls::GetDIBRect()

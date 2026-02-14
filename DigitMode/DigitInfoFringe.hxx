@@ -238,7 +238,7 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 			// Find or create fringe for this (Number, id) combination
 			int targetFringe = -1;
-			for (int iF = 0; iF < Fringes.size(); iF++) {
+			for (size_t iF = 0; iF < Fringes.size(); iF++) {
 				if (Fringes[iF].GetNumber() == num && Fringes[iF].GetIndex() == id) {
 					targetFringe = iF;
 					break;
@@ -303,7 +303,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	if (m_bUseFringeModel) {
 		// NEW: Direct fringe iteration
 		int totalPoints = 0;
-		for (int iF = 0; iF < Fringes.size(); iF++) {
+		for (size_t iF = 0; iF < Fringes.size(); iF++) {
 			totalPoints += Fringes[iF].GetPointCount();
 		}
 
@@ -313,7 +313,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 		IntInfo.DigitDat.SetSize(totalPoints);
 
 		int idx = 0;
-		for (int iF = 0; iF < Fringes.size(); iF++) {
+		for (size_t iF = 0; iF < Fringes.size(); iF++) {
 			double number = Fringes[iF].GetNumber();
 			int index = Fringes[iF].GetIndex();
 			for (int iP = 0; iP < Fringes[iF].GetPointCount(); iP++) {

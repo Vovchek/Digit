@@ -1,4 +1,4 @@
-/// This file is intended to be icluded into DigitInfo.cpp
+﻿/// This file is intended to be icluded into DigitInfo.cpp
 /// It was extracted to facilitate testing and debugging of CreateNumLines()
 
 // TODO: refNumLines array index goes out of bound when sections do not fit the window
@@ -28,8 +28,8 @@ void CDigitInfo::ProcessSectionPropagation(int sectionIndex, int direction,
 {
 	refNumLines.RemoveAll();
 	// Calculate required array size (existing numbers + current section fringes)
-	maxSize = __max(maxSize, (maxN - minN) / numStep + 2);
-	maxSize = __max(maxSize, Sections[sectionIndex].NumLines.GetSize());
+	maxSize = __max(maxSize, static_cast<int>((maxN - minN) / numStep + 2));
+	maxSize = __max(maxSize, static_cast<int>(Sections[sectionIndex].NumLines.GetSize()));
 	refNumLines.SetSize(maxSize);
 
 	// Use section-specific step if available

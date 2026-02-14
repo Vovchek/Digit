@@ -1,55 +1,22 @@
 ﻿#pragma once
 
 #include <afxwin.h>
-#include <afxtempl.h>
 
 /**
- * @brief Interface for accessing bounds control data
+ * @brief Base interface for bounds control implementations
  * 
- * Allows BoundsHandler to work with both real CBoundCtrls and test mocks
- * without coupling to concrete implementations.
+ * Marker interface for polymorphic bounds handling.
+ * CBoundCtrls (legacy CRect-based) and CApertureCtrls (modern Shape-based)
+ * have no common API - they use fundamentally different approaches.
+ * 
+ * @note This interface is kept empty to allow future common methods
+ *       if a unified abstraction emerges.
  */
 class IBoundsData {
 public:
     virtual ~IBoundsData() = default;
     
-    /**
-     * Get the type of external bound (BOUND_RECT, BOUND_ROUND, etc.)
-     * @return Bound type constant, or -1 if no external bound
-     */
-    virtual int GetExtBoundType() const = 0;
-    
-    /**
-     * Get the type of internal bound
-     * @return Bound type constant, or -1 if no internal bound
-     */
-    virtual int GetInsBoundType() const = 0;
-    
-    /**
-     * Get the actual external bound rectangle/polygon
-     * @param Type Expected bound type (BOUND_RECT, BOUND_ROUND, etc.)
-     * @param xDIB Image width
-     * @param yDIB Image height
-     * @param Bound Output: bounding rectangle
-     * @param PlgPoints Output: polygon points (for BOUND_POLYGON)
-     * @return TRUE if bound retrieved successfully
-     */
-    virtual BOOL GetExtRealBound(int Type, int xDIB, int yDIB, 
-                                 CRect& Bound, 
-                                 CArray<CPoint, CPoint>& PlgPoints) = 0;
-    
-    /**
-     * Get the actual internal bound rectangle/polygon
-     * @param Type Expected bound type
-     * @param xDIB Image width
-     * @param yDIB Image height
-     * @param Bound Output: bounding rectangle
-     * @param PlgPoints Output: polygon points (for BOUND_POLYGON)
-     * @return TRUE if bound retrieved successfully
-     */
-    virtual BOOL GetInsRealBound(int Type, int xDIB, int yDIB,
-                                 CRect& Bound,
-                                 CArray<CPoint, CPoint>& PlgPoints) = 0;
+    // No common methods between legacy (CRect/BOUND_TYPE) and modern (Shape) approaches
 };
 
 /**

@@ -1,4 +1,4 @@
-#if !defined(AFX_BASEIMAGEDOC_H__D5386BEE_009B_4643_A333_F9F54446D0A0__INCLUDED_)
+﻿#if !defined(AFX_BASEIMAGEDOC_H__D5386BEE_009B_4643_A333_F9F54446D0A0__INCLUDED_)
 #define AFX_BASEIMAGEDOC_H__D5386BEE_009B_4643_A333_F9F54446D0A0__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -9,6 +9,7 @@
 #include "Controls\ImageCtrls.h"
 #include "Controls\MeasureCtrls.h"
 #include "Controls\BoundCtrls.h"
+#include "Controls\CApertureCtrls.h"  // ← Modern aperture controls
 #include "DigitMode\DigitInfo.h"
 #include "Utils\Tracker.h"
 
@@ -17,6 +18,10 @@ class CImageCtrls;
 class CMeasureCtrls;
 class CBoundCtrls;
 class CDigitInfo;
+
+namespace DigitMode {
+    class CApertureCtrls;
+}
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageDoc document
 class CBaseImageDoc : public CDocument
@@ -30,7 +35,8 @@ public:
    int LastOperationType;
    CImageCtrls imageCtrls;
    CMeasureCtrls measureCtrls;
-   CBoundCtrls boundCtrls;
+   CBoundCtrls boundCtrls;                      // ← Legacy bounds (to be deprecated)
+   DigitMode::CApertureCtrls apertureCtrls;     // ← Modern aperture system
    CMTraker  Tracker;
    CDigitInfo Digit;
    CStringList Scenario;

@@ -228,9 +228,9 @@ void CDigitInfo::CreateBufLineApertureSimple()
 			x = (int)((1. - y * y / b / b) * a * a);
 			if (!i) x = 0;
 			else {
-				float ix = x;
+				float ix = static_cast<float>(x);
 				ix = (fabs(ix));
-				x = sqrt(ix);
+				x = static_cast<int>(sqrt(ix));
 			}
 			l_x = (int)((int)-x + cent.x);
 			r_x = (int)((int)x + cent.x);
@@ -342,14 +342,14 @@ void CDigitInfo::CreateBufLineObstructionSimple()
 			for (i = 0; i < naP; i++) {
 				y = (int)(BoundR.top - cent.y + i);
 				x = (int)((1. - y * y / b / b) * a * a);
-				if (!i) x = 0.;
+				if (!i) x = 0;
 				else {
-					float ix = x;
+					float ix = static_cast<float>(x);
 					ix = (fabs(ix));
-					x = sqrt(ix);
+					x = static_cast<int>(sqrt(ix));
 				}
-				l_x = (int)((int)-x + cent.x);
-				r_x = (int)((int)x + cent.x);
+				l_x = static_cast<int>(-x + cent.x);
+				r_x = static_cast<int>(x + cent.x);
 				if (l_x < 0) l_x = 0;
 				if (r_x > xDIB) r_x = xDIB;
 				buf_line[i + Sh][2] = l_x;
@@ -465,7 +465,7 @@ void CDigitInfo::CreateRedCenters()
 	int totalRedCenters = 0;
 	for (int iy = begY; iy < endY; iy++) {
 		int n = -1;
-		for (auto iCol = 0; iCol < pI->m_pDIB->m_dwWidth; iCol++) {
+		for (DWORD iCol = 0; iCol < pI->m_pDIB->m_dwWidth; iCol++) {
 			idx = ((yDIB - iy) * pI->m_pDIB->m_dwWidth + iCol);
 			Pixel = pI->m_pDIB->m_lpSrcBits[idx];
 			rgbPix.rgbRed = Pixel;
@@ -547,7 +547,7 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
             pDC->SetPixelV(P.x, P.y, col);
         }
         for (int i = 0; i < Sections.GetSize(); ++i) {
-            Sections[i].Draw(pDC, MainFringeNumber);
+            Sections[i].Draw(pDC, static_cast<int>(MainFringeNumber));
         }
     }
 

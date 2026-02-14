@@ -1,117 +1,148 @@
-﻿#pragma once
+﻿/**
+ * @file BoundsHandler.h
+ * @brief Handles interactive editing of aperture shapes using CApertureCtrls
+ * 
+ * Aligned with fringe editor pattern:
+ * - Stateless hit-testing delegation to CApertureCtrls
+ * - Drag lifecycle management (BeginDrag/UpdateDrag/EndDrag)
+ * - Coordinate transforms (screen ↔ world)
+ * 
+ * @note Editing state lives in CApertureCtrls (BeginEdit/CommitEdit)
+ */
+#pragma once
 
 #include <afxwin.h>
 #include "ImageTempl/ViewTransform.h"
-#include "IBoundsData.h"  // ← Use interfaces instead of forward declarations
+#include "ApertureCore\include\aperturecore\geometry\Point.h"
+
+// Forward declarations
+namespace DigitMode {
+    class CApertureCtrls;
+}
+class IImageData;
 
 namespace DigitMode {
 
 /**
  * @brief Handles interactive editing of image bounds (apertures)
  * 
- * Phase 1 implementation:
- * - Step 1: ViewTransform coordinate conversion ✅
- * - Step 2: Hit-testing for bounds handles (in progress)
+ * Responsibilities:
+ * - Coordinate transformation (screen → world → aperture)
+ * - Delegate hit-testing to CApertureCtrls
+ * - Manage drag lifecycle (delegates to CApertureCtrls editing)
+ * - NO bounds calculation logic (that's in CApertureCtrls)
  * 
- * Future phases will add:
- * - Drag state management
- * - Rendering feedback
+ * Aligned with fringe editor pattern (HitTester + InputHandler)
  */
 class BoundsHandler {
 public:
     BoundsHandler();
     ~BoundsHandler();
     
-    // =========== Initialization ===========
+    // ========================================================================
+    // Initialization
+    // ========================================================================
+    
     /**
-     * Set pointers to required data/view objects
-     * Must call before any interaction
+     * Set aperture controls and image data
      */
-    void SetBoundsData(IBoundsData* pBounds, IImageData* pImage);
+    void SetApertureCtrls(CApertureCtrls* pApertureCtrls, IImageData* pImage);
+    
+    /**
+     * Set view transform for coordinate conversions
+     */
     void SetViewTransform(ViewTransform* pView);
     
-    // =========== Hit-Testing ===========
+    // ========================================================================
+    // Hit-Testing (delegates to CApertureCtrls)
+    // ========================================================================
+    
     /**
-     * Check if screen point is near a bound handle
-     * @param screenPt Point in client/screen coordinates
-     * @param outBoundIdx Output: which bound (0-N, -1 if none)
-     * @param outHandleIdx Output: which handle corner (0-3 for rect, -1 if none)
-     *                     Handle indices: 0=TL, 1=TR, 2=BR, 3=BL
-     * @return true if hit a handle; indices are valid
+     * @brief Hit-test result structure
      */
-    bool HitTestBoundHandle(const CPoint& screenPt, 
-                            int& outBoundIdx, 
-                            int& outHandleIdx) const;
+    struct HitResult {
+        bool hit = false;              ///< True if anything was hit
+        size_t shapeIndex = 0;         ///< Index in type-specific container
+        int controlPointIndex = -1;   ///< Control point index (-1 = body)
+        double distance = 0.0;         ///< Distance from hit point
+        
+        bool isControlPoint() const { return hit && controlPointIndex >= 0; }
+        bool isBody() const { return hit && controlPointIndex == -1; }
+    };
+    
+    /**
+     * @brief Hit-test using CApertureCtrls shape-based API
+     * @param screenPt Point in screen coordinates
+     * @param tolerance Hit tolerance in screen pixels
+     * @return Hit result structure
+     */
+    HitResult HitTest(const CPoint& screenPt, int tolerance = HANDLE_TOLERANCE) const;
 
-    // =========== Drag Lifecycle ===========
-    void BeginDrag(int boundIdx, int handleIdx, const CPoint& screenStart);
+    // ========================================================================
+    // Drag Lifecycle (delegates to CApertureCtrls editing)
+    // ========================================================================
+    
+    /**
+     * Begin dragging a shape control point
+     */
+    void BeginDrag(size_t shapeIndex, int controlPointIndex, const CPoint& screenStart);
+    
+    /**
+     * Update drag position
+     */
     void UpdateDrag(const CPoint& screenCurrent);
+    
+    /**
+     * End drag - commit or cancel
+     */
     void EndDrag(bool bCommit);
+    
+    /**
+     * Cancel current drag operation
+     */
     void CancelDrag();
     
-    // =========== Coordinate Transforms ===========
-    /**
-     * Convert screen (client window) coordinates to world (image) coordinates
-     * Returns integer world coordinates (matches ViewTransform::ScreenToWorld)
-     */
-    CPoint ScreenToWorld(const CPoint& screenPt) const;
+    // ========================================================================
+    // Coordinate Transforms
+    // ========================================================================
     
     /**
      * Convert screen coordinates to world with double precision
-     * Useful for precise calculations during drag operations
      */
     CPoint2d ScreenToWorldDouble(const CPoint& screenPt) const;
     
     /**
-     * Convert world (image) coordinates to screen (client window) coordinates
-     * Accounts for current zoom/pan in ViewTransform
+     * Convert world coordinates to ApertureCore Point
      */
-    CPoint WorldToScreen(const CPoint2d& worldPt) const;
+    aperture::Point WorldToAperturePoint(const CPoint2d& worldPt) const {
+        return aperture::Point{worldPt.x, worldPt.y};
+    }
     
-    // =========== State Query ===========
-    bool IsInitialized() const { return m_pView != nullptr; }
+    /**
+     * Convert screen directly to ApertureCore Point
+     */
+    aperture::Point ScreenToAperturePoint(const CPoint& screenPt) const {
+        CPoint2d world = ScreenToWorldDouble(screenPt);
+        return WorldToAperturePoint(world);
+    }
+    
+    // ========================================================================
+    // State Query
+    // ========================================================================
+    
+    bool IsInitialized() const { return m_pView != nullptr && m_pApertureCtrls != nullptr; }
     bool IsDragging() const { return m_isDragging; }
-    CRect GetPreviewBound() const { return m_previewBound; }
-    CRect GetOriginalBound() const { return m_boundSnapshot; }
 
 private:
-    // =========== Internal Helpers ===========
-    /**
-     * Get handle position in world coordinates
-     * @param bound Rectangle in world coordinates
-     * @param handleIdx Corner index (0=TL, 1=TR, 2=BR, 3=BL)
-     * @return Corner position in world coordinates
-     */
-    CPoint2d GetHandleWorldPos(const CRect& bound, int handleIdx) const;
-    
-    /**
-     * Check if screen point is near a handle position
-     * @param screenPt Screen point to test
-     * @param handleScreenPos Screen position of handle
-     * @param tolerance Pixel tolerance (default 5)
-     */
-    bool IsNearHandle(const CPoint& screenPt, 
-                      const CPoint& handleScreenPos,
-                      int tolerance = 5) const;
-
-    CRect GetCurrentBound(int boundIdx) const;
-    CRect ComputeNewBoundFromDrag(const CRect& original,
-                                  int handleIdx,
-                                  double worldDx,
-                                  double worldDy) const;
-    
-    // =========== State ===========
-    IBoundsData* m_pBounds = nullptr;  // ← Interface instead of concrete type
-    IImageData* m_pImage = nullptr;     // ← Interface instead of concrete type
+    // Modern mode only
+    CApertureCtrls* m_pApertureCtrls = nullptr;
+    IImageData* m_pImage = nullptr;
     ViewTransform* m_pView = nullptr;
 
+    // Drag state
     bool m_isDragging = false;
-    int m_boundIndex = -1;
-    int m_handleIndex = -1;
     CPoint m_dragStart;
     CPoint m_dragCurrent;
-    CRect m_boundSnapshot;
-    CRect m_previewBound;
     
     // Constants
     static constexpr int HANDLE_TOLERANCE = 5;  // Pixels for hit testing

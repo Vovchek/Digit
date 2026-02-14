@@ -12,8 +12,6 @@
 
 #include "MGTools\Include\Utils\Utils.h"
 
-#include "ImageFeatures\ZoomDlg.h"
-
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #undef THIS_FILE
@@ -284,8 +282,6 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_UPDATE_COMMAND_UI(IDD_BOUNDS_EXT, OnUpdateExtBounds)
 	ON_COMMAND(IDD_BOUNDS_INS, OnInsBounds)
 	ON_UPDATE_COMMAND_UI(IDD_BOUNDS_INS, OnUpdateInsBounds)
-	ON_COMMAND(IDD_ZOOM_IMAGE, OnZoom)
-	ON_UPDATE_COMMAND_UI(IDD_ZOOM_IMAGE, OnUpdateZoom)
 	ON_COMMAND(IDD_ZOOM_IN, OnZoomIn)
 	ON_COMMAND(IDD_ZOOM_OUT, OnZoomOut)
 	ON_COMMAND(IDD_ZOOM_FIT, OnZoomFit)
@@ -790,14 +786,6 @@ void CImageView::OnUpdateInsBounds(CCmdUI* pCmdUI)
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
-}
-
-void CImageView::OnZoom()
-{
-	CZoomDlg D(GetParentFrame());
-	D.SetNameINI(GetIniFile());
-	D.SetWndCap("Zoom");
-	D.DoModal();
 }
 
 void CImageView::OnUpdateZoom(CCmdUI* pCmdUI)

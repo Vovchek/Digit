@@ -11,6 +11,13 @@
 #include <stdexcept>
 #include <cmath>
 
+#ifdef min
+#undef min  // Ensure std::min is used, not a macro
+#endif
+#ifdef max
+#undef max  // Ensure std::max is used, not a macro
+#endif
+
 namespace aperture {
 
 /**

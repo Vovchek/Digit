@@ -104,17 +104,6 @@ void CImageDoc::LastOperationUndo()
 		ReloadDocument(LPCTSTR(UndoTmpPath));
 		RemoveLastRecordScenario();
 		break;
-	case O_RATIO_SIDE:
-		pImCtrls->kZoomHorz = pImCtrls->undokZoomHorz;
-		pImCtrls->kZoomVert = pImCtrls->undokZoomVert;
-		ReloadDocument();
-		RemoveLastRecordScenario();
-		break;
-	case O_ZOOM:
-		pImCtrls->kZoom = pImCtrls->undokZoom;
-		ReloadDocument();
-		RemoveLastRecordScenario();
-		break;
 	case O_BRITGHTNESS_CONTRAST:
 		pImCtrls->kBright = pImCtrls->undokBright;
 		pImCtrls->kContrast = pImCtrls->undokContrast;

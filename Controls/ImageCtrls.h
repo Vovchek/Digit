@@ -11,20 +11,13 @@
 class CImageCtrls : public IImageData  // ← Implement interface
 {
 public:	
-    double kZoom;
     double kContrast;
     double kBright;
-    double kZoomHorz;
-    double kZoomVert;
 
-    double undokZoom;
     double undokContrast;
     double undokBright;
-    double undokZoomHorz;
-    double undokZoomVert;
 
 	CString OriginalPath;
-    CPoint ScrollPosPoint;
     CSize ImageSize;
     SECDib* m_pDIB;
     CString FileImagePic;
@@ -36,12 +29,8 @@ public:
 	void Init();
     void PrepareNewImage();
 
-    void SetkZoomHorz(int Procent);
-    void SetkZoomVert(int Procent);
     SECImage* GetImage() {return (SECImage *) m_pDIB; }
     CRect GetDIBRect();
-    CSize GetImageSizeSize() {return ImageSize;}
-    void SetImageSizeSize(CSize cz) {ImageSize = cz;}
     void SaveImage(LPCTSTR fname);
     bool LoadImage(CString& fname);
     BOOL ConvertToDIB(CString& name);

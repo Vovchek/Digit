@@ -104,6 +104,13 @@
 #include <limits>
 #include <array>
 
+#ifdef min
+#undef min  // Ensure std::min is used, not a macro
+#endif
+#ifdef max
+#undef max  // Ensure std::max is used, not a macro
+#endif
+
 namespace aperture {
 
 /**
@@ -281,6 +288,7 @@ public:
      * 
      * @see fromCenterAndSize()
      */
+
     static Bounds fromCorners(const Point& p1, const Point& p2, 
                              CoordinateSystem sys = CoordinateSystem::screen()) {
         return {

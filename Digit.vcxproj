@@ -98,8 +98,8 @@
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>
         MGTools.lib;
-        InterfSolver.lib;
-        %(AdditionalDependencies)
+ InterfSolver.lib;
+ApertureCore.lib         %(AdditionalDependencies)
       </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
@@ -146,17 +146,18 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OutputFile>$(OutDir)Digit.exe</OutputFile>
-      <AdditionalLibraryDirectories>       Build\Debug;
-        %(AdditionalLibraryDirectories)
+      <AdditionalLibraryDirectories>Build\$(Configuration);$(SolutionDir)\ApertureCore\$(Platform)\$(Configuration)
+; %(AdditionalLibraryDirectories)
       </AdditionalLibraryDirectories>
       <AdditionalDependencies>
         MGTools.lib;
-        InterfSolver.lib;
-        %(AdditionalDependencies)
+ InterfSolver.lib;
+ApertureCore.lib         %(AdditionalDependencies)
       </AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Controls\CApertureCtrls.cpp" />
     <ClCompile Include="DigitMode\BoundsHandler.cpp" />
     <ClCompile Include="DigitMode\CFringeSegment.cpp" />
     <ClCompile Include="DigitMode\CommandDispatcher.cpp" />
@@ -195,7 +196,6 @@
     <ClCompile Include="Options\ApproxSetDlg.cpp" />
     <ClCompile Include="Options\ToolBarsDlg.cpp" />
     <ClCompile Include="ImageFeatures\SectionFrame.cpp" />
-    <ClCompile Include="ImageFeatures\ZoomDlg.cpp" />
     <ClCompile Include="DigitMode\DigitInfo.cpp" />
     <ClCompile Include="DigitMode\DotInfo.cpp" />
     <ClCompile Include="DigitMode\SectionInfo.cpp" />
@@ -213,6 +213,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AppDef.h" />
+    <ClInclude Include="Controls\CApertureCtrls.h" />
     <ClInclude Include="DigitMode\BoundsHandler.h" />
     <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
@@ -231,6 +232,7 @@
     <ClInclude Include="DigitMode\SelectNumber.hxx" />
     <ClInclude Include="DigitMode\TooltipGenerator.h" />
     <ClInclude Include="FileUtils.h" />
+    <ClInclude Include="ImageTempl\ViewTransform.h" />
     <ClInclude Include="MainFrame\CommentsFileDlg.h" />
     <ClInclude Include="MainFrame\MainFrm.h" />
     <ClInclude Include="Controls\BoundCtrls.h" />
@@ -260,7 +262,6 @@
     <ClInclude Include="Options\ApproxSetDlg.h" />
     <ClInclude Include="Options\ToolBarsDlg.h" />
     <ClInclude Include="ImageFeatures\SectionFrame.h" />
-    <ClInclude Include="ImageFeatures\ZoomDlg.h" />
     <ClInclude Include="DigitMode\DigitInfo.h" />
     <ClInclude Include="DigitMode\DotInfo.h" />
     <ClInclude Include="DigitMode\SectionInfo.h" />
@@ -287,6 +288,7 @@
     <None Include="Docs\AUTONUMBERING_REFINED_TESTS.md" />
     <None Include="Docs\AutoNumbering_TechnicalReference.md" />
     <None Include="Docs\AUTONUMBERING_TEST_REFINEMENT_COMPLETE.md" />
+    <None Include="docs\boundCtrls-dependency-graph.md" />
     <None Include="Docs\BOUNDS_EDITING_ARCHITECTURE.md" />
     <None Include="Docs\BOUNDS_EDITING_IMPLEMENTATION_GUIDE.md" />
     <None Include="Docs\BOUNDS_EDITING_PROJECT_SUMMARY.md" />
@@ -294,6 +296,8 @@
     <None Include="Docs\BOUNDS_EDITING_RESTORATION_PLAN.md" />
     <None Include="Docs\BOXSELECTION_TEST_FAILURE_ANALYSIS.md" />
     <None Include="Docs\BOXSELECTION_TEST_FIX_COMPLETE.md" />
+    <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
+    <None Include="docs\CApertureCtrls-Simplified.md" />
     <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
     <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
     <None Include="Docs\DRAWMODETEST_FIX_SUMMARY.md" />

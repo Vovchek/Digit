@@ -175,6 +175,13 @@
 #include <vector>
 #include <memory>
 
+#ifdef MEASURING
+#undef MEASURING
+#endif
+#ifdef NORMALIZED
+#undef NORMALIZED
+#endif
+
 namespace aperture {
 
 /**

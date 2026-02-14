@@ -7,10 +7,12 @@
 
 #include "InterfSolver\Tools\CalcLimits.h"
 #include "DigitMode\IBoundsData.h"  // ← Add interface
+//#include "ApertureCore\include\ApertureCore\Visibility\ShapeCollection.h"
 
 class CBoundCtrls : public IBoundsData  // ← Implement interface
 {
 public:
+// Legacy members for current bound being edited (before commit) - can be used for both external and internal bounds, as only one is edited at a time
    CRect CurBound;
    CPoint CustomDot;
    CArray<CPoint, CPoint> CustomDots; // bound being currently edited via dots
@@ -23,6 +25,9 @@ public:
    int InsBoundType;
    CArray<int, int> LastAddedBoundType; // keep track of the type (shape in fact) of each added bound
    int NPntNax; // max (magic) number of points for polygon contour approximation
+
+   // new aperture
+   // aperture::ShapeCollection Bounds; // collection of all shapes (external and internal) for isPupil test, updated on each commit of a bound
 
 public:
     CBoundCtrls();
@@ -44,10 +49,10 @@ public:
 	BOOL GetPartsOfContours(int Type, CArrayXYEllipse& _ArrEll, CArrayXYRect& _ArrRect, CArrayXYPolygon& _ArrPlg); // getter for the parts of contours of given type (external or internal)
 	
     // IBoundsData interface implementation
-	virtual int GetExtBoundType() const override { return ExtBoundType; } // Return the shape of external bound (ellipse, rectangle, polygon, or none)
-	virtual int GetInsBoundType() const override { return InsBoundType; } // Return the shape of internal bound (ellipse, rectangle, polygon, or none)
-	virtual BOOL GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) override; // gets external bounds interception cropped to image size
-	virtual BOOL GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints) override; // gets internal bounds combined cropped to image size
+	virtual int GetExtBoundType() const { return ExtBoundType; } // Return the shape of external bound (ellipse, rectangle, polygon, or none)
+	virtual int GetInsBoundType() const { return InsBoundType; } // Return the shape of internal bound (ellipse, rectangle, polygon, or none)
+	virtual BOOL GetExtRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints); // gets external bounds interception cropped to image size
+	virtual BOOL GetInsRealBound(int Type, int xDIB, int yDIB, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints); // gets internal bounds combined cropped to image size
     
     // Legacy overload with idx parameter (keep for existing code)
 	BOOL GetInsRealBound(int Type, int xDIB, int yDIB, int& idx, CRect& Bound, CArray<CPoint, CPoint>& PlgPoints); // searches & gets first internal bound starting with idx, cropes to image size; 
@@ -66,8 +71,8 @@ public:
     void FormBoundsOnLoadFile(); // fits its name
 	
 protected:	
-   CRect ExtBoundRect; // extents
-   CRect InsBoundRect; // extents
+   CRect ExtBoundRect; // aperture extents
+   CRect InsBoundRect; // obstruction extents
 };
 
 #endif // !defined(AFX_BOUND_CONTROLS_DEFS_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)

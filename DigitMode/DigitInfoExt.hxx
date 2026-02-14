@@ -164,11 +164,11 @@ void CDigitInfo::CreateZAPSections()
 	for (int iS = 0; iS < Sections.GetSize(); iS++) {
 		for (int iL = 0; iL < Sections[iS].NumLines.GetSize(); iL++) {
 			if (Sections[iS].NumLines[iL].Number != -1000.)
-				minN = __min(minN, Sections[iS].NumLines[iL].Number);
-			maxN = __max(maxN, Sections[iS].NumLines[iL].Number);
+				minN = __min(minN, static_cast<int>(Sections[iS].NumLines[iL].Number));
+			maxN = __max(maxN, static_cast<int>(Sections[iS].NumLines[iL].Number));
 		}
 	}
-	int nFringes = (maxN - minN) / numStep + 1;
+	int nFringes = static_cast<int>((maxN - minN) / numStep + 1);
 	int begY = 0;
 	int bH = BoundR.Height();
 	double SecGap;
@@ -180,12 +180,12 @@ void CDigitInfo::CreateZAPSections()
 		SortZapLines();
 		int maxSize = ZapLines.GetSize();
 		SecGap = (fabs(ZapLines[maxSize - 1].L.P1.y - ZapLines[0].L.P1.y)) / (maxSize - 1);
-		begY = ZapLines[maxSize - 1].L.P1.y - BoundR.top;
-		nFringes = ((double)(bH - begY)) / SecGap + 1;
+		begY = static_cast<int>(ZapLines[maxSize - 1].L.P1.y - BoundR.top);
+		nFringes = static_cast<int>(((double)(bH - begY)) / SecGap + 1);
 	}
 
 	for (i = 1; i < nFringes - 1; i++) {
-		int iy = (int)(begY + SecGap * i);
+		int iy = static_cast<int>(begY + SecGap * i);
 		CZapLineInfo zL;
 		zL.L = Sections[iy].L;
 		zL.iSec = iy;
@@ -200,7 +200,6 @@ void CDigitInfo::CreateZAPSections()
 
 void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 {
-	int i;
 	CImageCtrls* pI = GetImageCtrls();
 	CBoundCtrls* pB = GetBoundCtrls();
 	int xDIB = pI->ImageSize.cx;
@@ -211,7 +210,7 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 
 	CList<double, double> YLines;
 	double y;
-	for (i = 0; i < Dots.size(); i++) {
+	for (size_t i = 0; i < Dots.size(); i++) {
 		y = Dots[i].P.y;
 		if (!YLines.Find(y))
 			YLines.AddTail(y);
@@ -220,7 +219,7 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 	int ext_t_y = BoundR.top;
 	int iy;
 	POSITION pos = YLines.GetHeadPosition();
-	for (i = 0; i < YLines.GetCount(); i++) {
+	for (int i = 0; i < YLines.GetCount(); i++) {
 		y = YLines.GetNext(pos);
 		iy = int(y);
 		CZapLineInfo zL;
@@ -239,8 +238,9 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 
 	CPoint P;
 	int idx;
-	for (i = 0; i < Dots.size(); i++) {
-		P.x = Dots[i].P.x; P.y = Dots[i].P.y;
+	for (size_t i = 0; i < Dots.size(); i++) {
+		P.x = static_cast<LONG>(Dots[i].P.x); 
+		P.y = static_cast<LONG>(Dots[i].P.y);
 		if (GetNearestZapSection(P, idx)) {
 			Dots[i].iZapSec = idx;
 		}
@@ -433,7 +433,7 @@ void CDigitInfo::AddZapSection(int iy)
 void CDigitInfo::SectionLeft(CPoint P, int dotSide)
 {
 	int idx;
-	if (idxMainDot < Dots.size()) {
+	if (static_cast<size_t>(idxMainDot) < Dots.size()) {
 		if (IsDotUnderCursor(P, dotSide, idx) && idxMainDot != -1) {
 			int iZapSec = Dots[idx].iZapSec;
 			double Number = Dots[idxMainDot].Number + numStep;
@@ -450,7 +450,7 @@ void CDigitInfo::SectionLeft(CPoint P, int dotSide)
 void CDigitInfo::SectionRight(CPoint P, int dotSide)
 {
 	int idx;
-	if (idxMainDot < Dots.size()) {
+	if (static_cast<size_t>(idxMainDot) < Dots.size()) {
 		if (IsDotUnderCursor(P, dotSide, idx) && idxMainDot != -1) {
 			int iZapSec = Dots[idx].iZapSec;
 			double Number = Dots[idxMainDot].Number - numStep;
@@ -476,7 +476,7 @@ void CDigitInfo::DeleteZapSection(int iy)
 
 void CDigitInfo::RemoveDotZAPSection(int iSec)
 {
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iSec) {
 			Dots.erase(Dots.begin()+iD);
 			iD--;
@@ -488,9 +488,9 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 {
 	if (m_bUseFringeModel) {
 		int targetFringe = -1;
-		for (int iF = 0; iF < Fringes.size(); iF++) {
+		for (size_t iF = 0; iF < Fringes.size(); iF++) {
 			if (Fringes[iF].GetNumber() == CurrentNumber) {
-				targetFringe = iF;
+				targetFringe = static_cast<int>(iF);
 				break;
 			}
 		}
@@ -513,7 +513,8 @@ void CDigitInfo::AddDot(CPoint P, int dotSide)
 	if (pCtrls->ViewState & V_ZAPSECTIONS) {
 		if (GetNearestZapSection(P, idx)) {
 			dot.iZapSec = idx;
-			dot.P.y = P.y = ZapLines[idx].L.P1.y;
+			dot.P.y = ZapLines[idx].L.P1.y;
+			P.y = static_cast<LONG>(dot.P.y);
 		}
 	}
 	/*if (pCtrls->ViewState & V_EXTREMUMS) {
@@ -563,7 +564,7 @@ void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 	int idx;
 	if (IsDotUnderCursor(P, dotSide, idx)) {
 		double Number = Dots[idx].Number;
-		for (int i = 0; i < Dots.size(); i++) {
+		for (size_t i = 0; i < Dots.size(); i++) {
 			if (Dots[i].Number == Number) {
 				Dots.erase(Dots.begin()+i);
 				i--;
@@ -585,9 +586,9 @@ bool CDigitInfo::IsDotUnderCursor(CPoint P, int dotSide, int& idx)
 	int DotSide12 = dotSide / 2;
 	CPoint lP;
 	CRect dotR;
-	for (int i = 0; i < Dots.size(); i++) {
-		lP.x = int(Dots[i].P.x);
-		lP.y = int(Dots[i].P.y);
+	for (size_t i = 0; i < Dots.size(); i++) {
+		lP.x = static_cast<int>(Dots[i].P.x);
+		lP.y = static_cast<int>(Dots[i].P.y);
 		dotR.left = lP.x - DotSide12;
 		dotR.right = lP.x + DotSide12;
 		dotR.top = lP.y - DotSide12;
@@ -674,8 +675,8 @@ void CDigitInfo::GetLockedDotPos(CPoint& P1)
 		return;
 	}
 
-	P1.x = Dots[idxDragDot].P.x;
-	P1.y = Dots[idxDragDot].P.y;
+	P1.x = static_cast<LONG>(Dots[idxDragDot].P.x);
+	P1.y = static_cast<LONG>(Dots[idxDragDot].P.y);
 }
 
 void CDigitInfo::SelectMainDot(CPoint P, int dotSide)
@@ -700,10 +701,10 @@ void CDigitInfo::SelectMainDot(CPoint P, int dotSide)
 void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 {
 	if (m_bUseFringeModel) {
-		for (int iF = 0; iF < Fringes.size(); iF++) {
+		for (size_t iF = 0; iF < Fringes.size(); iF++) {
 			if (Number == INT_MIN || fabs(Fringes[iF].GetNumber() - Number) < 1e-6) {
 				if (Fringes[iF].GetPointCount() > 0) {
-					idxMainPoint = SelectedPoint(iF, 0);
+					idxMainPoint = SelectedPoint(static_cast<int>(iF), 0);
 					CurrentNumber = Fringes[iF].GetNumber();
 					return;
 				}
@@ -732,9 +733,9 @@ void CDigitInfo::SelectMainDot(int iZapSec/*=-1*/, double Number/*=INT_MIN*/)
 
 bool CDigitInfo::GetDot(int iZapSec, double Number, int& idx, CDPoint& dP)
 {
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec && Dots[iD].Number == Number) {
-			idx = iD;
+			idx = static_cast<int>(iD);
 			dP = Dots[iD].P;
 			return true;
 		}
@@ -746,7 +747,7 @@ bool CDigitInfo::GetDotNumbers(CList<double, double>& Numbers)
 {
 	double Num;
 	POSITION Pos;
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		Num = Dots[iD].Number;
 		Pos = Numbers.Find(Num);
 		if (!Pos)
@@ -759,11 +760,11 @@ bool CDigitInfo::GetFirstDotInSection(int iZapSec, int& idx, CDPoint& dP)
 {
 	int minidx = -1;
 	double minx = INT_MAX;
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec) {
 			if (Dots[iD].P.x < minx) {
 				minx = Dots[iD].P.x;
-				minidx = iD;
+				minidx = static_cast<int>(iD);
 			}
 		}
 	}
@@ -781,7 +782,7 @@ bool CDigitInfo::GetNextDotInSection(int iZapSec, int direct, int& idx, CDPoint&
 	int minidx = -1;
 	double minx = INT_MAX;
 	double dif;
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].iZapSec == iZapSec) {
 			dif = 0.;
 			if (direct > 0 && Dots[iD].P.x > dP.x)
@@ -808,9 +809,9 @@ bool CDigitInfo::GetNextDotInSection(int iZapSec, int direct, int& idx, CDPoint&
 bool CDigitInfo::GetFringeDots(double Number, CUIntArray& idxDots)
 {
 	idxDots.RemoveAll();
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Number == Dots[iD].Number) {
-			idxDots.Add(iD);
+			idxDots.Add(static_cast<int>(iD));
 		}
 	}
 	return true;
@@ -819,7 +820,7 @@ bool CDigitInfo::GetFringeDots(double Number, CUIntArray& idxDots)
 bool CDigitInfo::GetFringeDots(double Number, CArray<CDPoint>& adP)
 {
 	adP.RemoveAll();
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Number == Dots[iD].Number) {
 			adP.Add(Dots[iD].P);
 		}
@@ -832,11 +833,11 @@ bool CDigitInfo::GetFirstDotInFringe(double Number, int& idx, CDPoint& dP)
 {
 	int minidx = -1;
 	double minx = INT_MAX;
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].Number == Number) {
 			if (Dots[iD].P.x < minx) {
 				minx = Dots[iD].P.x;
-				minidx = iD;
+				minidx = static_cast<int>(iD);
 			}
 		}
 	}
@@ -854,7 +855,7 @@ bool CDigitInfo::GetNextDotInFringe(double Number, int direct, int& idx, CDPoint
 	int minidx = -1;
 	double minx = INT_MAX;
 	double dif;
-	for (int iD = 0; iD < Dots.size(); iD++) {
+	for (size_t iD = 0; iD < Dots.size(); iD++) {
 		if (Dots[iD].Number == Number) {
 			dif = 0.;
 			if (direct > 0 && Dots[iD].P.y > dP.y)

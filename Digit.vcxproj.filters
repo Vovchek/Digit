@@ -166,9 +166,6 @@
     <ClCompile Include="ImageFeatures\SectionFrame.cpp">
       <Filter>Source Files\ImageFeatures</Filter>
     </ClCompile>
-    <ClCompile Include="ImageFeatures\ZoomDlg.cpp">
-      <Filter>Source Files\ImageFeatures</Filter>
-    </ClCompile>
     <ClCompile Include="DigitMode\DigitInfo.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
@@ -213,6 +210,9 @@
     </ClCompile>
     <ClCompile Include="DigitMode\BoundsHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="Controls\CApertureCtrls.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -305,9 +305,6 @@
     <ClInclude Include="ImageFeatures\SectionFrame.h">
       <Filter>Header Files\ImageFeatures_H</Filter>
     </ClInclude>
-    <ClInclude Include="ImageFeatures\ZoomDlg.h">
-      <Filter>Header Files\ImageFeatures_H</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\DigitInfo.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
@@ -384,6 +381,12 @@
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\IBoundsData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageTempl\ViewTransform.h">
+      <Filter>Header Files\ImageTempl_H</Filter>
+    </ClInclude>
+    <ClInclude Include="Controls\CApertureCtrls.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -591,6 +594,9 @@
     <None Include="Docs\РЕДАКТОР.md">
       <Filter>Docs</Filter>
     </None>
+    <None Include="docs\boundCtrls-dependency-graph.md" />
+    <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
+    <None Include="docs\CApertureCtrls-Simplified.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

@@ -1,6 +1,11 @@
 ﻿// ViewTransform.h - simple view transform owner for zoom & pan
 #pragma once
 #include <afxwin.h>
+#include <algorithm>
+
+#ifdef min
+#undef min
+#endif
 
 struct CPoint2d { double x; double y; };
 
@@ -31,7 +36,7 @@ public:
         // Calculate scale to fit image in client area (with small margin)
         double scaleX = (clientRect.Width() - 20.0) / imageRect.Width();
         double scaleY = (clientRect.Height() - 20.0) / imageRect.Height();
-        scale = min(scaleX, scaleY);
+        scale = std::min(scaleX, scaleY);
         if (scale < 0.02) scale = 0.02;
         if (scale > 22.0) scale = 22.0;
 
