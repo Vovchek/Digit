@@ -1,6 +1,9 @@
 ﻿#pragma once
 
 #include "Command.h"
+#include "ReplaceShapeCommand.h"
+#include "AddShapeCommand.h"
+#include "RemoveShapeCommand.h"
 #include "../DigitInfo.h"
 #include "../CFringeSegment.h"
 #include "../../MGTools/Include/Utils/BaseDataType.h"

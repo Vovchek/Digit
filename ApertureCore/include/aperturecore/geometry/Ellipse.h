@@ -694,6 +694,46 @@ public:
      * @see shiftX() - Horizontal shift
      */
     void shiftY(double deltaY) override;
+    
+    // ========================================================================
+    // Handle Enumeration (Interactive Editing - UX spec §4)
+    // ========================================================================
+    
+    /**
+     * @brief Enumerate interactive handles for ellipse editing
+     * @param out Output vector to receive handle descriptors
+     * 
+     * Ellipse provides handles for:
+     * - Move (§2.1, §4.2): center point
+     * - Rotate (§2.2, §4.3): offset along major axis normal
+     * - AxisResize (§4.1): 4 endpoints (2 major + 2 minor)
+     * 
+     * Total: 6 handles (1 move + 1 rotate + 4 axis endpoints)
+     * 
+     * @param out Vector to append handle descriptors to
+     * 
+     * @see Shape::EnumerateHandles()
+     * @see shapes_handles.md §4 - Ellipse handles specification
+     */
+    void EnumerateHandles(std::vector<HandleDesc>& out) const override;
+    
+    /**
+     * @brief Apply handle drag to update ellipse geometry
+     * @param handle Handle being dragged
+     * @param drag Drag context with world-space positions and modifiers
+     * 
+     * Supported handle types:
+     * - Move: Translate ellipse by drag.deltaWorld
+     * - Rotate: Update rotation angle based on drag position
+     * - AxisResize: Scale major/minor radius (index 0-1=major, 2-3=minor)
+     * 
+     * @param handle Frozen handle descriptor from drag start
+     * @param drag Drag context with world-space delta and modifier keys
+     * 
+     * @see Shape::ApplyHandleDrag()
+     * @see shapes_handles.md §4.1 - Ellipse axis resize
+     */
+    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
 
 private:
     double semiMajor_;      ///< Semi-major axis (A) - larger radius

@@ -168,4 +168,109 @@ void Rectangle::shiftY(double deltaY) {
     center_.y += deltaY;
 }
 
+// ========================================================================
+// Handle Enumeration (Interactive Editing - UX spec §3)
+// ========================================================================
+
+void Rectangle::EnumerateHandles(std::vector<HandleDesc>& out) const {
+    // §2.1, §3.2 - Move handle at centroid
+    out.push_back(HandleDesc{HandleType::Move, -1, center_});
+    
+    // §2.2, §3.3 - Rotation handle offset along local +Y axis
+    // Distance = max(boundsRadius * 0.2, minimum in world coords)
+    double boundsRadius = std::sqrt(width_ * width_ + height_ * height_) / 2.0;
+    double rotHandleOffset = std::max(boundsRadius * 0.2, 20.0); // 20.0 = min offset
+    
+    // Local +Y in shape space → rotate by current angle
+    Point rotHandlePos{
+        center_.x - rotHandleOffset * sinRot_,  // -sin for +Y rotation
+        center_.y + rotHandleOffset * cosRot_   // +cos for +Y rotation
+    };
+    out.push_back(HandleDesc{HandleType::Rotate, -1, rotHandlePos});
+    
+    // §3.1 - 4 Corner resize handles
+    std::array<Point, 4> cornerPts = corners();
+    for (int i = 0; i < 4; ++i) {
+        // Normal = direction from center to corner
+        Point normal{
+            cornerPts[i].x - center_.x,
+            cornerPts[i].y - center_.y
+        };
+        // Normalize the normal vector
+        double len = std::sqrt(normal.x * normal.x + normal.y * normal.y);
+        if (len > 1e-6) {
+            normal.x /= len;
+            normal.y /= len;
+        }
+        out.push_back(HandleDesc{HandleType::CornerResize, i, cornerPts[i], normal});
+    }
+    
+    // §3.1 - 4 Edge midpoint resize handles
+    for (int i = 0; i < 4; ++i) {
+        // Edge midpoint = average of two adjacent corners
+        int nextIdx = (i + 1) % 4;
+        Point edgeMid{
+            (cornerPts[i].x + cornerPts[nextIdx].x) / 2.0,
+            (cornerPts[i].y + cornerPts[nextIdx].y) / 2.0
+        };
+        
+        // Normal = perpendicular to edge (outward)
+        Point edge{
+            cornerPts[nextIdx].x - cornerPts[i].x,
+            cornerPts[nextIdx].y - cornerPts[i].y
+        };
+        // Perpendicular (rotate 90° counter-clockwise)
+        Point normal{-edge.y, edge.x};
+        double len = std::sqrt(normal.x * normal.x + normal.y * normal.y);
+        if (len > 1e-6) {
+            normal.x /= len;
+            normal.y /= len;
+        }
+        
+        out.push_back(HandleDesc{HandleType::EdgeResize, i, edgeMid, normal});
+    }
+}
+
+void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+    switch (handle.type) {
+        case HandleType::Move:
+            // Simple translation
+            center_.x += drag.deltaWorld.x;
+            center_.y += drag.deltaWorld.y;
+            break;
+            
+        case HandleType::Rotate: {
+            // Calculate angle from center to current drag position
+            double dx = drag.dragCurrentWorld.x - center_.x;
+            double dy = drag.dragCurrentWorld.y - center_.y;
+            double angleRad = std::atan2(dx, dy);  // atan2(x,y) for +Y = up in shape space
+            
+            double angleDeg = angleRad * 180.0 / M_PI;
+            
+            // Apply snap if Shift is pressed (15° increments per review)
+            if (drag.shiftKey) {
+                double snapStep = 15.0;
+                angleDeg = std::round(angleDeg / snapStep) * snapStep;
+            }
+            
+            rotationDeg_ = angleDeg;
+            rotationRad_ = angleDeg * M_PI / 180.0;
+            updateRotationCache();
+            break;
+        }
+            
+        case HandleType::CornerResize:
+        case HandleType::EdgeResize:
+            // TODO: Implement resize logic
+            // This requires determining which corner/edge is opposite,
+            // calculating new dimensions based on drag position,
+            // and respecting Shift (preserve aspect) and Alt (from center) modifiers
+            // Defer to next iteration - geometry gets complex with rotation
+            break;
+            
+        default:
+            break;
+    }
+}
+
 } // namespace aperture

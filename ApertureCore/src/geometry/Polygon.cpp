@@ -7,6 +7,10 @@
 #include <cmath>
 #include <algorithm>
 
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
+
 namespace aperture {
 
 Polygon::Polygon(const std::vector<Point>& vertices,
@@ -295,6 +299,90 @@ void Polygon::shiftX(double deltaX) {
 void Polygon::shiftY(double deltaY) {
     for (auto& vertex : vertices_) {
         vertex.y += deltaY;
+    }
+}
+
+void Polygon::EnumerateHandles(std::vector<HandleDesc>& handles) const {
+    if (vertices_.empty()) {
+        return;
+    }
+    
+    // Calculate centroid for Move and Rotate handles
+    Point center = centroid();
+    
+    // Move handle at centroid
+    handles.push_back(HandleDesc{HandleType::Move, 0, center});
+    
+    // Rotation handle offset from centroid
+    if (!vertices_.empty()) {
+        // Find max distance from centroid for rotation handle placement
+        double maxDist = 0.0;
+        for (const auto& v : vertices_) {
+            double dist = center.distanceTo(v);
+            if (dist > maxDist) {
+                maxDist = dist;
+            }
+        }
+        
+        // Place rotation handle 20% beyond furthest vertex
+        Point rotatePos = center;
+        rotatePos.y -= maxDist * 1.2;  // Offset upward (in screen coords)
+        
+        handles.push_back(HandleDesc{HandleType::Rotate, 1, rotatePos});
+    }
+    
+    // Vertex handles (one per vertex)
+    for (size_t i = 0; i < vertices_.size(); ++i) {
+        handles.push_back(HandleDesc{HandleType::Vertex, static_cast<int>(i + 2), vertices_[i]});
+    }
+}
+
+void Polygon::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+    if (vertices_.empty()) {
+        return;
+    }
+    
+    Point center = centroid();
+    
+    if (handle.index == 0) {
+        // Move: translate all vertices
+        for (auto& v : vertices_) {
+            v.x += drag.deltaWorld.x;
+            v.y += drag.deltaWorld.y;
+        }
+    }
+    else if (handle.index == 1) {
+        // Rotate: rotate vertices around centroid
+        Point dragStart = drag.dragStartWorld;
+        Point dragCurrent = drag.dragCurrentWorld;
+        
+        // Calculate angles
+        double angleStart = std::atan2(dragStart.y - center.y, dragStart.x - center.x);
+        double angleCurrent = std::atan2(dragCurrent.y - center.y, dragCurrent.x - center.x);
+        double deltaAngle = angleCurrent - angleStart;
+        
+        // Snap to 15° increments if shift key held
+        if (drag.shiftKey) {
+            constexpr double snapStep = 15.0 * M_PI / 180.0;
+            deltaAngle = std::round(deltaAngle / snapStep) * snapStep;
+        }
+        
+        // Rotate all vertices around centroid
+        double cosA = std::cos(deltaAngle);
+        double sinA = std::sin(deltaAngle);
+        
+        for (auto& v : vertices_) {
+            double dx = v.x - center.x;
+            double dy = v.y - center.y;
+            v.x = center.x + dx * cosA - dy * sinA;
+            v.y = center.y + dx * sinA + dy * cosA;
+        }
+    }
+    else if (handle.index >= 2 && handle.index < static_cast<int>(2 + vertices_.size())) {
+        // Vertex: move individual vertex
+        size_t vertexIdx = static_cast<size_t>(handle.index - 2);
+        vertices_[vertexIdx].x += drag.deltaWorld.x;
+        vertices_[vertexIdx].y += drag.deltaWorld.y;
     }
 }
 

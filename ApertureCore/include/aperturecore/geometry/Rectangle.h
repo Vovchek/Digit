@@ -731,8 +731,50 @@ public:
      */
     std::array<Point, 4> corners() const;
     
-    // Coordinate transformation interface implementation
+    // ========================================================================
+    // Handle Enumeration (Interactive Editing - UX spec §3)
+    // ========================================================================
     
+    /**
+     * @brief Enumerate interactive handles for rectangle editing
+     * @param out Output vector to receive handle descriptors
+     * 
+     * Rectangle provides handles for:
+     * - Move (§2.1, §3.2): centroid
+     * - Rotate (§2.2, §3.3): offset from shape along local +Y axis
+     * - CornerResize (§3.1): 4 corners - resize in 2 axes
+     * - EdgeResize (§3.1): 4 edge midpoints - resize in 1 axis
+     * 
+     * Total: 10 handles (1 move + 1 rotate + 4 corners + 4 edges)
+     * 
+     * @param out Vector to append handle descriptors to
+     * 
+     * @see Shape::EnumerateHandles()
+     * @see shapes_handles.md §3 - Rectangle handles specification
+     */
+    void EnumerateHandles(std::vector<HandleDesc>& out) const override;
+    
+    /**
+     * @brief Apply handle drag to update rectangle geometry
+     * @param handle Handle being dragged
+     * @param drag Drag context with world-space positions and modifiers
+     * 
+     * Supported handle types:
+     * - Move: Translate rectangle by drag.deltaWorld
+     * - Rotate: Update rotation angle based on drag position
+     * - CornerResize: Resize from opposite corner (Shift=preserve aspect, Alt=from center)
+     * - EdgeResize: Resize perpendicular to edge (Alt=from center)
+     * 
+     * @param handle Frozen handle descriptor from drag start
+     * @param drag Drag context with world-space delta and modifier keys
+     * 
+     * @see Shape::ApplyHandleDrag()
+     * @see shapes_handles.md §3.1 - Rectangle resize modifiers
+     */
+    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
+    
+    // Coordinate transformation interface implementation
+
     /**
      * @brief Normalize coordinates to unit system
      * @param originX Origin X coordinate in measuring system

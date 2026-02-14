@@ -65,32 +65,32 @@ TEST_F(ApertureCtrlsTest, Clear_RemovesAllShapes) {
 
 TEST_F(ApertureCtrlsTest, AddExternalShape_IncreasesCount) {
     auto ellipse = std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(ellipse));
+    Shape* shape = apertureCtrls.AddExternalShape(std::move(ellipse));
     
-    EXPECT_EQ(TypeLimits::EXTERNAL, handle.type);
-    EXPECT_EQ(0, handle.index);
+    EXPECT_NE(nullptr, shape);
     EXPECT_EQ(1, apertureCtrls.GetExternalCount());
     EXPECT_EQ(1, apertureCtrls.GetShapeCount());
+    EXPECT_EQ(TypeLimits::EXTERNAL, apertureCtrls.GetShapeType(shape));
 }
 
 TEST_F(ApertureCtrlsTest, AddInternalShape_IncreasesCount) {
     auto rect = std::make_unique<aperture::Rectangle>(20.0, 20.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddInternalShape(std::move(rect));
+    Shape* shape = apertureCtrls.AddInternalShape(std::move(rect));
     
-    EXPECT_EQ(TypeLimits::INTERNAL, handle.type);
-    EXPECT_EQ(0, handle.index);
+    EXPECT_NE(nullptr, shape);
     EXPECT_EQ(1, apertureCtrls.GetInternalCount());
+    EXPECT_EQ(TypeLimits::INTERNAL, apertureCtrls.GetShapeType(shape));
 }
 
 TEST_F(ApertureCtrlsTest, AddApertureShape_IncreasesCount) {
     auto polygon = std::make_unique<aperture::Polygon>(std::vector<Point>{
         {0, 0}, {10, 0}, {10, 10}, {0, 10}
     });
-    ShapeHandle handle = apertureCtrls.AddApertureShape(std::move(polygon));
+    Shape* shape = apertureCtrls.AddApertureShape(std::move(polygon));
     
-    EXPECT_EQ(TypeLimits::APERTURE, handle.type);
-    EXPECT_EQ(0, handle.index);
+    EXPECT_NE(nullptr, shape);
     EXPECT_EQ(1, apertureCtrls.GetApertureCount());
+    EXPECT_EQ(TypeLimits::APERTURE, apertureCtrls.GetShapeType(shape));
 }
 
 TEST_F(ApertureCtrlsTest, AddMultipleShapes_TracksCountsCorrectly) {
@@ -104,55 +104,55 @@ TEST_F(ApertureCtrlsTest, AddMultipleShapes_TracksCountsCorrectly) {
     EXPECT_EQ(3, apertureCtrls.GetShapeCount());
 }
 
-TEST_F(ApertureCtrlsTest, AddNullShape_ReturnsInvalidHandle) {
-    ShapeHandle handle = apertureCtrls.AddExternalShape(nullptr);
-    // Null shape returns default handle, GetShape will return nullptr
-    EXPECT_EQ(nullptr, apertureCtrls.GetShape(handle));
+TEST_F(ApertureCtrlsTest, AddNullShape_ReturnsNull) {
+    Shape* shape = apertureCtrls.AddExternalShape(nullptr);
+    EXPECT_EQ(nullptr, shape);
 }
 
 // ============================================================================
 // Shape Access Tests
 // ============================================================================
 
-TEST_F(ApertureCtrlsTest, GetShape_ValidHandle_ReturnsShape) {
-    auto ellipse = std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(ellipse));
+TEST_F(ApertureCtrlsTest, GetShapeType_ValidShape_ReturnsCorrectType) {
+    Shape* extShape = apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0));
+    Shape* intShape = apertureCtrls.AddInternalShape(std::make_unique<aperture::Ellipse>(30.0, 30.0, 50.0, 50.0));
+    Shape* aptShape = apertureCtrls.AddApertureShape(std::make_unique<aperture::Rectangle>(10.0, 10.0, 100.0, 100.0));
     
-    const Shape* shape = apertureCtrls.GetShape(handle);
-    
-    ASSERT_NE(nullptr, shape);
-    EXPECT_STREQ("Ellipse", shape->typeName());  // Use EXPECT_STREQ for C-string comparison
+    EXPECT_EQ(TypeLimits::EXTERNAL, apertureCtrls.GetShapeType(extShape));
+    EXPECT_EQ(TypeLimits::INTERNAL, apertureCtrls.GetShapeType(intShape));
+    EXPECT_EQ(TypeLimits::APERTURE, apertureCtrls.GetShapeType(aptShape));
 }
 
-TEST_F(ApertureCtrlsTest, GetShape_InvalidHandle_ReturnsNull) {
-    ShapeHandle invalid{999, TypeLimits::EXTERNAL};  // Index out of range
+TEST_F(ApertureCtrlsTest, GetShapeIndex_ValidShape_ReturnsCorrectIndex) {
+    Shape* shape1 = apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0));
+    Shape* shape2 = apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(30.0, 30.0, 50.0, 50.0));
     
-    const Shape* shape = apertureCtrls.GetShape(invalid);
-    
-    EXPECT_EQ(nullptr, shape);
+    EXPECT_EQ(0, apertureCtrls.GetShapeIndex(shape1));
+    EXPECT_EQ(1, apertureCtrls.GetShapeIndex(shape2));
 }
 
-TEST_F(ApertureCtrlsTest, GetShape_AfterAddingMore_StillValid) {
-    auto ellipse = std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(ellipse));
-    
-    // Add another shape - handle should still be valid (just index + type)
-    apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(30, 30, 50, 50));
-    
-    // Original handle is still valid
-    const Shape* shape = apertureCtrls.GetShape(handle);
-    EXPECT_NE(nullptr, shape);
+TEST_F(ApertureCtrlsTest, GetShapeIndex_NullShape_ReturnsMinusOne) {
+    EXPECT_EQ(-1, apertureCtrls.GetShapeIndex(nullptr));
 }
 
-TEST_F(ApertureCtrlsTest, GetShapeForEdit_ReturnsNonConstPointer) {
-    auto ellipse = std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(ellipse));
+TEST_F(ApertureCtrlsTest, RemoveShape_ValidPointer_RemovesShape) {
+    Shape* shape = apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0));
+    ASSERT_EQ(1, apertureCtrls.GetExternalCount());
     
-    Shape* shape = apertureCtrls.GetShapeForEdit(handle);
+    bool removed = apertureCtrls.RemoveShape(shape);
     
-    ASSERT_NE(nullptr, shape);
-    // Can modify (this is compile-time check)
-    shape->setTypeLimits(TypeLimits::EXTERNAL);
+    EXPECT_TRUE(removed);
+    EXPECT_EQ(0, apertureCtrls.GetExternalCount());
+}
+
+TEST_F(ApertureCtrlsTest, RemoveExternalShape_ValidIndex_RemovesShape) {
+    apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0));
+    ASSERT_EQ(1, apertureCtrls.GetExternalCount());
+    
+    bool removed = apertureCtrls.RemoveExternalShape(0);
+    
+    EXPECT_TRUE(removed);
+    EXPECT_EQ(0, apertureCtrls.GetExternalCount());
 }
 
 // ============================================================================
@@ -173,8 +173,7 @@ TEST_F(ApertureCtrlsTest, AddShape_IncrementsVersion) {
 }
 
 TEST_F(ApertureCtrlsTest, NotifyShapeModified_IncrementsVersion) {
-    auto ellipse = std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(ellipse));
+    apertureCtrls.AddExternalShape(std::make_unique<aperture::Ellipse>(50.0, 50.0, 100.0, 100.0));
     
     uint64_t v1 = apertureCtrls.GetVersion();
     
@@ -191,7 +190,7 @@ TEST_F(ApertureCtrlsTest, NotifyShapeModified_IncrementsVersion) {
 TEST_F(ApertureCtrlsTest, HitTest_PointInsideShape_ReturnsHit) {
     // Add a rectangle at (50, 50) with size 100x100
     auto rect = std::make_unique<aperture::Rectangle>(100.0, 100.0, 100.0, 100.0);
-    ShapeHandle handle = apertureCtrls.AddExternalShape(std::move(rect));
+    apertureCtrls.AddExternalShape(std::move(rect));
     
     // Test point at center
     Point testPoint{100.0, 100.0};

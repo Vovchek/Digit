@@ -1,23 +1,29 @@
 ﻿/**
  * @file BoundsHandler.h
- * @brief Handles interactive editing of aperture shapes using CApertureCtrls
+ * @brief Handles interactive editing of aperture shapes using Command pattern
  * 
- * Aligned with fringe editor pattern:
- * - Stateless hit-testing delegation to CApertureCtrls
- * - Drag lifecycle management (BeginDrag/UpdateDrag/EndDrag)
- * - Coordinate transforms (screen ↔ world)
+ * STRICT COMMAND-BASED EDITING:
+ * - Preview-only drag handling (no direct shape mutation)
+ * - Commands dispatched on mouse-up only
+ * - BoundsHandler owns preview state, not editing state
  * 
- * @note Editing state lives in CApertureCtrls (BeginEdit/CommitEdit)
+ * IMPORTANT:
+ * Shape geometry MUST NOT be modified outside Command::Execute/Undo.
+ * BoundsHandler operates on preview copies only.
  */
 #pragma once
 
 #include <afxwin.h>
 #include "ImageTempl/ViewTransform.h"
 #include "ApertureCore\include\aperturecore\geometry\Point.h"
+#include "ApertureCore\include\aperturecore\geometry\Shape.h"
+#include "ApertureCore\include\aperturecore\visibility\TypeLimits.h"
+#include <memory>
 
 // Forward declarations
 namespace DigitMode {
     class CApertureCtrls;
+    class CommandDispatcher;
 }
 class IImageData;
 
@@ -26,13 +32,16 @@ namespace DigitMode {
 /**
  * @brief Handles interactive editing of image bounds (apertures)
  * 
- * Responsibilities:
- * - Coordinate transformation (screen → world → aperture)
- * - Delegate hit-testing to CApertureCtrls
- * - Manage drag lifecycle (delegates to CApertureCtrls editing)
- * - NO bounds calculation logic (that's in CApertureCtrls)
+ * Command-Based Architecture:
+ * 1. MouseDown → cache (type, index), clone shape → preview
+ * 2. MouseMove → apply drag to preview, invalidate (no mutation)
+ * 3. MouseUp → create ReplaceShapeCommand(before, preview), dispatch
+ * 4. Esc → discard preview
  * 
- * Aligned with fringe editor pattern (HitTester + InputHandler)
+ * FORBIDDEN:
+ * - Direct shape mutation
+ * - Storing persistent shape pointers/handles
+ * - Modifying ShapeCollection without commands
  */
 class BoundsHandler {
 public:
@@ -53,6 +62,11 @@ public:
      */
     void SetViewTransform(ViewTransform* pView);
     
+    /**
+     * Set command dispatcher for undo/redo
+     */
+    void SetCommandDispatcher(CommandDispatcher* pDispatcher);
+    
     // ========================================================================
     // Hit-Testing (delegates to CApertureCtrls)
     // ========================================================================
@@ -62,6 +76,7 @@ public:
      */
     struct HitResult {
         bool hit = false;              ///< True if anything was hit
+        aperture::TypeLimits type = aperture::TypeLimits::EXTERNAL;
         size_t shapeIndex = 0;         ///< Index in type-specific container
         int controlPointIndex = -1;   ///< Control point index (-1 = body)
         double distance = 0.0;         ///< Distance from hit point
@@ -79,21 +94,25 @@ public:
     HitResult HitTest(const CPoint& screenPt, int tolerance = HANDLE_TOLERANCE) const;
 
     // ========================================================================
-    // Drag Lifecycle (delegates to CApertureCtrls editing)
+    // Drag Lifecycle (Preview + Command Pattern)
     // ========================================================================
     
     /**
      * Begin dragging a shape control point
+     * Creates preview clone, does NOT modify document
      */
-    void BeginDrag(size_t shapeIndex, int controlPointIndex, const CPoint& screenStart);
+    void BeginDrag(aperture::TypeLimits type, size_t index, int controlPointIndex, const CPoint& screenStart);
     
     /**
      * Update drag position
+     * Modifies preview only, does NOT touch document
      */
     void UpdateDrag(const CPoint& screenCurrent);
     
     /**
      * End drag - commit or cancel
+     * Commit: dispatches ReplaceShapeCommand
+     * Cancel: discards preview
      */
     void EndDrag(bool bCommit);
     
@@ -101,6 +120,11 @@ public:
      * Cancel current drag operation
      */
     void CancelDrag();
+    
+    /**
+     * Get preview shape for rendering (nullptr if not dragging)
+     */
+    const aperture::Shape* GetPreviewShape() const { return m_previewShape.get(); }
     
     // ========================================================================
     // Coordinate Transforms
@@ -138,9 +162,16 @@ private:
     CApertureCtrls* m_pApertureCtrls = nullptr;
     IImageData* m_pImage = nullptr;
     ViewTransform* m_pView = nullptr;
+    CommandDispatcher* m_pDispatcher = nullptr;
 
-    // Drag state
+    // Preview state (Command pattern - NO direct mutation)
     bool m_isDragging = false;
+    aperture::TypeLimits m_dragShapeType = aperture::TypeLimits::EXTERNAL;
+    size_t m_dragShapeIndex = 0;
+    int m_dragControlPointIndex = -1;
+    std::unique_ptr<aperture::Shape> m_previewShape;     ///< Preview clone during drag
+    std::unique_ptr<aperture::Shape> m_originalShape;    ///< Original before drag (for command)
+    
     CPoint m_dragStart;
     CPoint m_dragCurrent;
     

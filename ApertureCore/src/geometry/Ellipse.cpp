@@ -531,4 +531,122 @@ Ellipse::Ellipse(const std::vector<Point>& points,
     *this = Ellipse(fourPoints, typeLimits, spatialSystem, normState);
 }
 
+// ========================================================================
+// Handle Enumeration (Interactive Editing - UX spec §4)
+// ========================================================================
+
+void Ellipse::EnumerateHandles(std::vector<HandleDesc>& out) const {
+    // §2.1, §4.2 - Move handle at center
+    out.push_back(HandleDesc{HandleType::Move, -1, center_});
+    
+    // §2.2, §4.3 - Rotation handle offset along major axis normal
+    // Offset along perpendicular to major axis (minor axis direction)
+    double boundsRadius = std::sqrt(semiMajor_ * semiMajor_ + semiMinor_ * semiMinor_);
+    double rotHandleOffset = std::max(boundsRadius * 0.2, 20.0);
+    
+    // Minor axis direction (perpendicular to major axis)
+    Point rotHandlePos{
+        center_.x - rotHandleOffset * sinRot_,  // -sin for +Y rotation
+        center_.y + rotHandleOffset * cosRot_   // +cos for +Y rotation
+    };
+    out.push_back(HandleDesc{HandleType::Rotate, -1, rotHandlePos});
+    
+    // §4.1 - 4 Axis resize handles (2 major + 2 minor)
+    
+    // Major axis endpoints (index 0, 1)
+    Point majorEnd1{
+        center_.x + semiMajor_ * cosRot_,
+        center_.y + semiMajor_ * sinRot_
+    };
+    Point majorEnd2{
+        center_.x - semiMajor_ * cosRot_,
+        center_.y - semiMajor_ * sinRot_
+    };
+    
+    // Normal for major axis = direction of major axis
+    Point majorNormal{cosRot_, sinRot_};
+    
+    out.push_back(HandleDesc{HandleType::AxisResize, 0, majorEnd1, majorNormal});
+    out.push_back(HandleDesc{HandleType::AxisResize, 1, majorEnd2, Point{-majorNormal.x, -majorNormal.y}});
+    
+    // Minor axis endpoints (index 2, 3)
+    Point minorEnd1{
+        center_.x - semiMinor_ * sinRot_,
+        center_.y + semiMinor_ * cosRot_
+    };
+    Point minorEnd2{
+        center_.x + semiMinor_ * sinRot_,
+        center_.y - semiMinor_ * cosRot_
+    };
+    
+    // Normal for minor axis = direction perpendicular to major
+    Point minorNormal{-sinRot_, cosRot_};
+    
+    out.push_back(HandleDesc{HandleType::AxisResize, 2, minorEnd1, minorNormal});
+    out.push_back(HandleDesc{HandleType::AxisResize, 3, minorEnd2, Point{-minorNormal.x, -minorNormal.y}});
+}
+
+void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+    switch (handle.type) {
+        case HandleType::Move:
+            // Simple translation
+            center_.x += drag.deltaWorld.x;
+            center_.y += drag.deltaWorld.y;
+            break;
+            
+        case HandleType::Rotate: {
+            // Calculate angle from center to current drag position
+            double dx = drag.dragCurrentWorld.x - center_.x;
+            double dy = drag.dragCurrentWorld.y - center_.y;
+            double angleRad = std::atan2(dx, dy);  // atan2(x,y) for +Y = up in shape space
+            
+            double angleDeg = angleRad * 180.0 / M_PI;
+            
+            // Apply snap if Shift is pressed (15° increments per review)
+            if (drag.shiftKey) {
+                double snapStep = 15.0;
+                angleDeg = std::round(angleDeg / snapStep) * snapStep;
+            }
+            
+            rotationDeg_ = angleDeg;
+            rotationRad_ = angleDeg * M_PI / 180.0;
+            updateRotationCache();
+            break;
+        }
+            
+        case HandleType::AxisResize: {
+            // Determine which axis is being resized
+            bool isMajorAxis = (handle.index == 0 || handle.index == 1);
+            
+            // Calculate distance from center to drag position
+            double dx = drag.dragCurrentWorld.x - center_.x;
+            double dy = drag.dragCurrentWorld.y - center_.y;
+            double dist = std::sqrt(dx * dx + dy * dy);
+            
+            // Ensure minimum size
+            if (dist < 1.0) dist = 1.0;
+            
+            if (isMajorAxis) {
+                semiMajor_ = dist;
+            } else {
+                semiMinor_ = dist;
+            }
+            
+            // Swap if minor becomes larger than major (maintain major >= minor)
+            if (semiMinor_ > semiMajor_) {
+                std::swap(semiMajor_, semiMinor_);
+                // Rotate 90° to keep major axis aligned
+                rotationDeg_ += 90.0;
+                if (rotationDeg_ >= 360.0) rotationDeg_ -= 360.0;
+                rotationRad_ = rotationDeg_ * M_PI / 180.0;
+                updateRotationCache();
+            }
+            break;
+        }
+            
+        default:
+            break;
+    }
+}
+
 } // namespace aperture

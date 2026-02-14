@@ -171,6 +171,7 @@
 #include "Point.h"
 #include "Bounds.h"
 #include "CoordinateSystem.h"
+#include "Handle.h"
 #include "../visibility/TypeLimits.h"
 #include <vector>
 #include <memory>
@@ -830,6 +831,158 @@ public:
      * @see shiftX(), inverseY()
      */
     virtual void shiftY(double deltaY) = 0;
+    
+    // ========================================================================
+    // Handle Enumeration (Interactive Editing - UX spec shapes_handles.md)
+    // ========================================================================
+    
+    /**
+     * @brief Enumerate interactive handles for this shape
+     * @param out Output vector to receive handle descriptors
+     * 
+     * Pure virtual method - must be implemented by all concrete shapes.
+     * 
+     * ## Architecture (§11, §12 - shapes_handles.md):
+     * 
+     * **Shapes expose handles, BoundsHandler interprets interaction, Commands commit geometry.**
+     * 
+     * This method describes WHERE handles should appear and WHAT they mean,
+     * but does NOT create actual runtime handle objects. BoundsHandler converts
+     * HandleDesc → RuntimeHandle (screen space, hit-testing, cursor, etc.)
+     * 
+     * ## What This Method Does:
+     * - ✅ Generate HandleDesc for each interactive control point
+     * - ✅ Provide handle type (Move, Rotate, Resize, Vertex, etc.)
+     * - ✅ Provide local position in shape-local coordinates
+     * - ✅ Provide index for vertex/corner/edge identification
+     * - ✅ Optionally provide normal for resize cursor orientation
+     * 
+     * ## What This Method Does NOT Do:
+     * - ❌ Create persistent Handle objects
+     * - ❌ Store handles as members
+     * - ❌ Perform hit-testing
+     * - ❌ Handle mouse interaction
+     * - ❌ Set cursor
+     * - ❌ Screen coordinate conversion
+     * 
+     * ## Example Implementation (Rectangle - §3):
+     * 
+     * @code{.cpp}
+     * void Rectangle::EnumerateHandles(std::vector<HandleDesc>& out) const {
+     *     // Move handle at center (§2.1, §3.2)
+     *     out.push_back({HandleType::Move, -1, Center()});
+     *     
+     *     // Rotation handle offset from shape (§2.2, §3.3)
+     *     out.push_back({HandleType::Rotate, -1, RotationHandlePos()});
+     *     
+     *     // 4 Corner resize handles (§3.1)
+     *     for (int i = 0; i < 4; ++i) {
+     *         Point corner = Corner(i);
+     *         Point normal = (corner - Center()).normalized();
+     *         out.push_back({HandleType::CornerResize, i, corner, normal});
+     *     }
+     *     
+     *     // 4 Edge midpoint resize handles (§3.1)
+     *     for (int i = 0; i < 4; ++i) {
+     *         Point edge = EdgeMidpoint(i);
+     *         Point normal = EdgeNormal(i);
+     *         out.push_back({HandleType::EdgeResize, i, edge, normal});
+     *     }
+     * }
+     * @endcode
+     * 
+     * @param out Vector to receive handle descriptors. Existing contents are preserved.
+     *            Append new handles, don't clear vector.
+     * 
+     * @note Called every frame during editing - must be fast
+     * @note HandleDesc uses shape-local coordinates (NOT world, NOT screen)
+     * @note BoundsHandler transforms: local → world → screen
+     * 
+     * @see HandleDesc, HandleType, DragContext
+     * @see ApplyHandleDrag() - responds to handle drag
+     * @see shapes_handles.md - complete UX specification
+     */
+    virtual void EnumerateHandles(std::vector<HandleDesc>& out) const = 0;
+    
+    /**
+     * @brief Apply handle drag to update shape geometry
+     * @param handle Handle being dragged (frozen at drag start)
+     * @param drag Drag context with start/current positions and modifiers
+     * 
+     * Pure virtual method - must be implemented by all concrete shapes.
+     * 
+     * ## Contract (§11):
+     * 
+     * This method mutates shape geometry in response to handle drag.
+     * It performs PURE GEOMETRIC TRANSFORMATION only - no side effects.
+     * 
+     * ## What This Method Does:
+     * - ✅ Update shape geometry based on drag delta
+     * - ✅ Respect modifier keys (Shift = constrain, Alt = symmetric)
+     * - ✅ Maintain shape invariants (e.g. positive size)
+     * - ✅ Work in world coordinates
+     * 
+     * ## What This Method Does NOT Do:
+     * - ❌ Create undo commands
+     * - ❌ Apply snapping (BoundsHandler responsibility)
+     * - ❌ Set cursor
+     * - ❌ Draw preview
+     * - ❌ Modify document/selection
+     * 
+     * ## Preview vs Commit (critical!):
+     * 
+     * **BoundsHandler must call this on a temporary clone during drag.**
+     * 
+     * - MouseDown → create shape clone + freeze HandleDesc
+     * - MouseMove → call ApplyHandleDrag() on clone (live preview)
+     * - MouseUp → commit cloned shape via command
+     * - Esc → discard clone
+     * 
+     * This ensures drag preview doesn't mutate original shape.
+     * 
+     * ## Example Implementation (Rectangle Move - §2.1):
+     * 
+     * @code{.cpp}
+     * void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+     *     switch (handle.type) {
+     *         case HandleType::Move:
+     *             // Simple translation
+     *             m_centerX += drag.deltaWorld.x;
+     *             m_centerY += drag.deltaWorld.y;
+     *             break;
+     *             
+     *         case HandleType::CornerResize:
+     *             // Resize from opposite corner
+     *             if (drag.altKey) {
+     *                 // Symmetric resize from center
+     *                 ResizeSymmetric(drag.deltaWorld, drag.shiftKey);
+     *             } else {
+     *                 // Resize from opposite corner
+     *                 ResizeFromCorner(handle.index, drag.deltaWorld, drag.shiftKey);
+     *             }
+     *             break;
+     *         
+     *         // ... other handle types ...
+     *     }
+     * }
+     * @endcode
+     * 
+     * @param handle Frozen handle descriptor from drag start (IMMUTABLE during drag)
+     * @param drag Drag context with world-space positions and modifier keys
+     * 
+     * @warning Do NOT query current mouse position - use drag.dragCurrentWorld
+     * @warning Do NOT create commands - that's BoundsHandler's job
+     * @warning Do NOT snap to grid - BoundsHandler applies snapping before calling this
+     * 
+     * @note All coordinates in drag are world-space
+     * @note BoundsHandler handles screen→world transformation
+     * @note Modifier keys are pre-queried by BoundsHandler
+     * 
+     * @see EnumerateHandles() - provides handle descriptors
+     * @see HandleDesc, DragContext
+     * @see shapes_handles.md §8 - mouse interaction lifecycle
+     */
+    virtual void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) = 0;
     
     // TypeLimits management
     

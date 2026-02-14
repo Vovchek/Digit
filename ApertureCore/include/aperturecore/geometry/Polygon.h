@@ -1054,6 +1054,41 @@ public:
      * @endcode
      */
     void shiftY(double deltaY) override;
+    
+    // Handle interface (descriptor enumeration)
+    
+    /**
+     * @brief Enumerate interactive handles for polygon editing
+     * @param handles Output vector for handle descriptors
+     * 
+     * Provides handles for:
+     * - Move (at centroid)
+     * - Rotate (offset from centroid)
+     * - Vertex (one per vertex)
+     * 
+     * All positions in shape-local coordinates.
+     * 
+     * @note EdgeMidpoint handles deferred to v2
+     * @see ApplyHandleDrag() - Apply drag operations
+     */
+    void EnumerateHandles(std::vector<HandleDesc>& handles) const override;
+    
+    /**
+     * @brief Apply handle drag to mutate polygon geometry
+     * @param handle Handle descriptor from EnumerateHandles
+     * @param drag Drag context with delta in world coordinates
+     * 
+     * Supported operations:
+     * - Move: translate all vertices
+     * - Rotate: rotate vertices around centroid
+     * - Vertex: move individual vertex
+     * 
+     * Pure geometry mutation; no side effects.
+     * 
+     * @note Preview-only; command commits changes
+     * @see EnumerateHandles() - Handle enumeration
+     */
+    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
 
 private:
     std::vector<Point> vertices_;  ///< Polygon vertices (ordered, closed implicitly)

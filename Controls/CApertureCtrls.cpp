@@ -1,6 +1,12 @@
 ﻿/**
  * @file CApertureCtrls.cpp
- * @brief Implementation of modern aperture controls
+ * @brief Implementation of Aperture Subsystem Coordinator
+ * 
+ * Invariant:
+ * All interactive shape edits go through Commands.
+ * CApertureCtrls coordinates consistency.
+ * ShapeCollection contains geometry only.
+ * Visibility mask is cached and invalidated centrally.
  */
 #include "stdafx.h"
 #include "CApertureCtrls.h"
@@ -13,6 +19,7 @@ namespace DigitMode {
 // ========================================================================
 
 CApertureCtrls::CApertureCtrls()
+    : m_shapes()
 {
     Init();
 }
@@ -24,89 +31,170 @@ void CApertureCtrls::Init()
 
 void CApertureCtrls::Clear()
 {
-    // Cancel any active edit
-    if (IsEditing()) {
-        CancelEdit();
-    }
-    
     // ShapeCollection doesn't have a clear() method, so we replace it
     m_shapes = aperture::ShapeCollection();
 }
 
 // ========================================================================
-// Shape Management
+// Shape Management (Semantic - Initialization & File Load ONLY)
 // ========================================================================
 
-ShapeHandle CApertureCtrls::AddExternalShape(std::unique_ptr<aperture::Shape> shape)
+// NOTE: These methods are NOT undo-safe.
+// Do not use them from Commands or interactive editing.
+// Use ONLY for initialization and file load.
+
+aperture::Shape* CApertureCtrls::AddExternalShape(std::unique_ptr<aperture::Shape> shape)
 {
     if (!shape) {
-        return ShapeHandle{0, aperture::TypeLimits::EXTERNAL};
+        return nullptr;
     }
     
-    size_t index = m_shapes.getExternal().size();
+    auto* ptr = shape.get();
     m_shapes.addExternal(std::move(shape));
-    
-    return ShapeHandle{index, aperture::TypeLimits::EXTERNAL};
+    NotifyShapeModified();
+    return ptr;
 }
 
-ShapeHandle CApertureCtrls::AddInternalShape(std::unique_ptr<aperture::Shape> shape)
+aperture::Shape* CApertureCtrls::AddInternalShape(std::unique_ptr<aperture::Shape> shape)
 {
     if (!shape) {
-        return ShapeHandle{0, aperture::TypeLimits::INTERNAL};
+        return nullptr;
     }
     
-    size_t index = m_shapes.getInternal().size();
+    auto* ptr = shape.get();
     m_shapes.addInternal(std::move(shape));
-    
-    return ShapeHandle{index, aperture::TypeLimits::INTERNAL};
+    NotifyShapeModified();
+    return ptr;
 }
 
-ShapeHandle CApertureCtrls::AddApertureShape(std::unique_ptr<aperture::Shape> shape)
+aperture::Shape* CApertureCtrls::AddApertureShape(std::unique_ptr<aperture::Shape> shape)
 {
     if (!shape) {
-        return ShapeHandle{0, aperture::TypeLimits::APERTURE};
+        return nullptr;
     }
     
-    size_t index = m_shapes.getApertures().size();
+    auto* ptr = shape.get();
     m_shapes.addAperture(std::move(shape));
-    
-    return ShapeHandle{index, aperture::TypeLimits::APERTURE};
+    NotifyShapeModified();
+    return ptr;
 }
 
-bool CApertureCtrls::RemoveShape(const ShapeHandle& handle)
+bool CApertureCtrls::RemoveExternalShape(size_t index)
 {
-    // TODO: Implement removal
-    // ShapeCollection doesn't have remove yet, will need to add
-    // For now, return false
+    auto& container = const_cast<std::vector<std::unique_ptr<aperture::Shape>>&>(
+        m_shapes.getExternal()
+    );
+    
+    if (index >= container.size()) {
+        return false;
+    }
+    
+    container.erase(container.begin() + index);
+    NotifyShapeModified();
+    
+    return true;
+}
+
+bool CApertureCtrls::RemoveInternalShape(size_t index)
+{
+    auto& container = const_cast<std::vector<std::unique_ptr<aperture::Shape>>&>(
+        m_shapes.getInternal()
+    );
+    
+    if (index >= container.size()) {
+        return false;
+    }
+    
+    container.erase(container.begin() + index);
+    NotifyShapeModified();
+    
+    return true;
+}
+
+bool CApertureCtrls::RemoveApertureShape(size_t index)
+{
+    auto& container = const_cast<std::vector<std::unique_ptr<aperture::Shape>>&>(
+        m_shapes.getApertures()
+    );
+    
+    if (index >= container.size()) {
+        return false;
+    }
+    
+    container.erase(container.begin() + index);
+    NotifyShapeModified();
+    
+    return true;
+}
+
+bool CApertureCtrls::RemoveShape(aperture::Shape* shape)
+{
+    if (!shape) {
+        return false;
+    }
+    
+    // Try to find and remove from each container
+    size_t index;
+    
+    if (FindShapeInContainer(shape, m_shapes.getExternal(), index)) {
+        return RemoveExternalShape(index);
+    }
+    
+    if (FindShapeInContainer(shape, m_shapes.getInternal(), index)) {
+        return RemoveInternalShape(index);
+    }
+    
+    if (FindShapeInContainer(shape, m_shapes.getApertures(), index)) {
+        return RemoveApertureShape(index);
+    }
+    
     return false;
 }
 
-const aperture::Shape* CApertureCtrls::GetShape(const ShapeHandle& handle) const
+aperture::TypeLimits CApertureCtrls::GetShapeType(const aperture::Shape* shape) const
 {
-    if (!IsHandleValid(handle)) {
-        return nullptr;
+    if (!shape) {
+        return aperture::TypeLimits::EXTERNAL;
     }
     
-    const auto* container = GetContainer(handle.type);
-    if (!container || handle.index >= container->size()) {
-        return nullptr;
+    size_t dummy;
+    
+    if (FindShapeInContainer(shape, m_shapes.getExternal(), dummy)) {
+        return aperture::TypeLimits::EXTERNAL;
     }
     
-    return (*container)[handle.index].get();
+    if (FindShapeInContainer(shape, m_shapes.getInternal(), dummy)) {
+        return aperture::TypeLimits::INTERNAL;
+    }
+    
+    if (FindShapeInContainer(shape, m_shapes.getApertures(), dummy)) {
+        return aperture::TypeLimits::APERTURE;
+    }
+    
+    return aperture::TypeLimits::EXTERNAL;
 }
 
-aperture::Shape* CApertureCtrls::GetShapeForEdit(const ShapeHandle& handle)
+int CApertureCtrls::GetShapeIndex(const aperture::Shape* shape) const
 {
-    if (!IsHandleValid(handle)) {
-        return nullptr;
+    if (!shape) {
+        return -1;
     }
     
-    auto* container = GetContainer(handle.type);
-    if (!container || handle.index >= container->size()) {
-        return nullptr;
+    size_t index;
+    
+    if (FindShapeInContainer(shape, m_shapes.getExternal(), index)) {
+        return static_cast<int>(index);
     }
     
-    return (*container)[handle.index].get();
+    if (FindShapeInContainer(shape, m_shapes.getInternal(), index)) {
+        return static_cast<int>(index);
+    }
+    
+    if (FindShapeInContainer(shape, m_shapes.getApertures(), index)) {
+        return static_cast<int>(index);
+    }
+    
+    return -1;
 }
 
 size_t CApertureCtrls::GetShapeCount() const
@@ -123,19 +211,17 @@ CApertureCtrls::HitTestResult CApertureCtrls::HitTest(
     double tolerance) const
 {
     HitTestResult result;
-    result.distance = -1.0; // No hit
     
     // Helper lambda to test all shapes in a container
     auto testContainer = [&](const std::vector<std::unique_ptr<aperture::Shape>>& container,
                             aperture::TypeLimits type) {
-        for (size_t i = 0; i < container.size(); ++i) {
-            const auto& shape = container[i];
-            
+        for (const auto& shape : container) {
             // TODO: Test control points first (corners, vertices)
             // For now, just test shape body
             
             if (shape->isInside(worldPt)) {
-                result.shape = ShapeHandle{i, type};
+                result.shape = shape.get();
+                result.type = type;
                 result.controlPointIndex = -1;  // Body hit
                 result.distance = 0.0;
                 return true;  // Found exact hit
@@ -160,11 +246,10 @@ CApertureCtrls::HitTestResult CApertureCtrls::HitTest(
 }
 
 int CApertureCtrls::HitTestControlPoints(
-    const ShapeHandle& handle,
+    aperture::Shape* shape,
     const aperture::Point& worldPt,
     double tolerance) const
 {
-    const auto* shape = GetShape(handle);
     if (!shape) {
         return -1;
     }
@@ -178,92 +263,14 @@ int CApertureCtrls::HitTestControlPoints(
 }
 
 bool CApertureCtrls::HitTestShapeBody(
-    const ShapeHandle& handle,
+    aperture::Shape* shape,
     const aperture::Point& worldPt) const
 {
-    const auto* shape = GetShape(handle);
     if (!shape) {
         return false;
     }
     
     return shape->isInside(worldPt);
-}
-
-// ========================================================================
-// Editing State
-// ========================================================================
-
-void CApertureCtrls::BeginEdit(const ShapeHandle& handle, int controlPointIndex)
-{
-    if (!IsHandleValid(handle)) {
-        return;
-    }
-    
-    // Cancel any existing edit
-    if (IsEditing()) {
-        CancelEdit();
-    }
-    
-    // Get shape to edit
-    const auto* shape = GetShape(handle);
-    if (!shape) {
-        return;
-    }
-    
-    // Save snapshot for cancel
-    m_editSnapshot = shape->clone();
-    m_editHandle = handle;
-    m_editControlPointIndex = controlPointIndex;
-    m_isEditing = true;
-}
-
-void CApertureCtrls::UpdateEdit(const aperture::Point& worldDelta)
-{
-    if (!IsEditing()) {
-        return;
-    }
-    
-    auto* shape = GetShapeForEdit(m_editHandle);
-    if (!shape) {
-        CancelEdit();
-        return;
-    }
-    
-    // TODO: Implement delta-based shape modification
-    // For now, just notify
-    NotifyShapeModified();
-}
-
-void CApertureCtrls::CommitEdit()
-{
-    if (!IsEditing()) {
-        return;
-    }
-    
-    // Discard snapshot and clear edit state
-    m_editSnapshot.reset();
-    m_isEditing = false;
-    m_editControlPointIndex = -1;
-}
-
-void CApertureCtrls::CancelEdit()
-{
-    if (!IsEditing()) {
-        return;
-    }
-    
-    // Restore snapshot
-    if (m_editSnapshot) {
-        auto* shape = GetShapeForEdit(m_editHandle);
-        if (shape) {
-            // TODO: Copy snapshot back to original
-            // This requires replacing the unique_ptr in the container
-        }
-        m_editSnapshot.reset();
-    }
-    
-    m_isEditing = false;
-    m_editControlPointIndex = -1;
 }
 
 // ========================================================================
@@ -280,16 +287,6 @@ bool CApertureCtrls::IsVisible(const aperture::Point& worldPt) const
 // ========================================================================
 // Internal Helpers
 // ========================================================================
-
-bool CApertureCtrls::IsHandleValid(const ShapeHandle& handle) const
-{
-    const auto* container = GetContainer(handle.type);
-    if (!container) {
-        return false;
-    }
-    
-    return handle.index < container->size();
-}
 
 const std::vector<std::unique_ptr<aperture::Shape>>* 
 CApertureCtrls::GetContainer(aperture::TypeLimits type) const
@@ -313,6 +310,20 @@ CApertureCtrls::GetContainer(aperture::TypeLimits type)
     return const_cast<std::vector<std::unique_ptr<aperture::Shape>>*>(
         const_cast<const CApertureCtrls*>(this)->GetContainer(type)
     );
+}
+
+bool CApertureCtrls::FindShapeInContainer(
+    const aperture::Shape* shape,
+    const std::vector<std::unique_ptr<aperture::Shape>>& container,
+    size_t& outIndex) const
+{
+    for (size_t i = 0; i < container.size(); ++i) {
+        if (container[i].get() == shape) {
+            outIndex = i;
+            return true;
+        }
+    }
+    return false;
 }
 
 } // namespace DigitMode

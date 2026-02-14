@@ -298,11 +298,212 @@ If you respect this, everything else (undo, selection, cursor, tooltips) becomes
 
 ---
 
-If you want next, I can:
+Short answer: **NO — handles must NOT be part of `Shape` as concrete objects.**
+Copilot is leading you toward a design trap.
 
-* map this to exact enums (`HandleType`, `HandleId`)
-* design hit-test API signatures
-* align cursor icons with handle types
-* propose minimal v1 vs v2 handle sets
+Long answer below, with a **clear architectural rule**, rationale, and a precise compromise that *is* correct.
 
-This is exactly the right level to freeze before coding.
+---
+
+# Handles: Where They Belong (and Where They Don’t)
+
+## The core mistake Copilot is making
+
+Copilot wants something like:
+
+```cpp
+class Shape {
+    std::vector<Handle> handles;
+};
+```
+
+This is **wrong** for your system.
+
+Why?
+
+Because **handles are not geometry** — they are **interaction affordances**.
+
+---
+
+## The correct separation of concerns
+
+### Shapes are:
+
+* **Pure geometric + semantic objects**
+* Serializable (file load/save)
+* UI-agnostic
+* Testable without a screen
+* Stable across refactors
+
+### Handles are:
+
+* View-dependent
+* Pixel-sized (screen space)
+* Mouse-driven
+* Cursor-dependent
+* Ephemeral (exist only during editing)
+
+So handles **cannot live as stateful objects inside shapes**.
+
+---
+
+## Correct model (the one you want)
+
+### Rule #1 (non-negotiable)
+
+> **A Shape does not own handles.**
+
+### Rule #2 (the key insight)
+
+> **A Shape *describes* where handles should be, but does not store them.**
+
+---
+
+## The correct abstraction: *Handle descriptors*
+
+Instead of handles being objects, they are **derived descriptors**.
+
+### Shape API (this is OK)
+
+```cpp
+struct HandleDesc {
+    HandleType type;          // Move, Resize, Rotate, Vertex, …
+    int        index;         // vertex index, edge index, axis index
+    Point      localPos;      // in shape-local coordinates
+};
+```
+
+```cpp
+class Shape {
+public:
+    virtual void EnumerateHandles(
+        std::vector<HandleDesc>& out) const = 0;
+
+    virtual void ApplyHandleDrag(
+        const HandleDesc& handle,
+        const DragContext& drag) = 0;
+};
+```
+
+✅ Shape **knows geometry**
+❌ Shape **does not know mouse, screen, cursor, commands**
+
+---
+
+## Who *creates* actual handles?
+
+### `BoundsHandler` (or equivalent controller)
+
+This class:
+
+* Converts `HandleDesc → screen-space handle`
+* Performs hit-testing
+* Tracks active drag
+* Creates preview geometry
+* Issues undoable commands
+
+```cpp
+class BoundsHandler {
+    std::vector<RuntimeHandle> activeHandles;
+};
+```
+
+`RuntimeHandle` exists **only during interaction**.
+
+---
+
+## Why this is the only scalable solution
+
+### 1. Overlapping shapes
+
+You must:
+
+* prioritize handles across shapes
+* resolve hit-testing globally
+
+Shapes **cannot** do this individually.
+
+---
+
+### 2. View transforms
+
+Handles:
+
+* scale with zoom
+* rotate with view
+* snap in screen space
+
+Shapes must not care.
+
+---
+
+### 3. Undo / redo
+
+Dragging a handle:
+
+* starts a command
+* previews geometry
+* commits on mouse up
+
+Shapes should not create commands.
+
+---
+
+### 4. Multiple views (future-proof)
+
+Same shape:
+
+* multiple views
+* multiple handle representations
+
+If handles live in shape → impossible.
+
+---
+
+## What *is* allowed inside Shape?
+
+Only **pure geometry logic**, for example:
+
+| Allowed in Shape         | Forbidden in Shape |
+| ------------------------ | ------------------ |
+| Handle positions (local) | Hit-testing        |
+| Handle meaning           | Mouse state        |
+| Geometry update rules    | Cursor             |
+| Bounds computation       | Screen units       |
+| Serialization            | Commands           |
+
+---
+
+## Concrete example: Rectangle
+
+```cpp
+void Rectangle::EnumerateHandles(std::vector<HandleDesc>& out) const {
+    out.push_back({ HandleType::Move, -1, Center() });
+    out.push_back({ HandleType::Rotate, -1, RotationHandlePos() });
+
+    for (int i = 0; i < 4; ++i)
+        out.push_back({ HandleType::CornerResize, i, Corner(i) });
+
+    for (int i = 0; i < 4; ++i)
+        out.push_back({ HandleType::EdgeResize, i, EdgeMidpoint(i) });
+}
+```
+
+No UI, no pixels, no state.
+
+---
+
+## What Copilot needs to be told (very explicitly)
+
+> ❌ “Add Handle objects to Shape”
+> ✅ “Shapes expose handle descriptors, not handle objects”
+
+---
+
+## Canonical Copilot instruction (use this verbatim)
+
+> **Do NOT store handles inside Shape as objects or state.
+> Shapes must only *enumerate handle descriptors* (type + local position + semantic index).
+> All hit-testing, mouse interaction, cursor logic, and handle lifetime must be implemented in BoundsHandler or controller-level code.
+> Handles are derived, ephemeral, view-dependent objects.**
+

@@ -214,6 +214,15 @@
     <ClCompile Include="Controls\CApertureCtrls.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\Commands\ReplaceShapeCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Commands\AddShapeCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Commands\RemoveShapeCommand.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -387,6 +396,15 @@
       <Filter>Header Files\ImageTempl_H</Filter>
     </ClInclude>
     <ClInclude Include="Controls\CApertureCtrls.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\ReplaceShapeCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AddShapeCommand.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\RemoveShapeCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -597,6 +615,7 @@
     <None Include="docs\boundCtrls-dependency-graph.md" />
     <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
     <None Include="docs\CApertureCtrls-Simplified.md" />
+    <None Include="Docs\HandleSystem-Implementation-Status.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
