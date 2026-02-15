@@ -2,6 +2,7 @@
 #include "VisibilityMask.h"
 #include "VisibilityMaskBuilder.h"
 #include "ShapeCollection.h"
+#include "IDataProviders.h"
 #include <cstdint>
 
 namespace aperture {
@@ -37,12 +38,12 @@ public:
      */
     VisibilityMaskProvider(
         const ShapeCollection& shapes,
-        int imageWidth,
-        int imageHeight)
+        const IImageData& imageProvider)
         : shapes_(shapes)
-        , imageWidth_(imageWidth)
-        , imageHeight_(imageHeight)
-        , imageVersion_(1)  // Start at 1, 0 means invalid
+        , m_imageProvider_(imageProvider)
+        , imageWidth_(imageProvider.GetWidth())
+        , imageHeight_(imageProvider.GetHeight())
+        , imageVersion_(imageProvider.GetImageVersion())  // Start at 1, 0 means invalid
         , hasMask_(false)
     {}
     
@@ -60,7 +61,10 @@ public:
      */
     const VisibilityMask& getMask() {
         uint64_t currentShapeVer = shapes_.getVersion();
-        
+        imageWidth_ = m_imageProvider_.GetWidth();
+        imageHeight_ = m_imageProvider_.GetHeight();
+        imageVersion_ = m_imageProvider_.GetImageVersion();
+
         // Check if rebuild needed
         bool needRebuild = !hasMask_ ||
                           (cachedMask_.shapeVersion != currentShapeVer) ||
@@ -105,19 +109,22 @@ public:
     void InvalidateImage() {
         imageVersion_++;
     }
-    
+    void Invalidate() {
+        hasMask_ = false;
+    }
 private:
     // Dependencies (not owned)
     const ShapeCollection& shapes_;
     
     // Image state
+    const IImageData& m_imageProvider_;
     int imageWidth_;
     int imageHeight_;
     uint64_t imageVersion_;
     
     // Cached mask
     VisibilityMask cachedMask_;
-    bool hasMask_;
+    bool hasMask_ = false; // isValid flag (true if cachedMask_ is valid)
 };
 
 } // namespace visibility

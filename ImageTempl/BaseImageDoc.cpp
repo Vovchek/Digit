@@ -1,9 +1,9 @@
-// BaseImageDoc.cpp : implementation file
+п»ї// BaseImageDoc.cpp : implementation file
 //
 /***********************************************************************************
- МОДУЛЬ: BaseImageDoc.cpp
- НАЗНАЧЕНИЕ:
-         Базовый документ архитектуры документ-представления      
+ РњРћР”РЈР›Р¬: BaseImageDoc.cpp
+ РќРђР—РќРђР§Р•РќРР•:
+         Р‘Р°Р·РѕРІС‹Р№ РґРѕРєСѓРјРµРЅС‚ Р°СЂС…РёС‚РµРєС‚СѓСЂС‹ РґРѕРєСѓРјРµРЅС‚-РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ      
 ************************************************************************************/
 
 #include "stdafx.h"
@@ -26,17 +26,18 @@ static char THIS_FILE[] = __FILE__;
 
 IMPLEMENT_DYNCREATE(CBaseImageDoc, CDocument)
 
-CBaseImageDoc::CBaseImageDoc()
+CBaseImageDoc::CBaseImageDoc() : imageCtrls()
+, apertureCtrls(imageCtrls) // interface dependency
 {
 }
 
-//Инициализация данных документа  
+//РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ РґР°РЅРЅС‹С… РґРѕРєСѓРјРµРЅС‚Р°  
 void CBaseImageDoc::InitData()
 {
   boundCtrls.Init();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CBaseImageDoc::OnNewDocument()
 {
 	if (!CDocument::OnNewDocument())
@@ -48,7 +49,7 @@ CBaseImageDoc::~CBaseImageDoc()
 {
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 CBaseImageView* CBaseImageDoc::GetView()
 {
    POSITION pos = GetFirstViewPosition();
@@ -74,7 +75,7 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageDoc diagnostics
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 #ifdef _DEBUG
 void CBaseImageDoc::AssertValid() const
 {
@@ -90,7 +91,7 @@ void CBaseImageDoc::Dump(CDumpContext& dc) const
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageDoc serialization
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageDoc::Serialize(CArchive& ar)
 {
 	if (ar.IsStoring())
@@ -105,7 +106,7 @@ void CBaseImageDoc::Serialize(CArchive& ar)
 
 /////////////////////////////////////////////////////////////////////////////
 // CBaseImageDoc commands
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CBaseImageDoc::OnOpenDocument(LPCTSTR lpszPathName) 
 {
 	TRACE("CBaseImageDoc::OnOpenDocument(%s)\n", lpszPathName ? lpszPathName : "NULL");
@@ -121,7 +122,7 @@ BOOL CBaseImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 	return TRUE;
 }
 
-// Инициализация и загрузка изображения
+// РРЅРёС†РёР°Р»РёР·Р°С†РёСЏ Рё Р·Р°РіСЂСѓР·РєР° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszImagePathName)
 {
 	TRACE("CBaseImageDoc::ReloadDocument(%s)\n", lpszImagePathName ? lpszImagePathName : "NULL");
@@ -146,7 +147,7 @@ BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszImagePathName)
 	imageCtrls.OriginalPath = fname;
 	if(!imageCtrls.LoadImage(fname)){
 		CString mes;
-		mes = CRS("Невозможно открыть файл\r\n", "Fail to load file\r\n");
+		mes = CRS("РќРµРІРѕР·РјРѕР¶РЅРѕ РѕС‚РєСЂС‹С‚СЊ С„Р°Р№Р»\r\n", "Fail to load file\r\n");
 		mes += fname;
 		imageCtrls.OriginalPath.Empty();
 		AfxMessageBox(LPCTSTR(mes));
@@ -173,50 +174,50 @@ BOOL CBaseImageDoc::ReloadDocument(LPCTSTR lpszImagePathName)
 	TRACE("CBaseImageDoc::ReloadDocument - returning TRUE\n");
 	return TRUE;
 }
-// Копирование файла изображения в TEMP директорию
+// РљРѕРїРёСЂРѕРІР°РЅРёРµ С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ РІ TEMP РґРёСЂРµРєС‚РѕСЂРёСЋ
 void CBaseImageDoc::CopyImage()
 {
    CImageChildFrm* pFr = (CImageChildFrm*)(GetView()->GetParentFrame());
    pFr->SavePlacement();
    MakeCopyDocument(LPCTSTR(RealPath), LPCTSTR(RealName), LPCTSTR(TmpPath));
 }
-// Возвращает путь к TEMP директории
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїСѓС‚СЊ Рє TEMP РґРёСЂРµРєС‚РѕСЂРёРё
 LPCTSTR CBaseImageDoc::GetTmpPath()
 {
 	return LPCTSTR(TmpPath);
 }
 
-// Возвращает путь к UNDO файлу
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїСѓС‚СЊ Рє UNDO С„Р°Р№Р»Сѓ
 LPCTSTR CBaseImageDoc::GetUndoTmpPath()
 {
 	return LPCTSTR(UndoTmpPath);
 }
 
-// Возвращает имя оригинала файла изображения
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РёРјСЏ РѕСЂРёРіРёРЅР°Р»Р° С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 LPCTSTR CBaseImageDoc::GetRealName()
 {
 	return LPCTSTR(RealName);
 }
 
-// Возвращает путь к оригиналу файла изображения
+// Р’РѕР·РІСЂР°С‰Р°РµС‚ РїСѓС‚СЊ Рє РѕСЂРёРіРёРЅР°Р»Сѓ С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 LPCTSTR CBaseImageDoc::GetRealPath()
 {
 	return LPCTSTR(RealName);
 }
 
-// Изменяет путь к оригиналу файла изображения
+// РР·РјРµРЅСЏРµС‚ РїСѓС‚СЊ Рє РѕСЂРёРіРёРЅР°Р»Сѓ С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 void CBaseImageDoc::SetRealPath(LPCTSTR _RealPath)
 {
 	RealPath = _RealPath;
 }
 
-// Изменяет имя оригинала файла изображения
+// РР·РјРµРЅСЏРµС‚ РёРјСЏ РѕСЂРёРіРёРЅР°Р»Р° С„Р°Р№Р»Р° РёР·РѕР±СЂР°Р¶РµРЅРёСЏ
 void CBaseImageDoc::SetRealName(LPCTSTR _RealName)
 {
 	RealName = _RealName;
 }
 
-// Удаляет параметры документа
+// РЈРґР°Р»СЏРµС‚ РїР°СЂР°РјРµС‚СЂС‹ РґРѕРєСѓРјРµРЅС‚Р°
 void CBaseImageDoc::DeleteContents() 
 {
 	if(!TmpPath.IsEmpty())
@@ -227,7 +228,7 @@ void CBaseImageDoc::DeleteContents()
 	CDocument::DeleteContents();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CBaseImageDoc::OnSaveDocument(LPCTSTR lpszPathName) 
 {
     imageCtrls.SaveImage(lpszPathName);
@@ -242,25 +243,25 @@ void CBaseImageDoc::OnFileSave()
 {
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CBaseImageDoc::OnFileSaveAs()
 {
-    LPCTSTR title = CRS("Сохранить файл", "Save file");
+    LPCTSTR title = CRS("РЎРѕС…СЂР°РЅРёС‚СЊ С„Р°Р№Р»", "Save file");
     CFileDialog fileDlg(FALSE);
 
     LPCTSTR lan;
 	CString str;
     str.Empty();
-    lan = CRS("Файлы (BMP)","Files (BMP)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (BMP)","Files (BMP)");
     str += lan; str += (TCHAR)NULL;
     str += "*.bmp"; str += (TCHAR)NULL;
-    lan = CRS("Файлы (PCX)","Files (PCX)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (PCX)","Files (PCX)");
     str += lan; str += (TCHAR)NULL;
     str += "*.pcx"; str += (TCHAR)NULL;
-    lan = CRS("Файлы (JPG)","Files (JPG)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (JPG)","Files (JPG)");
     str += lan; str += (TCHAR)NULL;
     str += "*.jpg"; str += (TCHAR)NULL;
-    lan = CRS("Файлы (TIF)","Files (TIF)");
+    lan = CRS("Р¤Р°Р№Р»С‹ (TIF)","Files (TIF)");
     str += lan; str += (TCHAR)NULL;
     str += "*.tif"; str += (TCHAR)NULL;
     fileDlg.m_ofn.lpstrFilter = LPCTSTR(str);
@@ -304,9 +305,9 @@ void CBaseImageDoc::OnFileSaveAs()
 	}
 }
 
-// Добавление строки в сценарий обработки
-// idCom - идентификатор комманды
-// _Options - список параметров
+// Р”РѕР±Р°РІР»РµРЅРёРµ СЃС‚СЂРѕРєРё РІ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё
+// idCom - РёРґРµРЅС‚РёС„РёРєР°С‚РѕСЂ РєРѕРјРјР°РЅРґС‹
+// _Options - СЃРїРёСЃРѕРє РїР°СЂР°РјРµС‚СЂРѕРІ
 void CBaseImageDoc::AddRecordScenario(int idCom, LPCTSTR _Options)
 {
     CString Command;
@@ -365,14 +366,14 @@ void CBaseImageDoc::AddRecordScenario(int idCom, LPCTSTR _Options)
   Scenario.AddTail(Record);
 }
 
-// Удаляет последнюю запись сценария обработки
+// РЈРґР°Р»СЏРµС‚ РїРѕСЃР»РµРґРЅСЋСЋ Р·Р°РїРёСЃСЊ СЃС†РµРЅР°СЂРёСЏ РѕР±СЂР°Р±РѕС‚РєРё
 void CBaseImageDoc::RemoveLastRecordScenario()
 {
 	Scenario.RemoveTail();
 }
 
-//Присваивает сценария обработки данному документу
-//newScenario - новый сценарий
+//РџСЂРёСЃРІР°РёРІР°РµС‚ СЃС†РµРЅР°СЂРёСЏ РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅРѕРјСѓ РґРѕРєСѓРјРµРЅС‚Сѓ
+//newScenario - РЅРѕРІС‹Р№ СЃС†РµРЅР°СЂРёР№
 void CBaseImageDoc::SetScenario(CStringList& newScenario)
 {
   Scenario.RemoveAll();
@@ -384,8 +385,8 @@ void CBaseImageDoc::SetScenario(CStringList& newScenario)
   }
 }
 
-//Возвращает сценарий обработки данного документа
-//retScenario - сценарий данного документа
+//Р’РѕР·РІСЂР°С‰Р°РµС‚ СЃС†РµРЅР°СЂРёР№ РѕР±СЂР°Р±РѕС‚РєРё РґР°РЅРЅРѕРіРѕ РґРѕРєСѓРјРµРЅС‚Р°
+//retScenario - СЃС†РµРЅР°СЂРёР№ РґР°РЅРЅРѕРіРѕ РґРѕРєСѓРјРµРЅС‚Р°
 void CBaseImageDoc::GetScenario(CStringList& retScenario)
 {
   retScenario.RemoveAll();

@@ -8,7 +8,7 @@
  * 
  * Owns:
  * - ShapeCollection (pure geometry container)
- * - VisibilityMaskProvider (cached mask with lazy rebuild) - TODO: blocked by ApertureCore compilation issues
+ * - VisibilityMaskProvider (cached mask with lazy rebuild)
  * 
  * Coordinates:
  * - Invalidation when shapes or image change
@@ -29,6 +29,7 @@
 
 #include "ApertureCore\include\aperturecore\visibility\ShapeCollection.h"
 #include "ApertureCore\include\aperturecore\visibility\VisibilityChecker.h"
+#include "ApertureCore\include\aperturecore\visibility\VisibilityMaskProvider.h"
 #include "ApertureCore\include\aperturecore\geometry\Shape.h"
 #include "ApertureCore\include\aperturecore\geometry\Ellipse.h"
 #include "ApertureCore\include\aperturecore\geometry\Rectangle.h"
@@ -41,7 +42,7 @@ namespace DigitMode {
 /**
  * @brief Aperture Subsystem Coordinator
  * 
- * Owns ShapeCollection.
+ * Owns ShapeCollection and VisibilityMaskProvider.
  * Coordinates invalidation and provides semantic APIs.
  * 
  * IMPORTANT:
@@ -53,7 +54,11 @@ namespace DigitMode {
  */
 class CApertureCtrls {
 public:
-    CApertureCtrls();
+    explicit CApertureCtrls(const IImageData& imageProvider)
+        : m_shapes(), m_maskProvider(m_shapes, imageProvider)
+    {
+        Init();
+    }
     ~CApertureCtrls() = default;
     
     void Init();
@@ -69,6 +74,12 @@ public:
     aperture::ShapeCollection& GetShapes() { return m_shapes; }
     const aperture::ShapeCollection& GetShapes() const { return m_shapes; }
     
+    /**
+     * @brief Get visibility mask provider
+     */
+    aperture::visibility::VisibilityMaskProvider& GetMaskProvider() { return m_maskProvider; }
+    const aperture::visibility::VisibilityMaskProvider& GetMaskProvider() const { return m_maskProvider; }
+    
     // ========================================================================
     // Invalidation Coordination (MANDATORY)
     // ========================================================================
@@ -82,7 +93,7 @@ public:
     void NotifyShapeModified()
     {
         m_shapes.notifyShapeModified();
-        // TODO: When VisibilityMaskProvider is added, call m_maskProvider->Invalidate()
+        m_maskProvider.Invalidate();
     }
     
     /**
@@ -95,7 +106,7 @@ public:
      */
     void NotifyImageModified()
     {
-        // TODO: When VisibilityMaskProvider is added, call m_maskProvider->InvalidateImage()
+        m_maskProvider.Invalidate();
     }
     
     // ========================================================================
@@ -156,7 +167,7 @@ public:
     
 private:
     aperture::ShapeCollection m_shapes;
-    // TODO: Add VisibilityMaskProvider when ApertureCore visibility mask files are fixed
+    mutable aperture::visibility::VisibilityMaskProvider m_maskProvider;
     
     const std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type) const;
     std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type);

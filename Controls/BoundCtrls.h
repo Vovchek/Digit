@@ -6,8 +6,7 @@
 #include "MGTools\Include\Utils\BaseDataType.h"
 
 #include "InterfSolver\Tools\CalcLimits.h"
-#include "DigitMode\IBoundsData.h"  // ← Add interface
-//#include "ApertureCore\include\ApertureCore\Visibility\ShapeCollection.h"
+#include "ApertureCore\include\ApertureCore\Visibility\IDataProviders.h"
 
 class CBoundCtrls : public IBoundsData  // ← Implement interface
 {

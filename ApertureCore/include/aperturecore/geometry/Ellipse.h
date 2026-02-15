@@ -189,7 +189,7 @@ public:
      * 
      * ### 6+ Points - Least Squares Ellipse Fit
      * 
-     * Minimizes algebraic distance: Σ(Ax²ᵉ + Bxᵢyᵢ + Cy²ᵢ + Dxᵢ + Eyᵢ + F)²
+     * Minimizes algebraic distance: Σ(Ax²ᵉ + Bxᵡyᵢ + Cy²ᵢ + Dxᵢ + Eyᵢ + F)²
      * 
      * Subject to ellipse constraint: B²-4AC < 0
      * 
@@ -273,6 +273,115 @@ public:
                     TypeLimits typeLimits = TypeLimits::EXTERNAL,
                     CoordinateSystem spatialSystem = CoordinateSystem::screen(),
                     NormalizationState normState = NormalizationState::MEASURING);
+    
+    /**
+     * @brief Fit circle to perimeter points using constrained LSM
+     * @param points Perimeter sample points (N ≥ 3 required)
+     * @param typeLimits Visibility behavior (default: EXTERNAL)
+     * @param spatialSystem Coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
+     * @return Ellipse with radiusX == radiusY (perfect circle)
+     * 
+     * Uses least-squares circle fitting with equal-radii constraint:
+     * - Computes optimal center to minimize sum of squared radial distances
+     * - All points contribute equally to fit
+     * - Returns Ellipse where major and minor axes are equal (circle)
+     * 
+     * ## Algorithm
+     * 
+     * 1. Compute centroid of points: c = mean(points)
+     * 2. For each point p_i: compute distance r_i = ||p_i - c||
+     * 3. Compute mean radius: r_mean = mean(r_i)
+     * 4. Optimize center to minimize Σ(r_i - r_mean)²
+     * 5. Return Ellipse(r_final, r_final, center)
+     * 
+     * ## When to Use
+     * 
+     * Use FitCircle when:
+     * - User explicitly selected "Add Circle" tool
+     * - You want to enforce circular constraint
+     * - Data is known to be from a circle (with noise)
+     * 
+     * Use FitEllipse when:
+     * - Data may represent an ellipse
+     * - You want best-fit general conic
+     * 
+     * ## Example
+     * 
+     * @code{.cpp}
+     * // User clicked 4 points roughly on circle perimeter
+     * std::vector<Point> clicks{
+     *     {10, 0}, {0, 10}, {-10, 0}, {0, -10}
+     * };
+     * 
+     * // Fit circle (enforces radiusX == radiusY)
+     * auto circle = Ellipse::FitCircle(clicks, TypeLimits::EXTERNAL);
+     * assert(std::abs(circle->radiusX() - circle->radiusY()) < 1e-6);
+     * 
+     * // For comparison: general ellipse fit
+     * auto ellipse = Ellipse::FitEllipse(clicks, TypeLimits::EXTERNAL);
+     * // May have radiusX != radiusY if points are noisy
+     * @endcode
+     * 
+     * @note Requires at least 3 points (mathematically determined)
+     * @note Collinear points produce degenerate circle (zero radius)
+     * @note Result is always a valid circle (possibly degenerate)
+     * @see FitEllipse - Fit general ellipse (no circular constraint)
+     */
+    static std::unique_ptr<Ellipse> FitCircle(
+        const std::vector<Point>& points,
+        TypeLimits typeLimits = TypeLimits::EXTERNAL,
+        CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+        NormalizationState normState = NormalizationState::MEASURING
+    );
+    
+    /**
+     * @brief Fit general ellipse to perimeter points using LSM
+     * @param points Perimeter sample points (N ≥ 5 recommended)
+     * @param typeLimits Visibility behavior (default: EXTERNAL)
+     * @param spatialSystem Coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
+     * @return Best-fit ellipse (may have radiusX != radiusY)
+     * 
+     * Uses least-squares ellipse fitting (general conic section):
+     * - Fits full 5-parameter ellipse (center, 2 radii, rotation)
+     * - No constraint on axis ratios
+     * - Optimizes for minimum squared geometric distance
+     * 
+     * ## Distinction from FitCircle
+     * 
+     * This is an **explicit static factory** for clarity:
+     * - FitCircle: Enforces radiusX == radiusY constraint
+     * - FitEllipse: Allows radiusX != radiusY (general)
+     * 
+     * Internally delegates to existing Ellipse(vector<Point>) constructor.
+     * 
+     * ## Example
+     * 
+     * @code{.cpp}
+     * // User clicked points on elliptical boundary
+     * std::vector<Point> clicks;
+     * // ... collect clicks ...
+     * 
+     * auto ellipse = Ellipse::FitEllipse(clicks, TypeLimits::APERTURE);
+     * 
+     * // Check if result is approximately circular
+     * double ratio = ellipse->radiusX() / ellipse->radiusY();
+     * if (std::abs(ratio - 1.0) < 0.1) {
+     *     // Nearly circular
+     * }
+     * @endcode
+     * 
+     * @note Requires at least 5 points for full ellipse (5 parameters)
+     * @note Works with 3-4 points but may produce degenerate fit
+     * @see FitCircle - Constrained fit for circles only
+     */
+    static std::unique_ptr<Ellipse> FitEllipse(
+        const std::vector<Point>& points,
+        TypeLimits typeLimits = TypeLimits::EXTERNAL,
+        CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+        NormalizationState normState = NormalizationState::MEASURING
+    );
     
     // Shape interface implementation
     
@@ -457,7 +566,7 @@ public:
     const char* typeName() const override { return "Ellipse"; }
     
     // Ellipse-specific properties
-    
+
     /**
      * @brief Get center point in world coordinates
      * @return Center point

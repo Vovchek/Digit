@@ -33,6 +33,62 @@ Rectangle::Rectangle(double width, double height,
     updateRotationCache();
 }
 
+Rectangle::Rectangle(
+    const Point& p0,
+    const Point& p1,
+    const Point& p2,
+    TypeLimits typeLimits,
+    CoordinateSystem spatialSystem,
+    NormalizationState normState)
+    : cosRot_(0.0)
+    , sinRot_(0.0)
+{
+    // 1. Compute width vector (p0 → p1)
+    double vWidthX = p1.x - p0.x;
+    double vWidthY = p1.y - p0.y;
+    
+    // 2. Width magnitude
+    width_ = std::sqrt(vWidthX * vWidthX + vWidthY * vWidthY);
+    
+    // 3. Normalize width vector
+    double widthLen = width_;
+    if (widthLen < 1e-10) {
+        widthLen = 1.0;  // Degenerate case: use unit vector
+    }
+    double uWidthX = vWidthX / widthLen;
+    double uWidthY = vWidthY / widthLen;
+    
+    // 4. Perpendicular vector (rotate width vector 90° counter-clockwise)
+    double uPerpX = -uWidthY;
+    double uPerpY = uWidthX;
+    
+    // 5. Project p2 onto perpendicular to get height
+    double vP2X = p2.x - p0.x;
+    double vP2Y = p2.y - p0.y;
+    double heightProjection = vP2X * uPerpX + vP2Y * uPerpY;
+    height_ = std::abs(heightProjection);
+    
+    // 6. Determine height direction (sign of projection)
+    double heightSign = (heightProjection >= 0.0) ? 1.0 : -1.0;
+    
+    // 7. Compute center
+    // center = p0 + 0.5 * width_vector + 0.5 * height * perp_direction
+    center_.x = p0.x + 0.5 * vWidthX + 0.5 * height_ * heightSign * uPerpX;
+    center_.y = p0.y + 0.5 * vWidthY + 0.5 * height_ * heightSign * uPerpY;
+    
+    // 8. Compute rotation angle from width vector
+    rotationRad_ = std::atan2(uWidthY, uWidthX);
+    rotationDeg_ = rotationRad_ * 180.0 / M_PI;
+    
+    // 9. Set type and coordinate system
+    typeLimits_ = typeLimits;
+    spatialSystem_ = spatialSystem;
+    normState_ = normState;
+    
+    // 10. Update cached trig values
+    updateRotationCache();
+}
+
 void Rectangle::updateRotationCache() {
     cosRot_ = std::cos(rotationRad_);
     sinRot_ = std::sin(rotationRad_);

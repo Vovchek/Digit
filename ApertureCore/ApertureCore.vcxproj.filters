@@ -75,6 +75,12 @@
     <ClInclude Include="include\aperturecore\visibility\VisibilityMaskProvider.h">
       <Filter>Header Files\visibility</Filter>
     </ClInclude>
+    <ClInclude Include="include\aperturecore\visibility\IDataProviders.h">
+      <Filter>Header Files\visibility</Filter>
+    </ClInclude>
+    <ClInclude Include="include\aperturecore\geometry\Handle.h">
+      <Filter>Header Files\geometry</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\geometry\Point.cpp">

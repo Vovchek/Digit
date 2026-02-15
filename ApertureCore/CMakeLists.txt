@@ -35,10 +35,6 @@ set(APERTURE_SOURCES
     src/visibility/VisibilityChecker.cpp
     
     # TODO: Add as implemented
-    # src/geometry/BrokenLine.cpp
-    # src/visibility/VisibilityMask.cpp
-    # src/contour/ContourExtractor.cpp
-    # src/contour/SegmentConnector.cpp
     # src/io/ShapeSerializer.cpp
     # src/io/BoundsIO.cpp
 )

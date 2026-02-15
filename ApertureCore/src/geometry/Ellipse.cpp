@@ -598,48 +598,40 @@ void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag)
             // Calculate angle from center to current drag position
             double dx = drag.dragCurrentWorld.x - center_.x;
             double dy = drag.dragCurrentWorld.y - center_.y;
-            double angleRad = std::atan2(dx, dy);  // atan2(x,y) for +Y = up in shape space
+            double newAngle = std::atan2(dy, dx);
             
-            double angleDeg = angleRad * 180.0 / M_PI;
+            // Initial angle from center to drag start
+            double dx0 = drag.dragStartWorld.x - center_.x;
+            double dy0 = drag.dragStartWorld.y - center_.y;
+            double initialAngle = std::atan2(dy0, dx0);
             
-            // Apply snap if Shift is pressed (15° increments per review)
-            if (drag.shiftKey) {
-                double snapStep = 15.0;
-                angleDeg = std::round(angleDeg / snapStep) * snapStep;
-            }
+            // Apply rotation delta
+            double deltaAngle = newAngle - initialAngle;
+            rotationRad_ += deltaAngle;
+            rotationDeg_ = rotationRad_ * 180.0 / M_PI;
             
-            rotationDeg_ = angleDeg;
-            rotationRad_ = angleDeg * M_PI / 180.0;
+            // Normalize to [0, 360)
+            while (rotationDeg_ < 0.0) rotationDeg_ += 360.0;
+            while (rotationDeg_ >= 360.0) rotationDeg_ -= 360.0;
+            
             updateRotationCache();
             break;
         }
             
         case HandleType::AxisResize: {
-            // Determine which axis is being resized
+            // Determine which axis is being dragged
             bool isMajorAxis = (handle.index == 0 || handle.index == 1);
             
-            // Calculate distance from center to drag position
-            double dx = drag.dragCurrentWorld.x - center_.x;
-            double dy = drag.dragCurrentWorld.y - center_.y;
-            double dist = std::sqrt(dx * dx + dy * dy);
-            
-            // Ensure minimum size
-            if (dist < 1.0) dist = 1.0;
+            // Project drag delta onto handle normal to get resize amount
+            double resize = drag.deltaWorld.x * handle.normal.x +
+                           drag.deltaWorld.y * handle.normal.y;
             
             if (isMajorAxis) {
-                semiMajor_ = dist;
+                semiMajor_ += resize;
+                semiMajor_ = std::max(semiMajor_, 1.0);  // Minimum size
             } else {
-                semiMinor_ = dist;
-            }
-            
-            // Swap if minor becomes larger than major (maintain major >= minor)
-            if (semiMinor_ > semiMajor_) {
-                std::swap(semiMajor_, semiMinor_);
-                // Rotate 90° to keep major axis aligned
-                rotationDeg_ += 90.0;
-                if (rotationDeg_ >= 360.0) rotationDeg_ -= 360.0;
-                rotationRad_ = rotationDeg_ * M_PI / 180.0;
-                updateRotationCache();
+                semiMinor_ += resize;
+                semiMinor_ = std::max(semiMinor_, 1.0);  // Minimum size
             }
             break;
         }
@@ -647,6 +639,118 @@ void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag)
         default:
             break;
     }
+}
+
+// ========================================================================
+// Static Factory Methods (Phase 1 - Explicit Circle/Ellipse Fitting)
+// ========================================================================
+
+// Solve for circle parameters using algebraic method
+// (x² + y²) + Ax + By + C = 0
+// Center = (-A/2, -B/2), Radius = sqrt((A² + B²)/4 - C)
+
+std::unique_ptr<Ellipse> Ellipse::FitCircle(
+    const std::vector<Point>& points,
+    TypeLimits typeLimits,
+    CoordinateSystem spatialSystem,
+    NormalizationState normState)
+{
+    if (points.size() < 3) {
+        // Degenerate case: return zero-radius circle at origin
+        return std::make_unique<Ellipse>(0.0, 0.0, 0.0, 0.0, 0.0,
+            typeLimits, spatialSystem, normState);
+    }
+
+    size_t n = points.size();
+
+    // Build linear system: [x²+y², x, y, 1] * [1, A, B, C]ᵀ = 0
+    // Using D = -(x²+y²) to move to right-hand side
+
+    double sum_x = 0, sum_y = 0, sum_x2 = 0, sum_y2 = 0;
+    double sum_xy = 0, sum_x3 = 0, sum_y3 = 0, sum_xy2 = 0, sum_x2y = 0;
+    double sum_x2_y2 = 0.0;  // sum of (x² + y²)
+
+    for (const auto& p : points) {
+        double x = p.x;
+        double y = p.y;
+        double x2 = x * x;
+        double y2 = y * y;
+        double xy = x * y;
+        double x2_y2 = x2 + y2;
+
+        sum_x += x;
+        sum_y += y;
+        sum_x2 += x2;
+        sum_y2 += y2;
+        sum_xy += xy;
+        sum_x3 += x2 * x;
+        sum_y3 += y2 * y;
+        sum_xy2 += x * y2;
+        sum_x2y += x2 * y;
+        sum_x2_y2 += x2_y2;
+    }
+
+    // Build the normal matrix (3x3 symmetric)
+    double M11 = sum_x2;
+    double M12 = sum_xy;
+    double M13 = sum_x;
+    double M22 = sum_y2;
+    double M23 = sum_y;
+    double M33 = static_cast<double>(n);
+
+    // Build the right-hand side
+    double b1 = -(sum_x3 + sum_xy2);
+    double b2 = -(sum_x2y + sum_y3);
+    double b3 = -sum_x2_y2;
+
+    // Solve the 3x3 system M * [A, B, C]ᵀ = b
+    // Using Cramer's rule or a small solver. Here we use a simple direct method.
+    double det = M11 * (M22 * M33 - M23 * M23)
+        - M12 * (M12 * M33 - M23 * M13)
+        + M13 * (M12 * M23 - M22 * M13);
+
+    if (std::abs(det) < 1e-10) {
+        // Points are collinear or degenerate
+        return std::make_unique<Ellipse>(0.0, 0.0, 0.0, 0.0, 0.0,
+            typeLimits, spatialSystem, normState);
+    }
+
+    double invDet = 1.0 / det;
+
+    double A = (b1 * (M22 * M33 - M23 * M23)
+        - M12 * (b2 * M33 - M23 * b3)
+        + M13 * (b2 * M23 - M22 * b3)) * invDet;
+
+    double B = (M11 * (b2 * M33 - M23 * b3)
+        - b1 * (M12 * M33 - M23 * M13)
+        + M13 * (M12 * b3 - b2 * M13)) * invDet;
+
+    double C = (M11 * (M22 * b3 - M23 * b2)
+        - M12 * (M12 * b3 - M13 * b2)
+        + b1 * (M12 * M23 - M22 * M13)) * invDet;
+
+    double cx = -A / 2.0;
+    double cy = -B / 2.0;
+    double radius = std::sqrt(cx * cx + cy * cy - C);
+
+    // Ensure radius is non‑negative (should be, but guard against numerical issues)
+    if (radius < 0.0) radius = 0.0;
+
+    return std::make_unique<Ellipse>(
+        radius, radius, cx, cy, 0.0,
+        typeLimits, spatialSystem, normState
+    );
+}
+
+std::unique_ptr<Ellipse> Ellipse::FitEllipse(
+    const std::vector<Point>& points,
+    TypeLimits typeLimits,
+    CoordinateSystem spatialSystem,
+    NormalizationState normState)
+{
+    // Delegate to existing Ellipse(vector<Point>) constructor
+    // This static method exists for API clarity and consistency with FitCircle
+    return std::make_unique<Ellipse>(points, typeLimits, spatialSystem, normState);
 }
 
 } // namespace aperture

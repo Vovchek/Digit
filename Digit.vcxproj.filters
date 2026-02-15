@@ -211,9 +211,6 @@
     <ClCompile Include="DigitMode\BoundsHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="Controls\CApertureCtrls.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DigitMode\Commands\ReplaceShapeCommand.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -222,6 +219,9 @@
     </ClCompile>
     <ClCompile Include="DigitMode\Commands\RemoveShapeCommand.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Controls\CApertureCtrls.cpp">
+      <Filter>Source Files\Controls</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -395,9 +395,6 @@
     <ClInclude Include="ImageTempl\ViewTransform.h">
       <Filter>Header Files\ImageTempl_H</Filter>
     </ClInclude>
-    <ClInclude Include="Controls\CApertureCtrls.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\Commands\ReplaceShapeCommand.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -406,6 +403,9 @@
     </ClInclude>
     <ClInclude Include="DigitMode\Commands\RemoveShapeCommand.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Controls\CApertureCtrls.h">
+      <Filter>Header Files\Controls_H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -616,6 +616,8 @@
     <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
     <None Include="docs\CApertureCtrls-Simplified.md" />
     <None Include="Docs\HandleSystem-Implementation-Status.md" />
+    <None Include="Docs\ApertureEditing_ImplementationPlan.md" />
+    <None Include="Docs\Phase1_CompletionReport.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

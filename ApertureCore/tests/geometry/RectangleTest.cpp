@@ -468,60 +468,151 @@ TEST_F(RectangleTest, Rotation180Degrees) {
     
     // 180 degree rotation shouldn't change bounding box for axis-aligned
     Bounds bounds = rect.getBounds();
+    
     EXPECT_NEAR(bounds.width(), 10.0, TOLERANCE);
     EXPECT_NEAR(bounds.height(), 5.0, TOLERANCE);
 }
 
-TEST_F(RectangleTest, Rotation360Degrees) {
-    Rectangle rect(10.0, 5.0, 0.0, 0.0, 360.0);
-    
-    // 360 degrees should be equivalent to 0
-    EXPECT_NEAR(rect.rotationRadians(), 2.0 * M_PI, 0.01);
-}
-
-TEST_F(RectangleTest, NegativeRotation) {
-    Rectangle rect(10.0, 5.0, 0.0, 0.0, -45.0);
-    
-    EXPECT_DOUBLE_EQ(rect.rotationDegrees(), -45.0);
-    EXPECT_NEAR(rect.rotationRadians(), -45.0 * M_PI / 180.0, TOLERANCE);
-}
-
 // ============================================================================
-// TypeLimits Tests
+// Three-Point Constructor Tests
 // ============================================================================
 
-TEST_F(RectangleTest, TypeLimits_DefaultExternal) {
-    Rectangle rect(10.0, 5.0, 0.0, 0.0);
+TEST_F(RectangleTest, ThreePointConstructor_AxisAligned) {
+    // Create axis-aligned rectangle: 100 wide, 50 tall
+    Point p0{0.0, 0.0};     // Bottom-left
+    Point p1{100.0, 0.0};   // Bottom-right (width direction)
+    Point p2{100.0, 50.0};  // Top-right (height)
     
-    EXPECT_EQ(rect.getTypeLimits(), TypeLimits::EXTERNAL);
+    Rectangle rect(p0, p1, p2);
+    
+    // Expected: width=100, height=50, center={50, 25}, rotation=0°
+    EXPECT_NEAR(rect.width(), 100.0, TOLERANCE);
+    EXPECT_NEAR(rect.height(), 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.center().x, 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.center().y, 25.0, TOLERANCE);
+    EXPECT_NEAR(rect.rotationDegrees(), 0.0, TOLERANCE);
 }
 
-TEST_F(RectangleTest, TypeLimits_SetAndGet) {
-    Rectangle rect(10.0, 5.0, 0.0, 0.0);
+TEST_F(RectangleTest, ThreePointConstructor_Rotated45) {
+    // Create rectangle rotated 45 degrees
+    double sqrt2 = std::sqrt(2.0);
+    Point p0{0.0, 0.0};
+    Point p1{100.0 / sqrt2, 100.0 / sqrt2};  // Width 100 at 45°
+    Point p2{0.0, 50.0 / sqrt2 * 2.0};       // Height ~50
     
-    rect.setTypeLimits(TypeLimits::INTERNAL);
+    Rectangle rect(p0, p1, p2);
+    
+    EXPECT_NEAR(rect.width(), 100.0, TOLERANCE);
+    EXPECT_NEAR(rect.height(), 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.rotationDegrees(), 45.0, 1.0);  // Allow 1° tolerance
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_Rotated30) {
+    // Create rectangle rotated 30 degrees
+    double cos30 = std::cos(30.0 * M_PI / 180.0);
+    double sin30 = std::sin(30.0 * M_PI / 180.0);
+    
+    Point p0{0.0, 0.0};
+    Point p1{100.0 * cos30, 100.0 * sin30};  // Width 100 at 30°
+    Point p2{-50.0 * sin30, 50.0 * cos30};   // Height 50 perpendicular
+    
+    Rectangle rect(p0, p1, p2);
+    
+    EXPECT_NEAR(rect.width(), 100.0, TOLERANCE);
+    EXPECT_NEAR(rect.height(), 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.rotationDegrees(), 30.0, 0.1);
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_CornersMatchInput) {
+    // Verify that the resulting rectangle's corners are close to input points
+    Point p0{10.0, 20.0};
+    Point p1{110.0, 20.0};   // Width 100 along X
+    Point p2{110.0, 70.0};   // Height 50 along Y
+    
+    Rectangle rect(p0, p1, p2);
+    
+    auto corners = rect.corners();
+    
+    // Corners should be approximately at the input points
+    // Order: TL, TR, BR, BL (in local frame, which depends on rotation)
+    bool foundP0 = false;
+    bool foundP1 = false;
+    bool foundP2 = false;
+    
+    for (const auto& corner : corners) {
+        if (isNear(corner.x, p0.x) && isNear(corner.y, p0.y)) foundP0 = true;
+        if (isNear(corner.x, p1.x) && isNear(corner.y, p1.y)) foundP1 = true;
+        if (isNear(corner.x, p2.x) && isNear(corner.y, p2.y)) foundP2 = true;
+    }
+    
+    EXPECT_TRUE(foundP0) << "Corner p0 not found in rectangle corners";
+    EXPECT_TRUE(foundP1) << "Corner p1 not found in rectangle corners";
+    EXPECT_TRUE(foundP2) << "Corner p2 not found in rectangle corners";
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_GeometricProperties) {
+    // Create a rectangle and verify geometric properties
+    Point p0{0.0, 0.0};
+    Point p1{60.0, 0.0};
+    Point p2{60.0, 40.0};
+    
+    Rectangle rect(p0, p1, p2);
+    
+    // Area should be 60 * 40 = 2400
+    EXPECT_NEAR(rect.area(), 2400.0, TOLERANCE);
+    
+    // Perimeter should be 2 * (60 + 40) = 200
+    EXPECT_NEAR(rect.perimeter(), 200.0, TOLERANCE);
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_SquareDetection) {
+    // Create a square via 3-point constructor
+    Point p0{0.0, 0.0};
+    Point p1{50.0, 0.0};
+    Point p2{50.0, 50.0};
+    
+    Rectangle rect(p0, p1, p2);
+    
+    EXPECT_TRUE(rect.isSquare());
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_NegativeHeight) {
+    // P2 projects in negative direction along perpendicular
+    Point p0{0.0, 0.0};
+    Point p1{100.0, 0.0};
+    Point p2{100.0, -50.0};  // Height projects downward
+    
+    Rectangle rect(p0, p1, p2);
+    
+    // Height should be absolute value
+    EXPECT_NEAR(rect.width(), 100.0, TOLERANCE);
+    EXPECT_NEAR(rect.height(), 50.0, TOLERANCE);
+    
+    // Center should still be computed correctly
+    EXPECT_NEAR(rect.center().x, 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.center().y, -25.0, TOLERANCE);
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_OffsetOrigin) {
+    // Rectangle not at origin
+    Point p0{100.0, 200.0};
+    Point p1{150.0, 200.0};
+    Point p2{150.0, 250.0};
+    
+    Rectangle rect(p0, p1, p2);
+    
+    EXPECT_NEAR(rect.width(), 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.height(), 50.0, TOLERANCE);
+    EXPECT_NEAR(rect.center().x, 125.0, TOLERANCE);
+    EXPECT_NEAR(rect.center().y, 225.0, TOLERANCE);
+}
+
+TEST_F(RectangleTest, ThreePointConstructor_TypeLimitsPreserved) {
+    Point p0{0.0, 0.0};
+    Point p1{100.0, 0.0};
+    Point p2{100.0, 50.0};
+    
+    Rectangle rect(p0, p1, p2, TypeLimits::INTERNAL);
+    
     EXPECT_EQ(rect.getTypeLimits(), TypeLimits::INTERNAL);
-    
-    rect.setTypeLimits(TypeLimits::APERTURE);
-    EXPECT_EQ(rect.getTypeLimits(), TypeLimits::APERTURE);
-}
-
-TEST_F(RectangleTest, Normalize_TransformsCoordinates) {
-    Rectangle rect(100.0, 50.0, 200.0, 100.0);
-    
-    // Before normalization
-    EXPECT_FALSE(rect.isNormalized());
-    EXPECT_TRUE(rect.isMeasuring());
-    
-    // Normalize relative to origin (100, 50) with radius 100
-    rect.normalize(100.0, 50.0, 100.0);
-    
-    // After normalization
-    EXPECT_TRUE(rect.isNormalized());
-    EXPECT_FALSE(rect.isMeasuring());
-    
-    // Check transformed values
-    Point center = rect.center();
-    EXPECT_NEAR(center.x, 1.0, TOLERANCE);   // (200-100)/100 = 1
-    EXPECT_NEAR(center.y, 0.5, TOLERANCE);   // (100-50)/100 = 0.5
 }

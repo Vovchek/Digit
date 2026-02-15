@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <cstdint>
 #include <vector>
 
@@ -35,13 +35,14 @@ public:
      * @param y Pixel y coordinate
      * @return true if visible, false if invisible or out of bounds
      */
+    bool IsVisible(int x, int y) const {
         if (x < 0 || x >= width || y < 0 || y >= height) {
             return false;
         }
         int index = y * width + x;
         return data[index] != 0;
     }
-    
+
     /**
      * @brief Default constructor creates empty mask
      */

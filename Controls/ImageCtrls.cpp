@@ -38,6 +38,7 @@ void CImageCtrls::PrepareNewImage()
     m_pDIB = NULL;
     ImageSize.cx = 0;
     ImageSize.cy = 0;
+	InvalidateImage();
 }
 
 CImageCtrls::~CImageCtrls()
@@ -242,6 +243,7 @@ BOOL CImageCtrls::ConvertToGrayScale(CDC* pDC, LPCTSTR fname)
 		delete m_pDIB;
     m_pDIB = new SECDib;
     m_pDIB->LoadImage(fname);
+
     return TRUE;
 }
 
@@ -249,6 +251,7 @@ bool CImageCtrls::LoadImage(CString& fname)
 {
     //Note, could have done new SECDIB(filename) too?
 	delete m_pDIB;
+	InvalidateImage();
 
     if(!ConvertToDIB(fname))
           return false;

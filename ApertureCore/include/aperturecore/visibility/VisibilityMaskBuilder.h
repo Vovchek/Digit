@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "VisibilityMask.h"
 #include "ShapeCollection.h"
 #include "VisibilityChecker.h"
@@ -49,7 +49,7 @@ public:
         for (int y = 0; y < height; ++y) {
             for (int x = 0; x < width; ++x) {
                 int index = y * width + x;
-                mask.data[index] = checker.isVisible({ x, y }) ? 1 : 0;
+                mask.data[index] = checker.isVisible({ static_cast<double>(x), static_cast<double>(y) }) ? 1 : 0;
             }
         }
         

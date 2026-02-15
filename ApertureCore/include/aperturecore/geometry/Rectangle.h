@@ -427,6 +427,73 @@ public:
               CoordinateSystem spatialSystem = CoordinateSystem::screen(),
               NormalizationState normState = NormalizationState::MEASURING);
     
+    /**
+     * @brief Construct rectangle from 3 points on perimeter
+     * @param p0 First corner point
+     * @param p1 Second corner point (defines width axis)
+     * @param p2 Third point (defines height and orientation)
+     * @param typeLimits Visibility behavior (default: EXTERNAL)
+     * @param spatialSystem Spatial coordinate system (default: SCREEN)
+     * @param normState Normalization state (default: MEASURING)
+     * 
+     * Creates a rectangle from three perimeter points where:
+     * - Vector p0→p1 defines the width direction and magnitude
+     * - Point p2 is projected onto the perpendicular to define height
+     * - Center is computed as the geometric center of the resulting rectangle
+     * - Rotation is computed from the width vector angle
+     * 
+     * ## Geometry
+     * 
+     * Given points p0, p1, p2:
+     * 1. Width vector: v_width = p1 - p0
+     * 2. Width magnitude: width = ||v_width||
+     * 3. Perpendicular vector: v_perp = rotate_90(v_width)
+     * 4. Height projection: height = |dot(p2 - p0, normalize(v_perp))|
+     * 5. Center: center = p0 + 0.5 * v_width + 0.5 * height * normalize(v_perp)
+     * 6. Rotation: atan2(v_width.y, v_width.x)
+     * 
+     * ## Examples
+     * 
+     * @code{.cpp}
+     * // Axis-aligned rectangle from corners
+     * Point p0{0, 0};
+     * Point p1{100, 0};   // Width = 100 along X
+     * Point p2{100, 50};  // Height = 50 along Y
+     * Rectangle rect(p0, p1, p2);
+     * // Result: width=100, height=50, center={50, 25}, rotation=0°
+     * 
+     * // Rotated rectangle (45 degrees)
+     * Point p0{0, 0};
+     * Point p1{70.7, 70.7};   // Width ~100 at 45°
+     * Point p2{0, 100};       // Height ~50
+     * Rectangle rotated(p0, p1, p2);
+     * // Result: rotated 45° counter-clockwise
+     * 
+     * // Usage in shape creation workflow
+     * std::vector<Point> clicks;
+     * clicks.push_back(firstClick);
+     * clicks.push_back(secondClick);
+     * clicks.push_back(thirdClick);
+     * auto shape = std::make_unique<Rectangle>(
+     *     clicks[0], clicks[1], clicks[2],
+     *     TypeLimits::EXTERNAL
+     * );
+     * @endcode
+     * 
+     * @note Points should not be collinear (results in degenerate rectangle)
+     * @note The resulting rectangle's corners may not exactly match p0, p1, p2
+     *       (p2 is projected onto perpendicular)
+     * @see Rectangle(width, height, ...) - Standard constructor
+     */
+    explicit Rectangle(
+        const Point& p0,
+        const Point& p1,
+        const Point& p2,
+        TypeLimits typeLimits = TypeLimits::EXTERNAL,
+        CoordinateSystem spatialSystem = CoordinateSystem::screen(),
+        NormalizationState normState = NormalizationState::MEASURING
+    );
+    
     // Shape interface implementation
     
     /**

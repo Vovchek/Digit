@@ -82,6 +82,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <AdditionalIncludeDirectories>$(ProjectDir)include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <TreatWarningAsError>true</TreatWarningAsError>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
       <SubSystem>
@@ -132,8 +133,10 @@
   <ItemGroup>
     <!-- Headers -->
     <ClInclude Include="include\aperturecore\geometry\CoordinateSystem.h" />
+    <ClInclude Include="include\aperturecore\geometry\Handle.h" />
     <ClInclude Include="include\aperturecore\geometry\Point.h" />
     <ClInclude Include="include\aperturecore\geometry\Bounds.h" />
+    <ClInclude Include="include\aperturecore\visibility\IDataProviders.h" />
     <ClInclude Include="include\aperturecore\visibility\TypeLimits.h" />
     <ClInclude Include="include\aperturecore\geometry\Shape.h" />
     <ClInclude Include="include\aperturecore\visibility\ShapeCollection.h" />

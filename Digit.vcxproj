@@ -113,7 +113,7 @@ ApertureCore.lib         %(AdditionalDependencies)
       <WarningLevel>Level3</WarningLevel>
       <MinimalRebuild>
       </MinimalRebuild>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <AdditionalIncludeDirectories>$(SolutionDir);MGTools;MGTools\Include;InterfSolver;InterfSolver\INCLUDE;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>$(IntDir)</AssemblerListingLocation>
@@ -285,6 +285,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
     <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />
     <None Include="DIGITINFO_REFACTORING_GUIDE.md" />
+    <None Include="Docs\ApertureEditing_ImplementationPlan.md" />
     <None Include="Docs\AutoNumberingAlgorithm_Implementation.md" />
     <None Include="Docs\AutoNumberingCommand_Integration.md" />
     <None Include="Docs\AutoNumberingCommand_QuickRef.md" />
@@ -323,6 +324,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\NAVIGATE_MODE_IMPLEMENTATION.md" />
     <None Include="Docs\NAVIGATE_MODE_INTEGRATION_FIX.md" />
     <None Include="Docs\NAVIGATE_MODE_VISUALIZATION_FIXES.md" />
+    <None Include="Docs\Phase1_CompletionReport.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
     <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
     <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />

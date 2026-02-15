@@ -18,12 +18,6 @@ namespace DigitMode {
 // Construction / Initialization
 // ========================================================================
 
-CApertureCtrls::CApertureCtrls()
-    : m_shapes()
-{
-    Init();
-}
-
 void CApertureCtrls::Init()
 {
     Clear();
