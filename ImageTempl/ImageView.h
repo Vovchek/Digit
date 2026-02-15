@@ -8,14 +8,14 @@
 //
 #include "BaseImageView.h"
 #include "Utils\contour.h"
-#include "DigitMode/InputHandler.h"
+#include "DigitMode/FringeInputHandler.h"
+#include "DigitMode/BoundsInputHandler.h"
 #include "DigitMode/HitTester.h"
 #include "DigitMode/SelectionManager.h"
 #include "DigitMode/CommandDispatcher.h"
 #include "DigitMode/CursorManager.h"
 #include "DigitMode/TooltipGenerator.h"
 #include <afxcmn.h>
-#include "ViewTransform.h"
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -24,8 +24,17 @@ class CBaseImageView;
 class CImageView : public CBaseImageView
 {
 private:
-
-	DigitMode::InputHandler m_inputHandler;
+    // ========================================================================
+    // Phase 5: Tool Input Handlers (CAD-Grade Architecture)
+    // ========================================================================
+    
+    DigitMode::FringeInputHandler m_fringeHandler;    ///< Fringe editing tool
+    DigitMode::BoundsInputHandler m_boundsHandler;    ///< Bounds editing tool
+    
+    // ========================================================================
+    // Legacy support infrastructure (will be integrated into tool handlers)
+    // ========================================================================
+    
 	DigitMode::SelectionManager m_selectionMgr;
 	DigitMode::HitTester m_hitTester;
 	DigitMode::CommandDispatcher m_cmdDispatcher;
@@ -33,10 +42,31 @@ private:
 	DigitMode::TooltipGenerator tooltipGen;
     CToolTipCtrl m_tooltip; // dynamic tooltip for dots/segments
     CString m_lastTip; // last shown tooltip text
-    ViewTransform m_viewTransform;
-    // Expose view transform accessor
+    
 public:
-    ViewTransform& GetViewTransform() { return m_viewTransform; }
+    /**
+     * @brief Get view transform (from base class)
+     * 
+     * Phase 5: ViewTransform now owned by CBaseImageView.
+     * This accessor delegates to base class.
+     */
+    ViewTransform& GetViewTransform() { return CBaseImageView::m_viewTransform; }
+    
+    /**
+     * @brief Activate fringe editing tool
+     * 
+     * Sets fringe handler as active tool in InputRouter.
+     * Called from toolbar/menu handlers.
+     */
+    void ActivateFringeTool();
+    
+    /**
+     * @brief Activate bounds editing tool
+     * 
+     * Sets bounds handler as active tool in InputRouter.
+     * Called from toolbar/menu handlers.
+     */
+    void ActivateBoundsTool();
 
 protected:
 	CImageView();           // protected constructor used by dynamic creation

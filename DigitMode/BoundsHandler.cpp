@@ -298,7 +298,7 @@ void BoundsHandler::CancelDrag()
 // Edit Mode Management (Phase 2)
 // ========================================================================
 
-void BoundsHandler::SetEditMode(EditMode mode)
+void BoundsHandler::SetEditMode(DigitMode::ShapeEditMode mode)
 {
     // Cancel any active operations when switching modes
     if (m_isDragging) {
@@ -312,26 +312,26 @@ void BoundsHandler::SetEditMode(EditMode mode)
     m_editMode = mode;
     
     // Initialize draft if switching to Add mode
-    if (mode == EditMode::AddRectangle ||
-        mode == EditMode::AddEllipse ||
-        mode == EditMode::AddCircle ||
-        mode == EditMode::AddPolygon)
+    if (mode == DigitMode::ShapeEditMode::AddRectangle ||
+        mode == ShapeEditMode::AddEllipse ||
+        mode == ShapeEditMode::AddCircle ||
+        mode == ShapeEditMode::AddPolygon)
     {
         // Create new draft with appropriate kind
         DraftShape draft;
         draft.type = aperture::TypeLimits::EXTERNAL;  // Default, can be changed later
         
         switch (mode) {
-            case EditMode::AddRectangle:
+            case ShapeEditMode::AddRectangle:
                 draft.kind = DraftShape::Kind::Rectangle;
                 break;
-            case EditMode::AddEllipse:
+            case ShapeEditMode::AddEllipse:
                 draft.kind = DraftShape::Kind::Ellipse;
                 break;
-            case EditMode::AddCircle:
+            case ShapeEditMode::AddCircle:
                 draft.kind = DraftShape::Kind::Circle;
                 break;
-            case EditMode::AddPolygon:
+            case ShapeEditMode::AddPolygon:
                 draft.kind = DraftShape::Kind::Polygon;
                 break;
             default:
@@ -354,7 +354,7 @@ void BoundsHandler::SetEditMode(EditMode mode)
 bool BoundsHandler::AddDraftPoint(const aperture::Point& worldPt)
 {
     // Only accept points in Add modes
-    if (m_editMode == EditMode::Select || m_editMode == EditMode::Delete) {
+    if (m_editMode == ShapeEditMode::Select || m_editMode == ShapeEditMode::Delete) {
         return false;
     }
     

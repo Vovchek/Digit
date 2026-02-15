@@ -73,23 +73,23 @@ protected:
 // ============================================================================
 
 TEST_F(BoundsHandlerPhase2Test, DefaultEditMode_IsSelect) {
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::Select);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::Select);
 }
 
 TEST_F(BoundsHandlerPhase2Test, SetEditMode_ChangesMode) {
-    m_handler.SetEditMode(EditMode::AddRectangle);
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::AddRectangle);
     
-    m_handler.SetEditMode(EditMode::AddCircle);
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::AddCircle);
+    m_handler.SetEditMode(ShapeEditMode::AddCircle);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::AddCircle);
     
-    m_handler.SetEditMode(EditMode::Select);
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::Select);
+    m_handler.SetEditMode(ShapeEditMode::Select);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::Select);
 }
 
 TEST_F(BoundsHandlerPhase2Test, SetEditMode_ClearsDraftOnSwitch) {
     // Start in AddRectangle mode
-    m_handler.SetEditMode(EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     
     // Add some points to draft
     m_handler.AddDraftPoint({10, 20});
@@ -97,11 +97,11 @@ TEST_F(BoundsHandlerPhase2Test, SetEditMode_ClearsDraftOnSwitch) {
     EXPECT_TRUE(m_handler.IsDrafting());
     
     // Switch to Select mode - should clear draft
-    m_handler.SetEditMode(EditMode::Select);
+    m_handler.SetEditMode(ShapeEditMode::Select);
     EXPECT_FALSE(m_handler.IsDrafting());
     
     // Switch to AddEllipse - should not have residual draft
-    m_handler.SetEditMode(EditMode::AddEllipse);
+    m_handler.SetEditMode(ShapeEditMode::AddEllipse);
     EXPECT_FALSE(m_handler.IsDrafting());  // Fresh draft, no points yet
 }
 
@@ -110,7 +110,7 @@ TEST_F(BoundsHandlerPhase2Test, SetEditMode_ClearsDraftOnSwitch) {
 // ============================================================================
 
 TEST_F(BoundsHandlerPhase2Test, AddDraftPoint_InSelectMode_ReturnsFalse) {
-    m_handler.SetEditMode(EditMode::Select);
+    m_handler.SetEditMode(ShapeEditMode::Select);
     
     bool result = m_handler.AddDraftPoint({10, 20});
     
@@ -119,7 +119,7 @@ TEST_F(BoundsHandlerPhase2Test, AddDraftPoint_InSelectMode_ReturnsFalse) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, AddDraftPoint_InAddMode_AcceptsPoint) {
-    m_handler.SetEditMode(EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     
     bool result = m_handler.AddDraftPoint({10, 20});
     
@@ -128,7 +128,7 @@ TEST_F(BoundsHandlerPhase2Test, AddDraftPoint_InAddMode_AcceptsPoint) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, AddRectangle_ThreePoints_Commits) {
-    m_handler.SetEditMode(EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     
     // Add 3 points
     m_handler.AddDraftPoint({0, 0});
@@ -150,7 +150,7 @@ TEST_F(BoundsHandlerPhase2Test, AddRectangle_ThreePoints_Commits) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, AddEllipse_FourPoints_UpdatesPreview) {
-    m_handler.SetEditMode(EditMode::AddEllipse);
+    m_handler.SetEditMode(ShapeEditMode::AddEllipse);
     
     // First point - no preview yet
     m_handler.AddDraftPoint({10, 0});
@@ -176,7 +176,7 @@ TEST_F(BoundsHandlerPhase2Test, AddEllipse_FourPoints_UpdatesPreview) {
 // ============================================================================
 
 TEST_F(BoundsHandlerPhase2Test, CancelDraft_ClearsDraft) {
-    m_handler.SetEditMode(EditMode::AddEllipse);
+    m_handler.SetEditMode(ShapeEditMode::AddEllipse);
     
     // Add some points
     m_handler.AddDraftPoint({10, 0});
@@ -194,7 +194,7 @@ TEST_F(BoundsHandlerPhase2Test, CancelDraft_ClearsDraft) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, CommitDraft_DispatchesAddCommand) {
-    m_handler.SetEditMode(EditMode::AddPolygon);
+    m_handler.SetEditMode(ShapeEditMode::AddPolygon);
     
     size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
     
@@ -214,7 +214,7 @@ TEST_F(BoundsHandlerPhase2Test, CommitDraft_DispatchesAddCommand) {
 // ============================================================================
 
 TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Escape_CancelsDraft) {
-    m_handler.SetEditMode(EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     
     m_handler.AddDraftPoint({0, 0});
     m_handler.AddDraftPoint({100, 0});
@@ -229,7 +229,7 @@ TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Escape_CancelsDraft) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_CommitsPolygon) {
-    m_handler.SetEditMode(EditMode::AddPolygon);
+    m_handler.SetEditMode(ShapeEditMode::AddPolygon);
     
     size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
     
@@ -249,7 +249,7 @@ TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_CommitsPolygon) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_NoEffect_InSelectMode) {
-    m_handler.SetEditMode(EditMode::Select);
+    m_handler.SetEditMode(ShapeEditMode::Select);
     
     // No draft, so Enter should not be handled
     bool handled = m_handler.OnKeyDown(VK_RETURN, 1, 0);
@@ -262,8 +262,8 @@ TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_NoEffect_InSelectMode) {
 // ============================================================================
 
 TEST_F(BoundsHandlerPhase2Test, Workflow_CreateRectangle_Complete) {
-    m_handler.SetEditMode(EditMode::AddRectangle);
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::AddRectangle);
     
     size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
     
@@ -286,7 +286,7 @@ TEST_F(BoundsHandlerPhase2Test, Workflow_CreateRectangle_Complete) {
 }
 
 TEST_F(BoundsHandlerPhase2Test, Workflow_CreateCircle_ThenCancel) {
-    m_handler.SetEditMode(EditMode::AddCircle);
+    m_handler.SetEditMode(ShapeEditMode::AddCircle);
     
     m_handler.AddDraftPoint({10, 0});
     m_handler.AddDraftPoint({0, 10});
@@ -300,20 +300,20 @@ TEST_F(BoundsHandlerPhase2Test, Workflow_CreateCircle_ThenCancel) {
     EXPECT_FALSE(m_handler.IsDrafting());
     
     // Switch back to Select mode
-    m_handler.SetEditMode(EditMode::Select);
-    EXPECT_EQ(m_handler.GetEditMode(), EditMode::Select);
+    m_handler.SetEditMode(ShapeEditMode::Select);
+    EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::Select);
 }
 
 TEST_F(BoundsHandlerPhase2Test, Workflow_SwitchModes_ClearsInProgressDraft) {
     // User starts creating rectangle
-    m_handler.SetEditMode(EditMode::AddRectangle);
+    m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     m_handler.AddDraftPoint({0, 0});
     m_handler.AddDraftPoint({100, 0});
     
     EXPECT_TRUE(m_handler.IsDrafting());
     
     // User switches to AddCircle without committing
-    m_handler.SetEditMode(EditMode::AddCircle);
+    m_handler.SetEditMode(ShapeEditMode::AddCircle);
     
     // Draft should be cleared
     EXPECT_FALSE(m_handler.IsDrafting());

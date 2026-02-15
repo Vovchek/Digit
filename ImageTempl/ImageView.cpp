@@ -183,7 +183,11 @@ void CImageView::DrawImage(CDC* pDC)
 IMPLEMENT_DYNCREATE(CImageView, CBaseImageView)
 
 CImageView::CImageView()
+	: m_fringeHandler(this)
+	, m_boundsHandler(this)
 {
+	// Tool handlers initialized with 'this' for invalidation callback
+	// Full initialization happens in OnInitialUpdate
 }
 
 CImageView::~CImageView()
@@ -324,12 +328,6 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_COMMAND(IDD_NUM_OFF_PLUS, OnNumberPlus)
 	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_PLUS, OnUpdateNumberPlus)
 	ON_WM_ERASEBKGND()
-	ON_WM_MOUSEMOVE()
-	ON_WM_MOUSEWHEEL()
-	ON_WM_LBUTTONDOWN()
-	ON_WM_LBUTTONUP()
-	ON_WM_RBUTTONDOWN()
-	ON_WM_RBUTTONUP()
 	ON_WM_SETCURSOR()
 	ON_WM_SIZE()
 	ON_WM_MOVE()
@@ -338,11 +336,6 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_WM_VSCROLL()
 	ON_WM_CONTEXTMENU()
 	ON_WM_SETFOCUS()
-	ON_WM_KEYDOWN()
-	ON_WM_KEYUP()
-	ON_WM_TIMER()
-	ON_WM_LBUTTONDBLCLK()
-	ON_WM_RBUTTONDBLCLK()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -420,6 +413,32 @@ void CImageView::OnInitialUpdate()
 		m_tooltip.SetMaxTipWidth(300);
 		m_tooltip.Activate(TRUE);
 	}
+	
+	// ========================================================================
+	// Phase 5: Initialize Tool Input Handlers (CAD-Grade Architecture)
+	// ========================================================================
+	
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	if (pDoc) {
+		// Initialize fringe handler
+		m_fringeHandler.Initialize(
+			&pDoc->Digit,
+			&GetViewTransform(),
+			&m_cmdDispatcher
+		);
+		
+		// Initialize bounds handler
+		// TODO: Once CApertureCtrls is available in ImageDoc, initialize:
+		// m_boundsHandler.Initialize(
+		//     pDoc->GetApertureCtrls(),
+		//     pImage,
+		//     &GetViewTransform(),
+		//     &m_cmdDispatcher
+		// );
+		
+		// Set fringe handler as default active tool
+		GetInputRouter().SetActiveTool(&m_fringeHandler);
+	}
 }
 
 void CImageView::CenterImageInView()
@@ -478,6 +497,28 @@ void CImageView::OnZoomFit()
 	m_viewTransform.ZoomToFit(imgRect, clientR);
 	Invalidate(FALSE);
 }
+
+// ============================================================================
+// Phase 5: Tool Activation Methods (CAD-Grade Architecture)
+// ============================================================================
+
+void CImageView::ActivateFringeTool()
+{
+	// Set fringe handler as active tool in InputRouter
+	GetInputRouter().SetActiveTool(&m_fringeHandler);
+	Invalidate(FALSE);
+}
+
+void CImageView::ActivateBoundsTool()
+{
+	// Set bounds handler as active tool in InputRouter
+	GetInputRouter().SetActiveTool(&m_boundsHandler);
+	Invalidate(FALSE);
+}
+
+// ============================================================================
+// Legacy Drawing Methods
+// ============================================================================
 
 void CImageView::DrawDigitInfo(CDC* pDC)
 {
@@ -578,8 +619,8 @@ void CImageView::OnDraw(CDC* pDC)
 			dc.OffsetViewportOrg(-rectClip.left, -rectClip.top);
 			// When drawing into an offscreen bitmap the world transform's
 			// translation must be adjusted by the viewport offset.
-			xForm.eDx = (FLOAT)(off.x - rectClip.left);
-			xForm.eDy = (FLOAT)(off.y - rectClip.top);
+		 xForm.eDx = (FLOAT)(off.x - rectClip.left);
+		 xForm.eDy = (FLOAT)(off.y - rectClip.top);
 			pOldBitmap = dc.SelectObject(&bitmap);
 			dc.SetBrushOrg(rectClip.left % 8, rectClip.top % 8);
 			// might as well clip to the same rectangle
@@ -1481,7 +1522,7 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
 			pBCtrls->CustomDots[2].x = R.left + W;
 			pBCtrls->CustomDots[2].y = R.bottom;
 			pBCtrls->CustomDots[3].x = R.left;
-			pBCtrls->CustomDots[3].y = R.top + H;
+		 pBCtrls->CustomDots[3].y = R.top + H;
 			pBCtrls->SetCurBound(pCtrls->CurTypeBound);
 		}
 	}
@@ -1677,56 +1718,16 @@ void CImageView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 	pCmdUI->Enable(m_cmdDispatcher.CanRedo());
 }
 
-void CImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	CControls* pCtrls = GetControls();
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-
-	if ((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)) {
-		if (nChar == VK_RETURN)
-			OnApplyBound();
-		else if (nChar == VK_ESCAPE)
-			OnRemoveCurBound();
-		else if (nChar == VK_DELETE)
-			OnRemoveLastBound();
-	}
-
-	if (pDoc->IsFotoSections()) {
-		CPoint cPos;
-		GetCursorPos(&cPos);
-		CRect clR;
-		GetClientRect(clR);
-		ClientToScreen(clR);
-		if (clR.PtInRect(cPos)) {
-			if (nChar == VK_LEFT)
-				cPos.x -= 1;
-			else if (nChar == VK_RIGHT)
-				cPos.x += 1;
-			else if (nChar == VK_UP)
-				cPos.y -= 1;
-			else if (nChar == VK_DOWN)
-				cPos.y += 1;
-			SetCursorPos(cPos.x, cPos.y);
-		}
-	}
-
-	m_inputHandler.OnKeyDown(nChar, &pDoc->Digit, &m_cmdDispatcher);
-
-	pDoc->OnKeyDown(nChar, nRepCnt, nFlags);
-	CBaseImageView::OnKeyDown(nChar, nRepCnt, nFlags);
-}
-
-void CImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-	// Stop panning when space released
-	if (nChar == VK_SPACE && m_inputHandler.m_isPanning) {
-		m_inputHandler.EndPan();
-		ReleaseCapture();
-		Invalidate(FALSE);
-		return;
-	}
-	CBaseImageView::OnKeyUp(nChar, nRepCnt, nFlags);
-}
+// ============================================================================
+// Phase 5: OnKeyDown / OnKeyUp REMOVED (now in CBaseImageView → InputRouter)
+// ============================================================================
+//
+// Keyboard input now follows CAD-grade architecture:
+// MFC → CBaseImageView → InputRouter → [ActiveTool OR NavigationHandler]
+//
+// Legacy implementations deleted to comply with copilot_yyy.md rule:
+// "CImageView MUST NOT override any OnMouse*/OnKey* handlers"
+// ============================================================================
 
 void CImageView::OnTimer(UINT nIDEvent)
 {

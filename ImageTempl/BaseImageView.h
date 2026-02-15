@@ -7,7 +7,11 @@
 // BaseImageView.h : header file
 //
 // Removed dependency on SECZoomView to adopt custom ViewTransform approach
+#include "BaseImageView.h"
+#include "DigitMode/InputRouter.h"
+#include "DigitMode/NavigationInputHandler.h"
 #include <afxext.h>
+#include <memory>
 typedef enum {NORMAL,ZOOMINPOINT,ZOOMOUTPOINT,ZOOMRECT} DigitViewMode;
 
 /////////////////////////////////////////////////////////////////////////////
@@ -35,6 +39,32 @@ public:
     double        m_zoomMin = 0.02;
     double        m_zoomMax = 22.0;
     int           m_zoomMode = 0;
+    
+    // ========================================================================
+    // CAD-Grade Input Architecture (Phase 5)
+    // ========================================================================
+    
+    /**
+     * @brief Get input router for tool management
+     * 
+     * Used by derived views (CImageView) to:
+     * - Set active tool (SetActiveTool)
+     * - Configure navigation handler
+     */
+    DigitMode::InputRouter& GetInputRouter() { return m_inputRouter; }
+    
+    /**
+     * @brief Get navigation input handler
+     * 
+     * Provides access to pan/zoom state for derived views.
+     */
+    DigitMode::NavigationInputHandler* GetNavigationHandler() { return m_navigationHandler.get(); }
+
+protected:
+    // Input routing infrastructure (Phase 5 - CAD-grade architecture)
+    ViewTransform m_viewTransform;                             ///< World ↔ screen transform
+    std::unique_ptr<DigitMode::NavigationInputHandler> m_navigationHandler;  ///< Pan/zoom/cancel handler (lazy-init)
+    DigitMode::InputRouter m_inputRouter;                      ///< Central event router
 
 // Operations
 public:
@@ -122,6 +152,16 @@ protected:
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnSetFocus(CWnd* pOldWnd);
 	afx_msg void OnContextMenu(CWnd* pWnd, CPoint point);
+	// ===== Phase 5: Input Routing (CAD-Grade Architecture) =====
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnRButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
+	afx_msg void OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags);
+	afx_msg void OnKillFocus(CWnd* pNewWnd);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

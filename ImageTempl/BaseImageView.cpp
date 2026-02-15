@@ -39,7 +39,13 @@ CBaseImageView::CBaseImageView()
     m_hZoomInPointCursor  = AfxGetApp()->LoadCursor(IDC_ZOOMIN);
     m_hZoomOutPointCursor = AfxGetApp()->LoadCursor(IDC_ZOOMOUT);
     m_hZoomRectCursor     = AfxGetApp()->LoadCursor(IDC_ZOOMRECT);    
-    m_hZoomRectDragCursor = AfxGetApp()->LoadCursor(IDC_ZOOMRECTDRAG);    
+    m_hZoomRectDragCursor = AfxGetApp()->LoadCursor(IDC_ZOOMRECTDRAG);
+    
+    // Initialize navigation handler (Phase 5)
+    m_navigationHandler = std::make_unique<DigitMode::NavigationInputHandler>(&m_viewTransform, this);
+    
+    // Configure input router (Phase 5)
+    m_inputRouter.SetNavigationHandler(m_navigationHandler.get());
 }
 
 CBaseImageView::~CBaseImageView()
@@ -49,6 +55,7 @@ CBaseImageView::~CBaseImageView()
     if (m_hZoomOutPointCursor) DestroyCursor(m_hZoomOutPointCursor);
     if (m_hZoomRectCursor)     DestroyCursor(m_hZoomRectCursor);
     if (m_hZoomRectDragCursor) DestroyCursor(m_hZoomRectDragCursor);
+   
 }
 
 //Преобразует координаты точки (point) из координат устройства в 
@@ -270,7 +277,7 @@ void CBaseImageView::DrawBounds(CDC* pDC)
 			}
 			else if(BoundType == BOUND_RECT){
 				pDC->MoveTo(Bound.left, Bound.top);
-				pDC->LineTo(Bound.right, Bound.top);
+			 pDC->LineTo(Bound.right, Bound.top);
 				pDC->LineTo(Bound.right, Bound.bottom);
 				pDC->LineTo(Bound.left, Bound.bottom);
 				pDC->LineTo(Bound.left, Bound.top);
@@ -314,6 +321,10 @@ void CBaseImageView::DrawCurBound(CDC* pDC)
 		wR.bottom = dR.bottom;
         wR.NormalizeRect();
         if(pCtrls->CurTypeBound == BOUND_ROUND || pCtrls->CurTypeBound == BOUND_ELLIPSE){
+          pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
+          pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
+        }
+        else if(pCtrls->CurTypeBound == BOUND_RECT){
           pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
           pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
         }
@@ -598,7 +609,7 @@ void CBaseImageView::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
     CScrollView::OnHScroll(nSBCode, nPos, pScrollBar);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 void CBaseImageView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar) 
 {
     CScrollView::OnVScroll(nSBCode, nPos, pScrollBar);
@@ -610,7 +621,7 @@ void CBaseImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView*
     CScrollView::OnActivateView(bActivate, pActivateView, pDeactiveView);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 void CBaseImageView::OnSetFocus(CWnd* pOldWnd) 
 {
     CScrollView::OnSetFocus(pOldWnd);
@@ -833,29 +844,27 @@ void CBaseImageView::CreateDefaultMenu(CPoint point)
    UINT CloneDocFlag;
    UINT CopyDocFlag;
    UINT CopyScnFlag;
-   UINT PastScnFlag;
+   CopyDocFlag = MF_STRING;
    CloneDocFlag = MF_STRING;
    CopyDocFlag = MF_STRING;
    CopyScnFlag = MF_STRING;
-   PastScnFlag = MF_STRING;
-   if(pDoc->Scenario.GetCount()==0)
-	   CopyScnFlag |= MF_GRAYED;
+   UINT PastScnFlag = MF_STRING;
    if(pCtrls->curScenario.GetCount()==0)
 	   PastScnFlag |= MF_GRAYED;
    
+	   PastScnFlag |= MF_GRAYED;
+   
    ItemText = CRS("Дубликат", "Clone");
-   Main.AppendMenu(CopyDocFlag, IDD_CLONE, ItemText);
-   ItemText = CRS("Копировать", "Copy");
    Main.AppendMenu(CopyDocFlag, IDD_COPY, ItemText);
    Main.AppendMenu(MF_SEPARATOR);
 
-   ItemText = CRS("Копировать сценарий", "Copy scenario");
-   Main.AppendMenu(CopyScnFlag, IDD_COPY_SCENARIO, ItemText);
+   Main.AppendMenu(MF_SEPARATOR);
+
    ItemText = CRS("Применить сценарий", "Past scenario");
    Main.AppendMenu(PastScnFlag, IDD_PAST_SCENARIO, ItemText);
 
-   Main.TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON,
-                              point.x, point.y, this, NULL);
+   Main.AppendMenu(PastScnFlag, IDD_PAST_SCENARIO, ItemText);
+
 }
 
 // Формирование меню в режиме установки границ 
@@ -867,23 +876,16 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    LPCTSTR ItemText;
    
    CMenu SetUpMenu;
-   SetUpMenu.CreatePopupMenu();
-   UINT SetDotFlag;
-   UINT SetRectFlag;
-   SetDotFlag = MF_STRING;
-   SetRectFlag = MF_STRING;
+   UINT SetRectFlag = MF_STRING;
+   UINT SetDotFlag = MF_STRING;
+   if(pCtrls->EnableCustomDots)
+      SetDotFlag |= MF_CHECKED;
    if(pCtrls->EnableCustomDots)
       SetDotFlag |= MF_CHECKED;
    else if(pCtrls->EnableTracker)
       SetRectFlag |= MF_CHECKED;
 
-   if(pDoc->Tracker.GetEnableState() || pBCtrls->CustomDots.GetSize()){
-      SetDotFlag |= MF_GRAYED;
-      SetRectFlag |= MF_GRAYED;
-   }
-
-   if(pCtrls->CurTypeBound == BOUND_POLYGON)
-      SetRectFlag |= MF_GRAYED;
+   SetRectFlag |= MF_GRAYED;
 
    ItemText = CRS("Точки", "Dots");
    SetUpMenu.AppendMenu(SetDotFlag, IDD_BOUND_SETDOTS, ItemText);
@@ -965,6 +967,7 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    Main.TrackPopupMenu(TPM_LEFTALIGN|TPM_RIGHTBUTTON,
                               point.x, point.y, this, NULL);
 }
+
 //Принять редактируемую границу 
 void CBaseImageView::OnApplyBound()
 {
@@ -1194,4 +1197,78 @@ void CBaseImageView::DropTracker(CPoint P2)
 
     Invalidate(FALSE);
 }
+
+
+
+
+/**
+ * ARCHITECTURAL RULE:
+ * All raw MFC input events are forwarded to InputRouter.
+ * CBaseImageView MUST NOT interpret events or contain tool logic.
+ * 
+ * Input flow: MFC → CBaseImageView → InputRouter → [ActiveTool OR Navigation]
+ */
+
+void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    SetCapture();  // Capture mouse for drag operations
+    m_inputRouter.OnMouseDown(nFlags, point);
+    Invalidate(FALSE);
+}
+
+void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseUp(nFlags, point);
+    ReleaseCapture();  // Release mouse capture
+    Invalidate(FALSE);
+}
+
+void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+    SetCapture();
+    m_inputRouter.OnMouseDown(nFlags | MK_RBUTTON, point);
+    Invalidate(FALSE);
+}
+
+void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseUp(nFlags | MK_RBUTTON, point);
+    ReleaseCapture();
+    Invalidate(FALSE);
+}
+
+void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseMove(nFlags, point);
+    // Note: Don't always invalidate on move (handler will invalidate if needed)
+}
+
+BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    m_inputRouter.OnMouseWheel(nFlags, zDelta, pt);
+    Invalidate(FALSE);
+    return TRUE;  // Message handled
+}
+
+void CBaseImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    m_inputRouter.OnKeyDown(nChar);
+    Invalidate(FALSE);
+}
+
+void CBaseImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    m_inputRouter.OnKeyUp(nChar);
+    // Usually no invalidation needed for key-up
+}
+
+void CBaseImageView::OnKillFocus(CWnd* pNewWnd)
+{
+    CScrollView::OnKillFocus(pNewWnd);
+    
+    // Cancel all operations when losing focus
+    m_inputRouter.Cancel();
+    Invalidate(FALSE);
+}
+
 

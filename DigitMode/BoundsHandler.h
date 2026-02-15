@@ -88,13 +88,13 @@ public:
      * - Discards any in-progress draft shape
      * - Updates cursor (caller should call GetEditModeCursor)
      */
-    void SetEditMode(EditMode mode);
+    void SetEditMode(ShapeEditMode mode);
     
     /**
      * @brief Get current edit mode
      * @return Active edit mode
      */
-    EditMode GetEditMode() const { return m_editMode; }
+    ShapeEditMode GetEditMode() const { return m_editMode; }
     
     // ========================================================================
     // Hit-Testing (delegates to CApertureCtrls)
@@ -326,7 +326,7 @@ private:
     CommandDispatcher* m_pDispatcher = nullptr;
 
     // Edit mode state (Phase 2)
-    EditMode m_editMode = EditMode::Select;
+    ShapeEditMode m_editMode = ShapeEditMode::Select;
     
     // Draft shape state (Phase 2 - creation modes)
     std::optional<DraftShape> m_draft;                   ///< Active draft (creation modes)

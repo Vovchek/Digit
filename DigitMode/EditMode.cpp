@@ -8,24 +8,24 @@
 
 namespace DigitMode {
 
-const char* GetEditModeName(EditMode mode) {
+const char* GetEditModeName(ShapeEditMode mode) {
     switch (mode) {
-        case EditMode::Select:
+        case ShapeEditMode::Select:
             return "Select/Edit";
         
-        case EditMode::AddRectangle:
+        case ShapeEditMode::AddRectangle:
             return "Add Rectangle";
         
-        case EditMode::AddEllipse:
+        case ShapeEditMode::AddEllipse:
             return "Add Ellipse";
         
-        case EditMode::AddCircle:
+        case ShapeEditMode::AddCircle:
             return "Add Circle";
         
-        case EditMode::AddPolygon:
+        case ShapeEditMode::AddPolygon:
             return "Add Polygon";
         
-        case EditMode::Delete:
+        case ShapeEditMode::Delete:
             return "Delete";
         
         default:
@@ -33,18 +33,18 @@ const char* GetEditModeName(EditMode mode) {
     }
 }
 
-LPCTSTR GetEditModeCursor(EditMode mode) {
+LPCTSTR GetEditModeCursor(ShapeEditMode mode) {
     switch (mode) {
-        case EditMode::Select:
+        case ShapeEditMode::Select:
             return IDC_ARROW;  // Standard pointer
         
-        case EditMode::AddRectangle:
-        case EditMode::AddEllipse:
-        case EditMode::AddCircle:
-        case EditMode::AddPolygon:
+        case ShapeEditMode::AddRectangle:
+        case ShapeEditMode::AddEllipse:
+        case ShapeEditMode::AddCircle:
+        case ShapeEditMode::AddPolygon:
             return IDC_CROSS;  // Crosshair for precision placement
         
-        case EditMode::Delete:
+        case ShapeEditMode::Delete:
             return IDC_NO;     // Slash cursor (deletion indicator)
         
         default:

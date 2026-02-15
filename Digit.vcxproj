@@ -159,6 +159,7 @@ ApertureCore.lib         %(AdditionalDependencies)
   <ItemGroup>
     <ClCompile Include="Controls\CApertureCtrls.cpp" />
     <ClCompile Include="DigitMode\BoundsHandler.cpp" />
+    <ClCompile Include="DigitMode\BoundsInputHandler.cpp" />
     <ClCompile Include="DigitMode\CFringeSegment.cpp" />
     <ClCompile Include="DigitMode\CommandDispatcher.cpp" />
     <ClCompile Include="DigitMode\Commands\AddShapeCommand.cpp" />
@@ -168,8 +169,11 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\CursorManager.cpp" />
     <ClCompile Include="DigitMode\DraftShape.cpp" />
     <ClCompile Include="DigitMode\EditMode.cpp" />
+    <ClCompile Include="DigitMode\FringeInputHandler.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
+    <ClCompile Include="DigitMode\InputRouter.cpp" />
+    <ClCompile Include="DigitMode\NavigationInputHandler.cpp" />
     <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />
     <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp" />
     <ClCompile Include="DigitMode\Rendering\RectangleRenderer.cpp" />
@@ -225,6 +229,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="AppDef.h" />
     <ClInclude Include="Controls\CApertureCtrls.h" />
     <ClInclude Include="DigitMode\BoundsHandler.h" />
+    <ClInclude Include="DigitMode\BoundsInputHandler.h" />
     <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AddShapeCommand.h" />
@@ -240,9 +245,13 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
     <ClInclude Include="DigitMode\DraftShape.h" />
     <ClInclude Include="DigitMode\EditMode.h" />
+    <ClInclude Include="DigitMode\FringeInputHandler.h" />
     <ClInclude Include="DigitMode\HitTester.h" />
     <ClInclude Include="DigitMode\IBoundsData.h" />
+    <ClInclude Include="DigitMode\IInputHandler.h" />
     <ClInclude Include="DigitMode\InputHandler.h" />
+    <ClInclude Include="DigitMode\InputRouter.h" />
+    <ClInclude Include="DigitMode\NavigationInputHandler.h" />
     <ClInclude Include="DigitMode\Rendering\EllipseRenderer.h" />
     <ClInclude Include="DigitMode\Rendering\IShapeRenderer.h" />
     <ClInclude Include="DigitMode\Rendering\PolygonRenderer.h" />

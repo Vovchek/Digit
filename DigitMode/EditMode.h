@@ -61,7 +61,7 @@ namespace DigitMode {
  * @note In Add modes, mouse drag is ignored (point-sequence only)
  * @note In Select mode, drag modifies preview shape only (Command pattern)
  */
-enum class EditMode {
+enum class ShapeEditMode {
     Select,       ///< Select and edit existing shapes (default)
     AddRectangle, ///< Create rectangle via 3-point sequence (UX Spec §2.1)
     AddEllipse,   ///< Create ellipse via perimeter fitting (UX Spec §2.2)
@@ -82,7 +82,7 @@ enum class EditMode {
  * - AddCircle → "Add Circle"
  * - etc.
  */
-const char* GetEditModeName(EditMode mode);
+const char* GetEditModeName(ShapeEditMode mode);
 
 /**
  * @brief Get cursor resource ID for edit mode
@@ -97,6 +97,6 @@ const char* GetEditModeName(EditMode mode);
  * 
  * @note Returns standard Windows cursor IDs (can be extended with custom cursors)
  */
-LPCTSTR GetEditModeCursor(EditMode mode);
+LPCTSTR GetEditModeCursor(ShapeEditMode mode);
 
 } // namespace DigitMode
