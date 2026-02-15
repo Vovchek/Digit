@@ -10,6 +10,7 @@
 #include "BoundsHandler.h"
 #include "Controls\CApertureCtrls.h"
 #include "Commands\ReplaceShapeCommand.h"
+#include "Commands\AddShapeCommand.h"
 #include "CommandDispatcher.h"
 #include "ApertureCore\include\aperturecore\geometry\Handle.h"
 
@@ -169,11 +170,7 @@ void BoundsHandler::UpdateDrag(const CPoint& screenCurrent)
     // Reset preview to original state
     m_previewShape = m_originalShape->clone();
     
-    // Apply drag to preview using shape's handle system
-    // TODO: Enumerate handles and apply drag based on controlPointIndex
-    // For now, this is a placeholder
-    
-    // Create DragContext
+    // Create DragContext with modifier keys
     aperture::DragContext dragContext;
     dragContext.dragStartWorld = dragStartWorld;
     dragContext.dragCurrentWorld = dragCurrentWorld;
@@ -181,7 +178,7 @@ void BoundsHandler::UpdateDrag(const CPoint& screenCurrent)
     dragContext.shiftKey = (GetKeyState(VK_SHIFT) & 0x8000) != 0;
     dragContext.altKey = (GetKeyState(VK_MENU) & 0x8000) != 0;
     
-    // Enumerate handles to find the one being dragged
+    // Enumerate handles and apply drag based on controlPointIndex
     std::vector<aperture::HandleDesc> handles;
     m_previewShape->EnumerateHandles(handles);
     
@@ -189,7 +186,7 @@ void BoundsHandler::UpdateDrag(const CPoint& screenCurrent)
         aperture::HandleDesc& handle = handles[m_dragControlPointIndex];
         dragContext.handle = handle;
         
-        // Apply drag to preview
+        // Apply drag transformation to preview shape
         m_previewShape->ApplyHandleDrag(handle, dragContext);
     }
     
@@ -227,6 +224,166 @@ void BoundsHandler::EndDrag(bool bCommit)
 void BoundsHandler::CancelDrag()
 {
     EndDrag(false);  // Discard preview
+}
+
+// ========================================================================
+// Edit Mode Management (Phase 2)
+// ========================================================================
+
+void BoundsHandler::SetEditMode(EditMode mode)
+{
+    // Cancel any active operations when switching modes
+    if (m_isDragging) {
+        CancelDrag();
+    }
+    
+    if (IsDrafting()) {
+        CancelDraft();
+    }
+    
+    m_editMode = mode;
+    
+    // Initialize draft if switching to Add mode
+    if (mode == EditMode::AddRectangle ||
+        mode == EditMode::AddEllipse ||
+        mode == EditMode::AddCircle ||
+        mode == EditMode::AddPolygon)
+    {
+        // Create new draft with appropriate kind
+        DraftShape draft;
+        draft.type = aperture::TypeLimits::EXTERNAL;  // Default, can be changed later
+        
+        switch (mode) {
+            case EditMode::AddRectangle:
+                draft.kind = DraftShape::Kind::Rectangle;
+                break;
+            case EditMode::AddEllipse:
+                draft.kind = DraftShape::Kind::Ellipse;
+                break;
+            case EditMode::AddCircle:
+                draft.kind = DraftShape::Kind::Circle;
+                break;
+            case EditMode::AddPolygon:
+                draft.kind = DraftShape::Kind::Polygon;
+                break;
+            default:
+                break;
+        }
+        
+        m_draft = draft;
+    }
+    else {
+        // Clear draft if not in Add mode
+        m_draft.reset();
+        m_draftPreview.reset();
+    }
+}
+
+// ========================================================================
+// Draft Shape Management (Phase 2)
+// ========================================================================
+
+bool BoundsHandler::AddDraftPoint(const aperture::Point& worldPt)
+{
+    // Only accept points in Add modes
+    if (m_editMode == EditMode::Select || m_editMode == EditMode::Delete) {
+        return false;
+    }
+    
+    // Ensure draft is initialized
+    if (!m_draft.has_value()) {
+        return false;
+    }
+    
+    // Add point to draft
+    m_draft->AddPoint(worldPt);
+    
+    // Update preview
+    m_draftPreview = m_draft->GetPreview();
+    
+    return true;
+}
+
+bool BoundsHandler::CommitDraft()
+{
+    if (!m_draft.has_value()) {
+        return false;
+    }
+    
+    if (!m_draft->CanCommit()) {
+        return false;
+    }
+    
+    // Convert draft to committed shape
+    auto shape = m_draft->ToShape();
+    if (!shape) {
+        return false;
+    }
+    
+    // Get the type from the draft
+    aperture::TypeLimits shapeType = m_draft->type;
+    
+    // Create and dispatch AddShapeCommand
+    if (m_pDispatcher && m_pApertureCtrls) {
+        auto cmd = std::make_unique<AddShapeCommand>(
+            *m_pApertureCtrls,
+            shapeType,
+            std::move(shape)
+        );
+        
+        m_pDispatcher->Execute(std::move(cmd));
+    }
+    
+    // Clear draft for next shape
+    m_draft->Clear();
+    m_draftPreview.reset();
+    
+    return true;
+}
+
+void BoundsHandler::CancelDraft()
+{
+    if (m_draft.has_value()) {
+        m_draft->Clear();
+    }
+    m_draftPreview.reset();
+}
+
+const aperture::Shape* BoundsHandler::GetDraftPreview() const
+{
+    return m_draftPreview.get();
+}
+
+// ========================================================================
+// Keyboard Input Handling (Phase 2)
+// ========================================================================
+
+bool BoundsHandler::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    switch (nChar) {
+        case VK_ESCAPE:
+            // Cancel draft or drag
+            if (IsDrafting()) {
+                CancelDraft();
+                return true;
+            }
+            else if (IsDragging()) {
+                CancelDrag();
+                return true;
+            }
+            return false;
+        
+        case VK_RETURN:
+            // Commit draft (for polygon/ellipse/circle finalization)
+            if (IsDrafting() && m_draft->CanCommit()) {
+                CommitDraft();
+                return true;
+            }
+            return false;
+        
+        default:
+            return false;  // Not handled
+    }
 }
 
 } // namespace DigitMode

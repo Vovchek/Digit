@@ -14,6 +14,7 @@ public:
     ViewTransform() { scale = 1.0; offset.x = 0.0; offset.y = 0.0; }
 
     double GetScale() const { return scale; }
+	void SetScale(double newScale) { scale = newScale; }
     CPoint2d GetOffset() const { return offset; }
     void SetOffset(const CPoint2d& newOffset) { offset = newOffset; }
 

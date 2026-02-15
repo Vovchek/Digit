@@ -57,8 +57,31 @@
       <Filter>EditorTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\AutoNumberingAlgorithmTest.cpp" />
-    <ClCompile Include="DigitModeTests\ApertureCtrls Test.cpp" />
     <ClCompile Include="..\Controls\CApertureCtrls.cpp" />
+    <ClCompile Include="DigitModeTests\ApertureCtrls Test.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\BoundsHandlerPhase2Test.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitModeTests\DraftShapeTest.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\BoundsHandler.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\DraftShape.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Commands\AddShapeCommand.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Commands\RemoveShapeCommand.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Commands\ReplaceShapeCommand.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

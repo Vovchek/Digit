@@ -278,6 +278,18 @@ bool CApertureCtrls::IsVisible(const aperture::Point& worldPt) const
     return checker.isVisible(worldPt);
 }
 
+void CApertureCtrls::SetVisibilityDomain(int width, int height)
+{
+    if (m_visibilityDomain.width == width &&
+        m_visibilityDomain.height == height)
+        return;
+
+    m_visibilityDomain = { width, height };
+
+    m_maskProvider.UpdateImageSize(width, height);
+}
+
+
 // ========================================================================
 // Internal Helpers
 // ========================================================================

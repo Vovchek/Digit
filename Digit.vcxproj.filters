@@ -223,6 +223,12 @@
     <ClCompile Include="Controls\CApertureCtrls.cpp">
       <Filter>Source Files\Controls</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\DraftShape.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\EditMode.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -406,6 +412,12 @@
     </ClInclude>
     <ClInclude Include="Controls\CApertureCtrls.h">
       <Filter>Header Files\Controls_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\DraftShape.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\EditMode.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -618,6 +630,7 @@
     <None Include="Docs\HandleSystem-Implementation-Status.md" />
     <None Include="Docs\ApertureEditing_ImplementationPlan.md" />
     <None Include="Docs\Phase1_CompletionReport.md" />
+    <None Include="Docs\Phase2_CompletionReport.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

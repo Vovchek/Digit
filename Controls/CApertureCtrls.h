@@ -39,6 +39,11 @@
 
 namespace DigitMode {
 
+struct VisibilityDomain {
+    int width = 0;
+    int height = 0;
+};
+
 /**
  * @brief Aperture Subsystem Coordinator
  * 
@@ -164,10 +169,12 @@ public:
     // ========================================================================
     
     bool IsVisible(const aperture::Point& worldPt) const;
-    
+    void SetVisibilityDomain(int width, int height);
+
 private:
     aperture::ShapeCollection m_shapes;
     mutable aperture::visibility::VisibilityMaskProvider m_maskProvider;
+    VisibilityDomain m_visibilityDomain;
     
     const std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type) const;
     std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type);

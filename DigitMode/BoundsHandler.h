@@ -18,7 +18,10 @@
 #include "ApertureCore\include\aperturecore\geometry\Point.h"
 #include "ApertureCore\include\aperturecore\geometry\Shape.h"
 #include "ApertureCore\include\aperturecore\visibility\TypeLimits.h"
+#include "EditMode.h"
+#include "DraftShape.h"
 #include <memory>
+#include <optional>
 
 // Forward declarations
 namespace DigitMode {
@@ -37,6 +40,11 @@ namespace DigitMode {
  * 2. MouseMove → apply drag to preview, invalidate (no mutation)
  * 3. MouseUp → create ReplaceShapeCommand(before, preview), dispatch
  * 4. Esc → discard preview
+ * 
+ * Modal Editing (Phase 2):
+ * - Select mode: edit existing shapes (drag handles)
+ * - Add modes: create new shapes (point sequence)
+ * - Delete mode: remove shapes on click
  * 
  * FORBIDDEN:
  * - Direct shape mutation
@@ -66,6 +74,27 @@ public:
      * Set command dispatcher for undo/redo
      */
     void SetCommandDispatcher(CommandDispatcher* pDispatcher);
+    
+    // ========================================================================
+    // Edit Mode Management (Phase 2)
+    // ========================================================================
+    
+    /**
+     * @brief Set current edit mode
+     * @param mode New edit mode
+     * 
+     * Switching modes:
+     * - Cancels any active drag operation
+     * - Discards any in-progress draft shape
+     * - Updates cursor (caller should call GetEditModeCursor)
+     */
+    void SetEditMode(EditMode mode);
+    
+    /**
+     * @brief Get current edit mode
+     * @return Active edit mode
+     */
+    EditMode GetEditMode() const { return m_editMode; }
     
     // ========================================================================
     // Hit-Testing (delegates to CApertureCtrls)
@@ -151,6 +180,77 @@ public:
     }
     
     // ========================================================================
+    // Draft Shape Management (Phase 2 - Creation Modes)
+    // ========================================================================
+    
+    /**
+     * @brief Add point to draft shape (Add modes only)
+     * @param worldPt Point in world coordinates
+     * @return true if point accepted
+     * 
+     * Behavior:
+     * - Only works in Add modes (Rectangle/Ellipse/Circle/Polygon)
+     * - Returns false if in Select/Delete mode
+     * - Updates draft preview automatically
+     * - Caller should invalidate view after successful add
+     */
+    bool AddDraftPoint(const aperture::Point& worldPt);
+    
+    /**
+     * @brief Commit draft shape (create AddShapeCommand)
+     * @return true if committed successfully
+     * 
+     * Creates AddShapeCommand and dispatches to CommandDispatcher.
+     * Clears draft on success.
+     * 
+     * Returns false if:
+     * - No draft in progress
+     * - Draft cannot be committed (CanCommit() == false)
+     * - Shape creation failed (ToShape() == nullptr)
+     */
+    bool CommitDraft();
+    
+    /**
+     * @brief Cancel draft shape
+     * 
+     * Discards in-progress draft and clears preview.
+     * Safe to call even if no draft active.
+     */
+    void CancelDraft();
+    
+    /**
+     * @brief Get draft preview for rendering
+     * @return Preview shape, or nullptr if no draft or insufficient points
+     * 
+     * Returns live preview shape that updates with each AddDraftPoint().
+     * Caller should render this with dashed outline (draft style).
+     */
+    const aperture::Shape* GetDraftPreview() const;
+    
+    /**
+     * @brief Check if currently creating a draft
+     * @return true if draft is active (has at least one point)
+     */
+    bool IsDrafting() const { return m_draft.has_value() && m_draft->PointCount() > 0; }
+    
+    // ========================================================================
+    // Keyboard Input Handling (Phase 2)
+    // ========================================================================
+    
+    /**
+     * @brief Handle keyboard input
+     * @param nChar Virtual key code
+     * @param nRepCnt Repeat count
+     * @param nFlags Flags
+     * @return true if key was handled
+     * 
+     * Key bindings:
+     * - VK_ESCAPE: Cancel draft or cancel drag
+     * - VK_RETURN: Commit draft (polygon/ellipse finalization)
+     */
+    bool OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags);
+    
+    // ========================================================================
     // State Query
     // ========================================================================
     
@@ -163,6 +263,13 @@ private:
     IImageData* m_pImage = nullptr;
     ViewTransform* m_pView = nullptr;
     CommandDispatcher* m_pDispatcher = nullptr;
+
+    // Edit mode state (Phase 2)
+    EditMode m_editMode = EditMode::Select;
+    
+    // Draft shape state (Phase 2 - creation modes)
+    std::optional<DraftShape> m_draft;                   ///< Active draft (creation modes)
+    std::unique_ptr<aperture::Shape> m_draftPreview;     ///< Cached preview for rendering
 
     // Preview state (Command pattern - NO direct mutation)
     bool m_isDragging = false;
