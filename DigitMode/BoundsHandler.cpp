@@ -12,6 +12,8 @@
 #include "Commands\ReplaceShapeCommand.h"
 #include "Commands\AddShapeCommand.h"
 #include "CommandDispatcher.h"
+#include "Rendering\ShapeDrawStyle.h"
+#include "Rendering\ShapeDrawDispatcher.h"
 #include "ApertureCore\include\aperturecore\geometry\Handle.h"
 
 namespace DigitMode {
@@ -104,6 +106,72 @@ BoundsHandler::HitResult BoundsHandler::HitTest(const CPoint& screenPt, int tole
     }
     
     return result;
+}
+
+// ========================================================================
+// Handle Hover Detection (Phase 4 - Visual Feedback)
+// ========================================================================
+
+bool BoundsHandler::UpdateHoveredHandle(const CPoint& screenPt)
+{
+    // Store previous hover state
+    int previousHandleIndex = m_hoveredHandleIndex;
+    size_t previousShapeIndex = m_hoveredShapeIndex;
+    aperture::TypeLimits previousType = m_hoveredShapeType;
+    
+    // Perform hit test
+    HitResult hit = HitTest(screenPt, HANDLE_TOLERANCE);
+    
+    if (hit.hit) {
+        m_hoveredShapeType = hit.type;
+        m_hoveredShapeIndex = hit.shapeIndex;
+        m_hoveredHandleIndex = hit.controlPointIndex;  // -1 for body, >=0 for handle
+    } else {
+        // No hit - clear hover
+        m_hoveredHandleIndex = -1;
+    }
+    
+    // Return true if hover state changed
+    bool changed = (m_hoveredHandleIndex != previousHandleIndex ||
+                    m_hoveredShapeIndex != previousShapeIndex ||
+                    m_hoveredShapeType != previousType);
+    
+    return changed;
+}
+
+const aperture::Shape* BoundsHandler::GetHoveredShape() const
+{
+    if (m_hoveredHandleIndex == -1 && !m_pApertureCtrls) {
+        return nullptr;  // No hover or not initialized
+    }
+    
+    // Get the shape at (m_hoveredShapeType, m_hoveredShapeIndex)
+    const std::vector<std::unique_ptr<aperture::Shape>>* container = nullptr;
+    
+    switch (m_hoveredShapeType) {
+        case aperture::TypeLimits::EXTERNAL:
+            container = &m_pApertureCtrls->GetShapes().getExternal();
+            break;
+        case aperture::TypeLimits::INTERNAL:
+            container = &m_pApertureCtrls->GetShapes().getInternal();
+            break;
+        case aperture::TypeLimits::APERTURE:
+            container = &m_pApertureCtrls->GetShapes().getApertures();
+            break;
+    }
+    
+    if (!container || m_hoveredShapeIndex >= container->size()) {
+        return nullptr;
+    }
+    
+    return (*container)[m_hoveredShapeIndex].get();
+}
+
+void BoundsHandler::ClearHover()
+{
+    m_hoveredHandleIndex = -1;
+    m_hoveredShapeIndex = 0;
+    m_hoveredShapeType = aperture::TypeLimits::EXTERNAL;
 }
 
 // ========================================================================
@@ -352,6 +420,45 @@ void BoundsHandler::CancelDraft()
 const aperture::Shape* BoundsHandler::GetDraftPreview() const
 {
     return m_draftPreview.get();
+}
+
+// ========================================================================
+// Rendering Preview (Phase 4 - Visual Feedback)
+// ========================================================================
+
+void BoundsHandler::RenderPreview(
+    CDC& dc,
+    const ViewTransform& worldToScreen,
+    const ShapeDrawDispatcher& dispatcher) const
+{
+    using namespace aperture;
+    
+    // Render drag preview (Selected state with handles)
+    if (m_isDragging && m_previewShape) {
+        ShapeDrawStyle style;
+        style.type = m_dragShapeType;
+        style.state = ShapeDrawStyle::State::Selected;  // Thicker outline during drag
+        style.showHandles = true;
+        style.activeHandleIndex = m_dragControlPointIndex;  // Highlight dragged handle
+        
+        // Render shape
+        dispatcher.Draw(*m_previewShape, dc, style, worldToScreen);
+        
+        // Render handles
+        dispatcher.DrawHandles(*m_previewShape, dc, style, worldToScreen);
+    }
+    
+    // Render draft preview (Draft state - dashed outline)
+    if (IsDrafting() && m_draftPreview) {
+        ShapeDrawStyle style;
+        style.type = m_draft->type;  // Use draft's type
+        style.state = ShapeDrawStyle::State::Draft;  // Dashed outline
+        style.showHandles = false;  // No handles during draft
+        style.activeHandleIndex = -1;
+        
+        // Render shape only (no handles for drafts)
+        dispatcher.Draw(*m_draftPreview, dc, style, worldToScreen);
+    }
 }
 
 // ========================================================================

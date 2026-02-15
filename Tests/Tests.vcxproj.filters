@@ -82,6 +82,23 @@
     <ClCompile Include="..\DigitMode\Commands\ReplaceShapeCommand.cpp">
       <Filter>ApertureTests</Filter>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\ShapeDrawStyleTest.cpp" />
+    <ClCompile Include="DigitModeTests\ShapeRenderingTest.cpp" />
+    <ClCompile Include="..\DigitMode\Rendering\EllipseRenderer.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Rendering\PolygonRenderer.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Rendering\RectangleRenderer.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Rendering\ShapeDrawDispatcher.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\Rendering\ShapeDrawStyle.cpp">
+      <Filter>ApertureTests</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />

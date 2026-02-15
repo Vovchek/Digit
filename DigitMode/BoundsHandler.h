@@ -121,6 +121,45 @@ public:
      * @return Hit result structure
      */
     HitResult HitTest(const CPoint& screenPt, int tolerance = HANDLE_TOLERANCE) const;
+    
+    // ========================================================================
+    // Handle Hover Detection (Phase 4 - Visual Feedback)
+    // ========================================================================
+    
+    /**
+     * @brief Update hovered handle based on mouse position
+     * @param screenPt Mouse position in screen coordinates
+     * @return true if hover state changed (caller should invalidate)
+     * 
+     * Tracks which handle is under the mouse for highlighting.
+     * Should be called on MouseMove events.
+     */
+    bool UpdateHoveredHandle(const CPoint& screenPt);
+    
+    /**
+     * @brief Get currently hovered shape
+     * @return Pointer to hovered shape, or nullptr if none
+     */
+    const aperture::Shape* GetHoveredShape() const;
+    
+    /**
+     * @brief Get currently hovered shape type
+     * @return Type of hovered shape (undefined if none)
+     */
+    aperture::TypeLimits GetHoveredShapeType() const { return m_hoveredShapeType; }
+    
+    /**
+     * @brief Get currently hovered handle index
+     * @return Handle index, or -1 if hovering body or no hover
+     */
+    int GetHoveredHandleIndex() const { return m_hoveredHandleIndex; }
+    
+    /**
+     * @brief Clear hover state
+     * 
+     * Call when mouse leaves view or edit mode changes.
+     */
+    void ClearHover();
 
     // ========================================================================
     // Drag Lifecycle (Preview + Command Pattern)
@@ -234,6 +273,28 @@ public:
     bool IsDrafting() const { return m_draft.has_value() && m_draft->PointCount() > 0; }
     
     // ========================================================================
+    // Rendering Preview (Phase 4 - Visual Feedback)
+    // ========================================================================
+    
+    /**
+     * @brief Render preview/draft shapes for visual feedback
+     * @param dc Device context to render to
+     * @param worldToScreen Coordinate transformation
+     * @param dispatcher Rendering dispatcher for consistent styling
+     * 
+     * Renders:
+     * - m_previewShape during drag operations (Selected state with handles)
+     * - m_draftPreview during modal creation (Draft state, dashed)
+     * 
+     * Call this from view OnDraw() after rendering committed shapes.
+     */
+    void RenderPreview(
+        CDC& dc,
+        const ViewTransform& worldToScreen,
+        const class ShapeDrawDispatcher& dispatcher
+    ) const;
+    
+    // ========================================================================
     // Keyboard Input Handling (Phase 2)
     // ========================================================================
     
@@ -270,6 +331,11 @@ private:
     // Draft shape state (Phase 2 - creation modes)
     std::optional<DraftShape> m_draft;                   ///< Active draft (creation modes)
     std::unique_ptr<aperture::Shape> m_draftPreview;     ///< Cached preview for rendering
+    
+    // Hover tracking state (Phase 4 - visual feedback)
+    aperture::TypeLimits m_hoveredShapeType = aperture::TypeLimits::EXTERNAL;
+    size_t m_hoveredShapeIndex = 0;
+    int m_hoveredHandleIndex = -1;  ///< -1 = no hover, >=0 = handle index
 
     // Preview state (Command pattern - NO direct mutation)
     bool m_isDragging = false;

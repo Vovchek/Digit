@@ -9,11 +9,13 @@
  * Owns:
  * - ShapeCollection (pure geometry container)
  * - VisibilityMaskProvider (cached mask with lazy rebuild)
+ * - ShapeDrawDispatcher (rendering coordinator - Phase 3)
  * 
  * Coordinates:
  * - Invalidation when shapes or image change
  * - Hit-testing and read access
  * - Semantic APIs for file load and initialization
+ * - Shape rendering via dispatcher
  * 
  * Does NOT:
  * - Implement undo/redo (that's Commands)
@@ -34,6 +36,7 @@
 #include "ApertureCore\include\aperturecore\geometry\Ellipse.h"
 #include "ApertureCore\include\aperturecore\geometry\Rectangle.h"
 #include "ApertureCore\include\aperturecore\geometry\Polygon.h"
+#include "DigitMode\Rendering\ShapeDrawDispatcher.h"
 #include <memory>
 #include <vector>
 
@@ -84,6 +87,14 @@ public:
      */
     aperture::visibility::VisibilityMaskProvider& GetMaskProvider() { return m_maskProvider; }
     const aperture::visibility::VisibilityMaskProvider& GetMaskProvider() const { return m_maskProvider; }
+    
+    /**
+     * @brief Get shape rendering dispatcher (Phase 3)
+     * 
+     * Used by view classes to render shapes to device context.
+     */
+    DigitMode::ShapeDrawDispatcher& GetDispatcher() { return m_dispatcher; }
+    const DigitMode::ShapeDrawDispatcher& GetDispatcher() const { return m_dispatcher; }
     
     // ========================================================================
     // Invalidation Coordination (MANDATORY)
@@ -170,11 +181,34 @@ public:
     
     bool IsVisible(const aperture::Point& worldPt) const;
     void SetVisibilityDomain(int width, int height);
+    
+    // ========================================================================
+    // Rendering (Phase 3)
+    // ========================================================================
+    
+    /**
+     * @brief Render all shapes to device context
+     * 
+     * @param dc Device context to render to
+     * @param worldToScreen Coordinate transformation
+     * @param selectedShape Currently selected shape (nullptr if none)
+     * @param hoveredHandle Index of hovered handle (-1 if none)
+     * 
+     * Renders shapes in order: EXTERNAL → APERTURE → INTERNAL
+     * Selected shapes drawn with thicker outlines and handles.
+     */
+    void DrawShapes(
+        CDC& dc,
+        const class ViewTransform& worldToScreen,
+        const aperture::Shape* selectedShape = nullptr,
+        int hoveredHandle = -1
+    ) const;
 
 private:
     aperture::ShapeCollection m_shapes;
     mutable aperture::visibility::VisibilityMaskProvider m_maskProvider;
     VisibilityDomain m_visibilityDomain;
+    DigitMode::ShapeDrawDispatcher m_dispatcher;  ///< Phase 3: Rendering coordinator
     
     const std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type) const;
     std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type);

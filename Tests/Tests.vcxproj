@@ -155,6 +155,11 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="..\DigitMode\Rendering\EllipseRenderer.cpp" />
+    <ClCompile Include="..\DigitMode\Rendering\PolygonRenderer.cpp" />
+    <ClCompile Include="..\DigitMode\Rendering\RectangleRenderer.cpp" />
+    <ClCompile Include="..\DigitMode\Rendering\ShapeDrawDispatcher.cpp" />
+    <ClCompile Include="..\DigitMode\Rendering\ShapeDrawStyle.cpp" />
     <ClCompile Include="..\DigitMode\SelectionManager.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
@@ -192,6 +197,8 @@
     <ClCompile Include="DigitModeTests\SelectionManagerTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\ShapeDrawStyleTest.cpp" />
+    <ClCompile Include="DigitModeTests\ShapeRenderingTest.cpp" />
     <ClCompile Include="DigitModeTests\TooltipGeneratorTest.cpp" />
     <ClCompile Include="gtest_main.cpp" />
     <ClCompile Include="pch.cpp">

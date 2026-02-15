@@ -170,6 +170,11 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\EditMode.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
+    <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />
+    <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp" />
+    <ClCompile Include="DigitMode\Rendering\RectangleRenderer.cpp" />
+    <ClCompile Include="DigitMode\Rendering\ShapeDrawDispatcher.cpp" />
+    <ClCompile Include="DigitMode\Rendering\ShapeDrawStyle.cpp" />
     <ClCompile Include="DigitMode\SelectionManager.cpp" />
     <ClCompile Include="DigitMode\TooltipGenerator.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
@@ -238,6 +243,12 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\HitTester.h" />
     <ClInclude Include="DigitMode\IBoundsData.h" />
     <ClInclude Include="DigitMode\InputHandler.h" />
+    <ClInclude Include="DigitMode\Rendering\EllipseRenderer.h" />
+    <ClInclude Include="DigitMode\Rendering\IShapeRenderer.h" />
+    <ClInclude Include="DigitMode\Rendering\PolygonRenderer.h" />
+    <ClInclude Include="DigitMode\Rendering\RectangleRenderer.h" />
+    <ClInclude Include="DigitMode\Rendering\ShapeDrawDispatcher.h" />
+    <ClInclude Include="DigitMode\Rendering\ShapeDrawStyle.h" />
     <ClInclude Include="DigitMode\SelectionManager.h" />
     <ClInclude Include="DigitMode\SelectNumber.hxx" />
     <ClInclude Include="DigitMode\TooltipGenerator.h" />
@@ -335,6 +346,8 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
     <None Include="Docs\PHASE2_REWRITE_SUMMARY.md" />
     <None Include="Docs\PHASE2_VERIFICATION.md" />
+    <None Include="Docs\Phase3_TestingReport.md" />
+    <None Include="Docs\Phase4_CompletionReport.md" />
     <None Include="Docs\REAL_TEST_ANALYSIS.md" />
     <None Include="Docs\ROADMAP_UX.md" />
     <None Include="Docs\SADDLETOPOLOGY_TEST_IS_CORRECT.md" />

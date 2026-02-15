@@ -10,6 +10,8 @@
  */
 #include "stdafx.h"
 #include "CApertureCtrls.h"
+#include "ImageTempl/ViewTransform.h"
+#include "DigitMode/Rendering/ShapeDrawStyle.h"
 #include <algorithm>
 
 namespace DigitMode {
@@ -287,6 +289,59 @@ void CApertureCtrls::SetVisibilityDomain(int width, int height)
     m_visibilityDomain = { width, height };
 
     m_maskProvider.UpdateImageSize(width, height);
+}
+
+// ========================================================================
+// Rendering (Phase 3)
+// ========================================================================
+
+void CApertureCtrls::DrawShapes(
+    CDC& dc,
+    const ViewTransform& worldToScreen,
+    const aperture::Shape* selectedShape,
+    int hoveredHandle) const
+{
+    using namespace aperture;
+    
+    // Helper lambda to render a collection
+    auto renderCollection = [&](
+        const std::vector<std::unique_ptr<Shape>>& shapes,
+        TypeLimits type)
+    {
+        for (const auto& shapePtr : shapes) {
+            if (!shapePtr) continue;
+            
+            // Compute style based on selection and type
+            DigitMode::ShapeDrawStyle style;
+            style.type = type;
+            
+            // Determine state
+            bool isSelected = (shapePtr.get() == selectedShape);
+            if (isSelected) {
+                style.state = DigitMode::ShapeDrawStyle::State::Selected;
+                style.showHandles = true;
+                style.activeHandleIndex = hoveredHandle;
+            } else {
+                style.state = DigitMode::ShapeDrawStyle::State::Idle;
+                style.showHandles = false;
+                style.activeHandleIndex = -1;
+            }
+            
+            // Render shape
+            m_dispatcher.Draw(*shapePtr, dc, style, worldToScreen);
+            
+            // Render handles if selected
+            if (style.showHandles) {
+                m_dispatcher.DrawHandles(*shapePtr, dc, style, worldToScreen);
+            }
+        }
+    };
+    
+    // Render in order: EXTERNAL → APERTURE → INTERNAL
+    // This ensures proper visual layering
+    renderCollection(m_shapes.getExternal(), TypeLimits::EXTERNAL);
+    renderCollection(m_shapes.getApertures(), TypeLimits::APERTURE);
+    renderCollection(m_shapes.getInternal(), TypeLimits::INTERNAL);
 }
 
 
