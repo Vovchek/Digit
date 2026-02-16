@@ -553,10 +553,10 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	// Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
 	// fringes and rubber-band consistently in world coordinates.
 	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	CPoint active = pDoc->Digit.GetActiveDot(&pDoc->Digit);
+	CPoint active = m_fringeHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
 	// CursorPos is already in world coordinates (set in OnMouseMove)
 	CPoint cursor = CursorPos;
-	bool rubber = m_inputHandler.GetRubberBand(&pDoc->Digit);
+	bool rubber = m_fringeHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
 	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
 
 	// Restore previous transform/state
@@ -655,8 +655,8 @@ void CImageView::OnDraw(CDC* pDC)
 	// Draw selection box rubber-band if active (Navigate mode)
 	// m_drag points are in world coordinates, pass viewTransform for screen conversion
 	using namespace DigitMode;
-	if (m_inputHandler.GetMode() == EditMode::Navigate) {
-		m_inputHandler.DrawSelectionBox(pDrawDC, &m_viewTransform);
+	if (m_fringeHandler.GetInputHandler().GetMode() == EditMode::Navigate) {
+		m_fringeHandler.GetInputHandler().DrawSelectionBox(pDrawDC, &m_viewTransform);
 	}
 	
 	// Drawing performed here... (no world-transform applied)
@@ -1211,18 +1211,18 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 		using namespace DigitMode;
 
 		ModifierState mods = ModifierState::FromKeyboard();
-		m_inputHandler.SetMode(pCtrls->GetEditMode());
+		m_fringeHandler.GetInputHandler().SetMode(pCtrls->GetEditMode());
 		// Pan start / continue (space pressed) - use screen coords
 		if ((GetAsyncKeyState(VK_SPACE) & 0x8000) != 0) {
-			if (!m_inputHandler.m_isPanning) {
+			if (!m_fringeHandler.GetInputHandler().m_isPanning) {
 				// start panning on first event
-				m_inputHandler.BeginPan(point);
+				m_fringeHandler.GetInputHandler().BeginPan(point);
 				SetCapture();
 				return;
 			}
 			else {
 				// continue panning while space is held and mouse moves
-				m_inputHandler.ContinuePan(point, &m_viewTransform);
+				m_fringeHandler.GetInputHandler().ContinuePan(point, &m_viewTransform);
 				Invalidate(FALSE);
 				return;
 			}
@@ -1235,16 +1235,16 @@ void CImageView::OnMouseMove(UINT nFlags, CPoint point)
 		m_selectionMgr.SetHover(hoverLevel, hitSeg, hitDot);
 
 		// If draw-mode active and we have a preview active, let InputHandler render preview via ImageView hooks
-		if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
+		if (m_fringeHandler.GetInputHandler().IsInDrawMode() || m_fringeHandler.GetInputHandler().IsInNavigateMode()) {
 			// Pass world coordinates to InputHandler
-			m_inputHandler.OnMouseMove(worldPt, mods, &pDoc->Digit, &m_cmdDispatcher);
+			m_fringeHandler.GetInputHandler().OnMouseMove(worldPt, mods, &pDoc->Digit, &m_cmdDispatcher);
 			Invalidate(FALSE);
 			//continue; still allow tooltip generation
 		}
 
 		// If panning is active, handle pan here
-		if (m_inputHandler.m_isPanning) {
-			m_inputHandler.ContinuePan(point, &m_viewTransform);
+		if (m_fringeHandler.GetInputHandler().m_isPanning) {
+			m_fringeHandler.GetInputHandler().ContinuePan(point, &m_viewTransform);
 			Invalidate(FALSE);
 			return;
 		}
@@ -1360,7 +1360,7 @@ BOOL CImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 		return TRUE;
 	}
 	// Fallback to InputHandler/paging
-	m_inputHandler.OnMouseWheel(pt, zDelta, &m_viewTransform);
+	m_fringeHandler.GetInputHandler().OnMouseWheel(pt, zDelta, &m_viewTransform);
 	Invalidate(FALSE);
 	return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
 }
@@ -1404,18 +1404,18 @@ void CImageView::OnLButtonDown(UINT nFlags, CPoint point)
 	using namespace DigitMode;
 	CControls* pCtrlsLocal = GetControls();
 	EditMode mode = pCtrls->GetEditMode();
-	m_inputHandler.SetMode(mode);
+	m_fringeHandler.GetInputHandler().SetMode(mode);
 
-	TRACE("OnLButtonDown: mode=%d, IsInDrawMode=%d\n", static_cast<int>(mode), m_inputHandler.IsInDrawMode());
+	TRACE("OnLButtonDown: mode=%d, IsInDrawMode=%d\n", static_cast<int>(mode), m_fringeHandler.GetInputHandler().IsInDrawMode());
 
 	// Handle Draw mode
-	if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
+	if (m_fringeHandler.GetInputHandler().IsInDrawMode() || m_fringeHandler.GetInputHandler().IsInNavigateMode()) {
 		// If panning is active, ignore draw clicks to avoid accidental dots
-		if (m_inputHandler.m_isPanning) {
+		if (m_fringeHandler.GetInputHandler().m_isPanning) {
 			return;
 		}
 		TRACE("OnLButtonDown: Forwarding to InputHandler (Draw | Navigate mode)\n");
-		m_inputHandler.OnLButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+		m_fringeHandler.GetInputHandler().OnLButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
 		Invalidate(FALSE);
 		return;
 	}
@@ -1482,15 +1482,15 @@ void CImageView::OnLButtonUp(UINT nFlags, CPoint point)
 	}
 	// Forward to InputHandler when in draw mode so it can commit/handle the click
 	using namespace DigitMode;
-	m_inputHandler.SetMode(pCtrls->GetEditMode());
-	if (m_inputHandler.IsInDrawMode() || m_inputHandler.IsInNavigateMode()) {
-		m_inputHandler.OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
+	m_fringeHandler.GetInputHandler().SetMode(pCtrls->GetEditMode());
+	if (m_fringeHandler.GetInputHandler().IsInDrawMode() || m_fringeHandler.GetInputHandler().IsInNavigateMode()) {
+		m_fringeHandler.GetInputHandler().OnLButtonUp(l_point, &pDoc->Digit, &m_cmdDispatcher);
 		Invalidate(FALSE);
 		return;
 	}
 
-	if (m_inputHandler.m_isPanning) {
-		m_inputHandler.EndPan();
+	if (m_fringeHandler.GetInputHandler().m_isPanning) {
+		m_fringeHandler.GetInputHandler().EndPan();
 		ReleaseCapture();
 		Invalidate(FALSE);
 		return;
@@ -1549,9 +1549,9 @@ void CImageView::OnRButtonDown(UINT nFlags, CPoint point)
 
 	// Let InputHandler handle right-button in draw mode (e.g., finish/cancel)
 	using namespace DigitMode;
-	m_inputHandler.SetMode(GetControls()->GetEditMode());
-	if (m_inputHandler.IsInDrawMode()) {
-		m_inputHandler.OnRButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
+	m_fringeHandler.GetInputHandler().SetMode(GetControls()->GetEditMode());
+	if (m_fringeHandler.GetInputHandler().IsInDrawMode()) {
+		m_fringeHandler.GetInputHandler().OnRButtonDown(nFlags, l_point, &pDoc->Digit, &m_cmdDispatcher);
 		Invalidate(FALSE);
 		return;
 	}
