@@ -122,8 +122,7 @@ void CSectionInfo::CalcAveStep() {
 }
 
 // CDigitInfo mock implementation
-CDigitInfo::CDigitInfo() : buf_line(nullptr), ny_buf_line(0), 
-                           HandSetZapLines(FALSE), idxDragZapLine(-1), 
+CDigitInfo::CDigitInfo() : HandSetZapLines(FALSE), idxDragZapLine(-1), 
                            idxDragDot(-1), idxMainSection(0), idxMainDot(-1),
                            MainFringeNumber(0.0), CurrentNumber(0.0), 
                            SecSegm(0.0), CorrectionSecSegm(0.0), numStep(1.0),
@@ -132,7 +131,6 @@ CDigitInfo::CDigitInfo() : buf_line(nullptr), ny_buf_line(0),
 }
 
 CDigitInfo::~CDigitInfo() {
-    Delete_buf_line();
 }
 
 void CDigitInfo::Init() {
@@ -155,23 +153,6 @@ void CDigitInfo::Init() {
     ScaleFactor = 1.0;
     Rotation = 0.0;
     Comments.Empty();
-    
-    Delete_buf_line();
-}
-
-void CDigitInfo::Init_buf_line(int ny, int n) {
-    // Not needed for CreateNumLines tests
-}
-
-void CDigitInfo::Delete_buf_line() {
-    if (buf_line) {
-        for (int i = 0; i < ny_buf_line; i++) {
-            delete[] buf_line[i];
-        }
-        delete[] buf_line;
-        buf_line = nullptr;
-    }
-    ny_buf_line = 0;
 }
 
 // ============================================================================

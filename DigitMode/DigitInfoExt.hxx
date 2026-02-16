@@ -1,12 +1,8 @@
-﻿
-
-void CDigitInfo::SelectFringeStep()
+﻿void CDigitInfo::SelectFringeStep()
 {
 	CArray<double, double> SortedSteps;
 
 	for (int i = 0; i < Sections.GetSize(); i++) {
-		if (buf_line[i][2] != -1 && buf_line[i][3] != -1)
-			continue;
 		Sections[i].CalcAveStep();
 		if (Sections[i].aveStep != -1)
 			SortedSteps.Add(Sections[i].aveStep);
@@ -32,8 +28,6 @@ void CDigitInfo::SelectMainSection()
 	int iTime = 0;
 	int i = 0;
 	for (i = 0; i < Sections.GetSize(); i++) {
-		if (buf_line[i][2] != -1 && buf_line[i][3] != -1)
-			continue;
 		step = Sections[i].aveStep;
 		nDot = Sections[i].NumLines.GetSize();
 		if (nDot > maxFringeNumber1) iTime = 0;
@@ -45,8 +39,6 @@ void CDigitInfo::SelectMainSection()
 	}
 	iTime = 0;
 	for (i = Sections.GetSize() - 1; i > -1; i--) {
-		if (buf_line[i][2] != -1 && buf_line[i][3] != -1)
-			continue;
 		step = Sections[i].aveStep;
 		nDot = Sections[i].NumLines.GetSize();
 		if (nDot > maxFringeNumber2) iTime = 0;
@@ -223,15 +215,15 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 		y = YLines.GetNext(pos);
 		iy = int(y);
 		CZapLineInfo zL;
-		if (pI->m_pDIB) {
-			zL.L = Sections[iy - ext_t_y].L;
-			zL.iSec = iy - ext_t_y;
+		if (iy >= 0 && iy < Sections.GetSize()) {
+			zL.L = Sections[iy].L;
+			zL.iSec = iy;
 		}
 		else {
-			zL.L.P1.x = buf_line[iy - ext_t_y][0];
-			zL.L.P2.x = buf_line[iy - ext_t_y][1];
-			zL.L.P1.y = zL.L.P2.y = iy - ext_t_y;
-			zL.iSec = iy - ext_t_y;
+			zL.L.P1.x = BoundR.left;
+			zL.L.P2.x = BoundR.right;
+			zL.L.P1.y = zL.L.P2.y = iy;
+			zL.iSec = iy;
 		}
 		ZapLines.Add(zL);
 	}
@@ -382,8 +374,8 @@ void CDigitInfo::SetLockedZapSectionYPos(int iy)
 	else {
 		CDLine L;
 		L.P1.y = L.P2.y = iy;
-		L.P1.x = buf_line[i][0];
-		L.P2.x = buf_line[i][1];
+		L.P1.x = BoundR.left;
+		L.P2.x = BoundR.right;
 		ZapLines[idxDragZapLine].L = L;
 	}
 }
@@ -399,9 +391,6 @@ void CDigitInfo::GetLockedZapSectionXYPos(CPoint& P1, CPoint& P2)
 
 void CDigitInfo::AddZapSection(int iy)
 {
-	if (!buf_line)
-		CreateBufLine();
-
 	CBoundCtrls* pB = GetBoundCtrls();
 	CImageCtrls* pI = GetImageCtrls();
 	int xDIB = pI->ImageSize.cx;
@@ -412,7 +401,7 @@ void CDigitInfo::AddZapSection(int iy)
 	int begY = BoundR.top;
 	int i = iy - begY;
 	CZapLineInfo zL;
-	if (Sections.GetSize()) {
+	if (Sections.GetSize() && i >= 0 && i < Sections.GetSize()) {
 		zL.L = Sections[i].L;
 		zL.iSec = i;
 		ZapLines.Add(zL);
@@ -421,8 +410,8 @@ void CDigitInfo::AddZapSection(int iy)
 	else {
 		CDLine L;
 		L.P1.y = L.P2.y = iy;
-		L.P1.x = buf_line[i][0];
-		L.P2.x = buf_line[i][1];
+		L.P1.x = BoundR.left;
+		L.P2.x = BoundR.right;
 		zL.iSec = i;
 		zL.L = L;
 		ZapLines.Add(zL);
@@ -1255,7 +1244,6 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		pI->ImageSize.cy = IntInfo.ImageSize[1];
 	}
 
-	CreateBufLine();
 	if (pI->m_pDIB) {
 		CreateRedCenters();
 		SelectFringeStep();
@@ -1266,7 +1254,6 @@ BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
 		TRACE("LoadZAP: No image loaded - skipping fringe processing (CreateRedCenters/CreateNumLines)\n");
 	}
 	CreateZAPSectionsOnLoadZAPFile();
-	Delete_buf_line();
 
 	return TRUE;
 }
@@ -1291,40 +1278,15 @@ BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 	}
 
 	
-	//Вызов LoadImage для инициализации m_pDIB
+	// Call LoadImage to initialize m_pDIB
 	CImageCtrls* pI = GetImageCtrls();
-	
-	/*BOOL imageLoaded = FALSE;
-
-	if (!IntInfo.ImageFileName.IsEmpty()) {
-		imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
-		if (!imageLoaded) {
-			TRACE("LoadFRN: Failed to load image %s\n", CT2A(IntInfo.ImageFileName));
-		}
-	}
-
-	// Create fake gray image if actual image failed to load
-	if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
-		TRACE("LoadFRN: Creating fake gray image as fallback\n");
-		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
-			imageLoaded = TRUE; // Treat as successful load
-			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
-			TRACE("LoadFRN: Fake image created successfully\n");
-		}
-		else {
-			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
-			TRACE("LoadFRN: Failed to create fake image\n");
-		}
-	}*/
 
 	if (!ExamineNumberingInterferogramInfo(IntInfo))
 		return FALSE;
 
-	CreateBufLine();
 	if (pI->m_pDIB) {
 		CreateRedCenters();
 	}
-	Delete_buf_line();
 	return TRUE;
 }
 /*

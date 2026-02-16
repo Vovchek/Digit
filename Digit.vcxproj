@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -214,6 +214,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\DotInfo.cpp" />
     <ClCompile Include="DigitMode\SectionInfo.cpp" />
     <ClCompile Include="DigitMode\ZapLineInfo.cpp" />
+    <ClCompile Include="DigitMode\\RedCenterDetector.cpp" />
     <ClCompile Include="Digit.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -243,6 +244,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\CursorManager.h" />
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
+    <ClInclude Include="DigitMode\\DigitizationParams.h" />
     <ClInclude Include="DigitMode\DraftShape.h" />
     <ClInclude Include="DigitMode\EditMode.h" />
     <ClInclude Include="DigitMode\FringeInputHandler.h" />
@@ -399,3 +401,4 @@ ApertureCore.lib         %(AdditionalDependencies)
     <Image Include="res\Toolbar.bmp" />
   </ItemGroup>
 </Project>
+

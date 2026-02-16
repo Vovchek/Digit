@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <afxwin.h>
 
@@ -35,6 +35,9 @@ public:
     virtual bool HasImage() const = 0;
     virtual int GetWidth() const = 0;
     virtual int GetHeight() const = 0;
+
+    virtual const unsigned char* GetBitmapData() const = 0;
+    virtual unsigned char GetPixel(int x, int y) const = 0;
 
     // Version increases when image changes
     virtual uint64_t GetImageVersion() const = 0;

@@ -52,6 +52,8 @@ public:
     bool HasImage() const override { return m_pDIB != nullptr; }
     int GetWidth() const override { return ImageSize.cx; }
     int GetHeight() const override { return ImageSize.cy; }
+    const unsigned char* GetBitmapData() const override;
+    unsigned char GetPixel(int x, int y) const override;
     uint64_t GetImageVersion() const override { return imageVersion_; }
 
 	// Invalidate the image (e.g., after loading a new image or modifying it)

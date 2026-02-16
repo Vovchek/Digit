@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -79,6 +79,7 @@
       <ProgramDataBaseFileName>$(IntDir)EngLangD.pdb</ProgramDataBaseFileName>
       <MinimalRebuild />
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -124,6 +125,7 @@
       <ProgramDataBaseFileName>$(IntDir)EngLangD.pdb</ProgramDataBaseFileName>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Midl>
       <SuppressStartupBanner>true</SuppressStartupBanner>
@@ -155,6 +157,7 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_WIN32_WINNT=0x0A00;</PreprocessorDefinitions>
       <MinimalRebuild />
       <AdditionalIncludeDirectories>$(ProjectDir)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -187,25 +190,8 @@
     <ResourceCompile Include="EngLangD.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ImageTempl\ViewTransform.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="StdAfx.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Docs\DIGITIZATION_ALGORITHM_REFACTORING_PLAN.md" />
-    <None Include="Docs\DIGITIZATION_ARCHITECTURE_CLARIFICATIONS.md" />
-    <None Include="Docs\DIGITIZATION_ARCHITECTURE_VISUAL.md" />
-    <None Include="Docs\DIGITIZATION_DOCUMENTATION_INDEX.md" />
-    <None Include="Docs\DIGITIZATION_QUICK_REFERENCE.md" />
-    <None Include="Docs\DIGITIZATION_SCANLINEINDEX_REMOVAL.md" />
-    <None Include="Docs\REFACTORING_PLAN_CORRECTIONS.md" />
-    <None Include="Docs\UPDATE_FUNCTION_BASED_VISIBILITY.md" />
-    <None Include="Docs\UPDATE_SUMMARY_SCANLINEINDEX.md" />
-    <None Include="Docs\VISIBILITY_CHECKER_SIGNATURE_CONFIRMED.md" />
-    <None Include="implement_ux_phase2-3_backlog_clear_pan.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="temp_ondraw.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

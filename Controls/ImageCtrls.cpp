@@ -62,6 +62,33 @@ CImageCtrls& CImageCtrls::operator=(const CImageCtrls& rhs)
     return *this;
 }
 
+const unsigned char* CImageCtrls::GetBitmapData() const
+{
+    return m_pDIB ? m_pDIB->m_lpSrcBits : nullptr;
+}
+
+unsigned char CImageCtrls::GetPixel(int x, int y) const
+{
+    if (!m_pDIB) {
+        return 0;
+    }
+
+    const int width = static_cast<int>(m_pDIB->m_dwWidth);
+    const int height = static_cast<int>(m_pDIB->m_dwHeight);
+
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        return 0;
+    }
+
+    const int row = (height - 1) - y;
+    if (row < 0 || row >= height) {
+        return 0;
+    }
+
+    const size_t index = static_cast<size_t>(row) * static_cast<size_t>(width) + static_cast<size_t>(x);
+    return m_pDIB->m_lpSrcBits[index];
+}
+
 CRect CImageCtrls::GetDIBRect()
 {
 	CRect rcDIB;

@@ -1,4 +1,4 @@
-#if !defined(AFX_M_UTILS_H__7A162971_1875_11D4_8A51_A0D170A2AAD8__INCLUDED_)
+﻿#if !defined(AFX_M_UTILS_H__7A162971_1875_11D4_8A51_A0D170A2AAD8__INCLUDED_)
 #define AFX_M_UTILS_H__7A162971_1875_11D4_8A51_A0D170A2AAD8__INCLUDED_
 
 #include <io.h>
@@ -11,6 +11,11 @@
 #include "DigitMode\DigitInfo.h"
 #include "MGTools\Include\Utils\BaseDataType.h"
 //C:\Ilya\Programming\cpp\Numbering\Utils\mutils.h
+
+namespace DigitMode {
+    class CApertureCtrls;
+}
+
 LPCTSTR GetIniFile();
 LPCTSTR GetWorkPath();
 LPCTSTR GetWorkFolder();
@@ -30,6 +35,7 @@ CControls* GetControls();
 CImageCtrls* GetImageCtrls(CView* pView=NULL);
 CMeasureCtrls* GetMeasureCtrls(CView* pView=NULL);
 CBoundCtrls* GetBoundCtrls(CView* pView=NULL);
+DigitMode::CApertureCtrls* GetApertureCtrls(CView* pView=NULL);
 CDigitInfo* GetDigitInfo(CView* pView=NULL);
 
 bool MakeCopyDocument(LPCTSTR InitPath, LPCTSTR InitName, LPCTSTR ActivePath);

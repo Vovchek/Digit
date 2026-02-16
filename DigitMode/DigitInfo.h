@@ -112,39 +112,6 @@ class CDigitInfo
 {
   public:
     // ========================================================================
-    // APERTURE/OBSTRUCTION MASK DATA
-    // ========================================================================
-    
-    /**
-     * @brief Buffer defining aperture/obstruction boundaries for each scan line.
-     * 
-     * **Structure**: buf_line[scanline][boundary]
-     * - buf_line[i][0] = left edge of aperture at row i
-     * - buf_line[i][1] = right edge of aperture at row i
-     * - buf_line[i][2] = left edge of obstruction at row i (-1 if none)
-     * - buf_line[i][3] = right edge of obstruction at row i (-1 if none)
-     * 
-     * **Purpose**: Defines which pixels are valid for fringe detection.
-     * Pixels between [0] and [1] but outside [2] and [3] are analyzed.
-     * 
-     * **Lifecycle**: Created by CreateBufLine(), deleted by Delete_buf_line()
-     * 
-     * @see ny_buf_line
-     * @see CreateBufLineAperture()
-     * @see CreateBufLineOnstruction()
-     */
-    int **buf_line;
-    
-    /**
-     * @brief Number of scan lines in buf_line array.
-     * 
-     * Typically equals the height of the aperture bounding rectangle.
-     * 
-     * @see buf_line
-     */
-    int ny_buf_line;
-    
-    // ========================================================================
     // SCAN LINE ANALYSIS DATA
     // ========================================================================
     

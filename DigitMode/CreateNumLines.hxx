@@ -1,4 +1,12 @@
-﻿/// This file is intended to be icluded into DigitInfo.cpp
+﻿#include <algorithm>
+#ifdef min
+#undef min
+#endif
+#ifdef max
+#undef max
+#endif
+
+/// This file is intended to be icluded into DigitInfo.cpp
 /// It was extracted to facilitate testing and debugging of CreateNumLines()
 
 // TODO: refNumLines array index goes out of bound when sections do not fit the window
@@ -153,7 +161,7 @@ void CDigitInfo::ProcessSectionPropagation(int sectionIndex, int direction,
 void CDigitInfo::CreateNumLines()
 {
 	// Main section index determined by SelectMainSection()
-	int idxMain = max(0, min(idxMainSection, Sections.GetSize()));
+	int idxMain = std::max(0, std::min(idxMainSection, Sections.GetSize()));
 	if (Sections.GetSize() < 1 || Sections[idxMain].NumLines.GetSize() < 1)
 		return; // No sections or no fringes in main section
 

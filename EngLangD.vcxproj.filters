@@ -31,7 +31,6 @@
     <ClInclude Include="StdAfx.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ImageTempl\ViewTransform.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -99,21 +98,5 @@
     <CustomBuild Include="Res\ZOOMRECT.CUR">
       <Filter>Resource Files</Filter>
     </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="implement_ux_phase2-3_backlog_clear_pan.md" />
-    <None Include="Docs\DIGITIZATION_ALGORITHM_REFACTORING_PLAN.md" />
-    <None Include="Docs\REFACTORING_PLAN_CORRECTIONS.md" />
-    <None Include="Docs\DIGITIZATION_ARCHITECTURE_CLARIFICATIONS.md" />
-    <None Include="Docs\DIGITIZATION_ARCHITECTURE_VISUAL.md" />
-    <None Include="Docs\DIGITIZATION_QUICK_REFERENCE.md" />
-    <None Include="Docs\DIGITIZATION_DOCUMENTATION_INDEX.md" />
-    <None Include="Docs\DIGITIZATION_SCANLINEINDEX_REMOVAL.md" />
-    <None Include="Docs\UPDATE_SUMMARY_SCANLINEINDEX.md" />
-    <None Include="Docs\UPDATE_FUNCTION_BASED_VISIBILITY.md" />
-    <None Include="Docs\VISIBILITY_CHECKER_SIGNATURE_CONFIRMED.md" />
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="temp_ondraw.txt" />
   </ItemGroup>
 </Project>

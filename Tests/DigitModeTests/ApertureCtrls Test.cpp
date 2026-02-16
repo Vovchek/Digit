@@ -31,6 +31,8 @@ public:
     bool HasImage() const override { return true; }
     int GetWidth() const override { return m_width; }
     int GetHeight() const override { return m_height; }
+    const unsigned char* GetBitmapData() const override { return nullptr; }
+    unsigned char GetPixel(int, int) const override { return 0; }
     uint64_t GetImageVersion() const override { return m_version; }
     
     void SetDimensions(int width, int height) {
@@ -78,10 +80,10 @@ protected:
 // ============================================================================
 
 TEST_F(ApertureCtrlsTest, InitialState_IsEmpty) {
-    EXPECT_EQ(0, apertureCtrls->GetShapeCount());
-    EXPECT_EQ(0, apertureCtrls->GetExternalCount());
-    EXPECT_EQ(0, apertureCtrls->GetInternalCount());
-    EXPECT_EQ(0, apertureCtrls->GetApertureCount());
+    EXPECT_EQ(0u, apertureCtrls->GetShapeCount());
+    EXPECT_EQ(0u, apertureCtrls->GetExternalCount());
+    EXPECT_EQ(0u, apertureCtrls->GetInternalCount());
+    EXPECT_EQ(0u, apertureCtrls->GetApertureCount());
 }
 
 TEST_F(ApertureCtrlsTest, Clear_RemovesAllShapes) {
@@ -92,12 +94,12 @@ TEST_F(ApertureCtrlsTest, Clear_RemovesAllShapes) {
     auto rect = std::make_unique<aperture::Rectangle>(50.0, 50.0, 200.0, 200.0);
     apertureCtrls->AddInternalShape(std::move(rect));
     
-    ASSERT_EQ(2, apertureCtrls->GetShapeCount());
+    ASSERT_EQ(2u, apertureCtrls->GetShapeCount());
     
     // Clear
     apertureCtrls->Clear();
     
-    EXPECT_EQ(0, apertureCtrls->GetShapeCount());
+    EXPECT_EQ(0u, apertureCtrls->GetShapeCount());
 }
 
 // ============================================================================
@@ -109,8 +111,8 @@ TEST_F(ApertureCtrlsTest, AddExternalShape_IncreasesCount) {
     Shape* shape = apertureCtrls->AddExternalShape(std::move(ellipse));
     
     EXPECT_NE(nullptr, shape);
-    EXPECT_EQ(1, apertureCtrls->GetExternalCount());
-    EXPECT_EQ(1, apertureCtrls->GetShapeCount());
+    EXPECT_EQ(1u, apertureCtrls->GetExternalCount());
+    EXPECT_EQ(1u, apertureCtrls->GetShapeCount());
     EXPECT_EQ(TypeLimits::EXTERNAL, apertureCtrls->GetShapeType(shape));
 }
 
@@ -119,7 +121,7 @@ TEST_F(ApertureCtrlsTest, AddInternalShape_IncreasesCount) {
     Shape* shape = apertureCtrls->AddInternalShape(std::move(rect));
     
     EXPECT_NE(nullptr, shape);
-    EXPECT_EQ(1, apertureCtrls->GetInternalCount());
+    EXPECT_EQ(1u, apertureCtrls->GetInternalCount());
     EXPECT_EQ(TypeLimits::INTERNAL, apertureCtrls->GetShapeType(shape));
 }
 
@@ -130,7 +132,7 @@ TEST_F(ApertureCtrlsTest, AddApertureShape_IncreasesCount) {
     Shape* shape = apertureCtrls->AddApertureShape(std::move(polygon));
     
     EXPECT_NE(nullptr, shape);
-    EXPECT_EQ(1, apertureCtrls->GetApertureCount());
+    EXPECT_EQ(1u, apertureCtrls->GetApertureCount());
     EXPECT_EQ(TypeLimits::APERTURE, apertureCtrls->GetShapeType(shape));
 }
 

@@ -28,7 +28,9 @@ class ImageDataMock : public IImageData {
     bool HasImage() const override { return true; }
     int GetWidth() const override { return 800; }
     int GetHeight() const override { return 600; }
-	uint64_t GetImageVersion() const override { return 1; }  // Always valid
+    const unsigned char* GetBitmapData() const override { return nullptr; }
+    unsigned char GetPixel(int, int) const override { return 0; }
+    uint64_t GetImageVersion() const override { return 1; }  // Always valid
 };
 
 class BoundsHandlerPhase2Test : public ::testing::Test {
