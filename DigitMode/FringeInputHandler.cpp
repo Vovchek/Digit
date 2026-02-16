@@ -10,13 +10,11 @@
 
 namespace DigitMode {
 
-FringeInputHandler::FringeInputHandler(CWnd* pView)
-    : m_pView(pView)
-    , m_pDigit(nullptr)
+FringeInputHandler::FringeInputHandler()
+    : m_pDigit(nullptr)
     , m_pTransform(nullptr)
     , m_pDispatcher(nullptr)
 {
-    ASSERT(m_pView && "View must not be null");
 }
 
 FringeInputHandler::~FringeInputHandler()
@@ -53,8 +51,6 @@ void FringeInputHandler::SetMode(EditMode mode)
     Cancel();
     
     m_inputHandler.SetMode(mode);
-    
-    Invalidate();
 }
 
 EditMode FringeInputHandler::GetMode() const
@@ -78,17 +74,20 @@ bool FringeInputHandler::OnMouseDown(UINT flags, CPoint pt)
         return false;  // Don't consume, let navigation handle pan
     }
     
+    CPoint worldPt = pt;
+    if (m_pTransform) {
+        worldPt = m_pTransform->ScreenToWorld(pt);
+    }
+
     // Left button
     if (flags & MK_LBUTTON) {
-        m_inputHandler.OnLButtonDown(flags, pt, m_pDigit, m_pDispatcher);
-        Invalidate();
+        m_inputHandler.OnLButtonDown(flags, worldPt, m_pDigit, m_pDispatcher);
         return true;  // Consumed
     }
     
     // Right button
     if (flags & MK_RBUTTON) {
-        m_inputHandler.OnRButtonDown(flags, pt, m_pDigit, m_pDispatcher);
-        Invalidate();
+        m_inputHandler.OnRButtonDown(flags, worldPt, m_pDigit, m_pDispatcher);
         return true;  // Consumed
     }
     
@@ -112,13 +111,16 @@ bool FringeInputHandler::OnMouseMove(UINT flags, CPoint pt)
     mods.ctrl = (flags & MK_CONTROL) != 0;
     mods.shift = (flags & MK_SHIFT) != 0;
     mods.alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
+
+    CPoint worldPt = pt;
+    if (m_pTransform) {
+        worldPt = m_pTransform->ScreenToWorld(pt);
+    }
     
     // Delegate to InputHandler
-    m_inputHandler.OnMouseMove(pt, mods, m_pDigit, m_pDispatcher);
-    Invalidate();
+    m_inputHandler.OnMouseMove(worldPt, mods, m_pDigit, m_pDispatcher);
     
-    // Don't consume mouse move (allow cursor updates, tooltips, etc.)
-    return false;
+    return true;  // Consumed
 }
 
 bool FringeInputHandler::OnMouseUp(UINT flags, CPoint pt)
@@ -126,15 +128,15 @@ bool FringeInputHandler::OnMouseUp(UINT flags, CPoint pt)
     if (!IsInitialized()) {
         return false;
     }
-    
-    // Left button up
-    if ((flags & MK_LBUTTON) == 0) {  // Button was just released
-        m_inputHandler.OnLButtonUp(pt, m_pDigit, m_pDispatcher);
-        Invalidate();
-        return true;  // Consumed
+
+    CPoint worldPt = pt;
+    if (m_pTransform) {
+        worldPt = m_pTransform->ScreenToWorld(pt);
     }
     
-    return false;
+    // Left button up
+    m_inputHandler.OnLButtonUp(worldPt, m_pDigit, m_pDispatcher);
+    return true;  // Consumed
 }
 
 bool FringeInputHandler::OnMouseWheel(UINT flags, short delta, CPoint pt)
@@ -146,13 +148,7 @@ bool FringeInputHandler::OnMouseWheel(UINT flags, short delta, CPoint pt)
     }
     
     // Fringe handler doesn't handle mouse wheel without Ctrl
-    // Delegate to InputHandler
-    if (IsInitialized()) {
-        m_inputHandler.OnMouseWheel(pt, delta, m_pTransform);
-        Invalidate();
-    }
-    
-    return false;  // Don't consume (allow navigation fallback)
+    return false;
 }
 
 bool FringeInputHandler::OnKeyDown(UINT nChar)
@@ -163,7 +159,6 @@ bool FringeInputHandler::OnKeyDown(UINT nChar)
     
     // Delegate to InputHandler (handles arrows, backspace, escape, etc.)
     m_inputHandler.OnKeyDown(nChar, m_pDigit, m_pDispatcher);
-    Invalidate();
     
     // Consume key events that InputHandler handles
     switch (nChar) {
@@ -189,7 +184,6 @@ bool FringeInputHandler::OnKeyUp(UINT nChar)
     
     // Delegate to InputHandler
     m_inputHandler.OnKeyUp(nChar, m_pDigit, m_pDispatcher);
-    Invalidate();
     
     return false;  // Don't consume key-up events
 }
@@ -200,27 +194,13 @@ void FringeInputHandler::Cancel()
         return;
     }
     
-    // Cancel any active drawing
-    m_inputHandler.CancelDraw(m_pDigit);
-    
-    // End pan if active (handled by InputHandler)
-    if (m_inputHandler.m_isPanning) {
-        m_inputHandler.EndPan();
-    }
-    
-    Invalidate();
+    // Cancel any active drawing or drag via escape handling
+    m_inputHandler.OnKeyDown(VK_ESCAPE, m_pDigit, m_pDispatcher);
 }
 
 // ========================================================================
 // Helpers
 // ========================================================================
-
-void FringeInputHandler::Invalidate()
-{
-    if (m_pView) {
-        m_pView->Invalidate(FALSE);
-    }
-}
 
 bool FringeInputHandler::IsSpacePressed() const
 {

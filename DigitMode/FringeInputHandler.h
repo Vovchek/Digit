@@ -55,9 +55,8 @@ class FringeInputHandler : public IInputHandler {
 public:
     /**
      * @brief Construct fringe input handler
-     * @param pView View for invalidation callback (not owned)
      */
-    explicit FringeInputHandler(CWnd* pView);
+    FringeInputHandler();
     ~FringeInputHandler() override;
     
     // ========================================================================
@@ -125,7 +124,6 @@ private:
     // Dependencies (not owned)
     // ========================================================================
     
-    CWnd* m_pView;                    ///< View for invalidation
     CDigitInfo* m_pDigit;             ///< Digit information
     ViewTransform* m_pTransform;      ///< View transform
     CommandDispatcher* m_pDispatcher; ///< Command dispatcher
@@ -139,11 +137,6 @@ private:
     // ========================================================================
     // Helpers
     // ========================================================================
-    
-    /**
-     * @brief Request view invalidation
-     */
-    void Invalidate();
     
     /**
      * @brief Check if Space key is pressed (pan gesture)

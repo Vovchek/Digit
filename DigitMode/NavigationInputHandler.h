@@ -51,9 +51,8 @@ public:
     /**
      * @brief Construct navigation handler
      * @param pTransform ViewTransform to modify (not owned)
-     * @param pView View for invalidation (not owned)
      */
-    NavigationInputHandler(ViewTransform* pTransform, CWnd* pView);
+    explicit NavigationInputHandler(ViewTransform* pTransform);
     ~NavigationInputHandler() override;
     
     // ========================================================================
@@ -74,7 +73,6 @@ private:
     // ========================================================================
     
     ViewTransform* m_pTransform;  ///< Transform to modify
-    CWnd* m_pView;                ///< View for invalidation
     
     // ========================================================================
     // Pan State
@@ -97,11 +95,6 @@ private:
      * @brief Check if Ctrl key is pressed
      */
     bool IsCtrlPressed() const;
-    
-    /**
-     * @brief Request view invalidation
-     */
-    void Invalidate();
 };
 
 } // namespace DigitMode

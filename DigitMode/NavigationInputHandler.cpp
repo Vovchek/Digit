@@ -8,14 +8,12 @@
 
 namespace DigitMode {
 
-NavigationInputHandler::NavigationInputHandler(ViewTransform* pTransform, CWnd* pView)
+NavigationInputHandler::NavigationInputHandler(ViewTransform* pTransform)
     : m_pTransform(pTransform)
-    , m_pView(pView)
     , m_isPanning(false)
     , m_panStart(0, 0)
 {
     ASSERT(m_pTransform && "ViewTransform must not be null");
-    ASSERT(m_pView && "View must not be null");
     
     m_panStartOffset.x = 0.0;
     m_panStartOffset.y = 0.0;
@@ -60,8 +58,6 @@ bool NavigationInputHandler::OnMouseMove(UINT flags, CPoint pt)
         
         m_pTransform->SetOffset(newOffset);
         
-        Invalidate();
-        
         return true;  // Consumed
     }
     
@@ -87,8 +83,6 @@ bool NavigationInputHandler::OnMouseUp(UINT flags, CPoint pt)
         newOffset.y = m_panStartOffset.y + delta.y;
         
         m_pTransform->SetOffset(newOffset);
-        
-        Invalidate();
         
         // Restore cursor
         ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
@@ -129,8 +123,6 @@ bool NavigationInputHandler::OnMouseWheel(UINT flags, short delta, CPoint pt)
         newOffset.y = pt.y - worldPt.y * newScale;
         m_pTransform->SetOffset(newOffset);
         
-        Invalidate();
-        
         return true;  // Consumed
     }
     
@@ -160,7 +152,6 @@ bool NavigationInputHandler::OnKeyUp(UINT nChar)
     if (nChar == VK_SPACE && m_isPanning) {
         m_isPanning = false;
         ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-        Invalidate();
         return true;  // Consumed
     }
     
@@ -173,7 +164,6 @@ void NavigationInputHandler::Cancel()
     if (m_isPanning) {
         m_isPanning = false;
         ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-        Invalidate();
     }
 }
 
@@ -189,13 +179,6 @@ bool NavigationInputHandler::IsSpacePressed() const
 bool NavigationInputHandler::IsCtrlPressed() const
 {
     return (::GetKeyState(VK_CONTROL) & 0x8000) != 0;
-}
-
-void NavigationInputHandler::Invalidate()
-{
-    if (m_pView) {
-        m_pView->Invalidate(FALSE);  // FALSE = don't erase background
-    }
 }
 
 } // namespace DigitMode

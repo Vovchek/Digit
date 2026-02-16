@@ -42,7 +42,7 @@ CBaseImageView::CBaseImageView()
     m_hZoomRectDragCursor = AfxGetApp()->LoadCursor(IDC_ZOOMRECTDRAG);
     
     // Initialize navigation handler (Phase 5)
-    m_navigationHandler = std::make_unique<DigitMode::NavigationInputHandler>(&m_viewTransform, this);
+    m_navigationHandler = std::make_unique<DigitMode::NavigationInputHandler>(&m_viewTransform);
     
     // Configure input router (Phase 5)
     m_inputRouter.SetNavigationHandler(m_navigationHandler.get());
@@ -556,6 +556,16 @@ BEGIN_MESSAGE_MAP(CBaseImageView, CScrollView)
 	ON_WM_VSCROLL()
 	ON_WM_SETFOCUS()
 	ON_WM_CONTEXTMENU()
+	// ===== Phase 5: Input Routing (CAD-Grade Architecture) =====
+	ON_WM_LBUTTONDOWN()
+	ON_WM_LBUTTONUP()
+	ON_WM_RBUTTONDOWN()
+	ON_WM_RBUTTONUP()
+	ON_WM_MOUSEMOVE()
+	ON_WM_MOUSEWHEEL()
+	ON_WM_KEYDOWN()
+	ON_WM_KEYUP()
+	ON_WM_KILLFOCUS()
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -615,7 +625,7 @@ void CBaseImageView::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
     CScrollView::OnVScroll(nSBCode, nPos, pScrollBar);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 void CBaseImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDeactiveView) 
 {
     CScrollView::OnActivateView(bActivate, pActivateView, pDeactiveView);
@@ -626,6 +636,90 @@ void CBaseImageView::OnSetFocus(CWnd* pOldWnd)
 {
     CScrollView::OnSetFocus(pOldWnd);
     // TODO: Add your message handler code here
+}
+
+void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
+{
+    SetCapture();
+    m_bCaptured = TRUE;
+    m_inputRouter.OnMouseDown(nFlags, point);
+    Invalidate(FALSE);
+    CScrollView::OnLButtonDown(nFlags, point);
+}
+
+void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseUp(nFlags, point);
+    if (m_bCaptured && GetCapture() == this) {
+        ReleaseCapture();
+    }
+    m_bCaptured = FALSE;
+    Invalidate(FALSE);
+    CScrollView::OnLButtonUp(nFlags, point);
+}
+
+void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseDown(nFlags, point);
+    Invalidate(FALSE);
+    CScrollView::OnRButtonDown(nFlags, point);
+}
+
+void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
+{
+    m_inputRouter.OnMouseUp(nFlags, point);
+    Invalidate(FALSE);
+    CScrollView::OnRButtonUp(nFlags, point);
+}
+
+void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
+{
+    bool consumed = m_inputRouter.OnMouseMove(nFlags, point);
+    if (consumed || m_bCaptured) {
+        Invalidate(FALSE);
+    }
+    CScrollView::OnMouseMove(nFlags, point);
+}
+
+BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    if (m_inputRouter.OnMouseWheel(nFlags, zDelta, pt)) {
+        Invalidate(FALSE);
+        return TRUE;
+    }
+
+    return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
+}
+
+void CBaseImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    if (m_inputRouter.OnKeyDown(nChar)) {
+        Invalidate(FALSE);
+        return;
+    }
+
+    CScrollView::OnKeyDown(nChar, nRepCnt, nFlags);
+}
+
+void CBaseImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
+{
+    if (m_inputRouter.OnKeyUp(nChar)) {
+        Invalidate(FALSE);
+        return;
+    }
+
+    CScrollView::OnKeyUp(nChar, nRepCnt, nFlags);
+}
+
+void CBaseImageView::OnKillFocus(CWnd* pNewWnd)
+{
+    CScrollView::OnKillFocus(pNewWnd);
+    m_inputRouter.Cancel();
+    if (m_bCaptured && GetCapture() == this) {
+        ReleaseCapture();
+    }
+    m_bCaptured = FALSE;
+    Invalidate(FALSE);
 }
 
 // Загрузка файла сценария из файла
@@ -658,7 +752,7 @@ void CBaseImageView::OnLoadScn()
       fileDlg.m_ofn.lpstrInitialDir = NULL;
     if(fileDlg.DoModal() == IDOK){
       CString fName = fileDlg.GetFileName();
-//	  LoadScenario(LPCTSTR(fName));
+	  //LoadScenario(LPCTSTR(fName));
 	}
 }
 
@@ -1195,79 +1289,6 @@ void CBaseImageView::DropTracker(CPoint P2)
     CControls* pCtrls = GetControls();
 	pDoc->Tracker.SetDragingState(FALSE);
 
-    Invalidate(FALSE);
-}
-
-
-
-
-/**
- * ARCHITECTURAL RULE:
- * All raw MFC input events are forwarded to InputRouter.
- * CBaseImageView MUST NOT interpret events or contain tool logic.
- * 
- * Input flow: MFC → CBaseImageView → InputRouter → [ActiveTool OR Navigation]
- */
-
-void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
-{
-    SetCapture();  // Capture mouse for drag operations
-    m_inputRouter.OnMouseDown(nFlags, point);
-    Invalidate(FALSE);
-}
-
-void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
-{
-    m_inputRouter.OnMouseUp(nFlags, point);
-    ReleaseCapture();  // Release mouse capture
-    Invalidate(FALSE);
-}
-
-void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
-{
-    SetCapture();
-    m_inputRouter.OnMouseDown(nFlags | MK_RBUTTON, point);
-    Invalidate(FALSE);
-}
-
-void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
-{
-    m_inputRouter.OnMouseUp(nFlags | MK_RBUTTON, point);
-    ReleaseCapture();
-    Invalidate(FALSE);
-}
-
-void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
-{
-    m_inputRouter.OnMouseMove(nFlags, point);
-    // Note: Don't always invalidate on move (handler will invalidate if needed)
-}
-
-BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
-{
-    m_inputRouter.OnMouseWheel(nFlags, zDelta, pt);
-    Invalidate(FALSE);
-    return TRUE;  // Message handled
-}
-
-void CBaseImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    m_inputRouter.OnKeyDown(nChar);
-    Invalidate(FALSE);
-}
-
-void CBaseImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
-{
-    m_inputRouter.OnKeyUp(nChar);
-    // Usually no invalidation needed for key-up
-}
-
-void CBaseImageView::OnKillFocus(CWnd* pNewWnd)
-{
-    CScrollView::OnKillFocus(pNewWnd);
-    
-    // Cancel all operations when losing focus
-    m_inputRouter.Cancel();
     Invalidate(FALSE);
 }
 

@@ -10,10 +10,8 @@
 
 namespace DigitMode {
 
-BoundsInputHandler::BoundsInputHandler(CWnd* pView)
-    : m_pView(pView)
+BoundsInputHandler::BoundsInputHandler()
 {
-    ASSERT(m_pView && "View must not be null");
 }
 
 BoundsInputHandler::~BoundsInputHandler()
@@ -51,8 +49,6 @@ void BoundsInputHandler::SetEditMode(ShapeEditMode mode)
     Cancel();
     
     m_boundsHandler.SetEditMode(mode);
-    
-    Invalidate();
 }
 
 ShapeEditMode BoundsInputHandler::GetEditMode() const
@@ -91,13 +87,12 @@ bool BoundsInputHandler::OnMouseMove(UINT flags, CPoint pt)
     // Update drag preview if dragging
     if (m_boundsHandler.IsDragging()) {
         m_boundsHandler.UpdateDrag(pt);
-        Invalidate();
         return true;  // Consumed
     }
     
     // Update hover state for handle highlighting
     if (m_boundsHandler.UpdateHoveredHandle(pt)) {
-        Invalidate();  // Redraw to show hover feedback
+        return true;  // Consumed (state changed)
     }
     
     // Don't consume mouse move (allow cursor updates, tooltips, etc.)
@@ -113,7 +108,6 @@ bool BoundsInputHandler::OnMouseUp(UINT flags, CPoint pt)
     // End drag operation (commit or cancel)
     if (m_boundsHandler.IsDragging()) {
         m_boundsHandler.EndDrag(true);  // Commit = true
-        Invalidate();
         return true;  // Consumed
     }
     
@@ -161,19 +155,6 @@ void BoundsInputHandler::Cancel()
     
     // Clear hover state
     m_boundsHandler.ClearHover();
-    
-    Invalidate();
-}
-
-// ========================================================================
-// Helpers
-// ========================================================================
-
-void BoundsInputHandler::Invalidate()
-{
-    if (m_pView) {
-        m_pView->Invalidate(FALSE);
-    }
 }
 
 bool BoundsInputHandler::HandleSelectModeMouseDown(UINT flags, CPoint pt)
@@ -189,7 +170,6 @@ bool BoundsInputHandler::HandleSelectModeMouseDown(UINT flags, CPoint pt)
     if (hit.hit && hit.isControlPoint()) {
         // Begin dragging a handle
         m_boundsHandler.BeginDrag(hit.type, hit.shapeIndex, hit.controlPointIndex, pt);
-        Invalidate();
         return true;  // Consumed
     }
     
@@ -215,7 +195,6 @@ bool BoundsInputHandler::HandleAddModeMouseDown(UINT flags, CPoint pt)
     
     // Add point to draft shape
     if (m_boundsHandler.AddDraftPoint(worldPt)) {
-        Invalidate();
         return true;  // Consumed
     }
     

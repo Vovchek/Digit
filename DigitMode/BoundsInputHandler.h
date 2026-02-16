@@ -55,9 +55,8 @@ class BoundsInputHandler : public IInputHandler {
 public:
     /**
      * @brief Construct bounds input handler
-     * @param pView View for invalidation callback (not owned)
      */
-    explicit BoundsInputHandler(CWnd* pView);
+    BoundsInputHandler();
     ~BoundsInputHandler() override;
     
     // ========================================================================
@@ -124,12 +123,6 @@ public:
     
 private:
     // ========================================================================
-    // Dependencies (not owned)
-    // ========================================================================
-    
-    CWnd* m_pView;                    ///< View for invalidation
-    
-    // ========================================================================
     // Domain Logic
     // ========================================================================
     
@@ -138,11 +131,6 @@ private:
     // ========================================================================
     // Helpers
     // ========================================================================
-    
-    /**
-     * @brief Request view invalidation
-     */
-    void Invalidate();
     
     /**
      * @brief Handle mouse down in Select mode
