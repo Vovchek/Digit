@@ -553,7 +553,7 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	// Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
 	// fringes and rubber-band consistently in world coordinates.
 	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	CPoint active = m_inputHandler.GetActiveDot(&pDoc->Digit);
+	CPoint active = pDoc->Digit.GetActiveDot(&pDoc->Digit);
 	// CursorPos is already in world coordinates (set in OnMouseMove)
 	CPoint cursor = CursorPos;
 	bool rubber = m_inputHandler.GetRubberBand(&pDoc->Digit);
