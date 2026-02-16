@@ -192,6 +192,16 @@
     <ClInclude Include="StdAfx.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Docs\DIGITIZATION_ALGORITHM_REFACTORING_PLAN.md" />
+    <None Include="Docs\DIGITIZATION_ARCHITECTURE_CLARIFICATIONS.md" />
+    <None Include="Docs\DIGITIZATION_ARCHITECTURE_VISUAL.md" />
+    <None Include="Docs\DIGITIZATION_DOCUMENTATION_INDEX.md" />
+    <None Include="Docs\DIGITIZATION_QUICK_REFERENCE.md" />
+    <None Include="Docs\DIGITIZATION_SCANLINEINDEX_REMOVAL.md" />
+    <None Include="Docs\REFACTORING_PLAN_CORRECTIONS.md" />
+    <None Include="Docs\UPDATE_FUNCTION_BASED_VISIBILITY.md" />
+    <None Include="Docs\UPDATE_SUMMARY_SCANLINEINDEX.md" />
+    <None Include="Docs\VISIBILITY_CHECKER_SIGNATURE_CONFIRMED.md" />
     <None Include="implement_ux_phase2-3_backlog_clear_pan.md" />
   </ItemGroup>
   <ItemGroup>
