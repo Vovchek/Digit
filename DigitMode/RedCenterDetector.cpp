@@ -30,53 +30,51 @@ std::vector<ExtremumPoint> RedCenterDetector::DetectExtrema(const DigitizationIn
 
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-            if (input.isVisible(x, y)) {
                 const int row = (height - 1) - y;
                 const int index = row * width + x;
                 line[x] = input.bitmapData[index];
-            }
-            else {
-                line[x] = 0;
-            }
-            invLine[x] = line[x];
+                invLine[x] = 255 - line[x];
         }
 
         std::vector<double> redXs;
+        std::vector<double> blackXs;
+        std::vector<ExtremumPoint> lineResults;
+
         int nnpolos = 0;
 
-        if (input.fringeCenterAs == FC_MAX) {
+        if (input.fringeCenterAs == FC_MAX || input.fringeCenterAs == FC_MINMAX) {
             fon_del_(line.data(), 0, width - 1);
             redXs = middle_(line.data(), width, y, input.isVisible);
         }
-        else if (input.fringeCenterAs == FC_MIN) {
-            invert_line(invLine.data(), 0, width - 1);
+        if (input.fringeCenterAs == FC_MIN || input.fringeCenterAs == FC_MINMAX) {
             fon_del_(invLine.data(), 0, width - 1);
-            redXs = middle_(invLine.data(), width, y, input.isVisible);
-        }
-        else if (input.fringeCenterAs == FC_MINMAX) {
-            fon_del(line.data(), 0, width - 1);
-            redXs = middle_(line.data(), width, y, input.isVisible);
-            invert_line(invLine.data(), 0, width - 1);
-            fon_del(invLine.data(), 0, width - 1);
-            auto tail = middle_(invLine.data(), width, y, input.isVisible);
-			redXs.insert(redXs.end(), tail.begin(), tail.end());
-            std::sort(redXs.begin(), redXs.end());
+            blackXs = middle_(invLine.data(), width, y, input.isVisible);
         }
 
-        for (int i = 0; i < redXs.size(); ++i) {
-            const double redX = redXs[i];
-            const int sampleX = static_cast<int>(redX + 0.5);
-            double intensity = 0.0;
-            if (sampleX >= 0 && sampleX < width) {
-                intensity = line[static_cast<size_t>(sampleX)];
+        auto toResults = [y, width, &lineResults](const auto& Xs, const auto& line, auto extremumType) {
+            for (const auto X : Xs) {
+                const int sampleX = static_cast<int>(X + 0.5);
+                double intensity = 0.0;
+                if (sampleX >= 0 && sampleX < width) {
+                    intensity = line[static_cast<size_t>(sampleX)];
+                }
+                ExtremumPoint point;
+                point.position = { X, static_cast<double>(y) };
+                point.intensity = intensity;
+                point.extremumType = extremumType;
+
+                lineResults.push_back(point);
             }
 
-            ExtremumPoint point;
-            point.position = { redX, static_cast<double>(y) };
-            point.intensity = intensity;
-            point.extremumType = input.fringeCenterAs;
-            results.push_back(point);
-        }
+            };
+        lineResults.clear();
+        toResults(redXs, line, ExtremumType::Red);
+        toResults(blackXs, invLine, ExtremumType::Black);
+        std::sort(results.begin(), results.end(), [](const auto& a, const auto& b)
+            {return a.position.x < b.position.x; });
+        results.insert(results.end(), 
+            std::make_move_iterator(lineResults.begin()),
+            std::make_move_iterator(lineResults.end()));
     }
 
     return results;

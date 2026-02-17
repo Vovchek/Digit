@@ -10,10 +10,12 @@ struct Point2d {
     double y{0.0};
 };
 
+enum class ExtremumType { Red = 0, Black = 1 };
+
 struct ExtremumPoint {
     Point2d position;
     double intensity{0.0};
-    int extremumType{0};
+    ExtremumType extremumType{ ExtremumType::Red};
 };
 
 struct FringePolyline {
