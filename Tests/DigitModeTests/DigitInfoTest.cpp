@@ -113,10 +113,6 @@ void CSectionInfo::Sort() {
     // Not needed for CreateNumLines tests
 }
 
-bool CSectionInfo::Form(int iy, unsigned char* line, int nx, int ny, int **buf_line) {
-    return false; // Not needed for CreateNumLines tests
-}
-
 void CSectionInfo::CalcAveStep() {
     // Not needed for CreateNumLines tests
 }

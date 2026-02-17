@@ -1,4 +1,4 @@
-#include "SectionInfo.h"
+﻿#include "SectionInfo.h"
 
 #include "Utils\mutils.h"
 #include "Utils\middle.h"
@@ -106,21 +106,6 @@ void CSectionInfo::Draw(CDC* pDC, int MainFringeNumber)
    		  y = (int)L.P1.y;
 		  pDC->SetPixelV(x, y, Color);
 		}
-}
-
-bool CSectionInfo::Form(int iy, unsigned char* line, int nx, 
-						 int ny, int **buf_line)
-{
-	CArray<double, double> redXs;
-	int nnpolos = 0;
-    middle(line, nx, ny, iy, buf_line, redXs, nnpolos);
-	int nS = NumLines.GetSize();
-	NumLines.SetSize(nS+redXs.GetSize());
-	for(int i=nS; i < nS+redXs.GetSize(); i++){
-		NumLines[i].redX = redXs[i-nS];
-	}
-	
-	return true;
 }
 
 void CSectionInfo::Sort()

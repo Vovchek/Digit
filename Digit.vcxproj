@@ -222,6 +222,7 @@ ApertureCore.lib         %(AdditionalDependencies)
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeaderFile Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">stdafx.h</PrecompiledHeaderFile>
     </ClCompile>
+    <ClCompile Include="DigitMode\FringeConstructor.cpp" xmlns="" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc" />
@@ -301,6 +302,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\ZapLineInfo.h" />
     <ClInclude Include="Digit.h" />
     <ClInclude Include="StdAfx.h" />
+    <ClInclude Include="DigitMode\FringeConstructor.h" xmlns="" />
   </ItemGroup>
   <ItemGroup>
     <None Include=".github\copilot-instructions.md" />

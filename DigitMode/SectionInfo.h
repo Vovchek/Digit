@@ -1,4 +1,4 @@
-#if !defined(AFX_SECTION_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
+﻿#if !defined(AFX_SECTION_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_)
 #define AFX_SECTION_INFO_H__558E5844_389D_11D4_8A51_83C94F0AD91B__INCLUDED_
 
 #include "MGTools\StdAfx.h"
@@ -159,25 +159,11 @@ class CSectionInfo : public CObject
 	/// </remarks>
 	void Sort();
 	
-	/// <summary>Detects and extracts fringe positions from a scan line in the image buffer</summary>
-	/// <param name="iy">Y-coordinate of the scan line to process</param>
-	/// <param name="line">Pointer to the image data row (pixel values)</param>
-	/// <param name="nx">Width of the image (number of pixels per row)</param>
-	/// <param name="ny">Height of the image (number of rows)</param>
-	/// <param name="buf_line">2D buffer containing processed fringe detection data</param>
-	/// <returns>true if fringes were successfully detected; false otherwise</returns>
-	/// <remarks>
-	/// Analyzes intensity variations along the scan line to identify fringe centers
-	/// Populates NumLines array with detected fringe positions (redX values)
-	/// Numbers are not assigned at this stage - only spatial positions are recorded
-	/// </remarks>
-    bool Form(int iy, unsigned char* line, int nx, int ny, int **buf_line);
-    
 	/// <summary>Calculates the average spacing between consecutive fringes in this section</summary>
 	/// <remarks>
 	/// Sets aveStep to the mean distance between adjacent fringes
 	/// Used to determine section-specific matching tolerance during propagation
-	/// Should be called after Form() and Sort() to ensure valid fringe ordering
+	/// Should be called after Sort() to ensure valid fringe ordering
 	/// </remarks>
     void CalcAveStep();
 	
