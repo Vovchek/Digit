@@ -125,12 +125,6 @@ private:
         int adjacentY);
 
 
-    static bool WouldCross(
-        int currentIdx,
-        int proposedIdx,
-        const std::vector<NumberedExtremum>& currentExtrema,
-        const std::vector<NumberedExtremum>& adjacentExtrema);
-
     /**
      * @brief Check if matching would violate non-crossing constraint (FULL CHECK)
      * 
@@ -140,21 +134,15 @@ private:
      * 
      * @param currentIdx Index of current extremum in current scanline
      * @param proposedIdx Index of proposed match in adjacent scanline
-     * @param scanlines All scanline data (to access all fringe segments)
-     * @param currentY Y coordinate of current scanline
-     * @param adjacentY Y coordinate of adjacent scanline
-     * @param crossingFringeY Optional output: Y coordinate where crossing was detected
-     * @param crossingFringeIdx Optional output: Index in scanline where crossing was detected
+     * @param currentExtrema extremums of current scanline
+     * @param adjacentExtrema extremuns of adjacent (down) scanline
      * @return true if connecting current→proposed would cross any existing fringe segment
      */
-    static bool WouldCrossFull(
+    static bool WouldCross(
         int currentIdx,
         int proposedIdx,
-        const std::vector<ScanlineData>& scanlines,
-        int currentY,
-        int adjacentY,
-        int* crossingFringeY = nullptr,
-        int* crossingFringeIdx = nullptr);
+        const std::vector<NumberedExtremum>& currentExtrema,
+        const std::vector<NumberedExtremum>& adjacentExtrema);
 
     /**
      * @brief Check if two line segments intersect

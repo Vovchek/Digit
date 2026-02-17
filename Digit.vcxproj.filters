@@ -271,6 +271,9 @@
     <ClCompile Include="DigitMode\FringeConstructor.cpp" xmlns="">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\FringeSegmentAdaptor.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -503,6 +506,9 @@
     <ClInclude Include="DigitMode\FringeConstructor.h" xmlns="">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\FringeSegmentAdaptor.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -700,9 +706,6 @@
     <None Include="Docs\TWO_TESTS_GREEN.md">
       <Filter>Docs</Filter>
     </None>
-    <None Include="Docs\Р Р•Р”РђРљРўРћР .md">
-      <Filter>Docs</Filter>
-    </None>
     <None Include="Docs\ApertureEditing_ImplementationPlan.md">
       <Filter>Docs</Filter>
     </None>
@@ -771,6 +774,7 @@
     <None Include="Docs\MIDDLE_REFACTORING_QUICK_REFERENCE.md" />
     <None Include="Docs\MIDDLE_REFACTORING_DELIVERY.md" />
     <None Include="Docs\MIDDLE_REFACTORING_INDEX.md" />
+    <None Include="Docs\РЕДАКТОР.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

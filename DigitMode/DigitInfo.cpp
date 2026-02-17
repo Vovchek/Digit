@@ -1,4 +1,5 @@
-#include "DigitMode/RedCenterDetector.h"
+﻿#include "DigitMode/RedCenterDetector.h"
+#include "DigitMode/FringeConstructor.h"
 #include "DigitInfo.h"
 #include "Controls/CApertureCtrls.h"
 #include "InterfSolver/INCLUDE/Int_Cons.h"

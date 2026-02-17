@@ -104,6 +104,7 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
                     matchIdx,
                     currentScanline.extrema,
                     adjacentScanline.extrema)) {
+                    // TODO: if(!ResolveCrossingBySwap(...)
                     continue; // Skip this match - would cause crossing
                 }
 
@@ -182,6 +183,7 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
                     matchIdx,
                     currentScanline.extrema,
                     adjacentScanline.extrema)) {
+                    // TODO: if(!ResolveCrossingBySwap(...)
                     continue; // Skip this match - would cause crossing
                 }
 

@@ -170,6 +170,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\DraftShape.cpp" />
     <ClCompile Include="DigitMode\EditMode.cpp" />
     <ClCompile Include="DigitMode\FringeInputHandler.cpp" />
+    <ClCompile Include="DigitMode\FringeSegmentAdaptor.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
     <ClCompile Include="DigitMode\InputRouter.cpp" />
@@ -245,6 +246,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\CursorManager.h" />
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
+    <ClInclude Include="DigitMode\FringeSegmentAdaptor.h" />
     <ClInclude Include="DigitMode\RedCenterDetector.h" />
     <ClInclude Include="DigitMode\\DigitizationParams.h" />
     <ClInclude Include="DigitMode\DraftShape.h" />
