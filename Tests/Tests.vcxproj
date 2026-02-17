@@ -193,6 +193,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="DigitModeTests\InputHandlerTest.cpp" />
+    <ClCompile Include="DigitModeTests\MiddleRefactoringTest.cpp" />
     <ClCompile Include="DigitModeTests\NavigateModeTest.cpp" />
     <ClCompile Include="DigitModeTests\SelectionManagerTest.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>

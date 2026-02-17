@@ -244,6 +244,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\CursorManager.h" />
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
+    <ClInclude Include="DigitMode\RedCenterDetector.h" />
     <ClInclude Include="DigitMode\\DigitizationParams.h" />
     <ClInclude Include="DigitMode\DraftShape.h" />
     <ClInclude Include="DigitMode\EditMode.h" />
@@ -347,15 +348,27 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\INPUTHANDLERTEST_REWRITE.md" />
     <None Include="Docs\INPUTHANDLER_ACTIVE_SEGMENT_DESIGN.md" />
     <None Include="Docs\MFC_Auxiliary_Audit.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_DELIVERY.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_INDEX.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_QUICK_REFERENCE.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_TEST_GUIDE.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_TEST_SUMMARY.md" />
     <None Include="Docs\NAVIGATE_MODE_IMPLEMENTATION.md" />
     <None Include="Docs\NAVIGATE_MODE_INTEGRATION_FIX.md" />
     <None Include="Docs\NAVIGATE_MODE_VISUALIZATION_FIXES.md" />
     <None Include="Docs\Phase1_CompletionReport.md" />
+    <None Include="Docs\PHASE2_ACTION_ITEMS.md" />
     <None Include="Docs\Phase2_CompletionReport.md" />
+    <None Include="Docs\PHASE2_COMPLETION_ROADMAP.md" />
+    <None Include="Docs\PHASE2_DOCUMENTATION_INDEX.md" />
     <None Include="Docs\Phase2_DrawMode_Complete.md" />
+    <None Include="Docs\PHASE2_FINAL_ASSESSMENT.md" />
     <None Include="Docs\PHASE2_INTEGRATION_COMPLETE.md" />
     <None Include="Docs\PHASE2_INTEGRATION_GUIDE.md" />
+    <None Include="Docs\PHASE2_PROGRESS_ANALYSIS.md" />
+    <None Include="Docs\PHASE2_REVIEW_SUMMARY.md" />
     <None Include="Docs\PHASE2_REWRITE_SUMMARY.md" />
+    <None Include="Docs\PHASE2_STATUS_VISUAL.md" />
     <None Include="Docs\PHASE2_VERIFICATION.md" />
     <None Include="Docs\Phase3_TestingReport.md" />
     <None Include="Docs\Phase4_CompletionReport.md" />
@@ -401,4 +414,3 @@ ApertureCore.lib         %(AdditionalDependencies)
     <Image Include="res\Toolbar.bmp" />
   </ItemGroup>
 </Project>
-

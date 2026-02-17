@@ -77,6 +77,15 @@
     <Filter Include="Header Files\ImageFeatures_H">
       <UniqueIdentifier>{bf7964f1-79fb-4cba-b294-9da8e1031e03}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\DigitMode_H\Command">
+      <UniqueIdentifier>{1145cc23-0e29-4c72-b949-2d019adfba58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DigitMode_H\Handlers">
+      <UniqueIdentifier>{b467244e-701f-441c-a355-de270b4bed1f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\DigitMode_H\Renderers">
+      <UniqueIdentifier>{95ee8346-2a42-4431-8e2d-51b1d63d7c55}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp">
@@ -211,50 +220,53 @@
     <ClCompile Include="DigitMode\BoundsHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\Commands\ReplaceShapeCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Commands\AddShapeCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Commands\RemoveShapeCommand.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Controls\CApertureCtrls.cpp">
       <Filter>Source Files\Controls</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\DraftShape.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="DigitMode\\RedCenterDetector.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\EditMode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Rendering\ShapeDrawStyle.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Rendering\RectangleRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\Rendering\ShapeDrawDispatcher.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\InputRouter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\NavigationInputHandler.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="DigitMode\Commands\AddShapeCommand.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\BoundsInputHandler.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\FringeInputHandler.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InputRouter.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\NavigationInputHandler.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Rendering\RectangleRenderer.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Commands\RemoveShapeCommand.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Commands\ReplaceShapeCommand.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Rendering\ShapeDrawDispatcher.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\Rendering\ShapeDrawStyle.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\DraftShape.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\EditMode.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -386,22 +398,10 @@
     <ClInclude Include="DigitMode\CFringeSegment.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\Commands\AllCommands.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\Command.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\CommandDispatcher.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\CursorManager.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\HitTester.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\InputHandler.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\SelectionManager.h">
@@ -419,23 +419,11 @@
     <ClInclude Include="DigitMode\Commands\AutoNumberingAlgorithmSaddles.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\BoundsHandler.h">
-      <Filter>Header Files\DigitMode_H</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\IBoundsData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="ImageTempl\ViewTransform.h">
       <Filter>Header Files\ImageTempl_H</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\ReplaceShapeCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\AddShapeCommand.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Commands\RemoveShapeCommand.h">
-      <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Controls\CApertureCtrls.h">
       <Filter>Header Files\Controls_H</Filter>
@@ -449,35 +437,65 @@
     <ClInclude Include="DigitMode\Rendering\ShapeDrawStyle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\Rendering\IShapeRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Rendering\RectangleRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Rendering\EllipseRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\Rendering\PolygonRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\Rendering\ShapeDrawDispatcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\IInputHandler.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\InputRouter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\NavigationInputHandler.h">
+    <ClInclude Include="DigitMode\\DigitizationParams.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\RedCenterDetector.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AllCommands.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\Command.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\CommandDispatcher.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\AddShapeCommand.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\BoundsHandler.h">
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\InputHandler.h">
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\BoundsInputHandler.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\IInputHandler.h">
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\FringeInputHandler.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\NavigationInputHandler.h">
+      <Filter>Header Files\DigitMode_H\Handlers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Rendering\EllipseRenderer.h">
+      <Filter>Header Files\DigitMode_H\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Rendering\IShapeRenderer.h">
+      <Filter>Header Files\DigitMode_H\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Rendering\PolygonRenderer.h">
+      <Filter>Header Files\DigitMode_H\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Rendering\RectangleRenderer.h">
+      <Filter>Header Files\DigitMode_H\Renderers</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\RemoveShapeCommand.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\Commands\ReplaceShapeCommand.h">
+      <Filter>Header Files\DigitMode_H\Command</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -592,11 +610,6 @@
     <None Include="Docs\ZAP_SECTIONS_CORRECTION.md">
       <Filter>Docs</Filter>
     </None>
-    <None Include="Docs\BOUNDS_EDITING_RESTORATION_PLAN.md" />
-    <None Include="Docs\BOUNDS_EDITING_QUICK_REFERENCE.md" />
-    <None Include="Docs\BOUNDS_EDITING_IMPLEMENTATION_GUIDE.md" />
-    <None Include="Docs\BOUNDS_EDITING_PROJECT_SUMMARY.md" />
-    <None Include="Docs\BOUNDS_EDITING_ARCHITECTURE.md" />
     <None Include="AUTONUMBERING_COMMAND_COMPLETE.md">
       <Filter>Docs</Filter>
     </None>
@@ -684,15 +697,74 @@
     <None Include="Docs\РЕДАКТОР.md">
       <Filter>Docs</Filter>
     </None>
-    <None Include="docs\boundCtrls-dependency-graph.md" />
-    <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
-    <None Include="docs\CApertureCtrls-Simplified.md" />
-    <None Include="Docs\HandleSystem-Implementation-Status.md" />
-    <None Include="Docs\ApertureEditing_ImplementationPlan.md" />
-    <None Include="Docs\Phase1_CompletionReport.md" />
-    <None Include="Docs\Phase2_CompletionReport.md" />
-    <None Include="Docs\Phase3_TestingReport.md" />
-    <None Include="Docs\Phase4_CompletionReport.md" />
+    <None Include="Docs\ApertureEditing_ImplementationPlan.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="docs\boundCtrls-dependency-graph.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\BOUNDS_EDITING_ARCHITECTURE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\BOUNDS_EDITING_IMPLEMENTATION_GUIDE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\BOUNDS_EDITING_PROJECT_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\BOUNDS_EDITING_QUICK_REFERENCE.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\BOUNDS_EDITING_RESTORATION_PLAN.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="docs\CApertureCtrls-CleanArchitecture.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="docs\CApertureCtrls-Simplified.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\HandleSystem-Implementation-Status.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\Phase1_CompletionReport.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_ACTION_ITEMS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_COMPLETION_ROADMAP.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\Phase2_CompletionReport.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_DOCUMENTATION_INDEX.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_FINAL_ASSESSMENT.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_PROGRESS_ANALYSIS.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_REVIEW_SUMMARY.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\PHASE2_STATUS_VISUAL.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\Phase3_TestingReport.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\Phase4_CompletionReport.md">
+      <Filter>Docs</Filter>
+    </None>
+    <None Include="Docs\MIDDLE_REFACTORING_TEST_GUIDE.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_TEST_SUMMARY.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_QUICK_REFERENCE.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_DELIVERY.md" />
+    <None Include="Docs\MIDDLE_REFACTORING_INDEX.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

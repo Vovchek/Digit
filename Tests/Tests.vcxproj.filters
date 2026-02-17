@@ -99,6 +99,7 @@
     <ClCompile Include="..\DigitMode\Rendering\ShapeDrawStyle.cpp">
       <Filter>ApertureTests</Filter>
     </ClCompile>
+    <ClCompile Include="DigitModeTests\MiddleRefactoringTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
