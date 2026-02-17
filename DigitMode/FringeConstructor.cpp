@@ -85,7 +85,9 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
         auto& currentScanline = scanlines[static_cast<size_t>(y)];
         const auto& adjacentScanline = scanlines[static_cast<size_t>(y + 1)];
 
-        for (auto& ne : currentScanline.extrema) {
+        for (size_t curIdx = 0; curIdx < currentScanline.extrema.size(); ++curIdx) {
+            auto& ne = currentScanline.extrema[curIdx];
+            
             int matchIdx = FindMatchingExtremum(
                 ne.extremum,
                 ne.extremum.position.x,
@@ -94,8 +96,29 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
                 fringeCenterAs);
 
             if (matchIdx >= 0) {
-                // Matched to existing numbered extremum
-                ne.number = adjacentScanline.extrema[static_cast<size_t>(matchIdx)].number;
+                double proposedNumber = adjacentScanline.extrema[static_cast<size_t>(matchIdx)].number;
+                
+                // CONSTRAINT 2: Check non-crossing
+                if (WouldCross(
+                    static_cast<int>(curIdx),
+                    matchIdx,
+                    currentScanline.extrema,
+                    adjacentScanline.extrema)) {
+                    continue; // Skip this match - would cause crossing
+                }
+
+                // CONSTRAINT 3: Check alternation (FC_MINMAX only)
+                if (WouldViolateAlternation(
+                    ne.extremum.extremumType,
+                    proposedNumber,
+                    adjacentScanline,
+                    fringeCenterAs,
+                    fringeStep)) {
+                    continue; // Skip this match - would violate alternation
+                }
+
+                // All constraints passed - assign number
+                ne.number = proposedNumber;
                 ne.assigned = true;
             }
         }
@@ -140,7 +163,9 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
         auto& currentScanline = scanlines[static_cast<size_t>(y)];
         const auto& adjacentScanline = scanlines[static_cast<size_t>(y - 1)];
 
-        for (auto& ne : currentScanline.extrema) {
+        for (size_t curIdx = 0; curIdx < currentScanline.extrema.size(); ++curIdx) {
+            auto& ne = currentScanline.extrema[curIdx];
+            
             int matchIdx = FindMatchingExtremum(
                 ne.extremum,
                 ne.extremum.position.x,
@@ -149,8 +174,29 @@ std::vector<NumberedFringe> FringeConstructor::ConstructFringes(
                 fringeCenterAs);
 
             if (matchIdx >= 0) {
-                // Matched to existing numbered extremum
-                ne.number = adjacentScanline.extrema[static_cast<size_t>(matchIdx)].number;
+                double proposedNumber = adjacentScanline.extrema[static_cast<size_t>(matchIdx)].number;
+                
+                // CONSTRAINT 2: Check non-crossing
+                if (WouldCross(
+                    static_cast<int>(curIdx),
+                    matchIdx,
+                    currentScanline.extrema,
+                    adjacentScanline.extrema)) {
+                    continue; // Skip this match - would cause crossing
+                }
+
+                // CONSTRAINT 3: Check alternation (FC_MINMAX only)
+                if (WouldViolateAlternation(
+                    ne.extremum.extremumType,
+                    proposedNumber,
+                    adjacentScanline,
+                    fringeCenterAs,
+                    fringeStep)) {
+                    continue; // Skip this match - would violate alternation
+                }
+
+                // All constraints passed - assign number
+                ne.number = proposedNumber;
                 ne.assigned = true;
             }
         }
@@ -246,6 +292,10 @@ int FringeConstructor::FindMatchingExtremum(
     double tolerance,
     int fringeCenterAs)
 {
+    // NOTE: This function needs fringeStep for alternation check
+    // For now, we'll defer alternation check to the caller
+    // TODO: Refactor to pass fringeStep or check in propagation loop
+    
     int bestMatch = -1;
     double bestDistance = std::numeric_limits<double>::max();
 
@@ -259,24 +309,16 @@ int FringeConstructor::FindMatchingExtremum(
         // Check if within tolerance
         if (distance > tolerance) continue;
 
-        // Check type consistency
+        // CONSTRAINT 1: Type consistency
         if (extremum.extremumType != adjExt.extremum.extremumType) {
             continue;
         }
 
-        // Check alternation constraint (TODO: implement)
-        if (fringeCenterAs == FC_MINMAX) {
-            if (WouldViolateAlternation(
-                extremum.extremumType,
-                adjExt.number,
-                adjacentScanline,
-                fringeCenterAs)) {
-                continue;
-            }
-        }
+        // CONSTRAINT 3: Alternation - deferred to caller
+        // (needs fringeStep which isn't passed here)
 
-        // Check crossing constraint (TODO: implement)
-        // For now, skip crossing check
+        // CONSTRAINT 2: Non-crossing - deferred to caller
+        // (needs current scanline context)
 
         // Take closest match
         if (distance < bestDistance) {
@@ -289,38 +331,125 @@ int FringeConstructor::FindMatchingExtremum(
 }
 
 bool FringeConstructor::WouldCross(
-    double currentX,
-    int proposedExtremumIndex,
+    int currentIdx,
+    int proposedIdx,
     const std::vector<NumberedExtremum>& currentExtrema,
     const std::vector<NumberedExtremum>& adjacentExtrema)
 {
-    (void)currentX;
-    (void)proposedExtremumIndex;
-    (void)currentExtrema;
-    (void)adjacentExtrema;
-    // TODO: Implement crossing detection
-    // Check if connecting current extremum to proposed extremum would cross any existing fringe
-    return false;
+    if (currentIdx < 0 || currentIdx >= static_cast<int>(currentExtrema.size())) return false;
+    if (proposedIdx < 0 || proposedIdx >= static_cast<int>(adjacentExtrema.size())) return false;
+
+    const auto& current = currentExtrema[static_cast<size_t>(currentIdx)];
+    const auto& proposed = adjacentExtrema[static_cast<size_t>(proposedIdx)];
+
+    double x1 = current.extremum.position.x;
+    double y1 = current.extremum.position.y;
+    double x2 = proposed.extremum.position.x;
+    double y2 = proposed.extremum.position.y;
+
+    // Check against all other matched pairs in these scanlines
+    for (size_t i = 0; i < currentExtrema.size(); ++i) {
+        if (static_cast<int>(i) == currentIdx) continue;
+        if (!currentExtrema[i].assigned) continue;
+
+        // Find matching extremum in adjacent scanline with same number
+        double targetNumber = currentExtrema[i].number;
+        for (size_t j = 0; j < adjacentExtrema.size(); ++j) {
+            if (static_cast<int>(j) == proposedIdx) continue;
+            if (!adjacentExtrema[j].assigned) continue;
+            if (adjacentExtrema[j].number != targetNumber) continue;
+
+            // Found a matched pair - check if segments would cross
+            double x3 = currentExtrema[i].extremum.position.x;
+            double y3 = currentExtrema[i].extremum.position.y;
+            double x4 = adjacentExtrema[j].extremum.position.x;
+            double y4 = adjacentExtrema[j].extremum.position.y;
+
+            if (SegmentsIntersect(x1, y1, x2, y2, x3, y3, x4, y4)) {
+                return true; // Would cross existing fringe segment
+            }
+        }
+    }
+
+    return false; // No crossing detected
+}
+
+bool FringeConstructor::SegmentsIntersect(
+    double x1, double y1, double x2, double y2,
+    double x3, double y3, double x4, double y4)
+{
+    // Check if line segment (p1→p2) intersects line segment (p3→p4)
+    // Using parametric form and cross products
+    
+    auto crossProduct = [](double ax, double ay, double bx, double by) -> double {
+        return ax * by - ay * bx;
+    };
+
+    double dx1 = x2 - x1;
+    double dy1 = y2 - y1;
+    double dx2 = x4 - x3;
+    double dy2 = y4 - y3;
+    double dx3 = x3 - x1;
+    double dy3 = y3 - y1;
+
+    double cross1 = crossProduct(dx1, dy1, dx2, dy2);
+    
+    // Parallel or collinear segments (cross product ≈ 0)
+    if (std::abs(cross1) < 1e-10) {
+        return false; // Treat parallel/collinear as non-crossing
+    }
+
+    double t1 = crossProduct(dx3, dy3, dx2, dy2) / cross1;
+    double t2 = crossProduct(dx3, dy3, dx1, dy1) / cross1;
+
+    // Segments intersect if both parameters are in [0, 1]
+    // Use strict inequality to allow endpoint touching
+    return (t1 > 0.0 && t1 < 1.0) && (t2 > 0.0 && t2 < 1.0);
 }
 
 bool FringeConstructor::WouldViolateAlternation(
     ExtremumType currentType,
     double proposedNumber,
     const ScanlineData& adjacentScanline,
-    int fringeCenterAs)
+    int fringeCenterAs,
+    double fringeStep)
 {
     if (fringeCenterAs != FC_MINMAX) {
         return false; // Alternation only applies in MINMAX mode
     }
 
-    // Find adjacent numbered extrema (numbers ± step from proposedNumber)
-    // They should have opposite types
-    (void)currentType;
-    (void)proposedNumber;
-    (void)adjacentScanline;
+    // In MINMAX mode, adjacent fringes must alternate Red/Black
+    // For proposed number N, check neighbors N-step and N+step
+    // They should have opposite type to currentType
+    
+    // Check both neighboring fringe numbers
+    double prevNumber = proposedNumber - fringeStep;
+    double nextNumber = proposedNumber + fringeStep;
+    
+    bool foundPrevSameType = false;
+    bool foundNextSameType = false;
+    
+    for (const auto& ne : adjacentScanline.extrema) {
+        if (!ne.assigned) continue;
+        
+        // Check if this is the previous fringe (N - step)
+        if (std::abs(ne.number - prevNumber) < fringeStep * 0.1) {
+            if (ne.extremum.extremumType == currentType) {
+                foundPrevSameType = true;
+            }
+        }
+        
+        // Check if this is the next fringe (N + step)
+        if (std::abs(ne.number - nextNumber) < fringeStep * 0.1) {
+            if (ne.extremum.extremumType == currentType) {
+                foundNextSameType = true;
+            }
+        }
+    }
 
-    // TODO: Implement full alternation check
-    return false;
+    // Violation if any adjacent fringe has same type
+    // TODO: Add obstruction gap exception
+    return foundPrevSameType || foundNextSameType;
 }
 
 std::vector<NumberedFringe> FringeConstructor::ConvertToFringes(

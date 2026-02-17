@@ -100,22 +100,89 @@ private:
         int fringeCenterAs);
 
     /**
-     * @brief Check if matching would violate non-crossing constraint
+     * @brief Resolve crossing by swapping fringe numbers at crossing section
+     * 
+     * When two fringes cross, swapping their numbers at the crossing point uncrosses them.
+     * This is a simple geometric fix that maintains fringe continuity.
+     * 
+     * @param currentIdx Index of current extremum causing crossing
+     * @param proposedIdx Index of proposed match in adjacent scanline
+     * @param scanlines All scanline data (to modify fringe assignments)
+     * @param currentY Y coordinate of current scanline
+     * @param adjacentY Y coordinate of adjacent scanline
+     * @return true if crossing was successfully resolved by swapping
+     * 
+     * Algorithm:
+     * - Find which existing fringe segment would be crossed
+     * - Swap the fringe number of current extremum with the crossing fringe
+     * - This uncrosses the fringes at this section
      */
+    static bool ResolveCrossingBySwap(
+        int currentIdx,
+        int proposedIdx,
+        std::vector<ScanlineData>& scanlines,
+        int currentY,
+        int adjacentY);
+
+
     static bool WouldCross(
-        double currentX,
-        int proposedExtremumIndex,
+        int currentIdx,
+        int proposedIdx,
         const std::vector<NumberedExtremum>& currentExtrema,
         const std::vector<NumberedExtremum>& adjacentExtrema);
 
     /**
+     * @brief Check if matching would violate non-crossing constraint (FULL CHECK)
+     * 
+     * Full crossing criterion: New segment must not cross ANY existing fringe segment.
+     * This checks against all already-built fringe segments across all scanlines,
+     * not just the immediate adjacent scanline.
+     * 
+     * @param currentIdx Index of current extremum in current scanline
+     * @param proposedIdx Index of proposed match in adjacent scanline
+     * @param scanlines All scanline data (to access all fringe segments)
+     * @param currentY Y coordinate of current scanline
+     * @param adjacentY Y coordinate of adjacent scanline
+     * @param crossingFringeY Optional output: Y coordinate where crossing was detected
+     * @param crossingFringeIdx Optional output: Index in scanline where crossing was detected
+     * @return true if connecting current→proposed would cross any existing fringe segment
+     */
+    static bool WouldCrossFull(
+        int currentIdx,
+        int proposedIdx,
+        const std::vector<ScanlineData>& scanlines,
+        int currentY,
+        int adjacentY,
+        int* crossingFringeY = nullptr,
+        int* crossingFringeIdx = nullptr);
+
+    /**
+     * @brief Check if two line segments intersect
+     * @return true if segments (p1→p2) and (p3→p4) intersect (excluding endpoints)
+     */
+    static bool SegmentsIntersect(
+        double x1, double y1, double x2, double y2,
+        double x3, double y3, double x4, double y4);
+
+    /**
      * @brief Check if matching would violate alternation constraint
+     * 
+     * In FC_MINMAX mode: Adjacent fringes must alternate Red/Black.
+     * Exception: Obstruction gaps may hide intermediate fringes.
+     * 
+     * @param currentType Type of current extremum
+     * @param proposedNumber Number of proposed match
+     * @param adjacentScanline Adjacent scanline data
+     * @param fringeCenterAs FC_MAX, FC_MIN, or FC_MINMAX
+     * @param fringeStep Expected step between fringes
+     * @return true if matching would violate alternation pattern
      */
     static bool WouldViolateAlternation(
         ExtremumType currentType,
         double proposedNumber,
         const ScanlineData& adjacentScanline,
-        int fringeCenterAs);
+        int fringeCenterAs,
+        double fringeStep);
 
     /**
      * @brief Convert numbered extrema to fringe polylines
