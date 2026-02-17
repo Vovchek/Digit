@@ -170,11 +170,16 @@ void CDigitInfo::CreateRedCenters()
     input.fringeCenterAs = pCtrls->FringeCenterAs;
     input.contrastThreshold = pCtrls->Eps;
 
+    // TODO: redesine DetectExtrema so it will return vector of Sections -
+    // same (or etended) content but MFC-free. Everything can be done in DetectExtrema.
+    // Red/Black indicator should persist.
     auto redCenters = DigitMode::digitization::RedCenterDetector::DetectExtrema(input);
 
     if (input.imageHeight <= 0 || input.imageWidth <= 0)
         return;
 
+    // =========================================================
+    // TODO: eliminate this part after redesining DetectExtrema.
     Sections.SetSize(input.imageHeight);
     std::vector<std::vector<double>> rowCenters(static_cast<size_t>(input.imageHeight));
     rowCenters.reserve(static_cast<size_t>(input.imageHeight));
@@ -190,18 +195,21 @@ void CDigitInfo::CreateRedCenters()
         Sections[y].Init();
         Sections[y].L.P1.y = Sections[y].L.P2.y = y;
 
-        int left = -1;
-        int right = -1;
-        for (int x = 0; x < input.imageWidth; ++x) {
-            if (input.isVisible && input.isVisible(x, y)) {
-                if (left < 0)
+        int left = 0;
+        int right = 0;
+        if (input.isVisible) {
+            for (int x = 0; x < input.imageWidth; ++x) {
+                if (input.isVisible(x, y)) {
                     left = x;
-                right = x;
+                    break;
+                }
             }
-        }
-        if (left < 0) {
-            left = 0;
-            right = 0;
+            for (int x = input.imageWidth - 1; x > 0; --x) {
+                if (input.isVisible(x, y)) {
+                    right = x;
+                    break;
+                }
+            }
         }
         Sections[y].L.P1.x = left;
         Sections[y].L.P2.x = right;
@@ -213,11 +221,13 @@ void CDigitInfo::CreateRedCenters()
             numLine.redX = redX;
             Sections[y].NumLines.Add(numLine);
         }
-
-        if (pCtrls->FringeCenterAs == FC_MINMAX) {
-            Sections[y].Sort();
-        }
+        // already sorted
+        //if (pCtrls->FringeCenterAs == FC_MINMAX) {
+        //    Sections[y].Sort();
+        //}
     }
+    // TODO: end of code to eliminate
+    // =========================================================
 
     for (const auto& redCenter : redCenters) {
         HidenDots.Add(CDPoint(redCenter.position.x, redCenter.position.y));

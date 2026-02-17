@@ -28,12 +28,15 @@ std::vector<ExtremumPoint> RedCenterDetector::DetectExtrema(const DigitizationIn
     std::vector<uint8_t> line(static_cast<size_t>(width));
     std::vector<uint8_t> invLine(static_cast<size_t>(width));
 
+    // TODO: need to sort out with fon_del - 
+    // setting 0 to inv_line outside apertures worsens result a lot.
+    // Should be quite oposite.
     for (int y = 0; y < height; ++y) {
         for (int x = 0; x < width; ++x) {
-                const int row = (height - 1) - y;
-                const int index = row * width + x;
-                line[x] = input.bitmapData[index];
-                invLine[x] = 255 - line[x];
+            const int row = (height - 1) - y;
+            const int index = row * width + x;
+            line[x] = input.bitmapData[index];
+            invLine[x] = 255 - line[x];
         }
 
         std::vector<double> redXs;

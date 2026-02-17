@@ -207,8 +207,44 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 	CDocument* pDoc = GetWIActiveDocument();
 	CImageCtrls* pIm = GetImageCtrls();
-	CBoundCtrls* pB = GetBoundCtrls();
+	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
+	for (auto i = 0; i < IntInfo.ArrEll.GetSize(); ++i) {
+		const auto& shape = IntInfo.ArrEll[i];
+		auto ellipse = std::make_unique<aperture::Ellipse>(
+			shape.Ax, shape.By, shape.Xc, shape.Yc, shape.Fi);
+		if (shape.TypeLimits == S_EXTERNAL) {
+			pA->AddApertureShape(std::move(ellipse));
+		} else if (shape.TypeLimits == S_INTERNAL) {
+			pA->AddInternalShape(std::move(ellipse));
+		}
+	}
+	for (auto i = 0; i < IntInfo.ArrRect.GetSize(); ++i) {
+		const auto& shape = IntInfo.ArrRect[i];
+		auto rect = std::make_unique<aperture::Rectangle>(
+			2.*shape.Ax, 2.*shape.By, shape.Xc, shape.Yc, shape.Fi);
+		if (shape.TypeLimits == S_EXTERNAL) {
+			pA->AddApertureShape(std::move(rect));
+		}
+		else if (shape.TypeLimits == S_INTERNAL) {
+			pA->AddInternalShape(std::move(rect));
+		}
+	}
+	for (auto i = 0; i < IntInfo.ArrPlg.GetSize(); ++i) {
+		const auto& shape = IntInfo.ArrPlg[i];
+		std::vector<aperture::Point> vertices;
+		for (int i = 0; i < shape.GetSize(); ++i) {
+			vertices.push_back({ shape[i].X, shape[i].Y });
+		}
+		auto polygon = std::make_unique<aperture::Polygon>(vertices);
+		if (shape.TypeLimits == S_EXTERNAL) {
+			pA->AddApertureShape(std::move(polygon));
+		}
+		else if (shape.TypeLimits == S_INTERNAL) {
+			pA->AddInternalShape(std::move(polygon));
+		}
+	}
 
+	CBoundCtrls* pB = GetBoundCtrls();
 	pB->ArrEll.RemoveAll();
 	pB->ArrEll.Append(IntInfo.ArrEll);
 	pB->ArrRect.RemoveAll();
