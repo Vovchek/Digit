@@ -126,6 +126,7 @@ class CSectionInfo : public CObject
 	 /// TRUE: This section is the main section selected by SelectMainSection()
 	 /// FALSE: This is an auxiliary section that receives propagated numbering
 	 /// Only one section should have MainLine = TRUE at any time
+	 /// ⚠️ NOT USED
 	 /// </remarks>
 	 BOOL MainLine;
 	 
@@ -134,6 +135,7 @@ class CSectionInfo : public CObject
 	 /// TRUE: Draw red dots at detected fringe positions (redX) for debugging/visualization
 	 /// FALSE: Only draw fringe numbers without position markers
 	 /// Useful for verifying fringe detection accuracy
+	 /// ⚠️ NOT USED
 	 /// </remarks>
 	 BOOL VisibleRedDots;
 

@@ -8,6 +8,33 @@
 #include "MGTools\Include\Image\SecDib.h"
 #include "ApertureCore\include\aperturecore\visibility\IDataProviders.h"  // ← Add interface
 
+// Add to DigitInfo.h or a utility header
+class CDIBPaddingGuard
+{
+public:
+    explicit CDIBPaddingGuard(SECDib* pDIB)
+        : m_pDIB(pDIB)
+        , m_bWasPadded(pDIB ? pDIB->m_bIsPadded : FALSE)
+    {
+        if (m_pDIB && m_bWasPadded)
+            m_pDIB->PubUnPadBits();
+    }
+
+    ~CDIBPaddingGuard()
+    {
+        if (m_pDIB && m_bWasPadded)
+            m_pDIB->PubPadBits();
+    }
+
+    // Non-copyable
+    CDIBPaddingGuard(const CDIBPaddingGuard&) = delete;
+    CDIBPaddingGuard& operator=(const CDIBPaddingGuard&) = delete;
+
+private:
+    SECDib* m_pDIB;
+    BOOL m_bWasPadded;
+};
+
 class CImageCtrls : public IImageData  // ← Implement interface
 {
 public:	

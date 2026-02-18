@@ -15,9 +15,9 @@
 
 namespace DigitMode::digitization {
 
-std::vector<ExtremumPoint> RedCenterDetector::DetectExtrema(const DigitizationInput& input)
+std::vector<Section> RedCenterDetector::DetectExtrema(const DigitizationInput& input)
 {
-    std::vector<ExtremumPoint> results;
+    std::vector<Section> results;
     if (!input.bitmapData || input.imageWidth <= 0 || input.imageHeight <= 0 || !input.isVisible) {
         return results;
     }
@@ -41,7 +41,7 @@ std::vector<ExtremumPoint> RedCenterDetector::DetectExtrema(const DigitizationIn
 
         std::vector<double> redXs;
         std::vector<double> blackXs;
-        std::vector<ExtremumPoint> lineResults;
+        Section lineResults;
 
         int nnpolos = 0;
 
@@ -66,34 +66,31 @@ std::vector<ExtremumPoint> RedCenterDetector::DetectExtrema(const DigitizationIn
                 point.intensity = intensity;
                 point.extremumType = extremumType;
 
-                lineResults.push_back(point);
+                lineResults.points.push_back(point);
             }
 
             };
-        lineResults.clear();
+        lineResults.points.clear();
         toResults(redXs, line, ExtremumType::Red);
         toResults(blackXs, invLine, ExtremumType::Black);
-        std::sort(results.begin(), results.end(), [](const auto& a, const auto& b)
+        std::sort(lineResults.points.begin(), lineResults.points.end(), [](const auto& a, const auto& b)
             {return a.position.x < b.position.x; });
-        results.insert(results.end(), 
-            std::make_move_iterator(lineResults.begin()),
-            std::make_move_iterator(lineResults.end()));
+
+        for(int x = 0; x < width; ++x)
+            if (input.isVisible(x, y)) {
+                lineResults.limits.leftEdge.x = x;
+                break;
+            }
+        for (int x = width - 1; x > 0; --x)
+            if (input.isVisible(x, y)) {
+                lineResults.limits.rightEdge.x = x;
+                break;
+            }
+        results.emplace_back(std::move(lineResults));
     }
 
     return results;
 }
 
-std::vector<ExtremumPoint> RedCenterDetector::AnalyzeScanline(
-    int scanlineY,
-    const std::vector<unsigned char>& scanlineData,
-    const std::function<bool(int, int)>& isVisible,
-    int fringeCenterAs)
-{
-    (void)scanlineY;
-    (void)scanlineData;
-    (void)isVisible;
-    (void)fringeCenterAs;
-    return {};
-}
 
 } // namespace DigitMode::digitization

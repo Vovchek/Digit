@@ -10,12 +10,26 @@ struct Point2d {
     double y{0.0};
 };
 
+struct Limits {
+    Point2d leftEdge;
+    Point2d rightEdge;
+};
+
 enum class ExtremumType { Red = 0, Black = 1 };
 
 struct ExtremumPoint {
     Point2d position;
     double intensity{0.0};
     ExtremumType extremumType{ ExtremumType::Red};
+    bool isValid{false};
+    double number{-1000.};
+    Limits window{ {0.0,0.0},{0.0,0.0} };
+};
+
+struct Section {
+    std::vector<ExtremumPoint> points;
+    Limits limits{ {0.0,0.0},{0.0,0.0} };
+    double aveStep{0.};
 };
 
 struct FringePolyline {

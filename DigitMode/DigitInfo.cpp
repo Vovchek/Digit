@@ -160,7 +160,11 @@ void CDigitInfo::CreateRedCenters()
     isInsideScreen = pA->GetInternalCount() > 0;
 
     DigitMode::digitization::DigitizationInput input;
+
+    // RAII guard automatically manages padding state
+    CDIBPaddingGuard paddingGuard(pI->m_pDIB);
     input.bitmapData = pI->GetBitmapData();
+
     input.imageWidth = pI->GetWidth();
     input.imageHeight = pI->GetHeight();
     auto* maskProvider = &pA->GetMaskProvider();
@@ -173,7 +177,7 @@ void CDigitInfo::CreateRedCenters()
     // TODO: redesine DetectExtrema so it will return vector of Sections -
     // same (or etended) content but MFC-free. Everything can be done in DetectExtrema.
     // Red/Black indicator should persist.
-    auto redCenters = DigitMode::digitization::RedCenterDetector::DetectExtrema(input);
+    auto sections = DigitMode::digitization::RedCenterDetector::DetectExtrema(input);
 
     if (input.imageHeight <= 0 || input.imageWidth <= 0)
         return;
@@ -184,35 +188,20 @@ void CDigitInfo::CreateRedCenters()
     std::vector<std::vector<double>> rowCenters(static_cast<size_t>(input.imageHeight));
     rowCenters.reserve(static_cast<size_t>(input.imageHeight));
 
-    for (const auto& redCenter : redCenters) {
-        int y = static_cast<int>(redCenter.position.y + 0.5);
-        if (y < 0 || y >= input.imageHeight)
-            continue;
-        rowCenters[static_cast<size_t>(y)].push_back(redCenter.position.x);
+    for (const auto& s : sections) {
+        for (const auto& p : s.points) {
+            int y = static_cast<int>(p.position.y + 0.5);
+            if (y < 0 || y >= input.imageHeight)
+                continue;
+            rowCenters[static_cast<size_t>(y)].push_back(p.position.x);
+        }
     }
 
     for (int y = 0; y < input.imageHeight; ++y) {
         Sections[y].Init();
         Sections[y].L.P1.y = Sections[y].L.P2.y = y;
-
-        int left = 0;
-        int right = 0;
-        if (input.isVisible) {
-            for (int x = 0; x < input.imageWidth; ++x) {
-                if (input.isVisible(x, y)) {
-                    left = x;
-                    break;
-                }
-            }
-            for (int x = input.imageWidth - 1; x > 0; --x) {
-                if (input.isVisible(x, y)) {
-                    right = x;
-                    break;
-                }
-            }
-        }
-        Sections[y].L.P1.x = left;
-        Sections[y].L.P2.x = right;
+        Sections[y].L.P1.x = sections[y].limits.leftEdge.x;
+        Sections[y].L.P2.x = sections[y].limits.rightEdge.x;
         Sections[y].NumLines.RemoveAll();
 
         const auto& centers = rowCenters[static_cast<size_t>(y)];
@@ -229,8 +218,9 @@ void CDigitInfo::CreateRedCenters()
     // TODO: end of code to eliminate
     // =========================================================
 
-    for (const auto& redCenter : redCenters) {
-        HidenDots.Add(CDPoint(redCenter.position.x, redCenter.position.y));
+    for (const auto& s : sections) {
+        for(const auto& p: s.points)
+        HidenDots.Add(CDPoint(p.position.x, p.position.y));
     }
 }
  

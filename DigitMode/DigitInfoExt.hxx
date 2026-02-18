@@ -166,7 +166,7 @@ void CDigitInfo::CreateZAPSections()
 	double SecGap;
 	int i;
 	if (ZapLines.GetSize() < 2) {
-		SecGap = (double)(bH) / (nFringes - 1);
+		SecGap = .5*(double)(bH) / (nFringes - 1);
 	}
 	else {
 		SortZapLines();
@@ -176,7 +176,8 @@ void CDigitInfo::CreateZAPSections()
 		nFringes = static_cast<int>(((double)(bH - begY)) / SecGap + 1);
 	}
 
-	for (i = 1; i < nFringes - 1; i++) {
+	int nLines = static_cast<int>(bH / SecGap) + 1;
+	for (i = 1; i < nLines - 1; i++) {
 		int iy = static_cast<int>(begY + SecGap * i);
 		CZapLineInfo zL;
 		zL.L = Sections[iy].L;
