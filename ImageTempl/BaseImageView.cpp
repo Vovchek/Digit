@@ -397,132 +397,141 @@ void CBaseImageView::DrawCustomDots(CDC* pDC)
     CPen* retopen = pDC->SelectObject(open);
     if(retopen) retopen->DeleteObject();
 }
+
+// deprecated/eliminated: command-based workflow
 // Установка одной из точек задания границ
 //point - логические координаты точки
 void CBaseImageView::SetCustomDot(CPoint point)
 {
-	CControls* pCtrls = GetControls();
-	CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
-    if(pCtrls->EnableCustomDots){
-        pDoc->boundCtrls.CustomDot = point;
-        if(pDoc->boundCtrls.RemoveCustomDot(pDoc->boundCtrls.CustomDot)){
-            SetCapture();
-        }
-        else{
-            CImageCtrls* pImCtrls = GetImageCtrls(this);
-            CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-            pDoc->boundCtrls.AddCustomDot(pDoc->boundCtrls.CustomDot);
-			if(pDoc->boundCtrls.CustomDots.GetSize()==1)
-              pDoc->boundCtrls.SetCurBound(pCtrls->CurTypeBound);
-			else
-              pDoc->boundCtrls.SetCurBound(pCtrls->CurTypeBound);
-            Invalidate(FALSE);
-        }
-    }
+	//CControls* pCtrls = GetControls();
+	//CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
+ //   if(pCtrls->EnableCustomDots){
+ //       pDoc->boundCtrls.CustomDot = point;
+ //       if(pDoc->boundCtrls.RemoveCustomDot(pDoc->boundCtrls.CustomDot)){
+ //           SetCapture();
+ //       }
+ //       else{
+ //           CImageCtrls* pImCtrls = GetImageCtrls(this);
+ //           CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+ //           pDoc->boundCtrls.AddCustomDot(pDoc->boundCtrls.CustomDot);
+	//		if(pDoc->boundCtrls.CustomDots.GetSize()==1)
+ //             pDoc->boundCtrls.SetCurBound(pCtrls->CurTypeBound);
+	//		else
+ //             pDoc->boundCtrls.SetCurBound(pCtrls->CurTypeBound);
+ //           Invalidate(FALSE);
+ //       }
+ //   }
 }
+
+// deprecated/eliminated: command-based workflow
 // Перетаскивание точек задания границ
 // point - новое положение точки
 void CBaseImageView::DragCustomDot(CPoint point, bool ReDraw/*true*/)
 {
-   if(GetCapture() != this)
-      return;
+  // if(GetCapture() != this)
+  //    return;
 
-  CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
-  CControls* pCtrls = GetControls();
-  if(pCtrls->EnableCustomDots){
-      CPen penLine;
-      COLORREF Color = InvColor;
-      penLine.CreatePen(PS_COSMETIC, 0, Color);
+  //CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
+  //CControls* pCtrls = GetControls();
+  //if(pCtrls->EnableCustomDots){
+  //    CPen penLine;
+  //    COLORREF Color = InvColor;
+  //    penLine.CreatePen(PS_COSMETIC, 0, Color);
 
-      CDC* dc = GetDC();
-      OnPrepareDC(dc);
-      CPen *pOld = dc->SelectObject(&penLine);
-      int orop = dc->SetROP2(R2_XORPEN);
-      DrawMarker(dc, pDoc->boundCtrls.CustomDot);
-      pDoc->boundCtrls.CustomDot = point;
-      DrawMarker(dc, pDoc->boundCtrls.CustomDot);
+  //    CDC* dc = GetDC();
+  //    OnPrepareDC(dc);
+  //    CPen *pOld = dc->SelectObject(&penLine);
+  //    int orop = dc->SetROP2(R2_XORPEN);
+  //    DrawMarker(dc, pDoc->boundCtrls.CustomDot);
+  //    pDoc->boundCtrls.CustomDot = point;
+  //    DrawMarker(dc, pDoc->boundCtrls.CustomDot);
 
-      dc->SetROP2(orop);
-      CPen* pRetPen = dc->SelectObject(pOld);
-      if(pRetPen) pRetPen->DeleteObject();
-      ReleaseDC(dc);
-  }
+  //    dc->SetROP2(orop);
+  //    CPen* pRetPen = dc->SelectObject(pOld);
+  //    if(pRetPen) pRetPen->DeleteObject();
+  //    ReleaseDC(dc);
+  //}
 }
 
+// deprecated/eliminated: command-based workflow
 void CBaseImageView::DropCustomDot(CPoint point)
 {
-    CBoundCtrls* pBCtrls =  GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
-    ReleaseCapture();
-    if(pCtrls->EnableCustomDots){
-        pBCtrls->CustomDot = point;
-        pBCtrls->AddCustomDot(pBCtrls->CustomDot);
-        pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-        Invalidate(FALSE);
-    }
+//    CBoundCtrls* pBCtrls =  GetBoundCtrls(this);
+//	CControls* pCtrls = GetControls();
+//    ReleaseCapture();
+//    if(pCtrls->EnableCustomDots){
+//        pBCtrls->CustomDot = point;
+//        pBCtrls->AddCustomDot(pBCtrls->CustomDot);
+//        pBCtrls->SetCurBound(pCtrls->CurTypeBound);
+//        Invalidate(FALSE);
+//    }
 }
 
+
+// deprecated/eliminated: command-based workflow
 // returns logical coords of center of handle
 CPoint CBaseImageView::GetHandle(int nHandle)
 {
-    ASSERT_VALID(this);
-    int x, y, xCenter, yCenter;
+ //   ASSERT_VALID(this);
+ //   int x, y, xCenter, yCenter;
 
-    // this gets the center regardless of left/right and top/bottom ordering
-    CBoundCtrls* pBCtrls =  GetBoundCtrls(this);
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    CRect m_rect;
-	pDoc->Tracker.GetBoundRect(m_rect);
-    xCenter = m_rect.left + m_rect.Width() / 2;
-    yCenter = m_rect.top + m_rect.Height() / 2;
+ //   // this gets the center regardless of left/right and top/bottom ordering
+ //   CBoundCtrls* pBCtrls =  GetBoundCtrls(this);
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   CRect m_rect;
+	//pDoc->Tracker.GetBoundRect(m_rect);
+ //   xCenter = m_rect.left + m_rect.Width() / 2;
+ //   yCenter = m_rect.top + m_rect.Height() / 2;
 
-    switch (nHandle)
-    {
-    default:
-        ASSERT(FALSE);
+ //   switch (nHandle)
+ //   {
+ //   default:
+ //       ASSERT(FALSE);
 
-    case 1:
-        x = m_rect.left;
-        y = m_rect.top;
-        break;
+ //   case 1:
+ //       x = m_rect.left;
+ //       y = m_rect.top;
+ //       break;
 
-    case 2:
-        x = xCenter;
-        y = m_rect.top;
-        break;
+ //   case 2:
+ //       x = xCenter;
+ //       y = m_rect.top;
+ //       break;
 
-    case 3:
-        x = m_rect.right;
-        y = m_rect.top;
-        break;
+ //   case 3:
+ //       x = m_rect.right;
+ //       y = m_rect.top;
+ //       break;
 
-    case 4:
-        x = m_rect.right;
-        y = yCenter;
-        break;
+ //   case 4:
+ //       x = m_rect.right;
+ //       y = yCenter;
+ //       break;
 
-    case 5:
-        x = m_rect.right;
-        y = m_rect.bottom;
-        break;
+ //   case 5:
+ //       x = m_rect.right;
+ //       y = m_rect.bottom;
+ //       break;
 
-    case 6:
-        x = xCenter;
-        y = m_rect.bottom;
-        break;
+ //   case 6:
+ //       x = xCenter;
+ //       y = m_rect.bottom;
+ //       break;
 
-    case 7:
-        x = m_rect.left;
-        y = m_rect.bottom;
-        break;
+ //   case 7:
+ //       x = m_rect.left;
+ //       y = m_rect.bottom;
+ //       break;
 
-    case 8:
-        x = m_rect.left;
-        y = yCenter;
-        break;
-    }
+ //   case 8:
+ //       x = m_rect.left;
+ //       y = yCenter;
+ //       break;
+ //   }
 
-    return CPoint(x, y);
+ //   return CPoint(x, y);
+
+    return { 0,0 };
 }
 
 BEGIN_MESSAGE_MAP(CBaseImageView, CScrollView)
@@ -965,7 +974,7 @@ void CBaseImageView::CreateDefaultMenu(CPoint point)
 void CBaseImageView::CreateBoundMenu(CPoint point)
 {
    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
    CControls* pCtrls = GetControls();
    LPCTSTR ItemText;
    
@@ -1033,15 +1042,16 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    RemoveCurFlag = MF_STRING;
    RemoveLastFlag = MF_STRING;
 
-   if(!pDoc->Tracker.GetEnableState() && pBCtrls->CustomDots.GetSize()==0){
-     ApplyFlag = MF_STRING|MF_GRAYED;
-     RemoveCurFlag = MF_STRING|MF_GRAYED;
-   }
-   else{
-     ApplyFlag = MF_STRING;
-     RemoveAllFlag = MF_STRING;
-     RemoveLastFlag = MF_STRING;
-   }
+    // TOD: redesign commands and menues
+   //if(!pDoc->Tracker.GetEnableState() && pBCtrls->CustomDots.GetSize()==0){
+   //  ApplyFlag = MF_STRING|MF_GRAYED;
+   //  RemoveCurFlag = MF_STRING|MF_GRAYED;
+   //}
+   //else{
+       ApplyFlag = MF_STRING;
+   //  RemoveAllFlag = MF_STRING;
+   //  RemoveLastFlag = MF_STRING;
+   //}
    
    ItemText = CRS("Добавить", "Apply");
    Main.AppendMenu(ApplyFlag, IDD_BOUND_APPLY, ItemText);
@@ -1062,216 +1072,231 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
                               point.x, point.y, this, NULL);
 }
 
+
+// deprecated/eliminated: no more BoundCtrls
 //Принять редактируемую границу 
 void CBaseImageView::OnApplyBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CControls* pCtrls = GetControls();
-   CRect R;
-   if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
-	   pBCtrls->CustomDots.SetSize(4);
-	   int W = R.Width()/2;
-	   int H = R.Height()/2;
-	   pBCtrls->CustomDots[0].x = R.left + W;
-	   pBCtrls->CustomDots[0].y = R.top;
-	   pBCtrls->CustomDots[1].x = R.right;
-	   pBCtrls->CustomDots[1].y = R.top + H;
-	   pBCtrls->CustomDots[2].x = R.left + W;
-	   pBCtrls->CustomDots[2].y = R.bottom;
-	   pBCtrls->CustomDots[3].x = R.left;
-	   pBCtrls->CustomDots[3].y = R.top + H;
-   }
-   if(pBCtrls->CustomDots.GetSize()){
-	   if(pCtrls->EnableOptions & I_BOUNDS_EXT)
-	      pBCtrls->AddBound(pCtrls->CurTypeBound, 1);
-	   else if(pCtrls->EnableOptions & I_BOUNDS_INS)
-	      pBCtrls->AddBound(pCtrls->CurTypeBound, 0);
-   }
-   pDoc->Tracker.SetEnableState(FALSE);
-   pBCtrls->RemoveCurBound();
-   pBCtrls->CustomDots.RemoveAll();
-   Invalidate(FALSE);
+   //CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CControls* pCtrls = GetControls();
+   //CRect R;
+   //if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
+	  // pBCtrls->CustomDots.SetSize(4);
+	  // int W = R.Width()/2;
+	  // int H = R.Height()/2;
+	  // pBCtrls->CustomDots[0].x = R.left + W;
+	  // pBCtrls->CustomDots[0].y = R.top;
+	  // pBCtrls->CustomDots[1].x = R.right;
+	  // pBCtrls->CustomDots[1].y = R.top + H;
+	  // pBCtrls->CustomDots[2].x = R.left + W;
+	  // pBCtrls->CustomDots[2].y = R.bottom;
+	  // pBCtrls->CustomDots[3].x = R.left;
+	  // pBCtrls->CustomDots[3].y = R.top + H;
+   //}
+   //if(pBCtrls->CustomDots.GetSize()){
+	  // if(pCtrls->EnableOptions & I_BOUNDS_EXT)
+	  //    pBCtrls->AddBound(pCtrls->CurTypeBound, 1);
+	  // else if(pCtrls->EnableOptions & I_BOUNDS_INS)
+	  //    pBCtrls->AddBound(pCtrls->CurTypeBound, 0);
+   //}
+   //pDoc->Tracker.SetEnableState(FALSE);
+   //pBCtrls->RemoveCurBound();
+   //pBCtrls->CustomDots.RemoveAll();
+   //Invalidate(FALSE);
 }
+
+// deprecated/eliminated: command-based workflow
 //Удалить последнюю границу
 void CBaseImageView::OnRemoveCurBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-	pBCtrls->CustomDots.RemoveAll();
-	pDoc->Tracker.SetEnableState(FALSE);
-    pBCtrls->RemoveCurBound();
-	Invalidate(FALSE);
+ //  CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //  CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//pBCtrls->CustomDots.RemoveAll();
+	//pDoc->Tracker.SetEnableState(FALSE);
+ //   pBCtrls->RemoveCurBound();
+	//Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 void CBaseImageView::OnRemoveLastBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-	pBCtrls->CustomDots.RemoveAll();
-	pDoc->Tracker.SetEnableState(FALSE);
-    pBCtrls->RemoveLastBound();
-	Invalidate(FALSE);
+ //  CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //  CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//pBCtrls->CustomDots.RemoveAll();
+	//pDoc->Tracker.SetEnableState(FALSE);
+ //   pBCtrls->RemoveLastBound();
+	//Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Удалить все границы
 void CBaseImageView::OnRemoveAllBound()
 {
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    CControls* pCtrls = GetControls();
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-	pDoc->Tracker.SetEnableState(FALSE);
-	pBCtrls->CustomDots.RemoveAll();
-	if(pCtrls->EnableOptions & I_BOUNDS_EXT)
-	   pBCtrls->RemoveAllBound();
-	else if(pCtrls->EnableOptions & I_BOUNDS_INS)
-	   pBCtrls->RemoveAllBound();
-    pBCtrls->RemoveCurBound();
-	pCtrls->EnableOptions &= ~I_BOUNDS_INS;
-	pCtrls->EnableOptions |= I_BOUNDS_EXT;
-	Invalidate(FALSE);
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   CControls* pCtrls = GetControls();
+ //   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//pDoc->Tracker.SetEnableState(FALSE);
+	//pBCtrls->CustomDots.RemoveAll();
+	//if(pCtrls->EnableOptions & I_BOUNDS_EXT)
+	//   pBCtrls->RemoveAllBound();
+	//else if(pCtrls->EnableOptions & I_BOUNDS_INS)
+	//   pBCtrls->RemoveAllBound();
+ //   pBCtrls->RemoveCurBound();
+	//pCtrls->EnableOptions &= ~I_BOUNDS_INS;
+	//pCtrls->EnableOptions |= I_BOUNDS_EXT;
+	//Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Установка границ будет производиться точками
 void CBaseImageView::OnSetupDotsBound()
 {
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
-	pCtrls->EnableCustomDots = TRUE;
-	pCtrls->EnableTracker = FALSE;
-	pDoc->Tracker.SetEnableState(FALSE);
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
+	//pCtrls->EnableCustomDots = TRUE;
+	//pCtrls->EnableTracker = FALSE;
+	//pDoc->Tracker.SetEnableState(FALSE);
 }
+
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Установка прямоугольных границ 
 void CBaseImageView::OnSetupRectBound()
 {
-    CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
-	pCtrls->EnableTracker = TRUE;
-	pCtrls->EnableCustomDots = FALSE;
+ //   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
+	//pCtrls->EnableTracker = TRUE;
+	//pCtrls->EnableCustomDots = FALSE;
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Установка границ в виде круга
 void CBaseImageView::OnScrRoundBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CControls* pCtrls = GetControls();
-   pCtrls->CurTypeBound = BOUND_ROUND;
-   CRect R;
-   if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
-	   pBCtrls->CustomDots.SetSize(4);
-	   int W = R.Width()/2;
-	   int H = R.Height()/2;
-	   pBCtrls->CustomDots[0].x = R.left + W;
-	   pBCtrls->CustomDots[0].y = R.top;
-	   pBCtrls->CustomDots[1].x = R.right;
-	   pBCtrls->CustomDots[1].y = R.top + H;
-	   pBCtrls->CustomDots[2].x = R.left + W;
-	   pBCtrls->CustomDots[2].y = R.bottom;
-	   pBCtrls->CustomDots[3].x = R.left;
-	   pBCtrls->CustomDots[3].y = R.top + H;
-   }
-   if(pBCtrls->CustomDots.GetSize()){
-      pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-   }
-   Invalidate(FALSE);
+   //CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CImageCtrls* pImCtrls = GetImageCtrls(this);
+   //CControls* pCtrls = GetControls();
+   //pCtrls->CurTypeBound = BOUND_ROUND;
+   //CRect R;
+   //if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
+	  // pBCtrls->CustomDots.SetSize(4);
+	  // int W = R.Width()/2;
+	  // int H = R.Height()/2;
+	  // pBCtrls->CustomDots[0].x = R.left + W;
+	  // pBCtrls->CustomDots[0].y = R.top;
+	  // pBCtrls->CustomDots[1].x = R.right;
+	  // pBCtrls->CustomDots[1].y = R.top + H;
+	  // pBCtrls->CustomDots[2].x = R.left + W;
+	  // pBCtrls->CustomDots[2].y = R.bottom;
+	  // pBCtrls->CustomDots[3].x = R.left;
+	  // pBCtrls->CustomDots[3].y = R.top + H;
+   //}
+   //if(pBCtrls->CustomDots.GetSize()){
+   //   pBCtrls->SetCurBound(pCtrls->CurTypeBound);
+   //}
+   //Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Установка границ в виде эллипса
 void CBaseImageView::OnScrEllipseBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CControls* pCtrls = GetControls();
-   pCtrls->CurTypeBound = BOUND_ELLIPSE;
-   CRect R;
-   if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
-	   pBCtrls->CustomDots.SetSize(4);
-	   int W = R.Width()/2;
-	   int H = R.Height()/2;
-	   pBCtrls->CustomDots[0].x = R.left + W;
-	   pBCtrls->CustomDots[0].y = R.top;
-	   pBCtrls->CustomDots[1].x = R.right;
-	   pBCtrls->CustomDots[1].y = R.top + H;
-	   pBCtrls->CustomDots[2].x = R.left + W;
-	   pBCtrls->CustomDots[2].y = R.bottom;
-	   pBCtrls->CustomDots[3].x = R.left;
-	   pBCtrls->CustomDots[3].y = R.top + H;
-   }
-   if(pBCtrls->CustomDots.GetSize()){
-      pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-   }
-   Invalidate(FALSE);
+   //CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CImageCtrls* pImCtrls = GetImageCtrls(this);
+   //CControls* pCtrls = GetControls();
+   //pCtrls->CurTypeBound = BOUND_ELLIPSE;
+   //CRect R;
+   //if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
+	  // pBCtrls->CustomDots.SetSize(4);
+	  // int W = R.Width()/2;
+	  // int H = R.Height()/2;
+	  // pBCtrls->CustomDots[0].x = R.left + W;
+	  // pBCtrls->CustomDots[0].y = R.top;
+	  // pBCtrls->CustomDots[1].x = R.right;
+	  // pBCtrls->CustomDots[1].y = R.top + H;
+	  // pBCtrls->CustomDots[2].x = R.left + W;
+	  // pBCtrls->CustomDots[2].y = R.bottom;
+	  // pBCtrls->CustomDots[3].x = R.left;
+	  // pBCtrls->CustomDots[3].y = R.top + H;
+   //}
+   //if(pBCtrls->CustomDots.GetSize()){
+   //   pBCtrls->SetCurBound(pCtrls->CurTypeBound);
+   //}
+   //Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 // Установка в виде прямоугольника 
 void CBaseImageView::OnScrRectBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CControls* pCtrls = GetControls();
-   pCtrls->CurTypeBound = BOUND_RECT;
-   CRect R;
-   if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
-	   pBCtrls->CustomDots.SetSize(4);
-	   int W = R.Width()/2;
-	   int H = R.Height()/2;
-	   pBCtrls->CustomDots[0].x = R.left + W;
-	   pBCtrls->CustomDots[0].y = R.top;
-	   pBCtrls->CustomDots[1].x = R.right;
-	   pBCtrls->CustomDots[1].y = R.top + H;
-	   pBCtrls->CustomDots[2].x = R.left + W;
-	   pBCtrls->CustomDots[2].y = R.bottom;
-	   pBCtrls->CustomDots[3].x = R.left;
-	   pBCtrls->CustomDots[3].y = R.top + H;
-   }
-   if(pBCtrls->CustomDots.GetSize()){
-      pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-   }
-   Invalidate(FALSE);
+   //CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CImageCtrls* pImCtrls = GetImageCtrls(this);
+   //CControls* pCtrls = GetControls();
+   //pCtrls->CurTypeBound = BOUND_RECT;
+   //CRect R;
+   //if(pDoc->Tracker.GetEnableState() && pDoc->Tracker.GetBoundRect(R)){
+	  // pBCtrls->CustomDots.SetSize(4);
+	  // int W = R.Width()/2;
+	  // int H = R.Height()/2;
+	  // pBCtrls->CustomDots[0].x = R.left + W;
+	  // pBCtrls->CustomDots[0].y = R.top;
+	  // pBCtrls->CustomDots[1].x = R.right;
+	  // pBCtrls->CustomDots[1].y = R.top + H;
+	  // pBCtrls->CustomDots[2].x = R.left + W;
+	  // pBCtrls->CustomDots[2].y = R.bottom;
+	  // pBCtrls->CustomDots[3].x = R.left;
+	  // pBCtrls->CustomDots[3].y = R.top + H;
+   //}
+   //if(pBCtrls->CustomDots.GetSize()){
+   //   pBCtrls->SetCurBound(pCtrls->CurTypeBound);
+   //}
+   //Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 void CBaseImageView::OnScrPlgBound()
 {
-   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-   CBoundCtrls* pBCtrls = GetBoundCtrls(this);
-   CImageCtrls* pImCtrls = GetImageCtrls(this);
-   CControls* pCtrls = GetControls();
-   pCtrls->CurTypeBound = BOUND_POLYGON;
-   pCtrls->EnableTracker = FALSE;
-   pCtrls->EnableCustomDots = TRUE;
-   CRect R;
-   if(pBCtrls->CustomDots.GetSize()){
-      pBCtrls->SetCurBound(pCtrls->CurTypeBound);
-   }
-   Invalidate(FALSE);
+   //CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+   //CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+   //CImageCtrls* pImCtrls = GetImageCtrls(this);
+   //CControls* pCtrls = GetControls();
+   //pCtrls->CurTypeBound = BOUND_POLYGON;
+   //pCtrls->EnableTracker = FALSE;
+   //pCtrls->EnableCustomDots = TRUE;
+   //CRect R;
+   //if(pBCtrls->CustomDots.GetSize()){
+   //   pBCtrls->SetCurBound(pCtrls->CurTypeBound);
+   //}
+   //Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 //Инициализация прямоугольника установки границ
 void CBaseImageView::BeginTracker(CPoint P1)
 {
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    CControls* pCtrls = GetControls();
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   CControls* pCtrls = GetControls();
 
-    CPoint TL(P1);
-    CClientDC dc(this);
-    OnPrepareDC(&dc);
-	if(pDoc->Tracker.GetEnableState()){
-       pDoc->Tracker.Track(this, &dc, TL, true, false);
-	}
-	else{
-	   pDoc->Tracker.SetEnableState(TRUE);
-       pDoc->Tracker.Track(this, &dc, TL, true, true);
-	}
+ //   CPoint TL(P1);
+ //   CClientDC dc(this);
+ //   OnPrepareDC(&dc);
+	//if(pDoc->Tracker.GetEnableState()){
+ //      pDoc->Tracker.Track(this, &dc, TL, true, false);
+	//}
+	//else{
+	//   pDoc->Tracker.SetEnableState(TRUE);
+ //      pDoc->Tracker.Track(this, &dc, TL, true, true);
+	//}
 
-	pDoc->Tracker.SetDragingState(TRUE);
-    Invalidate(FALSE);
+	//pDoc->Tracker.SetDragingState(TRUE);
+ //   Invalidate(FALSE);
 }
 
+// deprecated/eliminated: no more BoundCtrls, redesign workflow
 //Перетаскивание прямоугольника установки границ
 void CBaseImageView::DragTracker(CPoint P2)
 {

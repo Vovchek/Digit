@@ -34,7 +34,7 @@ BOOL CheckForSaveAllImageDoc();
 CControls* GetControls();
 CImageCtrls* GetImageCtrls(CView* pView=NULL);
 CMeasureCtrls* GetMeasureCtrls(CView* pView=NULL);
-CBoundCtrls* GetBoundCtrls(CView* pView=NULL);
+//CBoundCtrls* GetBoundCtrls(CView* pView=NULL);
 DigitMode::CApertureCtrls* GetApertureCtrls(CView* pView=NULL);
 CDigitInfo* GetDigitInfo(CView* pView=NULL);
 

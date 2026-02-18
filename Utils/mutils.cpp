@@ -231,15 +231,17 @@ CMeasureCtrls* GetMeasureCtrls(CView* pView/*NULL*/)
   return &pD->measureCtrls;
 }
 
-CBoundCtrls* GetBoundCtrls(CView* pView/*NULL*/)
-{
-  CImageDoc* pD;
-  if(pView==NULL)
-     pD = (CImageDoc*)GetWIActiveDocument();
-  else
-	 pD = (CImageDoc*)pView->GetDocument();
-  return &pD->boundCtrls;
-}
+
+//CBoundCtrls* GetBoundCtrls(CView* pView/*NULL*/)
+//{
+//  CImageDoc* pD;
+//  if(pView==NULL)
+//     pD = (CImageDoc*)GetWIActiveDocument();
+//  else
+//	 pD = (CImageDoc*)pView->GetDocument();
+//  return &pD->boundCtrls;
+//}
+
 
 DigitMode::CApertureCtrls* GetApertureCtrls(CView* pView/*NULL*/)
 {

@@ -181,6 +181,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\Rendering\ShapeDrawDispatcher.cpp" />
     <ClCompile Include="DigitMode\Rendering\ShapeDrawStyle.cpp" />
     <ClCompile Include="DigitMode\SelectionManager.cpp" />
+    <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp" />
     <ClCompile Include="DigitMode\TooltipGenerator.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
@@ -248,6 +249,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
     <ClInclude Include="DigitMode\FringeSegmentAdaptor.h" />
     <ClInclude Include="DigitMode\RedCenterDetector.h" />
+    <ClInclude Include="DigitMode\ShapeConversionHelpers.h" />
     <ClInclude Include="DigitMode\\DigitizationParams.h" />
     <ClInclude Include="DigitMode\DraftShape.h" />
     <ClInclude Include="DigitMode\EditMode.h" />

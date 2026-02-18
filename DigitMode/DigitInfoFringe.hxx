@@ -208,50 +208,11 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	CDocument* pDoc = GetWIActiveDocument();
 	CImageCtrls* pIm = GetImageCtrls();
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
-	for (auto i = 0; i < IntInfo.ArrEll.GetSize(); ++i) {
-		const auto& shape = IntInfo.ArrEll[i];
-		auto ellipse = std::make_unique<aperture::Ellipse>(
-			shape.Ax, shape.By, shape.Xc, shape.Yc, shape.Fi);
-		if (shape.TypeLimits == S_EXTERNAL) {
-			pA->AddApertureShape(std::move(ellipse));
-		} else if (shape.TypeLimits == S_INTERNAL) {
-			pA->AddInternalShape(std::move(ellipse));
-		}
-	}
-	for (auto i = 0; i < IntInfo.ArrRect.GetSize(); ++i) {
-		const auto& shape = IntInfo.ArrRect[i];
-		auto rect = std::make_unique<aperture::Rectangle>(
-			2.*shape.Ax, 2.*shape.By, shape.Xc, shape.Yc, shape.Fi);
-		if (shape.TypeLimits == S_EXTERNAL) {
-			pA->AddApertureShape(std::move(rect));
-		}
-		else if (shape.TypeLimits == S_INTERNAL) {
-			pA->AddInternalShape(std::move(rect));
-		}
-	}
-	for (auto i = 0; i < IntInfo.ArrPlg.GetSize(); ++i) {
-		const auto& shape = IntInfo.ArrPlg[i];
-		std::vector<aperture::Point> vertices;
-		for (int i = 0; i < shape.GetSize(); ++i) {
-			vertices.push_back({ shape[i].X, shape[i].Y });
-		}
-		auto polygon = std::make_unique<aperture::Polygon>(vertices);
-		if (shape.TypeLimits == S_EXTERNAL) {
-			pA->AddApertureShape(std::move(polygon));
-		}
-		else if (shape.TypeLimits == S_INTERNAL) {
-			pA->AddInternalShape(std::move(polygon));
-		}
-	}
-
-	CBoundCtrls* pB = GetBoundCtrls();
-	pB->ArrEll.RemoveAll();
-	pB->ArrEll.Append(IntInfo.ArrEll);
-	pB->ArrRect.RemoveAll();
-	pB->ArrRect.Append(IntInfo.ArrRect);
-	pB->ArrPlg.RemoveAll();
-	pB->ArrPlg.Append(IntInfo.ArrPlg);
-	pB->FormBoundsOnLoadFile();
+	
+	// Convert MFC arrays to aperture shapes
+	DigitMode::CopyEllipsesToAperture(IntInfo.ArrEll, pA->GetShapes());
+	DigitMode::CopyRectsToAperture(IntInfo.ArrRect, pA->GetShapes());
+	DigitMode::CopyPolygonsToAperture(IntInfo.ArrPlg, pA->GetShapes());
 
 	pIm->ImageSize.cx = IntInfo.ImageSize[0];
 	pIm->ImageSize.cy = IntInfo.ImageSize[1];
@@ -295,7 +256,6 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	}
 	else {
 		// OLD: Flat loading into Dots array
-		//Dots.SetSize(nD);
 		for (int i = 0; i < nD; i++) {
 			CDotInfo dot;
 			dot.P.x = IntInfo.DigitDat[i].X;
@@ -317,15 +277,13 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	IntInfo.ScaleFactor = ScaleFactor;
 	IntInfo.FiScan = Rotation;
 
-	CBoundCtrls* pB = GetBoundCtrls();
+	auto *pA = GetApertureCtrls();
 	CImageCtrls* pIm = GetImageCtrls();
 
-	IntInfo.ArrEll.RemoveAll();
-	IntInfo.ArrEll.Append(pB->ArrEll);
-	IntInfo.ArrRect.RemoveAll();
-	IntInfo.ArrRect.Append(pB->ArrRect);
-	IntInfo.ArrPlg.RemoveAll();
-	IntInfo.ArrPlg.Append(pB->ArrPlg);
+	// Convert aperture shapes to MFC arrays
+	DigitMode::CopyApertureToEllipses(pA->GetShapes(), IntInfo.ArrEll);
+	DigitMode::CopyApertureToRects(pA->GetShapes(), IntInfo.ArrRect);
+	DigitMode::CopyApertureToPolygons(pA->GetShapes(), IntInfo.ArrPlg);
 
 	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
 	IntInfo.ImageSize[1] = pIm->ImageSize.cy;

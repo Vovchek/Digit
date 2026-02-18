@@ -1,4 +1,4 @@
-#ifndef __NUMBERINFO_H
+﻿#ifndef __NUMBERINFO_H
 #define __NUMBERINFO_H
 
 #include "InterfSolver\include\CArrDef.h"

@@ -14,6 +14,27 @@
 	}
 }
 
+/// <summary>
+/// Selects the main section for interferogram analysis by finding the section with the maximum
+/// number of fringe lines within an acceptable step range. Performs bidirectional scanning
+/// (forward and backward) to identify candidate sections and determines the optimal main section.
+/// </summary>
+/// <remarks>
+/// Algorithm steps:
+/// 1. Calculates acceptable step range using SecSegm ± (SecSegm * CorrectionSecSegm)
+/// 2. Forward scan (first to last): Finds section with maximum fringe count meeting criteria
+/// 3. Backward scan (last to first): Finds section with maximum fringe count meeting criteria
+/// 4. Selection logic:
+///    - If two different valid sections found and not inside screen: selects middle section
+///    - Otherwise: selects the first valid section (iS1)
+/// 
+/// The nTimes counter (max 5) prevents selecting sections too far from the first candidate
+/// with the same fringe count, ensuring stability in selection.
+/// 
+/// Sets:
+/// - Sections[idx].MainLine = TRUE for the selected section
+/// - idxMainSection to the index of the selected section
+/// </remarks>
 void CDigitInfo::SelectMainSection()
 {
 	double minSecSegm = SecSegm - SecSegm * CorrectionSecSegm;
@@ -22,38 +43,47 @@ void CDigitInfo::SelectMainSection()
 	int maxFringeNumber2 = -1;
 	int iS1 = -1;
 	int iS2 = -1;
-	double step;
-	int nDot;
-	int nTimes = 5;
-	int iTime = 0;
-	int i = 0;
-	for (i = 0; i < Sections.GetSize(); i++) {
-		step = Sections[i].aveStep;
-		nDot = Sections[i].NumLines.GetSize();
-		if (nDot > maxFringeNumber1) iTime = 0;
-		if (minSecSegm < step && step < maxSecSegm && nDot >= maxFringeNumber1 && iTime < nTimes) {
-			if (nDot == maxFringeNumber1) iTime++;
-			maxFringeNumber1 = nDot;
-			iS1 = i;
+	const int MAX_HITS = 5;
+	
+	// Forward scan: Find section with maximum fringe lines within acceptable step range
+	int hitCount = 0;
+	for (int i = 0; i < Sections.GetSize(); i++) {
+		double step = Sections[i].aveStep;
+		if (minSecSegm < step && step < maxSecSegm) {
+			int nDots = Sections[i].NumLines.GetSize();
+			if (nDots > maxFringeNumber1) hitCount = 0;
+			if (nDots >= maxFringeNumber1 && hitCount < MAX_HITS) {
+				if (nDots == maxFringeNumber1) ++hitCount;
+				maxFringeNumber1 = nDots;
+				iS1 = i;
+			}
 		}
 	}
-	iTime = 0;
-	for (i = Sections.GetSize() - 1; i > -1; i--) {
-		step = Sections[i].aveStep;
-		nDot = Sections[i].NumLines.GetSize();
-		if (nDot > maxFringeNumber2) iTime = 0;
-		if (minSecSegm < step && step < maxSecSegm && nDot >= maxFringeNumber2 && iTime < nTimes && maxFringeNumber1 == maxFringeNumber2) {
-			if (nDot == maxFringeNumber2) iTime++;
-			maxFringeNumber2 = nDot;
-			iS2 = i;
+	
+	// Backward scan: Find section with maximum fringe lines within acceptable step range
+	hitCount = 0;
+	for (int i = Sections.GetSize() - 1; i > -1; i--) {
+		double step = Sections[i].aveStep;
+		if (minSecSegm < step && step < maxSecSegm) {
+			int nDots = Sections[i].NumLines.GetSize();
+			if (nDots > maxFringeNumber2) hitCount = 0;
+			if (nDots >= maxFringeNumber2 && hitCount < MAX_HITS && maxFringeNumber1 == maxFringeNumber2) {
+				if (nDots == maxFringeNumber2) ++hitCount;
+				maxFringeNumber2 = nDots;
+				iS2 = i;
+			}
 		}
 	}
+	
+	// Select main section based on forward/backward scan results
 	if (iS1 != -1 && iS2 != -1 && iS1 != iS2 && !isInsideScreen) {
-		int idx = iS1 + (iS2 - iS1) / 2;
+		// Two different valid sections found: select middle section
+		int idx = (iS1 + iS2) / 2;
 		Sections[idx].MainLine = TRUE;
 		idxMainSection = idx;
 	}
 	else {
+		// Use first valid section from forward scan
 		if (iS1 != -1) {
 			Sections[iS1].MainLine = TRUE;
 			idxMainSection = iS1;
@@ -65,6 +95,28 @@ void CDigitInfo::SelectMainSection()
 
 #include "DigitMode\CreateNumLines.hxx"
 
+/// <summary>
+/// Selects the main fringe number by finding the fringe that appears most consistently
+/// across different sections. A fringe is considered to appear in a section if it exists
+/// exactly once within that section.
+/// </summary>
+/// <remarks>
+/// Algorithm steps:
+/// 1. Validates that a main section has been selected (idxMainSection != -1)
+/// 2. Collects all unique fringe numbers from the main section's NumLines
+/// 3. For each fringe number:
+///    - Iterates through all sections in the image
+///    - Counts how many sections contain that fringe number exactly once
+///    - Stores this count in a map (key: fringe number, value: occurrence count)
+/// 4. Selects the fringe number with the highest occurrence count across all sections
+/// 5. If multiple fringes have the same count, the first one encountered is selected
+/// 
+/// The selected main fringe number is stored in MainFringeNumber and is used for
+/// correcting and renumbering fringe lines throughout the interferogram.
+/// 
+/// Sets:
+/// - MainFringeNumber to the selected fringe number (or -1000.0 if no valid fringe found)
+/// </remarks>
 void CDigitInfo::SelectMainFringe()
 {
 	if (idxMainSection == -1)
@@ -144,13 +196,13 @@ void CDigitInfo::CorrectNumbers()
 
 void CDigitInfo::CreateZAPSections()
 {
-	CBoundCtrls* pB = GetBoundCtrls();
+	//CBoundCtrls* pB = GetBoundCtrls();
 	CImageCtrls* pI = GetImageCtrls();
 	int xDIB = pI->ImageSize.cx;
 	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return;
+	//CRect BoundR;
+	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	//	return;
 	int maxN = INT_MIN;
 	int minN = INT_MAX;
 	for (int iS = 0; iS < Sections.GetSize(); iS++) {
@@ -162,7 +214,11 @@ void CDigitInfo::CreateZAPSections()
 	}
 	int nFringes = static_cast<int>((maxN - minN) / numStep + 1);
 	int begY = 0;
-	int bH = BoundR.Height();
+	// switched to apertures
+	auto pA = GetApertureCtrls();
+	auto BoundR = pA->GetShapes().getCombinedBounds();
+	int bH = static_cast<int>(BoundR.height());
+	// ----------------------
 	double SecGap;
 	int i;
 	if (ZapLines.GetSize() < 2) {
@@ -194,12 +250,12 @@ void CDigitInfo::CreateZAPSections()
 void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 {
 	CImageCtrls* pI = GetImageCtrls();
-	CBoundCtrls* pB = GetBoundCtrls();
+	//CBoundCtrls* pB = GetBoundCtrls();
 	int xDIB = pI->ImageSize.cx;
 	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return;
+	//CRect BoundR;
+	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	//	return;
 
 	CList<double, double> YLines;
 	double y;
@@ -208,8 +264,10 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 		if (!YLines.Find(y))
 			YLines.AddTail(y);
 	}
-
-	int ext_t_y = BoundR.top;
+	// Switched to aperture
+	auto BoundR = GetApertureCtrls()->GetShapes().getCombinedBounds();
+	// --------------------
+	int ext_t_y = static_cast<int>(BoundR.top);
 	int iy;
 	POSITION pos = YLines.GetHeadPosition();
 	for (int i = 0; i < YLines.GetCount(); i++) {
@@ -358,66 +416,69 @@ bool CDigitInfo::LockZapSection(CPoint P, BOOL Enable)
 		return false;
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CDigitInfo::SetLockedZapSectionYPos(int iy)
 {
-	CBoundCtrls* pB = GetBoundCtrls();
-	CImageCtrls* pI = GetImageCtrls();
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return;
-	int begY = BoundR.top;
-	int i = iy - begY;
-	if (Sections.GetSize()) {
-		ZapLines[idxDragZapLine].L = Sections[i].L;
-	}
-	else {
-		CDLine L;
-		L.P1.y = L.P2.y = iy;
-		L.P1.x = BoundR.left;
-		L.P2.x = BoundR.right;
-		ZapLines[idxDragZapLine].L = L;
-	}
+	////CBoundCtrls* pB = GetBoundCtrls();
+	//CImageCtrls* pI = GetImageCtrls();
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR;
+	////if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	////	return;
+	//int begY = BoundR.top;
+	//int i = iy - begY;
+	//if (Sections.GetSize()) {
+	//	ZapLines[idxDragZapLine].L = Sections[i].L;
+	//}
+	//else {
+	//	CDLine L;
+	//	L.P1.y = L.P2.y = iy;
+	//	L.P1.x = BoundR.left;
+	//	L.P2.x = BoundR.right;
+	//	ZapLines[idxDragZapLine].L = L;
+	//}
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CDigitInfo::GetLockedZapSectionXYPos(CPoint& P1, CPoint& P2)
 {
-	P1.x = (int)ZapLines[idxDragZapLine].L.P1.x;
-	P1.y = (int)ZapLines[idxDragZapLine].L.P1.y;
+	//P1.x = (int)ZapLines[idxDragZapLine].L.P1.x;
+	//P1.y = (int)ZapLines[idxDragZapLine].L.P1.y;
 
-	P2.x = (int)ZapLines[idxDragZapLine].L.P2.x;
-	P2.y = (int)ZapLines[idxDragZapLine].L.P2.y;
+	//P2.x = (int)ZapLines[idxDragZapLine].L.P2.x;
+	//P2.y = (int)ZapLines[idxDragZapLine].L.P2.y;
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CDigitInfo::AddZapSection(int iy)
 {
-	CBoundCtrls* pB = GetBoundCtrls();
-	CImageCtrls* pI = GetImageCtrls();
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return;
-	int begY = BoundR.top;
-	int i = iy - begY;
-	CZapLineInfo zL;
-	if (Sections.GetSize() && i >= 0 && i < Sections.GetSize()) {
-		zL.L = Sections[i].L;
-		zL.iSec = i;
-		ZapLines.Add(zL);
-		PutDotsOnZAPSections(ZapLines.GetSize() - 1);
-	}
-	else {
-		CDLine L;
-		L.P1.y = L.P2.y = iy;
-		L.P1.x = BoundR.left;
-		L.P2.x = BoundR.right;
-		zL.iSec = i;
-		zL.L = L;
-		ZapLines.Add(zL);
-	}
-	HandSetZapLines = TRUE;
+	//CBoundCtrls* pB = GetBoundCtrls();
+	//CImageCtrls* pI = GetImageCtrls();
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR;
+	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	//	return;
+	//int begY = BoundR.top;
+	//int i = iy - begY;
+	//CZapLineInfo zL;
+	//if (Sections.GetSize() && i >= 0 && i < Sections.GetSize()) {
+	//	zL.L = Sections[i].L;
+	//	zL.iSec = i;
+	//	ZapLines.Add(zL);
+	//	PutDotsOnZAPSections(ZapLines.GetSize() - 1);
+	//}
+	//else {
+	//	CDLine L;
+	//	L.P1.y = L.P2.y = iy;
+	//	L.P1.x = BoundR.left;
+	//	L.P2.x = BoundR.right;
+	//	zL.iSec = i;
+	//	zL.L = L;
+	//	ZapLines.Add(zL);
+	//}
+	//HandSetZapLines = TRUE;
 }
 
 void CDigitInfo::SectionLeft(CPoint P, int dotSide)
@@ -893,14 +954,18 @@ bool CDigitInfo::GetNearestXInSection(CPoint P, double& x)
 	if (Sections.GetSize() == 0)
 		return false;
 
-	CBoundCtrls* pB = GetBoundCtrls();
+	//CBoundCtrls* pB = GetBoundCtrls();
 	CImageCtrls* pI = GetImageCtrls();
 	int xDIB = pI->ImageSize.cx;
 	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return false;
-	int begY = BoundR.top;
+	auto* pA = GetApertureCtrls();
+	//CRect BoundR;
+	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	//	return false;
+	// switched to apertures
+	auto BoundR = pA->GetShapes().getCombinedBounds();
+	// ---------------------
+	int begY = static_cast<int>(BoundR.top);
 	int i = P.y - begY;
 	double mindif = INT_MAX;
 	int _idx = -1;

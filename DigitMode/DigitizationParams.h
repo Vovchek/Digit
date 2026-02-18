@@ -21,7 +21,7 @@ struct ExtremumPoint {
     Point2d position;
     double intensity{0.0};
     ExtremumType extremumType{ ExtremumType::Red};
-    bool isValid{false};
+    bool assigned{false};
     double number{-1000.};
     Limits window{ {0.0,0.0},{0.0,0.0} };
 };
@@ -29,7 +29,7 @@ struct ExtremumPoint {
 struct Section {
     std::vector<ExtremumPoint> points;
     Limits limits{ {0.0,0.0},{0.0,0.0} };
-    double aveStep{0.};
+    double averageStep{0.};
 };
 
 struct FringePolyline {
@@ -50,6 +50,7 @@ struct DigitizationInput {
 
     std::function<bool(int, int)> isVisible;
 
+    double fringeStep{1.};
     int fringeCenterAs{0};
     double contrastThreshold{0.0};
     int minFringeSpacing{0};

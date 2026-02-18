@@ -1,5 +1,6 @@
 ﻿#include "DigitMode/RedCenterDetector.h"
 #include "DigitMode/FringeConstructor.h"
+#include "DigitMode/ShapeConversionHelpers.h"
 #include "DigitInfo.h"
 #include "Controls/CApertureCtrls.h"
 #include "InterfSolver/INCLUDE/Int_Cons.h"
@@ -11,6 +12,7 @@
 #include <string>
 #include <vector>
 #include <windowsx.h>
+#include "FringeSegmentAdaptor.h"
 
 #ifndef INTERNAL
 #define INTERNAL 0
@@ -127,23 +129,33 @@ void CDigitInfo::Auto()
 	::SetCursor(::LoadCursor(NULL, IDC_WAIT));
 	Clear(FALSE);
 	CreateRedCenters();
-	SelectFringeStep();
-	SelectMainSection();
 
-	CreateNumLines();
-	if (!isInsideScreen) {
-		SelectMainFringe();
-		CorrectNumbers();
-	}
+    m_bUseFringeModel = false; // TODO: update after transition
 
-	CreateZAPSections();
-	// sort dots by increasing fringe,then by Y downwards
-	SortDotsFY();
-	SelectMainDot();
-	::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-	m_bUseFringeModel = false; // TODO: update after transition
-	SyncFringesToDots();
-	m_bUseFringeModel = true;
+    if (!m_bUseFringeModel) {
+        SelectFringeStep();
+        SelectMainSection();
+
+        CreateNumLines();
+        if (!isInsideScreen) {
+            SelectMainFringe();
+            CorrectNumbers();
+        }
+
+        CreateZAPSections();
+        // sort dots by increasing fringe,then by Y downwards
+        SortDotsFY();
+        SelectMainDot();
+        ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+        
+        SyncFringesToDots(); // bylateral sync fringes <-> dots
+        m_bUseFringeModel = true;
+    }
+    else {
+
+        m_bUseFringeModel = true;
+
+    }
 }
 
 void CDigitInfo::CreateRedCenters()
@@ -210,10 +222,6 @@ void CDigitInfo::CreateRedCenters()
             numLine.redX = redX;
             Sections[y].NumLines.Add(numLine);
         }
-        // already sorted
-        //if (pCtrls->FringeCenterAs == FC_MINMAX) {
-        //    Sections[y].Sort();
-        //}
     }
     // TODO: end of code to eliminate
     // =========================================================
@@ -222,6 +230,16 @@ void CDigitInfo::CreateRedCenters()
         for(const auto& p: s.points)
         HidenDots.Add(CDPoint(p.position.x, p.position.y));
     }
+
+    if (0) { // TODO: this is under construction, shold be enabled and moved somewhere else
+
+    auto fringes = DigitMode::digitization::FringeConstructor::ConstructFringes(
+        sections, input.imageWidth, input.imageHeight, input.isVisible,
+        input.fringeCenterAs, input.fringeStep, 0.3);
+
+        Fringes = DigitMode::digitization::FringeSegmentAdapter::AdaptFringes(fringes);
+    }
+
 }
  
 void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand)

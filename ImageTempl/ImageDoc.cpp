@@ -759,10 +759,12 @@ void CImageDoc::OnLButDown(CPoint P)
 		RemoveFringe(P);
 		break;
 	case E_ADD_SECTION:
-		AddZapSection(P.y);
+		// deprecated/eliminated - no zap sections anymore
+		//AddZapSection(P.y);
 		break;
 	case E_DELETE_SECTION:
-		DeleteZapSection(P.y);
+		// deprecated/eliminated - no zap sections anymore
+		//DeleteZapSection(P.y);
 		break;
 	case E_SECTION_LEFT:
 		SectionLeft(P);
@@ -828,43 +830,47 @@ void CImageDoc::RemoveFringe(CPoint P)
 	GetView()->Invalidate(FALSE);
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CImageDoc::AddZapSection(int iy)
 {
-	CBoundCtrls* pB = GetBoundCtrls();
-	CImageCtrls* pI = GetImageCtrls();
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR;
-	if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
-		return;
-	int begY = BoundR.top;
-	int i = iy - begY;
-	Digit.AddZapSection(iy);
-	GetView()->Invalidate(FALSE);
+	//CBoundCtrls* pB = GetBoundCtrls();
+	//CImageCtrls* pI = GetImageCtrls();
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR;
+	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
+	//	return;
+	//int begY = BoundR.top;
+	//int i = iy - begY;
+	//Digit.AddZapSection(iy);
+	//GetView()->Invalidate(FALSE);
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CImageDoc::DeleteZapSection(int iy)
 {
-	Digit.DeleteZapSection(iy);
-	GetView()->Invalidate(FALSE);
+	//Digit.DeleteZapSection(iy);
+	//GetView()->Invalidate(FALSE);
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CImageDoc::SectionLeft(CPoint P)
 {
-	CControls* pCtrls = GetControls();
-	int DotSide;
-	pCtrls->GetCorrectDotSize(DotSide, this);
-	Digit.SectionLeft(P, DotSide);
-	GetView()->Invalidate(FALSE);
+	//CControls* pCtrls = GetControls();
+	//int DotSide;
+	//pCtrls->GetCorrectDotSize(DotSide, this);
+	//Digit.SectionLeft(P, DotSide);
+	//GetView()->Invalidate(FALSE);
 }
 
+// deprecated/eliminated - no zap sections anymore
 void CImageDoc::SectionRight(CPoint P)
 {
-	CControls* pCtrls = GetControls();
-	int DotSide;
-	pCtrls->GetCorrectDotSize(DotSide, this);
-	Digit.SectionRight(P, DotSide);
-	GetView()->Invalidate(FALSE);
+	//CControls* pCtrls = GetControls();
+	//int DotSide;
+	//pCtrls->GetCorrectDotSize(DotSide, this);
+	//Digit.SectionRight(P, DotSide);
+	//GetView()->Invalidate(FALSE);
 }
 
 void CImageDoc::RenumFringe(CPoint P)
@@ -979,18 +985,19 @@ bool CImageDoc::IsZapSectionUnderCursor(CPoint P)
 
 bool CImageDoc::LockZapSection(CPoint P, BOOL Enable)
 {
-	return Digit.LockZapSection(P, Enable);
+	//return Digit.LockZapSection(P, Enable);
+	return false;
 }
 
 void CImageDoc::SetLockedZapSectionYPos(int iy)
 {
-	Digit.SetLockedZapSectionYPos(iy);
+	//Digit.SetLockedZapSectionYPos(iy);
 }
 
 void CImageDoc::GetLockedZapSectionXYPos(CPoint& P1, CPoint& P2)
 {
-	Digit.GetLockedZapSectionXYPos(P1, P2);
-	Digit.RemoveDotZAPSection(Digit.idxDragZapLine);
+	//Digit.GetLockedZapSectionXYPos(P1, P2);
+	//Digit.RemoveDotZAPSection(Digit.idxDragZapLine);
 }
 
 BOOL CImageDoc::OnSaveDocument(LPCTSTR lpszPathName)

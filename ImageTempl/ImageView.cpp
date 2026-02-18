@@ -792,40 +792,42 @@ void CImageView::OnUpdateExtBounds(CCmdUI* pCmdUI)
 		pCmdUI->Enable(TRUE);
 }
 
+// TODO: switch to apertures
 void CImageView::OnInsBounds()
 {
-	CMainFrame* pMFr = GetMainFrame();
-	CControls* pCtrls = GetControls();
-	CBoundCtrls* pBCtrls = GetBoundCtrls();
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CMainFrame* pMFr = GetMainFrame();
+	//CControls* pCtrls = GetControls();
+	//CBoundCtrls* pBCtrls = GetBoundCtrls();
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
 
-	if (pCtrls->EnableOptions & I_BOUNDS_INS) {
-		DeActivateMode(I_BOUNDS_INS);
-	}
-	else {
-		pCtrls->ActiveEditMode = -1;
-		pDoc->ActivateInsBounds(TRUE);
-		DeActivateMode(I_MEASURELINE);
-		DeActivateMode(I_FOTO_SECTIONS);
-		pMFr->ShowMeasurePane(FALSE);
-	}
+	//if (pCtrls->EnableOptions & I_BOUNDS_INS) {
+	//	DeActivateMode(I_BOUNDS_INS);
+	//}
+	//else {
+	//	pCtrls->ActiveEditMode = -1;
+	//	pDoc->ActivateInsBounds(TRUE);
+	//	DeActivateMode(I_MEASURELINE);
+	//	DeActivateMode(I_FOTO_SECTIONS);
+	//	pMFr->ShowMeasurePane(FALSE);
+	//}
 }
 
+// TODO: switch to apertures
 void CImageView::OnUpdateInsBounds(CCmdUI* pCmdUI)
 {
-	CControls* pCtrls = GetControls();
-	CDigitInfo* pD = GetDigitInfo(this);
-	CBoundCtrls* pB = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
+	//CDigitInfo* pD = GetDigitInfo(this);
+	//CBoundCtrls* pB = GetBoundCtrls(this);
 
-	if (pB->ExtBoundType != -1 && (pCtrls->EnableOptions & I_BOUNDS_INS))
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//if (pB->ExtBoundType != -1 && (pCtrls->EnableOptions & I_BOUNDS_INS))
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 
-	if (pD->IsDigiting() || pB->ExtBoundType == -1)
-		pCmdUI->Enable(FALSE);
-	else
-		pCmdUI->Enable(TRUE);
+	//if (pD->IsDigiting() || pB->ExtBoundType == -1)
+	//	pCmdUI->Enable(FALSE);
+	//else
+	//	pCmdUI->Enable(TRUE);
 }
 
 void CImageView::OnUpdateZoom(CCmdUI* pCmdUI)
@@ -1161,32 +1163,33 @@ void CImageView::BeginDragZapSection(CPoint P)
 	DragZapSection(P1);
 }
 
+// deprecated/eliminated - no zap sections edits
 void CImageView::DragZapSection(CPoint P, BOOL newPos/*TRUE*/)
 {
-	if (m_Captured) {
-		CClientDC dc(this);
-		OnPrepareDC(&dc);
-		CPen pen;
-		pen.CreatePen(PS_SOLID, 0, InvColor);
-		CPen* open = dc.SelectObject(&pen);
-		int orop = dc.SetROP2(R2_XORPEN);
+	//if (m_Captured) {
+	//	CClientDC dc(this);
+	//	OnPrepareDC(&dc);
+	//	CPen pen;
+	//	pen.CreatePen(PS_SOLID, 0, InvColor);
+	//	CPen* open = dc.SelectObject(&pen);
+	//	int orop = dc.SetROP2(R2_XORPEN);
 
-		CImageDoc* pDoc = (CImageDoc*)GetDocument();
-		CPoint P1, P2;
-		pDoc->GetLockedZapSectionXYPos(P1, P2);
-		dc.MoveTo(P1);
-		dc.LineTo(P2);
-		pDoc->SetLockedZapSectionYPos(P.y);
-		if (newPos) {
-			pDoc->GetLockedZapSectionXYPos(P1, P2);
-			dc.MoveTo(P1);
-			dc.LineTo(P2);
-		}
-		dc.SetROP2(orop);
-		CPen* retPen = dc.SelectObject(open);
-		if (retPen)
-			retPen->DeleteObject();
-	}
+	//	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//	CPoint P1, P2;
+	//	pDoc->GetLockedZapSectionXYPos(P1, P2);
+	//	dc.MoveTo(P1);
+	//	dc.LineTo(P2);
+	//	pDoc->SetLockedZapSectionYPos(P.y);
+	//	if (newPos) {
+	//		pDoc->GetLockedZapSectionXYPos(P1, P2);
+	//		dc.MoveTo(P1);
+	//		dc.LineTo(P2);
+	//	}
+	//	dc.SetROP2(orop);
+	//	CPen* retPen = dc.SelectObject(open);
+	//	if (retPen)
+	//		retPen->DeleteObject();
+	//}
 }
 
 void CImageView::DropZapSection(CPoint P)
@@ -1201,7 +1204,7 @@ BOOL CImageView::OnSetCursor(CWnd* pWnd, UINT nHitTest, UINT message)
 	CImageDoc* pActDoc = (CImageDoc*)GetWIActiveDocument();
 	if (pDoc == pActDoc) {
 		CMeasureCtrls* pMCtrls = GetMeasureCtrls(this);
-		CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+		//CBoundCtrls* pBCtrls = GetBoundCtrls(this);
 		CControls* pCtrls = GetControls();
 		if (pWnd == this && ((pCtrls->EnableOptions & I_BOUNDS_EXT) || (pCtrls->EnableOptions & I_BOUNDS_INS)) && pCtrls->EnableTracker) {
 			CClientDC dc(this);
@@ -1289,16 +1292,17 @@ void CImageView::OnContextMenu(CWnd* pWnd, CPoint point)
 {
 	CControls* pCtrls = GetControls();
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CBoundCtrls* pBCtrls = GetBoundCtrls(this);
 	CImageCtrls* pI = GetImageCtrls();
 	int xDIB = pI->ImageSize.cx;
 	int yDIB = pI->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pBCtrls->GetExtCorBound(pBCtrls->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	// bounds controls eliminated
+	//CBoundCtrls* pBCtrls = GetBoundCtrls(this);
+	//CRect BoundR(0, 0, 0, 0);
+	//pBCtrls->GetExtCorBound(pBCtrls->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-	if (pDoc->IsDots() && BoundR.PtInRect(CursorPos)) {
-		return;
-	}
+	//if (pDoc->IsDots() && BoundR.PtInRect(CursorPos)) {
+	//	return;
+	//}
 
 	if (pDoc->IsFotoSections()) {
 		return;
@@ -1361,13 +1365,14 @@ void CImageView::OnAutoDigit()
 
 void CImageView::OnUpdateAutoDigit(CCmdUI* pCmdUI)
 {
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CImageCtrls* pI = GetImageCtrls();
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
-	if (BoundR.IsRectNull())
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	// CImageCtrls* pI = GetImageCtrls();
+	auto* pA = GetApertureCtrls();
+	if (!GetImageCtrls()->HasImage() || pA->GetShapes().getApertures().empty())
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
@@ -1381,13 +1386,14 @@ void CImageView::OnClearDigit()
 
 void CImageView::OnUpdateClearDigit(CCmdUI* pCmdUI)
 {
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CImageCtrls* pI = GetImageCtrls();
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
-	if (BoundR.IsRectNull())
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CImageCtrls* pI = GetImageCtrls();
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	auto* pA = GetApertureCtrls();
+	if (pA->GetShapes().getApertures().empty())
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
@@ -1467,22 +1473,24 @@ void CImageView::OnAddDot()
 		pCtrls->ActiveEditMode = E_ADD_DOT;
 }
 
+// TODO: redesign modes & commands
 void CImageView::OnUpdateAddDot(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CImageCtrls* pI = GetImageCtrls(this);
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CImageCtrls* pI = GetImageCtrls(this);
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-	if (!BoundR.IsRectNull())
+	auto* pA = GetApertureCtrls();
+	if (!pA->GetShapes().getApertures().empty())
 		pCmdUI->Enable(TRUE);
 	else
 		pCmdUI->Enable(FALSE);
 
+	CControls* pCtrls = GetControls();
 	if (pCtrls->ActiveEditMode == E_ADD_DOT)
 		pCmdUI->SetRadio(TRUE);
 	else
@@ -1503,19 +1511,20 @@ void CImageView::OnRemoveDot()
 void CImageView::OnUpdateRemoveDot(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CImageCtrls* pI = GetImageCtrls(this);
-	int xDIB = pI->ImageSize.cx;
-	int yDIB = pI->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CImageCtrls* pI = GetImageCtrls(this);
+	//int xDIB = pI->ImageSize.cx;
+	//int yDIB = pI->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-	if (!BoundR.IsRectNull())
+	auto* pA = GetApertureCtrls();
+	if (!pA->GetShapes().getApertures().empty())
 		pCmdUI->Enable(TRUE);
 	else
 		pCmdUI->Enable(FALSE);
 
+	CControls* pCtrls = GetControls();
 	if (pCtrls->ActiveEditMode == E_DELETE_DOT)
 		pCmdUI->SetRadio(TRUE);
 	else
@@ -1549,130 +1558,139 @@ void CImageView::OnUpdateRemoveFringe(CCmdUI* pCmdUI)
 		pCmdUI->SetRadio(FALSE);
 }
 
+// deprecated/eliminated - no more zap sections
 void CImageView::OnAddZAPSection()
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	pDoc->DeActivateAllMode();
-	if (pCtrls->ActiveEditMode == E_ADD_SECTION)
-		pCtrls->ActiveEditMode = -1;
-	else
-		pCtrls->ActiveEditMode = E_ADD_SECTION;
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CControls* pCtrls = GetControls();
+	//pDoc->DeActivateAllMode();
+	//if (pCtrls->ActiveEditMode == E_ADD_SECTION)
+	//	pCtrls->ActiveEditMode = -1;
+	//else
+	//	pCtrls->ActiveEditMode = E_ADD_SECTION;
 }
 
+// deprecated/eliminated - no more zap sections
 void CImageView::OnUpdateAddSection(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CImageCtrls* pIm = GetImageCtrls(this);
-	CControls* pCtrls = GetControls();
-	int xDIB = pIm->ImageSize.cx;
-	int yDIB = pIm->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CImageCtrls* pIm = GetImageCtrls(this);
+	//int xDIB = pIm->ImageSize.cx;
+	//int yDIB = pIm->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-	if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && pIm->m_pDIB && (pCtrls->ViewState & V_ZAPSECTIONS))
-		pCmdUI->Enable(TRUE);
-	else
+	//if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && pIm->m_pDIB && (pCtrls->ViewState & V_ZAPSECTIONS))
+	//	pCmdUI->Enable(TRUE);
+	//else
 		pCmdUI->Enable(FALSE);
 
-	if (pCtrls->ActiveEditMode == E_ADD_SECTION)
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//CControls* pCtrls = GetControls();
+	//if (pCtrls->ActiveEditMode == E_ADD_SECTION)
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 
 }
 
+// deprecated/eliminated - no more zap sections
 void CImageView::OnDelZAPSection()
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	pDoc->DeActivateAllMode();
-	if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
-		pCtrls->ActiveEditMode = -1;
-	else
-		pCtrls->ActiveEditMode = E_DELETE_SECTION;
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CControls* pCtrls = GetControls();
+	//pDoc->DeActivateAllMode();
+	//if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
+	//	pCtrls->ActiveEditMode = -1;
+	//else
+	//	pCtrls->ActiveEditMode = E_DELETE_SECTION;
 }
 
+// deprecated/eliminated - no more zap sections
 void CImageView::OnUpdateDelSection(CCmdUI* pCmdUI)
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
-	CImageCtrls* pIm = GetImageCtrls(this);
-	int xDIB = pIm->ImageSize.cx;
-	int yDIB = pIm->ImageSize.cy;
-	CRect BoundR(0, 0, 0, 0);
-	pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
+	//CImageCtrls* pIm = GetImageCtrls(this);
+	//int xDIB = pIm->ImageSize.cx;
+	//int yDIB = pIm->ImageSize.cy;
+	//CRect BoundR(0, 0, 0, 0);
+	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 
-	if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && (pCtrls->ViewState & V_ZAPSECTIONS))
-		pCmdUI->Enable(TRUE);
-	else
+	//if (!BoundR.IsRectNull() && pDoc->LoadedFileType != T_FRN && (pCtrls->ViewState & V_ZAPSECTIONS))
+	//	pCmdUI->Enable(TRUE);
+	//else
 		pCmdUI->Enable(FALSE);
 
-	if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//if (pCtrls->ActiveEditMode == E_DELETE_SECTION)
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnShiftDotLeft()
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
-	pDoc->DeActivateAllMode();
-	if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
-		pCtrls->ActiveEditMode = -1;
-	else
-		pCtrls->ActiveEditMode = E_SECTION_LEFT;
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CControls* pCtrls = GetControls();
+	//pDoc->DeActivateAllMode();
+	//if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
+	//	pCtrls->ActiveEditMode = -1;
+	//else
+	//	pCtrls->ActiveEditMode = E_SECTION_LEFT;
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnUpdateShiftDotLeft(CCmdUI* pCmdUI)
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
 
-	if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
-		pCmdUI->Enable(TRUE);
-	else
+	//if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
+	//	pCmdUI->Enable(TRUE);
+	//else
 		pCmdUI->Enable(FALSE);
 
-	if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//if (pCtrls->ActiveEditMode == E_SECTION_LEFT)
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnShiftDotRight()
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	pDoc->DeActivateAllMode();
-	CControls* pCtrls = GetControls();
-	if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
-		pCtrls->ActiveEditMode = -1;
-	else
-		pCtrls->ActiveEditMode = E_SECTION_RIGHT;
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//pDoc->DeActivateAllMode();
+	//CControls* pCtrls = GetControls();
+	//if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
+	//	pCtrls->ActiveEditMode = -1;
+	//else
+	//	pCtrls->ActiveEditMode = E_SECTION_RIGHT;
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnUpdateShiftDotRight(CCmdUI* pCmdUI)
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CBoundCtrls* pB = GetBoundCtrls(this);
-	CControls* pCtrls = GetControls();
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CBoundCtrls* pB = GetBoundCtrls(this);
+	//CControls* pCtrls = GetControls();
 
-	if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
-		pCmdUI->Enable(TRUE);
-	else
+	//if (pDoc->IsDots() && pDoc->LoadedFileType != T_FRN && pDoc->Digit.IsZapSections() && (pCtrls->ViewState & V_ZAPSECTIONS))
+	//	pCmdUI->Enable(TRUE);
+	//else
 		pCmdUI->Enable(FALSE);
 
-	if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//if (pCtrls->ActiveEditMode == E_SECTION_RIGHT)
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 }
 
+// TODO: redesign
 void CImageView::OnRenumFringe()
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
@@ -1684,6 +1702,7 @@ void CImageView::OnRenumFringe()
 		pCtrls->ActiveEditMode = E_RENUM_FRINGE;
 }
 
+// TODO: redesign
 void CImageView::OnUpdateRenumFringe(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
@@ -1700,39 +1719,43 @@ void CImageView::OnUpdateRenumFringe(CCmdUI* pCmdUI)
 		pCmdUI->SetRadio(FALSE);
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnRenumDot()
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	pDoc->DeActivateAllMode();
-	CControls* pCtrls = GetControls();
-	if (pCtrls->ActiveEditMode == E_RENUM_DOT)
-		pCtrls->ActiveEditMode = -1;
-	else
-		pCtrls->ActiveEditMode = E_RENUM_DOT;
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//pDoc->DeActivateAllMode();
+	//CControls* pCtrls = GetControls();
+	//if (pCtrls->ActiveEditMode == E_RENUM_DOT)
+	//	pCtrls->ActiveEditMode = -1;
+	//else
+	//	pCtrls->ActiveEditMode = E_RENUM_DOT;
 }
 
+// deprecated/eliminated - fringes editing workflow
 void CImageView::OnUpdateRenumDot(CCmdUI* pCmdUI)
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CControls* pCtrls = GetControls();
+	//CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	//CControls* pCtrls = GetControls();
 
-	if (pDoc->IsDots())
-		pCmdUI->Enable(TRUE);
-	else
+	//if (pDoc->IsDots())
+	//	pCmdUI->Enable(TRUE);
+	//else
 		pCmdUI->Enable(FALSE);
 
-	if (pCtrls->ActiveEditMode == E_RENUM_DOT)
-		pCmdUI->SetRadio(TRUE);
-	else
-		pCmdUI->SetRadio(FALSE);
+	//if (pCtrls->ActiveEditMode == E_RENUM_DOT)
+	//	pCmdUI->SetRadio(TRUE);
+	//else
+	//	pCmdUI->SetRadio(FALSE);
 }
 
+// TODO: redesign commands
 void CImageView::OnNumberMinus()
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	pDoc->OnNumberMinus();
 }
 
+// TODO: redesign commands
 void CImageView::OnUpdateNumberMinus(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
@@ -1744,12 +1767,14 @@ void CImageView::OnUpdateNumberMinus(CCmdUI* pCmdUI)
 		pCmdUI->Enable(FALSE);
 }
 
+// TODO: redesign commands
 void CImageView::OnNumberPlus()
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
 	pDoc->OnNumberPlus();
 }
 
+// TODO: redesign commands
 void CImageView::OnUpdateNumberPlus(CCmdUI* pCmdUI)
 {
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();

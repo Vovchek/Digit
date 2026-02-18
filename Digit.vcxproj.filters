@@ -274,6 +274,9 @@
     <ClCompile Include="DigitMode\FringeSegmentAdaptor.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -507,6 +510,9 @@
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\FringeSegmentAdaptor.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\ShapeConversionHelpers.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
   </ItemGroup>

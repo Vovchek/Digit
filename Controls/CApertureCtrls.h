@@ -160,6 +160,10 @@ public:
     // Hit Testing (Read-Only Access)
     // ========================================================================
     
+#ifdef EXTERNAL
+#undef EXTERNAL
+#endif
+
     struct HitTestResult {
         aperture::Shape* shape = nullptr;
         aperture::TypeLimits type = aperture::TypeLimits::EXTERNAL;

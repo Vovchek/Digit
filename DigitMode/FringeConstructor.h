@@ -49,7 +49,7 @@ public:
      * @return Numbered fringes as polylines
      */
     static std::vector<NumberedFringe> ConstructFringes(
-        const std::vector<ExtremumPoint>& extrema,
+        std::vector<Section>& scanlines,
         int imageWidth,
         int imageHeight,
         const std::function<bool(int, int)>& isVisible,
@@ -64,17 +64,11 @@ private:
         bool assigned{false};
     };
 
-    struct ScanlineData {
-        int y{0};
-        std::vector<NumberedExtremum> extrema;
-        double averageStep{-1.0};
-    };
-
     /**
      * @brief Select main scanline with highest fringe density
      */
     static int SelectMainScanline(
-        const std::vector<ScanlineData>& scanlines,
+        const std::vector<Section>& scanlines,
         double fringeStep,
         double toleranceFactor);
 
@@ -95,7 +89,7 @@ private:
     static int FindMatchingExtremum(
         const ExtremumPoint& extremum,
         double currentX,
-        const ScanlineData& adjacentScanline,
+        const Section& adjacentScanline,
         double tolerance,
         int fringeCenterAs);
 
@@ -120,7 +114,7 @@ private:
     static bool ResolveCrossingBySwap(
         int currentIdx,
         int proposedIdx,
-        std::vector<ScanlineData>& scanlines,
+        std::vector<Section>& scanlines,
         int currentY,
         int adjacentY);
 
@@ -141,8 +135,8 @@ private:
     static bool WouldCross(
         int currentIdx,
         int proposedIdx,
-        const std::vector<NumberedExtremum>& currentExtrema,
-        const std::vector<NumberedExtremum>& adjacentExtrema);
+        const std::vector<ExtremumPoint>& currentExtrema,
+        const std::vector<ExtremumPoint>& adjacentExtrema);
 
     /**
      * @brief Check if two line segments intersect
@@ -168,7 +162,7 @@ private:
     static bool WouldViolateAlternation(
         ExtremumType currentType,
         double proposedNumber,
-        const ScanlineData& adjacentScanline,
+        const Section& adjacentScanline,
         int fringeCenterAs,
         double fringeStep);
 
@@ -176,7 +170,7 @@ private:
      * @brief Convert numbered extrema to fringe polylines
      */
     static std::vector<NumberedFringe> ConvertToFringes(
-        const std::vector<ScanlineData>& scanlines);
+        const std::vector<Section>& scanlines);
 };
 
 #undef FC_MAX
