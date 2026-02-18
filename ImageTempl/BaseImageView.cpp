@@ -221,181 +221,188 @@ void CBaseImageView::DrawBackGround(CDC* pDC)
 	pDC->FillRect(&clientRect, &CBrush(RGB(0,0,0)));
 	pDC->SelectClipRgn(NULL);
 }
+
+// deprecated/eliminated - no more BoundCtrls
 // Отрисовка границ в контексте устройства CDC
 void CBaseImageView::DrawBounds(CDC* pDC)
 {
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    COLORREF Color = RGB(0,255,0);
-    CPen pen;
-    pen.CreatePen(PS_COSMETIC, 0, Color);
-    CPen* open = pDC->SelectObject(&pen);
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   COLORREF Color = RGB(0,255,0);
+ //   CPen pen;
+ //   pen.CreatePen(PS_COSMETIC, 0, Color);
+ //   CPen* open = pDC->SelectObject(&pen);
 
-	int xDIB, yDIB;
-	if(pDoc->imageCtrls.m_pDIB == 0){
-       xDIB = pDoc->imageCtrls.ImageSize.cx;
-       yDIB = pDoc->imageCtrls.ImageSize.cy;
-	}
-	else{
-       xDIB = pDoc->imageCtrls.m_pDIB->m_dwPadWidth;
-       yDIB = pDoc->imageCtrls.m_pDIB->m_dwHeight;
-	}
-	CRect Bound;
-	CArray<CPoint, CPoint> PlgPoints;
-	BOOL res;
-    int BoundType = pDoc->boundCtrls.ExtBoundType;
-	if(BoundType != -1){
-		res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
-		if(res){
-			if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
-				pDC->Arc(Bound, CPoint(Bound.right, Bound.CenterPoint().y), CPoint(Bound.CenterPoint().x, Bound.right));
-				pDC->Arc(Bound, CPoint(Bound.CenterPoint().x, Bound.right), CPoint(Bound.right, Bound.CenterPoint().y));
-			}
-			else if(BoundType == BOUND_RECT){
-				pDC->MoveTo(Bound.left, Bound.top);
-				pDC->LineTo(Bound.right, Bound.top);
-				pDC->LineTo(Bound.right, Bound.bottom);
-				pDC->LineTo(Bound.left, Bound.bottom);
-				pDC->LineTo(Bound.left, Bound.top);
-			}
-			else{
-				for(int i=0; i < PlgPoints.GetSize(); i++){
-					if(i==0)pDC->MoveTo(PlgPoints[i]);
-					else pDC->LineTo(PlgPoints[i]);
-				}
-			}
-		}
-	}
+	//int xDIB, yDIB;
+	//if(pDoc->imageCtrls.m_pDIB == 0){
+ //      xDIB = pDoc->imageCtrls.ImageSize.cx;
+ //      yDIB = pDoc->imageCtrls.ImageSize.cy;
+	//}
+	//else{
+ //      xDIB = pDoc->imageCtrls.m_pDIB->m_dwPadWidth;
+ //      yDIB = pDoc->imageCtrls.m_pDIB->m_dwHeight;
+	//}
+	//CRect Bound;
+	//CArray<CPoint, CPoint> PlgPoints;
+	//BOOL res;
+ //   int BoundType = pDoc->boundCtrls.ExtBoundType;
+	//if(BoundType != -1){
+	//	res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
+	//	if(res){
+	//		if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
+	//			pDC->Arc(Bound, CPoint(Bound.right, Bound.CenterPoint().y), CPoint(Bound.CenterPoint().x, Bound.right));
+	//			pDC->Arc(Bound, CPoint(Bound.CenterPoint().x, Bound.right), CPoint(Bound.right, Bound.CenterPoint().y));
+	//		}
+	//		else if(BoundType == BOUND_RECT){
+	//			pDC->MoveTo(Bound.left, Bound.top);
+	//			pDC->LineTo(Bound.right, Bound.top);
+	//			pDC->LineTo(Bound.right, Bound.bottom);
+	//			pDC->LineTo(Bound.left, Bound.bottom);
+	//			pDC->LineTo(Bound.left, Bound.top);
+	//		}
+	//		else{
+	//			for(int i=0; i < PlgPoints.GetSize(); i++){
+	//				if(i==0)pDC->MoveTo(PlgPoints[i]);
+	//				else pDC->LineTo(PlgPoints[i]);
+	//			}
+	//		}
+	//	}
+	//}
 
-    BoundType = pDoc->boundCtrls.InsBoundType;
-	if(BoundType != -1){
-		int idx = 1;
-		res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-		if(res){
-			if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
-				pDC->Arc(Bound, CPoint(Bound.right, Bound.CenterPoint().y), CPoint(Bound.CenterPoint().x, Bound.right));
-				pDC->Arc(Bound, CPoint(Bound.CenterPoint().x, Bound.right), CPoint(Bound.right, Bound.CenterPoint().y));
-			}
-			else if(BoundType == BOUND_RECT){
-				pDC->MoveTo(Bound.left, Bound.top);
-			 pDC->LineTo(Bound.right, Bound.top);
-				pDC->LineTo(Bound.right, Bound.bottom);
-				pDC->LineTo(Bound.left, Bound.bottom);
-				pDC->LineTo(Bound.left, Bound.top);
-			}
-			else{
-				while(res){
-					for(int i=0; i < PlgPoints.GetSize(); i++){
-						if(i==0)pDC->MoveTo(PlgPoints[i]);
-						else pDC->LineTo(PlgPoints[i]);
-					}
-					idx++;
-					res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-				}
-			}
-		}
-	}
+ //   BoundType = pDoc->boundCtrls.InsBoundType;
+	//if(BoundType != -1){
+	//	int idx = 1;
+	//	res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+	//	if(res){
+	//		if(BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE){
+	//			pDC->Arc(Bound, CPoint(Bound.right, Bound.CenterPoint().y), CPoint(Bound.CenterPoint().x, Bound.right));
+	//			pDC->Arc(Bound, CPoint(Bound.CenterPoint().x, Bound.right), CPoint(Bound.right, Bound.CenterPoint().y));
+	//		}
+	//		else if(BoundType == BOUND_RECT){
+	//			pDC->MoveTo(Bound.left, Bound.top);
+	//		 pDC->LineTo(Bound.right, Bound.top);
+	//			pDC->LineTo(Bound.right, Bound.bottom);
+	//			pDC->LineTo(Bound.left, Bound.bottom);
+	//			pDC->LineTo(Bound.left, Bound.top);
+	//		}
+	//		else{
+	//			while(res){
+	//				for(int i=0; i < PlgPoints.GetSize(); i++){
+	//					if(i==0)pDC->MoveTo(PlgPoints[i]);
+	//					else pDC->LineTo(PlgPoints[i]);
+	//				}
+	//				idx++;
+	//				res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
+	//			}
+	//		}
+	//	}
+	//}
 
-    if(open){
-      CPen* pRetPen = pDC->SelectObject(open);
-      if(pRetPen) pRetPen->DeleteObject();
-    }
+ //   if(open){
+ //     CPen* pRetPen = pDC->SelectObject(open);
+ //     if(pRetPen) pRetPen->DeleteObject();
+ //   }
 }
 
+// deprecated/eliminated - no more BoundCtrls
 // Отрисовка границы  в процессе редактирования в контексте устройства CDC
 void CBaseImageView::DrawCurBound(CDC* pDC)
 {
-    COLORREF Color = RGB(0,255,255);
-    CPen pen;
-    pen.CreatePen(PS_COSMETIC, 0 , Color);
-    CPen* open = pDC->SelectObject(&pen);
+ //   COLORREF Color = RGB(0,255,255);
+ //   CPen pen;
+ //   pen.CreatePen(PS_COSMETIC, 0 , Color);
+ //   CPen* open = pDC->SelectObject(&pen);
 
-    CControls* pCtrls = GetControls();
-    CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
-    
-	if(pDoc->boundCtrls.IsCurArea()){
-        CRect dR(pDoc->boundCtrls.CurBound);
-        CRect wR;
-		wR.left = dR.left;
-		wR.right = dR.right;
-		wR.top = dR.top;
-		wR.bottom = dR.bottom;
-        wR.NormalizeRect();
-        if(pCtrls->CurTypeBound == BOUND_ROUND || pCtrls->CurTypeBound == BOUND_ELLIPSE){
-          pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
-          pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
-        }
-        else if(pCtrls->CurTypeBound == BOUND_RECT){
-          pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
-          pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
-        }
-        else if(pCtrls->CurTypeBound == BOUND_RECT){
-			pDC->MoveTo(wR.left, wR.top);
-			pDC->LineTo(wR.right, wR.top);
-			pDC->LineTo(wR.right, wR.bottom);
-			pDC->LineTo(wR.left, wR.bottom);
-			pDC->LineTo(wR.left, wR.top);
-        }
-        else if(pCtrls->CurTypeBound == BOUND_POLYGON){
-			for(int i=0; i < pDoc->boundCtrls.CurPlg.GetSize(); i++){
-				if(i==0) pDC->MoveTo(pDoc->boundCtrls.CurPlg[i]);
-				else pDC->LineTo(pDoc->boundCtrls.CurPlg[i]);
-			}
-		}
-	}
-    if(open){
-      CPen* pRetPen = pDC->SelectObject(open);
-      if(pRetPen) pRetPen->DeleteObject();
-    }
+ //   CControls* pCtrls = GetControls();
+ //   CBaseImageDoc* pDoc = (CBaseImageDoc*)GetDocument();
+ //   
+	//if(pDoc->boundCtrls.IsCurArea()){
+ //       CRect dR(pDoc->boundCtrls.CurBound);
+ //       CRect wR;
+	//	wR.left = dR.left;
+	//	wR.right = dR.right;
+	//	wR.top = dR.top;
+	//	wR.bottom = dR.bottom;
+ //       wR.NormalizeRect();
+ //       if(pCtrls->CurTypeBound == BOUND_ROUND || pCtrls->CurTypeBound == BOUND_ELLIPSE){
+ //         pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
+ //         pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
+ //       }
+ //       else if(pCtrls->CurTypeBound == BOUND_RECT){
+ //         pDC->Arc(wR, CPoint(wR.right, wR.CenterPoint().y), CPoint(wR.CenterPoint().x, wR.right));
+ //         pDC->Arc(wR, CPoint(wR.CenterPoint().x, wR.right), CPoint(wR.right, wR.CenterPoint().y));
+ //       }
+ //       else if(pCtrls->CurTypeBound == BOUND_RECT){
+	//		pDC->MoveTo(wR.left, wR.top);
+	//		pDC->LineTo(wR.right, wR.top);
+	//		pDC->LineTo(wR.right, wR.bottom);
+	//		pDC->LineTo(wR.left, wR.bottom);
+	//		pDC->LineTo(wR.left, wR.top);
+ //       }
+ //       else if(pCtrls->CurTypeBound == BOUND_POLYGON){
+	//		for(int i=0; i < pDoc->boundCtrls.CurPlg.GetSize(); i++){
+	//			if(i==0) pDC->MoveTo(pDoc->boundCtrls.CurPlg[i]);
+	//			else pDC->LineTo(pDoc->boundCtrls.CurPlg[i]);
+	//		}
+	//	}
+	//}
+ //   if(open){
+ //     CPen* pRetPen = pDC->SelectObject(open);
+ //     if(pRetPen) pRetPen->DeleteObject();
+ //   }
 }
+
+// deprecated/eliminated - no more BoundCtrls
 // Отрисовка маркера установки границ
 // cP - центр маркера
 // zoomMark - коэфф увеличения изображения маркера
 // Color - цвет маркера
 void CBaseImageView::DrawMarker(CDC* pDC, CPoint cP, double zoomMark, COLORREF Color)
 {
-    CPen* open=NULL;
-    if(Color){
-        CPen pen;
-        pen.CreatePen(PS_COSMETIC, 0, Color);
-        open = pDC->SelectObject(&pen);
-    }
+ //   CPen* open=NULL;
+ //   if(Color){
+ //       CPen pen;
+ //       pen.CreatePen(PS_COSMETIC, 0, Color);
+ //       open = pDC->SelectObject(&pen);
+ //   }
 
-	CControls* pCtrls = GetControls();
-    int step = (int)(pCtrls->MarkerSide*zoomMark/2);
-    int ts = step;
-	CSize s_ts(ts, ts);
-    pDC->DPtoLP(&s_ts);
-	step = s_ts.cx;
-    CRect rP(cP.x-step, cP.y-step, cP.x+step, cP.y+step);
-    pDC->MoveTo(rP.left, rP.top);
-    pDC->LineTo(rP.right, rP.bottom);
-    pDC->MoveTo(rP.right, rP.top);
-    pDC->LineTo(rP.left, rP.bottom);
+	//CControls* pCtrls = GetControls();
+ //   int step = (int)(pCtrls->MarkerSide*zoomMark/2);
+ //   int ts = step;
+	//CSize s_ts(ts, ts);
+ //   pDC->DPtoLP(&s_ts);
+	//step = s_ts.cx;
+ //   CRect rP(cP.x-step, cP.y-step, cP.x+step, cP.y+step);
+ //   pDC->MoveTo(rP.left, rP.top);
+ //   pDC->LineTo(rP.right, rP.bottom);
+ //   pDC->MoveTo(rP.right, rP.top);
+ //   pDC->LineTo(rP.left, rP.bottom);
 
-    if(open){
-      CPen* pRetPen = pDC->SelectObject(open);
-      if(pRetPen) pRetPen->DeleteObject();
-    }
+ //   if(open){
+ //     CPen* pRetPen = pDC->SelectObject(open);
+ //     if(pRetPen) pRetPen->DeleteObject();
+ //   }
 }
+
+// deprecated/eliminated - no more BoundCtrls
 // Отрисовка точек, при задании границ точками в контексте CDC
 void CBaseImageView::DrawCustomDots(CDC* pDC)
 {
-	CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
-    COLORREF Color = InvColor;
-    CBrush br(Color);
-    CPen pen;
-    pen.CreatePen(PS_COSMETIC, 0, Color);
-    CPen* open = pDC->SelectObject(&pen);
-    int orop = pDC->SetROP2(R2_XORPEN);
-      
-    for(int i=0; i < pDoc->boundCtrls.CustomDots.GetSize(); i++){
-       CPoint Mr(pDoc->boundCtrls.CustomDots[i]);
-       DrawMarker(pDC, Mr);
-    }
-	
-    pDC->SetROP2(orop);
-    CPen* retopen = pDC->SelectObject(open);
-    if(retopen) retopen->DeleteObject();
+	//CBaseImageDoc* pDoc = (CBaseImageDoc*) GetDocument();
+ //   COLORREF Color = InvColor;
+ //   CBrush br(Color);
+ //   CPen pen;
+ //   pen.CreatePen(PS_COSMETIC, 0, Color);
+ //   CPen* open = pDC->SelectObject(&pen);
+ //   int orop = pDC->SetROP2(R2_XORPEN);
+ //     
+ //   for(int i=0; i < pDoc->boundCtrls.CustomDots.GetSize(); i++){
+ //      CPoint Mr(pDoc->boundCtrls.CustomDots[i]);
+ //      DrawMarker(pDC, Mr);
+ //   }
+	//
+ //   pDC->SetROP2(orop);
+ //   CPen* retopen = pDC->SelectObject(open);
+ //   if(retopen) retopen->DeleteObject();
 }
 
 // deprecated/eliminated: command-based workflow

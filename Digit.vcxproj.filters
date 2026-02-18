@@ -94,9 +94,6 @@
     <ClCompile Include="MainFrame\MainFrm.cpp">
       <Filter>Source Files\MainFrame</Filter>
     </ClCompile>
-    <ClCompile Include="Controls\BoundCtrls.cpp">
-      <Filter>Source Files\Controls</Filter>
-    </ClCompile>
     <ClCompile Include="Controls\controls.cpp">
       <Filter>Source Files\Controls</Filter>
     </ClCompile>
@@ -289,9 +286,6 @@
     </ClInclude>
     <ClInclude Include="MainFrame\MainFrm.h">
       <Filter>Header Files\MainFrame_H</Filter>
-    </ClInclude>
-    <ClInclude Include="Controls\BoundCtrls.h">
-      <Filter>Header Files\Controls_H</Filter>
     </ClInclude>
     <ClInclude Include="Controls\controls.h">
       <Filter>Header Files\Controls_H</Filter>

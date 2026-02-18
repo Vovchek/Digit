@@ -80,6 +80,7 @@ public:
 
 // Operations
 public:
+    CDocument* GetDocument() { return GetWIActiveDocument(); }
     void Init();
     bool GetXPixelLine(CPoint P, double*& pR, double*& pF, int& nP);
     bool GetYPixelLine(CPoint P, double*& pR, double*& pF, int& nP);

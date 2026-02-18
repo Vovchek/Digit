@@ -10,6 +10,7 @@
 #include "BaseImageView.h"
 #include "DigitMode/InputRouter.h"
 #include "DigitMode/NavigationInputHandler.h"
+#include "Utils/mutils.h"
 #include <afxext.h>
 #include <memory>
 typedef enum {NORMAL,ZOOMINPOINT,ZOOMOUTPOINT,ZOOMRECT} DigitViewMode;
@@ -68,6 +69,8 @@ protected:
 
 // Operations
 public:
+    CDocument* GetDocument() { return GetWIActiveDocument(); }
+
     void ClientToDoc(CPoint& point);
     void ClientToDoc(CRect& rect);
     void ClientToDoc(CSize& size);

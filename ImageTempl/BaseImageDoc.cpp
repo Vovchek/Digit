@@ -34,7 +34,7 @@ CBaseImageDoc::CBaseImageDoc() : imageCtrls()
 //Инициализация данных документа  
 void CBaseImageDoc::InitData()
 {
-  boundCtrls.Init();
+  //boundCtrls.Init();
 }
 
 // Смотри Microsoft Visual C++ документацию

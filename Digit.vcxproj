@@ -185,7 +185,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\TooltipGenerator.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
-    <ClCompile Include="Controls\BoundCtrls.cpp" />
     <ClCompile Include="Controls\controls.cpp" />
     <ClCompile Include="Controls\ImageCtrls.cpp" />
     <ClCompile Include="Utils\Edit\BaseTextDoc.cpp" />
@@ -273,7 +272,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="ImageTempl\ViewTransform.h" />
     <ClInclude Include="MainFrame\CommentsFileDlg.h" />
     <ClInclude Include="MainFrame\MainFrm.h" />
-    <ClInclude Include="Controls\BoundCtrls.h" />
     <ClInclude Include="Controls\controls.h" />
     <ClInclude Include="Controls\ImageCtrls.h" />
     <ClInclude Include="Controls\MeasureCtrls.h" />

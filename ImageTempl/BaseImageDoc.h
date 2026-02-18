@@ -16,7 +16,7 @@
 class CBaseImageView;
 class CImageCtrls;
 class CMeasureCtrls;
-class CBoundCtrls;
+//class CBoundCtrls;
 class CDigitInfo;
 
 namespace DigitMode {
@@ -35,7 +35,7 @@ public:
    int LastOperationType;
    CImageCtrls imageCtrls;
    CMeasureCtrls measureCtrls;
-   CBoundCtrls boundCtrls;                      // ← Legacy bounds (to be deprecated)
+   //CBoundCtrls boundCtrls;                      // ← Legacy bounds (to be deprecated)
    DigitMode::CApertureCtrls apertureCtrls;     // ← Modern aperture system
    CMTraker  Tracker;
    CDigitInfo Digit;

@@ -145,7 +145,7 @@ void CImageDoc::ActivateExtBounds(BOOL key)
 		pCtrls->SaveBoundSettings();
 		pCtrls->EnableOptions &= ~I_BOUNDS_EXT;
 		Tracker.SetEnableState(FALSE);
-		boundCtrls.CustomDots.RemoveAll();
+		//boundCtrls.CustomDots.RemoveAll();
 	}
 	pV->Invalidate(FALSE);
 }
@@ -163,7 +163,7 @@ void CImageDoc::ActivateInsBounds(BOOL key)
 	else {
 		pCtrls->EnableOptions &= ~I_BOUNDS_INS;
 		Tracker.SetEnableState(FALSE);
-		boundCtrls.CustomDots.RemoveAll();
+		//boundCtrls.CustomDots.RemoveAll();
 	}
 	pV->Invalidate(FALSE);
 }

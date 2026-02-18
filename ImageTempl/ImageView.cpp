@@ -27,96 +27,16 @@ void Polyline(int pn, ISO_POINT* plist, double level, int ilevel)
 // Draw bounds (apertures) in screen coordinates so they scale with image pixels
 void CImageView::DrawBounds(CDC* pDC)
 {
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	if (!pDoc) return;
-	CBaseImageDoc* pBase = (CBaseImageDoc*)pDoc;
-	COLORREF Color = RGB(0, 255, 0);
-	CPen pen;
-	pen.CreatePen(PS_SOLID, 1, Color);
-	CPen* open = pDC->SelectObject(&pen);
+    if (!pDC) {
+        return;
+    }
 
-	int xDIB, yDIB;
-	CImageCtrls* pImCtrls = GetImageCtrls(this);
-	if (pImCtrls->m_pDIB == 0) {
-		xDIB = pImCtrls->ImageSize.cx;
-		yDIB = pImCtrls->ImageSize.cy;
-	}
-	else {
-		xDIB = pImCtrls->m_pDIB->m_dwPadWidth;
-		yDIB = pImCtrls->m_pDIB->m_dwHeight;
-	}
+    auto* pApertureCtrls = GetApertureCtrls(this);
+    if (!pApertureCtrls) {
+        return;
+    }
 
-	CRect Bound;
-	CArray<CPoint, CPoint> PlgPoints;
-	BOOL res;
-	int BoundType = pDoc->boundCtrls.ExtBoundType;
-	if (BoundType != -1) {
-		res = pDoc->boundCtrls.GetExtRealBound(BoundType, xDIB, yDIB, Bound, PlgPoints);
-		if (res) {
-			if (BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE) {
-				// convert rect corners and draw arc via screen coordinates
-				CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
-				CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
-				CRect r(tl, br); r.NormalizeRect();
-				pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
-				pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
-			}
-			else if (BoundType == BOUND_RECT) {
-				CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
-				CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.top });
-				CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
-				CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.bottom });
-				pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
-			}
-			else {
-				for (int i = 0; i < PlgPoints.GetSize(); i++) {
-					CPoint wp = PlgPoints[i];
-					CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{ (double)wp.x, (double)wp.y });
-					if (i == 0) pDC->MoveTo(sp);
-					else pDC->LineTo(sp);
-				}
-			}
-		}
-	}
-
-	BoundType = pDoc->boundCtrls.InsBoundType;
-	if (BoundType != -1) {
-		int idx = 1;
-		res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-		if (res) {
-			if (BoundType == BOUND_ROUND || BoundType == BOUND_ELLIPSE) {
-				CPoint tl = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
-				CPoint br = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
-				CRect r(tl, br); r.NormalizeRect();
-				pDC->Arc(r, CPoint(r.right, r.CenterPoint().y), CPoint(r.CenterPoint().x, r.right));
-				pDC->Arc(r, CPoint(r.CenterPoint().x, r.right), CPoint(r.right, r.CenterPoint().y));
-			}
-			else if (BoundType == BOUND_RECT) {
-				CPoint p1 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.top });
-				CPoint p2 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.top });
-				CPoint p3 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.right, (double)Bound.bottom });
-				CPoint p4 = m_viewTransform.WorldToScreen(CPoint2d{ (double)Bound.left, (double)Bound.bottom });
-				pDC->MoveTo(p1); pDC->LineTo(p2); pDC->LineTo(p3); pDC->LineTo(p4); pDC->LineTo(p1);
-			}
-			else {
-				while (res) {
-					for (int i = 0; i < PlgPoints.GetSize(); i++) {
-						CPoint wp = PlgPoints[i];
-						CPoint sp = m_viewTransform.WorldToScreen(CPoint2d{ (double)wp.x, (double)wp.y });
-						if (i == 0) pDC->MoveTo(sp);
-						else pDC->LineTo(sp);
-					}
-					idx++;
-					res = pDoc->boundCtrls.GetInsRealBound(BoundType, xDIB, yDIB, idx, Bound, PlgPoints);
-				}
-			}
-		}
-	}
-
-	if (open) {
-		CPen* pRetPen = pDC->SelectObject(open);
-		if (pRetPen) pRetPen->DeleteObject();
-	}
+    pApertureCtrls->DrawShapes(*pDC, m_viewTransform, nullptr, -1);
 }
 
 // Override image drawing to draw bitmap without the world transform (to get proper resampling)
@@ -417,7 +337,7 @@ void CImageView::OnInitialUpdate()
 	// Phase 5: Initialize Tool Input Handlers (CAD-Grade Architecture)
 	// ========================================================================
 	
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	CImageDoc* pDoc = (CImageDoc*)CView::GetDocument(); // CImageView::GetDocument() calls GetWIActiveDocument()
 	if (pDoc) {
 		// Initialize fringe handler
 		m_fringeHandler.Initialize(
@@ -704,6 +624,8 @@ void CImageView::OnActivateView(BOOL bActivate, CView* pActivateView, CView* pDe
 	CControls* pCtrls = GetControls();
 	CMainFrame* pFR = GetMainFrame();
 	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	if (!pDoc || !pFR || !pCtrls)
+		return;
 
 	if (bActivate) {
 		Invalidate(FALSE);
@@ -1387,7 +1309,7 @@ void CImageView::OnClearDigit()
 void CImageView::OnUpdateClearDigit(CCmdUI* pCmdUI)
 {
 	//CBoundCtrls* pB = GetBoundCtrls(this);
-	//CImageCtrls* pI = GetImageCtrls();
+	//CImageCtrls* pI = GetImageCtrls(this);
 	//int xDIB = pI->ImageSize.cx;
 	//int yDIB = pI->ImageSize.cy;
 	//CRect BoundR(0, 0, 0, 0);
