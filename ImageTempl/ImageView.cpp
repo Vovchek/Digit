@@ -100,13 +100,13 @@ void CImageView::DrawImage(CDC* pDC)
 /////////////////////////////////////////////////////////////////////////////
 // CImageView
 
+// CImageView
+
 IMPLEMENT_DYNCREATE(CImageView, CBaseImageView)
 
 CImageView::CImageView()
-    : m_fringeHandler()
-    , m_boundsHandler()
 {
-    // Tool handlers initialized; full initialization happens in OnInitialUpdate
+    // Tool handlers initialized as members; full initialization happens in OnInitialUpdate
 }
 
 CImageView::~CImageView()
@@ -196,6 +196,7 @@ bool CImageView::GetYPixelLine(CPoint d_P, double*& pR, double*& pF, int& nP)
 BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	//{{AFX_MSG_MAP(CImageView)
 	ON_WM_CREATE()
+	ON_WM_SIZE()
 	ON_UPDATE_COMMAND_UI(ID_FILE_OPEN, OnUpdateFileOpen)
 	ON_COMMAND(IDD_MEASURE, OnMeasure)
 	ON_UPDATE_COMMAND_UI(IDD_MEASURE, OnUpdateMeasure)
@@ -324,29 +325,45 @@ void CImageView::OnInitialUpdate()
 void CImageView::CenterImageInView()
 {
 	CImageCtrls* pImage = GetImageCtrls(this);
+	if (!pImage || !pImage->HasImage()) return;
+
 	CRect imgRect = pImage->GetDIBRect();
 	if (imgRect.IsRectEmpty()) return;
 
 	CRect clientR;
 	GetClientRect(clientR);
+	if (clientR.IsRectEmpty()) return;
 
-	// Calculate scaled image size
+	// Calculate scaled image dimensions in screen space
 	double scale = m_viewTransform.GetScale();
-	int scaledW = (int)(imgRect.Width() * scale);
-	int scaledH = (int)(imgRect.Height() * scale);
+	double scaledW = imgRect.Width() * scale;
+	double scaledH = imgRect.Height() * scale;
 
-	// Center the image in the client area
+	// Center the image: position it so the scaled image is centered
+	// but don't push it off-screen if it's smaller than the client area
 	double offsetX = (clientR.Width() - scaledW) / 2.0;
 	double offsetY = (clientR.Height() - scaledH) / 2.0;
-
-	// Ensure offset doesn't go negative (if image is larger than client)
-	if (offsetX < 0) offsetX = 0;
-	if (offsetY < 0) offsetY = 0;
 
 	CPoint2d newOffset = { offsetX, offsetY };
 	m_viewTransform.SetOffset(newOffset);
 
 	Invalidate(FALSE);
+}
+
+// ============================================================================
+// Window Resize and Zoom Centering
+// ============================================================================
+
+void CImageView::OnSize(UINT nType, int cx, int cy)
+{
+	// Call base class first to handle standard CScrollView sizing
+	CBaseImageView::OnSize(nType, cx, cy);
+	
+	// When window is maximized or restored to normal size, center the image
+	// within the new client area to keep it visible and properly positioned
+	if (nType == SIZE_MAXIMIZED || nType == SIZE_RESTORED) {
+		CenterImageInView();
+	}
 }
 
 void CImageView::OnZoomIn()

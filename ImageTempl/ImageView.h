@@ -160,6 +160,8 @@ protected:
 	afx_msg void OnUpdateClearDigit(CCmdUI* pCmdUI);
 	afx_msg void OnCalcAproximation();
     afx_msg void OnUpdateCalcAproximation(CCmdUI* pCmdUI);
+	// Phase 5: Window resize and zoom centering
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	//}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

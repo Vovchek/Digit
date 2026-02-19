@@ -96,6 +96,28 @@ public:
      */
     ShapeEditMode GetEditMode() const { return m_editMode; }
     
+    /**
+     * @brief Set shape type for newly created shapes
+     * @param type EXTERNAL, INTERNAL, or APERTURE
+     * 
+     * Controls which category new shapes are added to when drafting.
+     * Should be called BEFORE SetEditMode() when adding shapes.
+     * 
+     * Example:
+     * @code
+     * SetShapeType(aperture::TypeLimits::INTERNAL);
+     * SetEditMode(ShapeEditMode::AddEllipse);
+     * // Now drafting will create INTERNAL ellipse
+     * @endcode
+     */
+    void SetShapeType(aperture::TypeLimits type) { m_shapeType = type; }
+    
+    /**
+     * @brief Get current shape type for new shapes
+     * @return Type that will be used for draft shapes
+     */
+    aperture::TypeLimits GetShapeType() const { return m_shapeType; }
+    
     // ========================================================================
     // Hit-Testing (delegates to CApertureCtrls)
     // ========================================================================
@@ -327,6 +349,9 @@ private:
 
     // Edit mode state (Phase 2)
     ShapeEditMode m_editMode = ShapeEditMode::Select;
+    
+    // Shape type for new shapes (Phase 5)
+    aperture::TypeLimits m_shapeType = aperture::TypeLimits::EXTERNAL;
     
     // Draft shape state (Phase 2 - creation modes)
     std::optional<DraftShape> m_draft;                   ///< Active draft (creation modes)

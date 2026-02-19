@@ -319,7 +319,7 @@ void BoundsHandler::SetEditMode(DigitMode::ShapeEditMode mode)
     {
         // Create new draft with appropriate kind
         DraftShape draft;
-        draft.type = aperture::TypeLimits::EXTERNAL;  // Default, can be changed later
+        draft.type = m_shapeType;  // ✓ USE CONFIGURED SHAPE TYPE (EXTERNAL/INTERNAL/APERTURE)
         
         switch (mode) {
             case ShapeEditMode::AddRectangle:

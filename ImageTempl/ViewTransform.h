@@ -18,15 +18,27 @@ public:
     CPoint2d GetOffset() const { return offset; }
     void SetOffset(const CPoint2d& newOffset) { offset = newOffset; }
 
-    // Zoom around a screen point (client coords). factor >1 zooms in
-    void ZoomAt(const CPoint& screenPt, double factor) {
+    // Zoom around a client point (in client/viewport coordinates). factor >1 zooms in.
+    // The world point under the cursor remains under the cursor after zoom.
+    void ZoomAt(const CPoint& clientPt, double factor) {
         double newScale = scale * factor;
-        // world coord under screenPt before zoom
-        double wx = (screenPt.x - offset.x) / scale;
-        double wy = (screenPt.y - offset.y) / scale;
-        // recompute offset so that world point stays under same screenPt
-        offset.x = screenPt.x - wx * newScale;
-        offset.y = screenPt.y - wy * newScale;
+        // Get world coordinate of the point BEFORE zoom using current scale/offset
+        double wx = (clientPt.x - offset.x) / scale;
+        double wy = (clientPt.y - offset.y) / scale;
+        // Adjust offset so the same world point stays under the cursor AFTER zoom
+        // offset_new = clientPt - wx * newScale
+        offset.x = clientPt.x - wx * newScale;
+        offset.y = clientPt.y - wy * newScale;
+        scale = newScale;
+    }
+
+    // Alternative: explicit client coordinate zoom (safer for windowed views)
+    void ZoomAtClient(const CPoint& clientPt, double factor, CWnd* pWnd = nullptr) {
+        double newScale = scale * factor;
+        double wx = (clientPt.x - offset.x) / scale;
+        double wy = (clientPt.y - offset.y) / scale;
+        offset.x = clientPt.x - wx * newScale;
+        offset.y = clientPt.y - wy * newScale;
         scale = newScale;
     }
 
