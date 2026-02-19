@@ -218,17 +218,21 @@
 #define ID_FRINGE_NUM_CTRL              59396
 #define IDW_EDIT                        59397
 
-// Bounds editing - Add shapes
-#define ID_BOUND_VISIBILITY             80000 // switch APRETURE / INTERNAL bounds editing mode 
-#define ID_ADD_BOUND_CIRCLE             80001
-#define ID_ADD_BOUND_ELLIPSE            80002
-#define ID_ADD_BOUND_RECT               80003
-#define ID_ADD_BOUND_POLYGON            80004
+// Bounds editing - Add shapes (command IDs must stay within 16-bit range for MFC)
+#define ID_BOUND_VISIBILITY             59400 // switch APERTURE / INTERNAL bounds editing mode 
+#define ID_ADD_BOUND_CIRCLE             59401
+#define ID_ADD_BOUND_ELLIPSE            59402
+#define ID_ADD_BOUND_RECT               59403
+#define ID_ADD_BOUND_POLYGON            59404
+
+// Aperture toolbar bitmap/resource id (toolbar_aperture in .rc)
+#define IDR_TOOLBAR_APERTURE            201
+#define IDR_TOOLBAR_APERTURE_P          202
 
 // Bounds editing - Mode commands
-#define ID_BOUND_MODE_SELECT            80010
-#define ID_BOUND_MODE_DELETE            80011
-#define ID_BOUND_CANCEL_DRAFT           80012
+#define ID_BOUND_MODE_SELECT            59405
+#define ID_BOUND_MODE_DELETE            59406
+#define ID_BOUND_CANCEL_DRAFT           59407
 
 
 
@@ -237,7 +241,7 @@
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        202
+#define _APS_NEXT_RESOURCE_VALUE        203
 #define _APS_NEXT_COMMAND_VALUE         32877
 #define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           101

@@ -1,9 +1,9 @@
-// MainFrm.cpp : implementation of the CMainFrame class
+п»ї// MainFrm.cpp : implementation of the CMainFrame class
 //
 /***********************************************************************************
- МОДУЛЬ: MainFrm.cpp
- НАЗНАЧЕНИЕ:
-         Фрейм основного окна приложения       
+ РњРћР”РЈР›Р¬: MainFrm.cpp
+ РќРђР—РќРђР§Р•РќРР•:
+         Р¤СЂРµР№Рј РѕСЃРЅРѕРІРЅРѕРіРѕ РѕРєРЅР° РїСЂРёР»РѕР¶РµРЅРёСЏ       
 ************************************************************************************/
 
 #include "stdafx.h"
@@ -94,15 +94,29 @@ static UINT BASED_CODE ViewButtons[] =
 
 static UINT BASED_CODE DigitButtons[] =
 {
-    IDD_BOUNDS_EXT,
-    IDD_BOUNDS_INS,
-    ID_SEPARATOR,
+    //IDD_BOUNDS_EXT,
+    //IDD_BOUNDS_INS,
+    //ID_SEPARATOR,
     IDD_AUTO_D,
     IDD_FC_MAX,
     IDD_FC_MIN,
     IDD_FC_MINMAX,
     IDD_CLEAR_D,
 	IDD_CALC_APROX,
+};
+
+// Aperture/bounds toolbar button layout (uses bounds command IDs)
+static UINT BASED_CODE ApertureButtons[] =
+{
+	ID_ADD_BOUND_CIRCLE,
+	ID_ADD_BOUND_ELLIPSE,
+	ID_ADD_BOUND_RECT,
+	ID_ADD_BOUND_POLYGON,
+	ID_SEPARATOR,
+    ID_BOUND_VISIBILITY,
+    ID_SEPARATOR,
+    //ID_BOUND_MODE_SELECT,
+	ID_BOUND_MODE_DELETE,
 };
 
 static UINT BASED_CODE EditButtons[] =
@@ -139,8 +153,8 @@ CMainFrame::~CMainFrame()
 {
 }
 
-// Response на сообщение DigitOpenMessage 
-// lParam содержит список файлов коммандной строки 
+// Response РЅР° СЃРѕРѕР±С‰РµРЅРёРµ DigitOpenMessage 
+// lParam СЃРѕРґРµСЂР¶РёС‚ СЃРїРёСЃРѕРє С„Р°Р№Р»РѕРІ РєРѕРјРјР°РЅРґРЅРѕР№ СЃС‚СЂРѕРєРё 
 LONG CMainFrame::OnOpenMsg(UINT, LONG lParam)
 {
   TCHAR szAtomName[_MAX_PATH];
@@ -155,7 +169,7 @@ LONG CMainFrame::OnOpenMsg(UINT, LONG lParam)
   return TRUE;
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
 	if (CMDIFrameWnd::OnCreate(lpCreateStruct) == -1)
@@ -209,7 +223,93 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 	m_wndDigitBar.SetSizes(wB, wI);
-	
+
+// aperture/bounds toolbar 
+	if (!m_wndApertureBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
+	        CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_TOOLBAR_APERTURE))
+	{
+		TRACE0("Failed to create aperture toolbar window\n");
+		return -1;      // fail to create
+	}
+
+	// Load high-color toolbar bitmap directly, bypassing AfxLoadSysColorBitmap's 8bpp limit
+	HBITMAP hApertureBitmap = (HBITMAP)::LoadImage(
+		AfxGetResourceHandle(),
+		MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE),
+		IMAGE_BITMAP,
+		0,
+		0,
+		LR_CREATEDIBSECTION);
+	if (!hApertureBitmap)
+	{
+		TRACE0("Failed to load aperture toolbar bitmap\n");
+		return -1;      // fail to create
+	}
+
+	// Match toolbar image/button sizes to the actual bitmap cell size
+	BITMAP bmAperture = {};
+	if (!::GetObject(hApertureBitmap, sizeof(BITMAP), &bmAperture))
+	{
+		TRACE0("Failed to query aperture toolbar bitmap info\n");
+		return -1;
+	}
+	// Number of image cells: count all non-separator entries in ApertureButtons
+	const int kApertureButtons = sizeof(ApertureButtons) / sizeof(UINT);
+	int kApertureImages = 0;
+	for (int i = 0; i < kApertureButtons; ++i)
+	{
+		if (ApertureButtons[i] != ID_SEPARATOR)
+			++kApertureImages;
+	}
+	if (kApertureImages <= 0 || bmAperture.bmWidth <= 0 || bmAperture.bmHeight <= 0)
+	{
+		TRACE0("Invalid aperture toolbar bitmap dimensions\n");
+		return -1;
+	}
+	int imgW = bmAperture.bmWidth / kApertureImages;
+	int imgH = bmAperture.bmHeight;
+	if (imgW <= 0 || imgH <= 0)
+	{
+		TRACE0("Computed invalid aperture toolbar image size\n");
+		return -1;
+	}
+	CSize apertureImg(imgW, imgH);
+	CSize apertureBtn(imgW + 7, imgH + 6);
+	m_wndApertureBar.SetSizes(apertureBtn, apertureImg);
+
+	// Attach normal bitmap to toolbar
+	if (!m_wndApertureBar.SetBitmap(hApertureBitmap) ||
+		!m_wndApertureBar.SetButtons(ApertureButtons, sizeof(ApertureButtons) / sizeof(UINT)))
+	{
+		TRACE0("Failed to initialize aperture toolbar bitmap/buttons\n");
+		return -1;      // fail to create
+	}
+
+	// Load alternate bitmap for hot/pressed state and assign as hot image list
+	HBITMAP hApertureBitmapHot = (HBITMAP)::LoadImage(
+		AfxGetResourceHandle(),
+		MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE_P),
+		IMAGE_BITMAP,
+		0,
+		0,
+		LR_CREATEDIBSECTION);
+	if (hApertureBitmapHot)
+	{
+		// Create imagelist matching the toolbar cell size
+		if (m_ilApertureHot.GetSafeHandle() != NULL)
+		{
+			m_ilApertureHot.DeleteImageList();
+		}
+		m_ilApertureHot.Create(imgW, imgH, ILC_COLOR24, kApertureImages, 0);
+		// No transparency mask assumed; if bitmap uses a mask color, replace CLR_NONE with that
+		CBitmap bmpHot;
+		bmpHot.Attach(hApertureBitmapHot);
+		m_ilApertureHot.Add(&bmpHot, CLR_NONE);
+		bmpHot.Detach();
+		// SetHotImageList takes a CImageList*, but some SDKs expose an overload
+		// taking HIMAGELIST. Use the CImageList* form here.
+		m_wndApertureBar.GetToolBarCtrl().SetHotImageList(&m_ilApertureHot);
+	}
 // edit toolbar 
     if (!m_wndEditBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
             CBRS_BOTTOM | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_EDITTOOLS) ||
@@ -268,6 +368,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndDigitBar.EnableDocking(CBRS_ALIGN_ANY);
 	DockControlBarLeftOf(&m_wndDigitBar, &m_wndMainBar);
 
+    m_wndApertureBar.SetWindowText(_T("Aperture"));
+    m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
+	DockControlBarLeftOf(&m_wndApertureBar, &m_wndDigitBar);
+
     m_wndViewBar.SetWindowText(_T("View"));
     m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
 	DockControlBarLeftOf(&m_wndViewBar, &m_wndDigitBar);
@@ -305,7 +409,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-// Выравнивание панели Bar относительно LeftOf панели
+// Р’С‹СЂР°РІРЅРёРІР°РЅРёРµ РїР°РЅРµР»Рё Bar РѕС‚РЅРѕСЃРёС‚РµР»СЊРЅРѕ LeftOf РїР°РЅРµР»Рё
 void CMainFrame::DockControlBarLeftOf(CToolBar* Bar, CToolBar* LeftOf)
 {
     CRect rect;
@@ -329,13 +433,13 @@ void CMainFrame::DockControlBarLeftOf(CToolBar* Bar, CToolBar* LeftOf)
     // are simulating a Toolbar being dragged to that location and docked.
     DockControlBar(Bar,n,&rect);
 }
-//Скрыть/показать панель инструментов
+//РЎРєСЂС‹С‚СЊ/РїРѕРєР°Р·Р°С‚СЊ РїР°РЅРµР»СЊ РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ
 void CMainFrame::ShowMeasurePane(BOOL Visual)
 {
     ShowControlBar(&m_wndMeasureBar, Visual, FALSE);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
     cs.lpszClass = _T("DigitClass");
@@ -348,7 +452,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame diagnostics
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 #ifdef _DEBUG
 void CMainFrame::AssertValid() const
 {
@@ -364,7 +468,7 @@ void CMainFrame::Dump(CDumpContext& dc) const
 
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame message handlers
-// Переключение библиотеки ресурсов (English/Russian)
+// РџРµСЂРµРєР»СЋС‡РµРЅРёРµ Р±РёР±Р»РёРѕС‚РµРєРё СЂРµСЃСѓСЂСЃРѕРІ (English/Russian)
 void CMainFrame::OnChangeLang()
 {
   CDigitApp* pApp = (CDigitApp*) AfxGetApp(); 
@@ -404,7 +508,7 @@ void CMainFrame::OnChangeLang()
 	SetImageInfo(" ", 1., 0.);
 }
 
-// Настройка панели инструментов
+// РќР°СЃС‚СЂРѕР№РєР° РїР°РЅРµР»Рё РёРЅСЃС‚СЂСѓРјРµРЅС‚РѕРІ
 void CMainFrame::OnToolBars()
 {
 	CString s;
@@ -412,27 +516,27 @@ void CMainFrame::OnToolBars()
 
     CToolBarsDlg D(this);
 	
-	s = CRS("Стандартная", "Standard");
+	s = CRS("РЎС‚Р°РЅРґР°СЂС‚РЅР°СЏ", "Standard");
     bVisible = (UINT)((m_wndMainBar.GetStyle() & WS_VISIBLE) != 0);
 	D.listToolBars.Add(s);
 	D.listStates.Add(bVisible);
 	
-	s = CRS("Сервис", "Service");
+	s = CRS("РЎРµСЂРІРёСЃ", "Service");
     bVisible = (UINT)((m_wndKitBar.GetStyle() & WS_VISIBLE) != 0);
 	D.listToolBars.Add(s);
 	D.listStates.Add(bVisible);
 
-	s = CRS("Оцифровка", "Numbering");
+	s = CRS("РћС†РёС„СЂРѕРІРєР°", "Numbering");
     bVisible = (UINT)((m_wndDigitBar.GetStyle() & WS_VISIBLE) != 0);
 	D.listToolBars.Add(s);
 	D.listStates.Add(bVisible);
 
-	s = CRS("Редактирование", "Edit");
+	s = CRS("Р РµРґР°РєС‚РёСЂРѕРІР°РЅРёРµ", "Edit");
     bVisible = (UINT)((m_wndEditBar.GetStyle() & WS_VISIBLE) != 0);
 	D.listToolBars.Add(s);
 	D.listStates.Add(bVisible);
 
-	s = CRS("Вид", "View");
+	s = CRS("Р’РёРґ", "View");
     bVisible = (UINT)((m_wndViewBar.GetStyle() & WS_VISIBLE) != 0);
 	D.listToolBars.Add(s);
 	D.listStates.Add(bVisible);
@@ -442,11 +546,12 @@ void CMainFrame::OnToolBars()
         ShowControlBar(&m_wndMainBar, D.listStates[0], FALSE);
         ShowControlBar(&m_wndKitBar, D.listStates[1], FALSE);
         ShowControlBar(&m_wndDigitBar, D.listStates[2], FALSE);
+		ShowControlBar(&m_wndApertureBar, D.listStates[3], FALSE);
     }
   RecalcLayout();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CMainFrame::OnUpdateToolBars(CCmdUI* pCmdUI)
 {
 }
@@ -467,7 +572,7 @@ void CMainFrame::OnUpdateAdvParameters(CCmdUI* pCmdUI)
     pCmdUI->SetCheck(pCtrls->IsAdvBar);
 }
 
-// Очистка параметров панели измерений
+// РћС‡РёСЃС‚РєР° РїР°СЂР°РјРµС‚СЂРѕРІ РїР°РЅРµР»Рё РёР·РјРµСЂРµРЅРёР№
 void CMainFrame::OnClearMeasure()
 {
     CDialogBar* pDB = GetMeasureDlgBar();
@@ -494,7 +599,7 @@ void CMainFrame::OnClearMeasure()
 	pW->SetWindowText(LPCTSTR(s)); 
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CMainFrame::OnClose() 
 {
 	if(!CheckForSaveAllImageDoc())
@@ -507,7 +612,7 @@ void CMainFrame::OnClose()
 	CMDIFrameWnd::OnClose();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CMainFrame::OnHelp()
 {
 	WinHelp(NULL, HELP_CONTENTS);
@@ -534,6 +639,15 @@ void CMainFrame::GetImageInfo(CString& Title, double& ScaleFactor, double& Rotat
 	m_wndInfoDlgBar.GetComments(Title);
 	m_wndInfoDlgBar.GetScaleFactor(ScaleFactor);
 	m_wndInfoDlgBar.GetRotation(Rotation);
+}
+
+void CMainFrame::SetStatusText(LPCTSTR text)
+{
+	// Update primary pane of the main status bar with provided text
+	if (::IsWindow(m_wndStatusBar.GetSafeHwnd()))
+	{
+		m_wndStatusBar.SetPaneText(0, text ? text : _T(""));
+	}
 }
 
 void CMainFrame::OnIterfView()

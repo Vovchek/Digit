@@ -1,4 +1,4 @@
-// MainFrm.h : interface of the CMainFrame class
+﻿// MainFrm.h : interface of the CMainFrame class
 //
 /////////////////////////////////////////////////////////////////////////////
 
@@ -26,6 +26,8 @@ public:
     void SetCurrentNumber(double CurrentNumber);
 	void SetImageInfo(LPCTSTR Title, double ScaleFactor, double Rotation);
 	void GetImageInfo(CString& Title, double& ScaleFactor, double& Rotation);
+	// Helper to set main status bar text from views/tools
+	void SetStatusText(LPCTSTR text);
 
 // Attributes
 public:
@@ -56,6 +58,8 @@ protected:  // control bar embedded members
     CToolBar    m_wndViewBar;
     CToolBar    m_wndKitBar;
     CToolBar    m_wndDigitBar;
+    CToolBar    m_wndApertureBar; // bounds/aperture editing toolbar
+    CImageList  m_ilApertureHot;  // hot/pressed state images for aperture toolbar
     CDiditBar   m_wndEditBar;
 	int m_nImagePaneCol;
 	CReBar      m_wndMeasureBar;

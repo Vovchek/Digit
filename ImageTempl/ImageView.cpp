@@ -1194,11 +1194,62 @@ void CImageView::SingleIsoline(int pn, ISO_POINT* plist, double level, int ileve
 
 void CImageView::OnAddBoundCircle()
 {
+	if (!GetImageCtrls()->HasImage())
+		return;
+
+	ActivateBoundsTool();
+	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	aperture::TypeLimits currentType = handler.GetShapeType();
+	handler.SetShapeType(currentType);
+	handler.SetEditMode(DigitMode::ShapeEditMode::AddCircle);
+	GetMainFrame()->SetStatusText(_T("Click center and edge to define circular bound"));
+	Invalidate(FALSE);
 }
+
 void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 {
-	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+	// Enable only when we have an image
+	bool hasImage = GetImageCtrls()->HasImage();
+	pCmdUI->Enable(hasImage ? TRUE : FALSE);
+	if (!hasImage) {
+		pCmdUI->SetRadio(FALSE);
+		return;
+	}
+
+	// Button should only appear active if the bounds tool is the active tool
+	auto* activeTool = GetInputRouter().GetActiveTool();
+	bool boundsToolActive = (activeTool == &m_boundsHandler);
+	if (!boundsToolActive) {
+		pCmdUI->SetRadio(FALSE);
+		return;
+	}
+
+	using DigitMode::ShapeEditMode;
+	ShapeEditMode mode = m_boundsHandler.GetEditMode();
+
+	bool isThisMode = false;
+	switch (pCmdUI->m_nID)
+	{
+	case ID_ADD_BOUND_CIRCLE:
+		isThisMode = (mode == ShapeEditMode::AddCircle);
+		break;
+	case ID_ADD_BOUND_ELLIPSE:
+		isThisMode = (mode == ShapeEditMode::AddEllipse);
+		break;
+	case ID_ADD_BOUND_RECT:
+		isThisMode = (mode == ShapeEditMode::AddRectangle);
+		break;
+	case ID_ADD_BOUND_POLYGON:
+		isThisMode = (mode == ShapeEditMode::AddPolygon);
+		break;
+	default:
+		break;
+	}
+
+	// Use radio semantics so only one add-mode button appears pressed
+	pCmdUI->SetRadio(isThisMode ? TRUE : FALSE);
 }
+
 void CImageView::OnAddBoundEllipse()
 {
     if (!GetImageCtrls()->HasImage())
@@ -1209,7 +1260,7 @@ void CImageView::OnAddBoundEllipse()
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddEllipse);
-	// Status bar text (optional): "Click to define elliptical bound"
+	GetMainFrame()->SetStatusText(_T("Click to define elliptical bound"));
 	Invalidate(FALSE);
 }
 void CImageView::OnAddBoundRect()
@@ -1222,7 +1273,7 @@ void CImageView::OnAddBoundRect()
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
-	// Status bar text (optional): "Click corners to create rectangular bound"
+	GetMainFrame()->SetStatusText(_T("Click corners to create rectangular bound"));
 	Invalidate(FALSE);
 }
 void CImageView::OnAddBoundPolygon()
@@ -1235,7 +1286,7 @@ void CImageView::OnAddBoundPolygon()
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddPolygon);
-	// Status bar text (optional): "Click vertices to create polygonal bound (press Enter when done)"
+	GetMainFrame()->SetStatusText(_T("Click vertices to create polygonal bound (press Enter when done)"));
 	Invalidate(FALSE);
 }
 void CImageView::OnBoundVisisbility()
@@ -1254,7 +1305,10 @@ void CImageView::OnBoundVisisbility()
 		handler.CancelDraft();
 	}
 
-	// Optional status bar text can reflect nextType here.
+	LPCTSTR msg = (nextType == aperture::TypeLimits::INTERNAL)
+		? _T("Bounds type: INTERNAL (obstructions)")
+		: _T("Bounds type: APERTURE (visible pupil)");
+	GetMainFrame()->SetStatusText(msg);
 	Invalidate(FALSE);
 }
 void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
@@ -1272,25 +1326,39 @@ void CImageView::OnBoundModeSelect()
 {
 	ActivateBoundsTool();
 	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
-	// Status bar text (optional): "Bounds: Select mode - drag to modify shapes"
+	GetMainFrame()->SetStatusText(_T("Bounds: Select mode - drag to modify shapes"));
 	Invalidate(FALSE);
 }
 void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
 {
-	bool isSelect = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Select);
-	pCmdUI->SetRadio(isSelect ? TRUE : FALSE);
-	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+	bool hasImage = GetImageCtrls()->HasImage();
+	pCmdUI->Enable(hasImage ? TRUE : FALSE);
+	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
+
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsHandler);
+	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
+
+	pCmdUI->SetRadio(
+		m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Select ? TRUE : FALSE
+	);
 }
 void CImageView::OnBoundModeDelete()
 {
 	ActivateBoundsTool();
 	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Delete);
-	// Status bar text (optional): "Bounds: Delete mode - click shapes to remove"
+	GetMainFrame()->SetStatusText(_T("Bounds: Delete mode - click shapes to remove"));
 	Invalidate(FALSE);
 }
 void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 {
-	bool isDelete = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete);
-	pCmdUI->SetRadio(isDelete ? TRUE : FALSE);
-	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+	bool hasImage = GetImageCtrls()->HasImage();
+	pCmdUI->Enable(hasImage ? TRUE : FALSE);
+	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
+
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsHandler);
+	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
+
+	pCmdUI->SetRadio(
+		m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete ? TRUE : FALSE
+	);
 }
