@@ -65,7 +65,27 @@ bool BoundsInputHandler::OnMouseDown(UINT flags, CPoint pt)
     if (!IsInitialized()) {
         return false;  // Not initialized, allow fallback
     }
-    
+
+    // In add modes, treat right-button click as "commit draft" (finalize
+    // current circle/ellipse/polygon) instead of adding another point.
+    // This matches the UX spec: Enter / right-click commit, Esc cancels.
+    if ((flags & MK_RBUTTON) != 0)
+    {
+        // Only commit in Add modes; in Select mode, let right-click fall
+        // through so view can show context menus or other behavior.
+        ShapeEditMode mode = GetEditMode();
+        if (mode != ShapeEditMode::Select && m_boundsHandler.IsDrafting())
+        {
+            // CommitDraft() returns true if a valid shape was created and
+            // dispatched via AddShapeCommand.
+            if (m_boundsHandler.CommitDraft())
+            {
+                return true; // consumed
+            }
+        }
+        return false; // not handled, allow fallback
+    }
+
     // Route based on current mode
     ShapeEditMode mode = GetEditMode();
     

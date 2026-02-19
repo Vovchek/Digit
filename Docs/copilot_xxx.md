@@ -42,8 +42,39 @@ Each mode is mutually exclusive and reflected in cursor + status bar.
 > Therefore:
 >
 > * No creation mode relies on a single “center click”
-> * All curved shapes are defined by **perimeter sampling**
+> * All curved shapes are defined by **perimeter sampling** or a **dragged bounding box**
 > * Center, axes, and rotation are **derived**, not directly input
+
+### 2.0 Drag-based bounding box creation (shortcut)
+
+For non-polygon shapes (Rectangle / Ellipse / Circle) there is a **drag-creation**
+shortcut in addition to point-sequence perimeter sampling.
+
+**Rule:** Drag-creation is only available when **no draft points exist yet** for the
+current Add mode.
+
+#### Workflow (common pattern)
+
+1. User activates an Add mode (`Add Rectangle`, `Add Ellipse`, or `Add Circle`).
+2. First press of left mouse button defines the **anchor point**.
+3. While the left button remains pressed, the user **drags** to grow a
+   screen-space box.
+4. On left button release, the shape is **committed immediately** from the
+   final box.
+
+#### Mapping box → shape
+
+* Rectangle: oriented axis-aligned rectangle whose extents match the final box.
+* Ellipse: ellipse inscribed into the final box (center at box center, axes =
+  half-width / half-height).
+* Circle: circle inscribed into the final box (center at box center, radius =
+  `min(width, height) / 2`).
+
+Polygon **does not** support drag-creation; it always uses vertex clicks only.
+
+Drag-creation is distinct from **editing**: it only applies when there is no
+existing shape under the cursor and no draft; editing uses handles on committed
+shapes (see §4.3).
 
 ### 2.1 Rectangle creation (NEW)
 
@@ -205,6 +236,10 @@ This keeps editing intuitive without re-introducing raw points.
 * `Alt`:
 
   * Resize from center
+
+> **Note:** Handle dragging is **editing** of committed bounds. Drag-creation of
+> a new rectangle/ellipse/circle uses the bounding-box gesture described in
+> §2.0 and only occurs when no draft is active and no shape is under the cursor.
 
 ---
 
