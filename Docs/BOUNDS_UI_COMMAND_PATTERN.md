@@ -2,16 +2,13 @@
 
 ## Problem Statement
 
-**Current Issue**: The `SetEditMode()` method in `BoundsHandler` defaults to creating EXTERNAL shapes:
+Originally `SetEditMode()` in `BoundsHandler` hardcoded all draft shapes as EXTERNAL. We fixed that by introducing `SetShapeType()` / `GetShapeType()` and using `m_shapeType` when creating drafts.
 
-```cpp
-// Current implementation in BoundsHandler::SetEditMode()
-draft.type = aperture::TypeLimits::EXTERNAL;  // ❌ HARDCODED - can't specify INTERNAL/APERTURE
-```
+With the updated UI spec we also changed how commands are exposed:
 
-When user clicks "Add Internal Ellipse" menu item, we have no way to tell BoundsHandler that it should create an INTERNAL shape instead of EXTERNAL.
-
-**Solution**: Add shape type specification to the edit mode API.
+- We no longer have 12 separate commands for (EXTERNAL/INTERNAL/APERTURE) × (Rectangle/Ellipse/Circle/Polygon).
+- The UI exposes 4 geometry commands + 1 two-state type toggle (APERTURE/INTERNAL).
+- EXTERNAL shapes are still supported for legacy data but are not created via UI for now.
 
 ---
 
@@ -20,16 +17,19 @@ When user clicks "Add Internal Ellipse" menu item, we have no way to tell Bounds
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │                      Resource File (.rc)                        │
-│  ID_ADD_BOUND_EXTERNAL_RECT  = 32801                           │
-│  ID_ADD_BOUND_INTERNAL_ELLIPSE = 32802                         │
-│  ID_ADD_BOUND_APERTURE_CIRCLE = 32803                          │
+│  ID_BOUND_VISIBILITY      = 80000  (APERTURE/INTERNAL toggle)  │
+│  ID_ADD_BOUND_CIRCLE      = 80001                             │
+│  ID_ADD_BOUND_ELLIPSE     = 80002                             │
+│  ID_ADD_BOUND_RECT        = 80003                             │
+│  ID_ADD_BOUND_POLYGON     = 80004                             │
 └─────────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     CImageView Command Handlers                 │
-│  OnAddBoundExternalRect()      ───→ Calls ActivateBoundsTool()  │
-│  OnAddBoundInternalEllipse()   ───→   + SetEditMode()           │
-│  OnAddBoundApertureCircle()    ───→   + SetShapeType()          │
+│  OnBoundVisisbility()         ───→ Calls ActivateBoundsTool()   │
+│                                  + SetShapeType(APERTURE/INT)   │
+│  OnAddBoundCircle/Rect/...    ───→   + SetShapeType(current)    │
+│                                  + SetEditMode(AddXXX)          │
 └─────────────────────────────────────────────────────────────────┘
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
@@ -39,13 +39,13 @@ When user clicks "Add Internal Ellipse" menu item, we have no way to tell Bounds
                             ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │                     BoundsHandler                               │
-│  SetEditMode(ShapeEditMode::AddEllipse)                        │
-│  SetShapeType(aperture::TypeLimits::INTERNAL)  ← NEW METHOD     │
+│  SetShapeType(aperture::TypeLimits::APERTURE/INTERNAL)          │
+│  SetEditMode(ShapeEditMode::AddEllipse)                         │
 │                                                                  │
 │  Result:                                                         │
 │  ├─ m_editMode = AddEllipse                                     │
-│  ├─ m_draft.type = INTERNAL                                     │
-│  └─ User can now draw points, creates INTERNAL ellipse          │
+│  ├─ m_draft.type = current m_shapeType                          │
+│  └─ User can now draw points, creates APERTURE/INTERNAL ellipse │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -55,7 +55,7 @@ When user clicks "Add Internal Ellipse" menu item, we have no way to tell Bounds
 
 ### Step 1: Modify BoundsHandler.h
 
-Add a new method to explicitly set the shape type:
+Add methods to explicitly set/get the shape type and default to APERTURE:
 
 ```cpp
 // In BoundsHandler.h, add to public section:
@@ -75,9 +75,9 @@ void SetShapeType(aperture::TypeLimits type) { m_shapeType = type; }
  */
 aperture::TypeLimits GetShapeType() const { return m_shapeType; }
 
-// Also add member variable:
+// Also add member variable (default to APERTURE for new UI):
 private:
-    aperture::TypeLimits m_shapeType = aperture::TypeLimits::EXTERNAL;
+    aperture::TypeLimits m_shapeType = aperture::TypeLimits::APERTURE;
 ```
 
 ### Step 2: Modify BoundsHandler.cpp - SetEditMode()
@@ -167,78 +167,67 @@ m_boundsHandler.SetEditModeAndType(
 
 ## Complete UI Command Handler Examples
 
-### Example 1: Add External Rectangle
+### Example 1: Add Rectangle Using Current Type (APERTURE/INTERNAL)
 
 ```cpp
-// In ImageTempl/ImageView.h
-afx_msg void OnAddBoundExternalRect();
-afx_msg void OnUpdateAddBoundExternalRect(CCmdUI* pCmdUI);
+// Message map (excerpt)
+ON_COMMAND(ID_ADD_BOUND_RECT, OnAddBoundRect)
+ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_RECT, OnUpdateAddBound)
 
-// In ImageTempl/ImageView.cpp - Message Map
-BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
-    // ...existing entries...
-    ON_COMMAND(ID_ADD_BOUND_EXTERNAL_RECT, OnAddBoundExternalRect)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_EXTERNAL_RECT, OnUpdateAddBoundExternalRect)
-    // ...existing entries...
-END_MESSAGE_MAP()
-
-// Implementation
-void CImageView::OnAddBoundExternalRect()
+void CImageView::OnAddBoundRect()
 {
-    // Step 1: Activate bounds tool
+    if (!GetImageCtrls()->HasImage())
+        return;
+
     ActivateBoundsTool();
-    
-    // Step 2: Set edit mode AND shape type
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::EXTERNAL);
-    m_boundsHandler.SetEditMode(ShapeEditMode::AddRectangle);
-    
-    // Step 3: Update UI (e.g., status bar)
-    GetMainFrame()->SetStatusText("Click corners to create external rectangle");
-    
-    // Step 4: Invalidate for visual feedback
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    handler.SetShapeType(currentType);                 // Type (APERTURE/INTERNAL)
+    handler.SetEditMode(ShapeEditMode::AddRectangle); // Geometry
+
+    GetMainFrame()->SetStatusText("Click corners to create rectangular bound");
     Invalidate(FALSE);
 }
 
-void CImageView::OnUpdateAddBoundExternalRect(CCmdUI* pCmdUI)
-{
-    // Enable if bounds tool can be activated
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
-}
-```
-
-### Example 2: Add Internal Ellipse
-
-```cpp
-void CImageView::OnAddBoundInternalEllipse()
-{
-    ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::INTERNAL);
-    m_boundsHandler.SetEditMode(ShapeEditMode::AddEllipse);
-    GetMainFrame()->SetStatusText("Click to define internal ellipse obstruction");
-    Invalidate(FALSE);
-}
-
-void CImageView::OnUpdateAddBoundInternalEllipse(CCmdUI* pCmdUI)
+void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 {
     pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
 }
 ```
 
-### Example 3: Add Aperture Circle
+### Example 2: Type Toggle Command
 
 ```cpp
-void CImageView::OnAddBoundApertureCircle()
+// Message map (excerpt)
+ON_COMMAND(ID_BOUND_VISIBILITY, OnBoundVisisbility)
+ON_UPDATE_COMMAND_UI(ID_BOUND_VISIBILITY, OnUpdateBoundVisibility)
+
+void CImageView::OnBoundVisisbility()
 {
     ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::APERTURE);
-    m_boundsHandler.SetEditMode(ShapeEditMode::AddCircle);
-    GetMainFrame()->SetStatusText("Click center and edge to define aperture circle");
-    Invalidate(FALSE);
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits current = handler.GetShapeType();
+    aperture::TypeLimits next =
+        (current == aperture::TypeLimits::INTERNAL)
+            ? aperture::TypeLimits::APERTURE
+            : aperture::TypeLimits::INTERNAL;
+
+    handler.SetShapeType(next);
+    if (handler.IsDrafting())
+        handler.CancelDraft();
 }
 
-void CImageView::OnUpdateAddBoundApertureCircle(CCmdUI* pCmdUI)
+void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+    bool hasImage = GetImageCtrls()->HasImage();
+    pCmdUI->Enable(hasImage ? TRUE : FALSE);
+    if (!hasImage)
+        return;
+
+    aperture::TypeLimits current = m_boundsHandler.GetBoundsHandler().GetShapeType();
+    pCmdUI->SetCheck(current == aperture::TypeLimits::INTERNAL);
 }
 ```
 
@@ -250,14 +239,15 @@ void CImageView::OnUpdateAddBoundApertureCircle(CCmdUI* pCmdUI)
 
 ```
 1. USER ACTION:
-   Click menu: "Bounds" → "Add Internal Ellipse"
+   - Ensure bounds type is INTERNAL (toggle ID_BOUND_VISIBILITY pressed)
+   - Click menu: "Bounds" → "Add Shape" → "Ellipse"
    
    ▼
    
 2. MESSAGE ROUTING:
-   WM_COMMAND with ID_ADD_BOUND_INTERNAL_ELLIPSE
+   WM_COMMAND with ID_ADD_BOUND_ELLIPSE
    ▼
-   CImageView::OnAddBoundInternalEllipse()
+   CImageView::OnAddBoundEllipse()
    
    ▼
    

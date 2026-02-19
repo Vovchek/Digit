@@ -8,31 +8,23 @@ This guide walks through adding actual UI command handlers for bounds editing. W
 
 ## Step 1: Add Resource IDs to .rc File
 
-Edit your main resource file and add these command IDs:
+Edit your main resource file and add these command IDs (IDs shown here match `Resource.h`):
 
 ```rc
-// Bounds editing - Add External shapes
-#define ID_ADD_BOUND_EXTERNAL_RECT      32801
-#define ID_ADD_BOUND_EXTERNAL_ELLIPSE   32802
-#define ID_ADD_BOUND_EXTERNAL_CIRCLE    32803
-#define ID_ADD_BOUND_EXTERNAL_POLYGON   32804
+// Bounds editing - Type toggle and Add shapes
+// Single two-state toggle switches APERTURE / INTERNAL type
+#define ID_BOUND_VISIBILITY             80000 // switch APERTURE / INTERNAL bounds editing mode
 
-// Bounds editing - Add Internal shapes
-#define ID_ADD_BOUND_INTERNAL_RECT      32810
-#define ID_ADD_BOUND_INTERNAL_ELLIPSE   32811
-#define ID_ADD_BOUND_INTERNAL_CIRCLE    32812
-#define ID_ADD_BOUND_INTERNAL_POLYGON   32813
-
-// Bounds editing - Add Aperture shapes
-#define ID_ADD_BOUND_APERTURE_RECT      32820
-#define ID_ADD_BOUND_APERTURE_ELLIPSE   32821
-#define ID_ADD_BOUND_APERTURE_CIRCLE    32822
-#define ID_ADD_BOUND_APERTURE_POLYGON   32823
+// Geometry commands use the current type from ID_BOUND_VISIBILITY
+#define ID_ADD_BOUND_CIRCLE             80001
+#define ID_ADD_BOUND_ELLIPSE            80002
+#define ID_ADD_BOUND_RECT               80003
+#define ID_ADD_BOUND_POLYGON            80004
 
 // Bounds editing - Mode commands
-#define ID_BOUND_MODE_SELECT            32830
-#define ID_BOUND_MODE_DELETE            32831
-#define ID_BOUND_CANCEL_DRAFT           32832
+#define ID_BOUND_MODE_SELECT            80010
+#define ID_BOUND_MODE_DELETE            80011
+#define ID_BOUND_CANCEL_DRAFT           80012
 ```
 
 ---
@@ -46,50 +38,23 @@ public:
     // ========================================================================
     // Bounds Editing Command Handlers (Phase 5)
     // ========================================================================
-    
-    // Add External shapes
-    afx_msg void OnAddBoundExternalRect();
-    afx_msg void OnUpdateAddBoundExternalRect(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundExternalEllipse();
-    afx_msg void OnUpdateAddBoundExternalEllipse(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundExternalCircle();
-    afx_msg void OnUpdateAddBoundExternalCircle(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundExternalPolygon();
-    afx_msg void OnUpdateAddBoundExternalPolygon(CCmdUI* pCmdUI);
-    
-    // Add Internal shapes
-    afx_msg void OnAddBoundInternalRect();
-    afx_msg void OnUpdateAddBoundInternalRect(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundInternalEllipse();
-    afx_msg void OnUpdateAddBoundInternalEllipse(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundInternalCircle();
-    afx_msg void OnUpdateAddBoundInternalCircle(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundInternalPolygon();
-    afx_msg void OnUpdateAddBoundInternalPolygon(CCmdUI* pCmdUI);
-    
-    // Add Aperture shapes
-    afx_msg void OnAddBoundApertureRect();
-    afx_msg void OnUpdateAddBoundApertureRect(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundApertureEllipse();
-    afx_msg void OnUpdateAddBoundApertureEllipse(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundApertureCircle();
-    afx_msg void OnUpdateAddBoundApertureCircle(CCmdUI* pCmdUI);
-    
-    afx_msg void OnAddBoundAperturePolygon();
-    afx_msg void OnUpdateAddBoundAperturePolygon(CCmdUI* pCmdUI);
-    
+
+    // Add shapes (geometry only, type comes from visibility toggle)
+    afx_msg void OnAddBoundCircle();
+    afx_msg void OnUpdateAddBound(CCmdUI* pCmdUI);
+
+    afx_msg void OnAddBoundEllipse();
+    afx_msg void OnAddBoundRect();
+    afx_msg void OnAddBoundPolygon();
+
+    // Type toggle (APERTURE / INTERNAL)
+    afx_msg void OnBoundVisisbility();
+    afx_msg void OnUpdateBoundVisibility(CCmdUI* pCmdUI);
+
     // Mode switching
     afx_msg void OnBoundModeSelect();
     afx_msg void OnUpdateBoundModeSelect(CCmdUI* pCmdUI);
-    
+
     afx_msg void OnBoundModeDelete();
     afx_msg void OnUpdateBoundModeDelete(CCmdUI* pCmdUI);
 ```
@@ -103,161 +68,192 @@ In the `BEGIN_MESSAGE_MAP`/`END_MESSAGE_MAP` block of `CImageView`, add:
 ```cpp
 BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
     // ...existing entries...
-    
-    // Bounds editing - Add External shapes
-    ON_COMMAND(ID_ADD_BOUND_EXTERNAL_RECT, OnAddBoundExternalRect)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_EXTERNAL_RECT, OnUpdateAddBoundExternalRect)
-    
-    ON_COMMAND(ID_ADD_BOUND_EXTERNAL_ELLIPSE, OnAddBoundExternalEllipse)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_EXTERNAL_ELLIPSE, OnUpdateAddBoundExternalEllipse)
-    
-    ON_COMMAND(ID_ADD_BOUND_EXTERNAL_CIRCLE, OnAddBoundExternalCircle)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_EXTERNAL_CIRCLE, OnUpdateAddBoundExternalCircle)
-    
-    ON_COMMAND(ID_ADD_BOUND_EXTERNAL_POLYGON, OnAddBoundExternalPolygon)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_EXTERNAL_POLYGON, OnUpdateAddBoundExternalPolygon)
-    
-    // Bounds editing - Add Internal shapes
-    ON_COMMAND(ID_ADD_BOUND_INTERNAL_RECT, OnAddBoundInternalRect)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_INTERNAL_RECT, OnUpdateAddBoundInternalRect)
-    
-    ON_COMMAND(ID_ADD_BOUND_INTERNAL_ELLIPSE, OnAddBoundInternalEllipse)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_INTERNAL_ELLIPSE, OnUpdateAddBoundInternalEllipse)
-    
-    ON_COMMAND(ID_ADD_BOUND_INTERNAL_CIRCLE, OnAddBoundInternalCircle)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_INTERNAL_CIRCLE, OnUpdateAddBoundInternalCircle)
-    
-    ON_COMMAND(ID_ADD_BOUND_INTERNAL_POLYGON, OnAddBoundInternalPolygon)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_INTERNAL_POLYGON, OnUpdateAddBoundInternalPolygon)
-    
-    // Bounds editing - Add Aperture shapes
-    ON_COMMAND(ID_ADD_BOUND_APERTURE_RECT, OnAddBoundApertureRect)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_APERTURE_RECT, OnUpdateAddBoundApertureRect)
-    
-    ON_COMMAND(ID_ADD_BOUND_APERTURE_ELLIPSE, OnAddBoundApertureEllipse)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_APERTURE_ELLIPSE, OnUpdateAddBoundApertureEllipse)
-    
-    ON_COMMAND(ID_ADD_BOUND_APERTURE_CIRCLE, OnAddBoundApertureCircle)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_APERTURE_CIRCLE, OnUpdateAddBoundApertureCircle)
-    
-    ON_COMMAND(ID_ADD_BOUND_APERTURE_POLYGON, OnAddBoundAperturePolygon)
-    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_APERTURE_POLYGON, OnUpdateAddBoundAperturePolygon)
-    
-    // Mode switching
+
+    // bounds editing commands
+    ON_COMMAND(ID_ADD_BOUND_CIRCLE, OnAddBoundCircle)
+    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_CIRCLE, OnUpdateAddBound)
+    ON_COMMAND(ID_ADD_BOUND_ELLIPSE, OnAddBoundEllipse)
+    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_ELLIPSE, OnUpdateAddBound)
+    ON_COMMAND(ID_ADD_BOUND_RECT, OnAddBoundRect)
+    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_RECT, OnUpdateAddBound)
+    ON_COMMAND(ID_ADD_BOUND_POLYGON, OnAddBoundPolygon)
+    ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_POLYGON, OnUpdateAddBound)
+    ON_COMMAND(ID_BOUND_VISIBILITY, OnBoundVisisbility)
+    ON_UPDATE_COMMAND_UI(ID_BOUND_VISIBILITY, OnUpdateBoundVisibility)
     ON_COMMAND(ID_BOUND_MODE_SELECT, OnBoundModeSelect)
     ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_SELECT, OnUpdateBoundModeSelect)
-    
     ON_COMMAND(ID_BOUND_MODE_DELETE, OnBoundModeDelete)
     ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_DELETE, OnUpdateBoundModeDelete)
-    
+
     // ...existing entries...
 END_MESSAGE_MAP()
 ```
 
 ---
 
-## Step 4: Implement Command Handlers (DRY Approach)
+## Step 4: Implement Command Handlers (Toolbar + Toggle)
 
-Use a macro-based approach to reduce repetition:
+With the new spec we have:
 
-### Macro Definition (at top of ImageView.cpp)
+- 4 geometry commands: `ID_ADD_BOUND_CIRCLE`, `ID_ADD_BOUND_RECT`, `ID_ADD_BOUND_ELLIPSE`, `ID_ADD_BOUND_POLYGON`.
+- 1 two-state type toggle: `ID_BOUND_VISIBILITY` (APERTURE / INTERNAL).
+- 2 mode commands: `ID_BOUND_MODE_SELECT`, `ID_BOUND_MODE_DELETE`.
+
+`BoundsHandler` now defaults to `APERTURE` for `m_shapeType`. `ID_BOUND_VISIBILITY` flips this between `APERTURE` and `INTERNAL`. The Add commands always use "current type + selected geometry".
+
+### Add Shape Commands (geometry only)
 
 ```cpp
-// Helper macro to reduce boilerplate for Add Shape commands
-#define IMPLEMENT_ADD_SHAPE_HANDLER(ClassName, MethodName, TypeArg, ModeArg, StatusMsg) \
-void CImageView::MethodName() \
-{ \
-    ActivateBoundsTool(); \
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::TypeArg); \
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::ModeArg); \
-    GetMainFrame()->SetStatusText(StatusMsg); \
-    Invalidate(FALSE); \
-} \
-\
-void CImageView::On##Update##MethodName##(CCmdUI* pCmdUI) \
-{ \
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE); \
+void CImageView::OnAddBoundCircle()
+{
+    if (!GetImageCtrls()->HasImage())
+        return;
+
+    ActivateBoundsTool();
+
+    // Respect Key Pattern: set type before mode
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    handler.SetShapeType(currentType);
+    handler.SetEditMode(DigitMode::ShapeEditMode::AddCircle);
+
+    GetMainFrame()->SetStatusText(_T("Click center and edge to define circular bound"));
+    Invalidate(FALSE);
+}
+
+void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
+{
+    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+}
+
+void CImageView::OnAddBoundEllipse()
+{
+    if (!GetImageCtrls()->HasImage())
+        return;
+
+    ActivateBoundsTool();
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    handler.SetShapeType(currentType);
+    handler.SetEditMode(DigitMode::ShapeEditMode::AddEllipse);
+
+    GetMainFrame()->SetStatusText(_T("Click to define elliptical bound"));
+    Invalidate(FALSE);
+}
+
+void CImageView::OnAddBoundRect()
+{
+    if (!GetImageCtrls()->HasImage())
+        return;
+
+    ActivateBoundsTool();
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    handler.SetShapeType(currentType);
+    handler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
+
+    GetMainFrame()->SetStatusText(_T("Click corners to create rectangular bound"));
+    Invalidate(FALSE);
+}
+
+void CImageView::OnAddBoundPolygon()
+{
+    if (!GetImageCtrls()->HasImage())
+        return;
+
+    ActivateBoundsTool();
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    handler.SetShapeType(currentType);
+    handler.SetEditMode(DigitMode::ShapeEditMode::AddPolygon);
+
+    GetMainFrame()->SetStatusText(_T("Click vertices to create polygonal bound (press Enter when done)"));
+    Invalidate(FALSE);
 }
 ```
 
-### Using the Macro (in ImageView.cpp)
+### Type Toggle (APERTURE / INTERNAL)
+
+`ID_BOUND_VISIBILITY` is a two-state toolbar button. Unchecked = APERTURE, Checked = INTERNAL.
 
 ```cpp
-// ========================================================================
-// Bounds Editing Command Handlers
-// ========================================================================
-
-// Add External shapes
-void CImageView::OnAddBoundExternalRect()
+void CImageView::OnBoundVisisbility()
 {
+    // Toggle between APERTURE and INTERNAL for subsequent Add commands
     ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::EXTERNAL);
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
-    GetMainFrame()->SetStatusText(_T("Click corners to create external rectangular bound"));
+
+    DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+    aperture::TypeLimits currentType = handler.GetShapeType();
+    aperture::TypeLimits nextType =
+        (currentType == aperture::TypeLimits::INTERNAL)
+            ? aperture::TypeLimits::APERTURE
+            : aperture::TypeLimits::INTERNAL;
+
+    handler.SetShapeType(nextType);
+
+    // If a draft was already started in previous type, cancel it so
+    // the next shape uses the new type cleanly.
+    if (handler.IsDrafting())
+        handler.CancelDraft();
+
+    LPCTSTR msg = (nextType == aperture::TypeLimits::INTERNAL)
+        ? _T("Bounds type: INTERNAL (obstructions)")
+        : _T("Bounds type: APERTURE (visible pupil)");
+    GetMainFrame()->SetStatusText(msg);
     Invalidate(FALSE);
 }
 
-void CImageView::OnUpdateAddBoundExternalRect(CCmdUI* pCmdUI)
+void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
 {
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
-}
+    bool hasImage = GetImageCtrls()->HasImage();
+    pCmdUI->Enable(hasImage ? TRUE : FALSE);
+    if (!hasImage)
+        return;
 
-void CImageView::OnAddBoundExternalEllipse()
+    aperture::TypeLimits currentType = m_boundsHandler.GetBoundsHandler().GetShapeType();
+    bool isInternal = (currentType == aperture::TypeLimits::INTERNAL);
+    pCmdUI->SetCheck(isInternal ? TRUE : FALSE); // pressed = INTERNAL
+}
+```
+
+### Mode Switching (Select / Delete)
+
+Mode switching remains the same as in the original guide:
+
+```cpp
+void CImageView::OnBoundModeSelect()
 {
     ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::EXTERNAL);
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::AddEllipse);
-    GetMainFrame()->SetStatusText(_T("Click to define external elliptical bound"));
+    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
+    GetMainFrame()->SetStatusText(_T("Bounds: Select mode - drag to modify shapes"));
     Invalidate(FALSE);
 }
 
-void CImageView::OnUpdateAddBoundExternalEllipse(CCmdUI* pCmdUI)
+void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
 {
+    bool isSelect = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Select);
+    pCmdUI->SetRadio(isSelect ? TRUE : FALSE);
     pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
 }
 
-void CImageView::OnAddBoundExternalCircle()
+void CImageView::OnBoundModeDelete()
 {
     ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::EXTERNAL);
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::AddCircle);
-    GetMainFrame()->SetStatusText(_T("Click center and edge to define external circular bound"));
+    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Delete);
+    GetMainFrame()->SetStatusText(_T("Bounds: Delete mode - click shapes to remove"));
     Invalidate(FALSE);
 }
 
-void CImageView::OnUpdateAddBoundExternalCircle(CCmdUI* pCmdUI)
+void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 {
+    bool isDelete = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete);
+    pCmdUI->SetRadio(isDelete ? TRUE : FALSE);
     pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
 }
-
-void CImageView::OnAddBoundExternalPolygon()
-{
-    ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::EXTERNAL);
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::AddPolygon);
-    GetMainFrame()->SetStatusText(_T("Click vertices to create external polygonal bound (press Enter when done)"));
-    Invalidate(FALSE);
-}
-
-void CImageView::OnUpdateAddBoundExternalPolygon(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
-}
-
-// Add Internal shapes
-void CImageView::OnAddBoundInternalRect()
-{
-    ActivateBoundsTool();
-    m_boundsHandler.SetShapeType(aperture::TypeLimits::INTERNAL);
-    m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
-    GetMainFrame()->SetStatusText(_T("Click corners to create internal rectangular obstruction"));
-    Invalidate(FALSE);
-}
-
-void CImageView::OnUpdateAddBoundInternalRect(CCmdUI* pCmdUI)
-{
-    pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
-}
+```
 
 void CImageView::OnAddBoundInternalEllipse()
 {
@@ -402,25 +398,13 @@ Create this menu structure (or edit via RC file):
 IDR_MAINFRAME (or your main menu resource ID)
 ├─ &Edit
 │  ├─ &Bounds
-│  │  ├─ Add &External
+│  │  ├─ Add &Shape
 │  │  │  ├─ &Rectangle...\tCtrl+Shift+R    [ID_ADD_BOUND_EXTERNAL_RECT]
 │  │  │  ├─ &Ellipse...\tCtrl+Shift+E      [ID_ADD_BOUND_EXTERNAL_ELLIPSE]
 │  │  │  ├─ &Circle...\tCtrl+Shift+C       [ID_ADD_BOUND_EXTERNAL_CIRCLE]
 │  │  │  └─ &Polygon...\tCtrl+Shift+P      [ID_ADD_BOUND_EXTERNAL_POLYGON]
-│  │  │
-│  │  ├─ Add &Internal
-│  │  │  ├─ &Rectangle...\tAlt+Shift+R     [ID_ADD_BOUND_INTERNAL_RECT]
-│  │  │  ├─ &Ellipse...\tAlt+Shift+E       [ID_ADD_BOUND_INTERNAL_ELLIPSE]
-│  │  │  ├─ &Circle...\tAlt+Shift+C        [ID_ADD_BOUND_INTERNAL_CIRCLE]
-│  │  │  └─ &Polygon...\tAlt+Shift+P       [ID_ADD_BOUND_INTERNAL_POLYGON]
-│  │  │
-│  │  ├─ Add &Aperture
-│  │  │  ├─ &Rectangle...\tCtrl+Alt+R      [ID_ADD_BOUND_APERTURE_RECT]
-│  │  │  ├─ &Ellipse...\tCtrl+Alt+E        [ID_ADD_BOUND_APERTURE_ELLIPSE]
-│  │  │  ├─ &Circle...\tCtrl+Alt+C         [ID_ADD_BOUND_APERTURE_CIRCLE]
-│  │  │  └─ &Polygon...\tCtrl+Alt+P        [ID_ADD_BOUND_APERTURE_POLYGON]
-│  │  │
 │  │  ├─ ─────────────────────
+│  │  ├─ &Select Type (radio)    [ID_BOUND_VISIBILITY]
 │  │  ├─ &Select Mode (radio)    [ID_BOUND_MODE_SELECT]
 │  │  ├─ &Delete Mode (radio)    [ID_BOUND_MODE_DELETE]
 ```
@@ -432,21 +416,18 @@ IDR_MAINFRAME (or your main menu resource ID)
 If you want keyboard shortcuts, add to your accelerator table (IDR_MAINFRAME):
 
 ```
-// Add to accelerator table
-CTRL SHIFT R     ID_ADD_BOUND_EXTERNAL_RECT
-CTRL SHIFT E     ID_ADD_BOUND_EXTERNAL_ELLIPSE
-CTRL SHIFT C     ID_ADD_BOUND_EXTERNAL_CIRCLE
-CTRL SHIFT P     ID_ADD_BOUND_EXTERNAL_POLYGON
+// Add to accelerator table (geometry uses current type from ID_BOUND_VISIBILITY)
+CTRL SHIFT C     ID_ADD_BOUND_CIRCLE
+CTRL SHIFT R     ID_ADD_BOUND_RECT
+CTRL SHIFT E     ID_ADD_BOUND_ELLIPSE
+CTRL SHIFT P     ID_ADD_BOUND_POLYGON
 
-ALT  SHIFT R     ID_ADD_BOUND_INTERNAL_RECT
-ALT  SHIFT E     ID_ADD_BOUND_INTERNAL_ELLIPSE
-ALT  SHIFT C     ID_ADD_BOUND_INTERNAL_CIRCLE
-ALT  SHIFT P     ID_ADD_BOUND_INTERNAL_POLYGON
+// Toggle type Aperture/Internal
+CTRL SHIFT T     ID_BOUND_VISIBILITY
 
-CTRL ALT  R      ID_ADD_BOUND_APERTURE_RECT
-CTRL ALT  E      ID_ADD_BOUND_APERTURE_ELLIPSE
-CTRL ALT  C      ID_ADD_BOUND_APERTURE_CIRCLE
-CTRL ALT  P      ID_ADD_BOUND_APERTURE_POLYGON
+// Quick access to modes
+CTRL SHIFT S     ID_BOUND_MODE_SELECT
+CTRL SHIFT_D     ID_BOUND_MODE_DELETE
 ```
 
 ---
@@ -457,35 +438,40 @@ CTRL ALT  P      ID_ADD_BOUND_APERTURE_POLYGON
 
 ```
 1. Open image in CImageView
-2. Click: Edit → Bounds → Add Internal → Ellipse
-   ✓ Status bar shows: "Click to define internal elliptical obstruction"
+2. Ensure bounds type is INTERNAL
+   - If toolbar button ID_BOUND_VISIBILITY is not pressed → click it once
+   - Or use menu: Edit → Bounds → Bounds Type (checked = INTERNAL)
+   ✓ BoundsHandler shape type is INTERNAL
+
+3. Click: Edit → Bounds → Add Shape → Ellipse
+   ✓ Status bar shows: "Click to define elliptical bound" (generic text)
    ✓ Cursor changes (if implemented)
    ✓ BoundsHandler is activated with:
      - EditMode = AddEllipse
      - ShapeType = INTERNAL
 
-3. Click first point (center)
+4. Click first point (center)
    ✓ Draft point added
    ✓ Preview shows dashed ellipse outline
 
-4. Click second point (radius)
+5. Click second point (radius)
    ✓ Ellipse updated in preview
    ✓ Ellipse is now fully defined
 
-5. Press Enter or click again
+6. Press Enter or click again
    ✓ Draft committed
    ✓ AddShapeCommand created with type=INTERNAL
    ✓ Shape added to CApertureCtrls internal shapes list
    ✓ Undo/redo available
 
-6. Verify
+7. Verify
    ASSERT_TRUE(apertureCtrls->GetShapes().getInternal().size() > 0);
 ```
 
 ### Manual Test Case 2: Switch Modes
 
 ```
-1. Start with internal ellipse being drafted
+1. Start with an ellipse being drafted in any type
 2. Press Escape
    ✓ Draft canceled
    ✓ m_draft is cleared

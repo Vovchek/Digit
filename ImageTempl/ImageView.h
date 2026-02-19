@@ -162,7 +162,31 @@ protected:
     afx_msg void OnUpdateCalcAproximation(CCmdUI* pCmdUI);
 	// Phase 5: Window resize and zoom centering
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	//}}AFX_MSG
+	// Bounds editing handlers
+    // ========================================================================
+    // Bounds Editing Command Handlers (Phase 5)
+    // ========================================================================
+
+    // Add shapes
+    afx_msg void OnAddBoundCircle();
+    afx_msg void OnUpdateAddBound(CCmdUI* pCmdUI);
+
+    afx_msg void OnAddBoundEllipse();
+
+    afx_msg void OnAddBoundRect();
+
+    afx_msg void OnAddBoundPolygon();
+
+    // Mode switching
+    afx_msg void OnBoundVisisbility();
+    afx_msg void OnUpdateBoundVisibility(CCmdUI* pCmdUI);
+
+    afx_msg void OnBoundModeSelect();
+    afx_msg void OnUpdateBoundModeSelect(CCmdUI* pCmdUI);
+
+    afx_msg void OnBoundModeDelete();
+    afx_msg void OnUpdateBoundModeDelete(CCmdUI* pCmdUI);
+    //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };
 

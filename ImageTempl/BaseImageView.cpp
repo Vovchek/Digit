@@ -699,6 +699,9 @@ void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
 
 BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
+    // pt comes in SCREEN coordinates - convert to client
+    ScreenToClient(&pt);
+
     if (m_inputRouter.OnMouseWheel(nFlags, zDelta, pt)) {
         Invalidate(FALSE);
         return TRUE;

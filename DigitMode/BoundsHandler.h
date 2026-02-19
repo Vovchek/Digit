@@ -351,7 +351,9 @@ private:
     ShapeEditMode m_editMode = ShapeEditMode::Select;
     
     // Shape type for new shapes (Phase 5)
-    aperture::TypeLimits m_shapeType = aperture::TypeLimits::EXTERNAL;
+    // Default to APERTURE: UI currently exposes only APERTURE/INTERNAL types.
+    // EXTERNAL shapes are still supported for legacy data but not created via UI.
+    aperture::TypeLimits m_shapeType = aperture::TypeLimits::APERTURE;
     
     // Draft shape state (Phase 2 - creation modes)
     std::optional<DraftShape> m_draft;                   ///< Active draft (creation modes)

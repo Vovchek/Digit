@@ -143,11 +143,11 @@ void OnAddBoundInternalEllipse() {
 - [x] Create this index document
 
 ### Phase 3: UI Implementation (⏳ YOUR TURN)
-- [ ] Add resource IDs to .rc file
+- [ ] Add resource IDs to .rc file (APERTURE/INTERNAL toggle + 4 geometry commands)
 - [ ] Add handler declarations to ImageView.h
 - [ ] Add message map entries to ImageView.cpp
-- [ ] Implement 12 command handlers
-- [ ] Create menu structure
+- [ ] Implement bounds toolbar + toggle-aware Add handlers
+- [ ] Create menu structure / aperture toolbar
 - [ ] Add keyboard accelerators
 - [ ] Test end-to-end
 
@@ -177,6 +177,9 @@ Modifying:  Select (drag handles), Delete (remove)
 
 ### 3. The Pattern
 ```
+// New UI pattern with APERTURE/INTERNAL toggle:
+// 1) Toggle sets CATEGORY once (APERTURE or INTERNAL)
+// 2) Geometry command sets GEOMETRY
 SetShapeType(CATEGORY) → SetEditMode(GEOMETRY) → User Interaction
 ```
 

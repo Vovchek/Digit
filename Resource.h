@@ -218,6 +218,20 @@
 #define ID_FRINGE_NUM_CTRL              59396
 #define IDW_EDIT                        59397
 
+// Bounds editing - Add shapes
+#define ID_BOUND_VISIBILITY             80000 // switch APRETURE / INTERNAL bounds editing mode 
+#define ID_ADD_BOUND_CIRCLE             80001
+#define ID_ADD_BOUND_ELLIPSE            80002
+#define ID_ADD_BOUND_RECT               80003
+#define ID_ADD_BOUND_POLYGON            80004
+
+// Bounds editing - Mode commands
+#define ID_BOUND_MODE_SELECT            80010
+#define ID_BOUND_MODE_DELETE            80011
+#define ID_BOUND_CANCEL_DRAFT           80012
+
+
+
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED

@@ -217,7 +217,21 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateClearDigit)
 	ON_COMMAND(IDD_CALC_APROX, OnCalcAproximation)
 	ON_UPDATE_COMMAND_UI(IDD_CALC_APROX, OnUpdateCalcAproximation)
-	//}}AFX_MSG_MAP
+	// bounds editing commands
+	ON_COMMAND(ID_ADD_BOUND_CIRCLE, OnAddBoundCircle)
+	ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_CIRCLE, OnUpdateAddBound)
+	ON_COMMAND(ID_ADD_BOUND_ELLIPSE, OnAddBoundEllipse)
+	ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_ELLIPSE, OnUpdateAddBound)
+	ON_COMMAND(ID_ADD_BOUND_RECT, OnAddBoundRect)
+	ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_RECT, OnUpdateAddBound)
+	ON_COMMAND(ID_ADD_BOUND_POLYGON, OnAddBoundPolygon)
+	ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_POLYGON, OnUpdateAddBound)
+	ON_COMMAND(ID_BOUND_VISIBILITY, OnBoundVisisbility)
+	ON_UPDATE_COMMAND_UI(ID_BOUND_VISIBILITY, OnUpdateBoundVisibility)
+	ON_COMMAND(ID_BOUND_MODE_SELECT, OnBoundModeSelect)
+	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_SELECT, OnUpdateBoundModeSelect)
+	ON_COMMAND(ID_BOUND_MODE_DELETE, OnBoundModeDelete)
+	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_DELETE, OnUpdateBoundModeDelete)	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -308,14 +322,16 @@ void CImageView::OnInitialUpdate()
 			&m_cmdDispatcher
 		);
 		
-		// Initialize bounds handler
-		// TODO: Once CApertureCtrls is available in ImageDoc, initialize:
-		// m_boundsHandler.Initialize(
-		//     pDoc->GetApertureCtrls(),
-		//     pImage,
-		//     &GetViewTransform(),
-		//     &m_cmdDispatcher
-		// );
+		// Initialize bounds handler with aperture subsystem and image provider
+		DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+		if (pImage && pApertureCtrls) {
+			m_boundsHandler.Initialize(
+				pApertureCtrls,
+				pImage,
+				&GetViewTransform(),
+				&m_cmdDispatcher
+			);
+		}
 		
 		// Set fringe handler as default active tool
 		GetInputRouter().SetActiveTool(&m_fringeHandler);
@@ -1176,3 +1192,105 @@ void CImageView::SingleIsoline(int pn, ISO_POINT* plist, double level, int ileve
 	if (retPen) retPen->DeleteObject();
 }
 
+void CImageView::OnAddBoundCircle()
+{
+}
+void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
+{
+	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+}
+void CImageView::OnAddBoundEllipse()
+{
+    if (!GetImageCtrls()->HasImage())
+		return;
+
+	ActivateBoundsTool();
+	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	aperture::TypeLimits currentType = handler.GetShapeType();
+	handler.SetShapeType(currentType);
+	handler.SetEditMode(DigitMode::ShapeEditMode::AddEllipse);
+	// Status bar text (optional): "Click to define elliptical bound"
+	Invalidate(FALSE);
+}
+void CImageView::OnAddBoundRect()
+{
+    if (!GetImageCtrls()->HasImage())
+		return;
+
+	ActivateBoundsTool();
+	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	aperture::TypeLimits currentType = handler.GetShapeType();
+	handler.SetShapeType(currentType);
+	handler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
+	// Status bar text (optional): "Click corners to create rectangular bound"
+	Invalidate(FALSE);
+}
+void CImageView::OnAddBoundPolygon()
+{
+    if (!GetImageCtrls()->HasImage())
+		return;
+
+	ActivateBoundsTool();
+	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	aperture::TypeLimits currentType = handler.GetShapeType();
+	handler.SetShapeType(currentType);
+	handler.SetEditMode(DigitMode::ShapeEditMode::AddPolygon);
+	// Status bar text (optional): "Click vertices to create polygonal bound (press Enter when done)"
+	Invalidate(FALSE);
+}
+void CImageView::OnBoundVisisbility()
+{
+    // Toggle between APERTURE and INTERNAL bounds type for subsequent Add commands
+	ActivateBoundsTool();
+	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	aperture::TypeLimits currentType = handler.GetShapeType();
+	aperture::TypeLimits nextType =
+		(currentType == aperture::TypeLimits::INTERNAL)
+			? aperture::TypeLimits::APERTURE
+			: aperture::TypeLimits::INTERNAL;
+
+	handler.SetShapeType(nextType);
+	if (handler.IsDrafting()) {
+		handler.CancelDraft();
+	}
+
+	// Optional status bar text can reflect nextType here.
+	Invalidate(FALSE);
+}
+void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
+{
+	bool hasImage = GetImageCtrls()->HasImage();
+	pCmdUI->Enable(hasImage ? TRUE : FALSE);
+	if (!hasImage)
+		return;
+
+	aperture::TypeLimits currentType = m_boundsHandler.GetBoundsHandler().GetShapeType();
+	bool isInternal = (currentType == aperture::TypeLimits::INTERNAL);
+	pCmdUI->SetCheck(isInternal ? TRUE : FALSE);
+}
+void CImageView::OnBoundModeSelect()
+{
+	ActivateBoundsTool();
+	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
+	// Status bar text (optional): "Bounds: Select mode - drag to modify shapes"
+	Invalidate(FALSE);
+}
+void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
+{
+	bool isSelect = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Select);
+	pCmdUI->SetRadio(isSelect ? TRUE : FALSE);
+	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+}
+void CImageView::OnBoundModeDelete()
+{
+	ActivateBoundsTool();
+	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Delete);
+	// Status bar text (optional): "Bounds: Delete mode - click shapes to remove"
+	Invalidate(FALSE);
+}
+void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
+{
+	bool isDelete = (m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete);
+	pCmdUI->SetRadio(isDelete ? TRUE : FALSE);
+	pCmdUI->Enable(GetImageCtrls()->HasImage() ? TRUE : FALSE);
+}
