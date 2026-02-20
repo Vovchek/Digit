@@ -785,6 +785,15 @@
     <None Include="Docs\BOUNDS_DOCUMENTATION_INDEX.md" />
     <None Include="Docs\COMPLETE_SOLUTION_SUMMARY.md" />
     <None Include="Docs\SOLUTION_CARD.md" />
+    <None Include="Docs\BOUNDS_GAP_ANALYSIS.md" />
+    <None Include="Docs\BOUNDS_IMPLEMENTATION_PLAN.md" />
+    <None Include="Docs\BOUNDS_REVIEW_SUMMARY.md" />
+    <None Include="Docs\BOUNDS_QUICKSTART.md" />
+    <None Include="Docs\BOUNDS_DOCS_INDEX.md" />
+    <None Include="Docs\PHASE_A_COMPLETE.md" />
+    <None Include="Docs\PHASE_A_VISUAL_FIXES.md" />
+    <None Include="Docs\PHASE_B_COMPLETE.md" />
+    <None Include="Docs\PHASE_B_BUGFIXES.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

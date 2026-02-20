@@ -7,6 +7,11 @@
 #include "ApertureCore/include/aperturecore/geometry/Rectangle.h"
 #include "ApertureCore/include/aperturecore/geometry/Ellipse.h"
 #include "ApertureCore/include/aperturecore/geometry/Polygon.h"
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace DigitMode {
 
@@ -153,6 +158,64 @@ void DraftShape::AddPoint(const aperture::Point& pt) {
 
 void DraftShape::Clear() {
     perimeterPoints.clear();
+}
+
+void DraftShape::CreateFromBoundingBox(
+    const aperture::Point& topLeft,
+    const aperture::Point& bottomRight
+) {
+    // Clear any existing points
+    perimeterPoints.clear();
+    
+    // Calculate box parameters
+    double centerX = (topLeft.x + bottomRight.x) / 2.0;
+    double centerY = (topLeft.y + bottomRight.y) / 2.0;
+    double width = std::abs(bottomRight.x - topLeft.x);
+    double height = std::abs(bottomRight.y - topLeft.y);
+    
+    switch (kind) {
+        case Kind::Rectangle: {
+            // Add 3 corners for 3-point rectangle constructor
+            // TL, TR, BR (avoids needing BL - 3 points define orientation)
+            aperture::Point topRight(bottomRight.x, topLeft.y);
+            perimeterPoints.push_back(topLeft);
+            perimeterPoints.push_back(topRight);
+            perimeterPoints.push_back(bottomRight);
+            break;
+        }
+        
+        case Kind::Ellipse: {
+            // Generate 8 points around ellipse perimeter for LSM fitting
+            double radiusX = width / 2.0;
+            double radiusY = height / 2.0;
+            
+            for (int i = 0; i < 8; ++i) {
+                double angle = (2.0 * M_PI * i) / 8.0;
+                double x = centerX + radiusX * std::cos(angle);
+                double y = centerY + radiusY * std::sin(angle);
+                perimeterPoints.push_back(aperture::Point(x, y));
+            }
+            break;
+        }
+        
+        case Kind::Circle: {
+            // Generate 8 points around circle perimeter (use min radius for circle)
+            double radius = std::min(width, height) / 2.0;
+            
+            for (int i = 0; i < 8; ++i) {
+                double angle = (2.0 * M_PI * i) / 8.0;
+                double x = centerX + radius * std::cos(angle);
+                double y = centerY + radius * std::sin(angle);
+                perimeterPoints.push_back(aperture::Point(x, y));
+            }
+            break;
+        }
+        
+        case Kind::Polygon:
+            // Polygon doesn't support bounding box creation
+            // (use AddPoint for vertices instead)
+            break;
+    }
 }
 
 } // namespace DigitMode

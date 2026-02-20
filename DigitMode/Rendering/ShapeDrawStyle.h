@@ -115,14 +115,27 @@ struct ShapeDrawStyle {
     int GetOutlineStyle() const;
     
     /**
-     * @brief Get fill color for INTERNAL shapes
-     * @return Semi-transparent red for INTERNAL, transparent otherwise
+     * @brief Get fill color for shape interior
+     * @return Color for fill (only used if HasFill() returns true)
+     * 
+     * Only INTERNAL shapes have fill (semi-transparent red).
      */
     COLORREF GetFillColor() const;
     
     /**
-     * @brief Check if shape should be filled
-     * @return true only for INTERNAL shapes
+     * @brief Get fill transparency (alpha value)
+     * @return Alpha value 0-255 (0=transparent, 255=opaque)
+     * 
+     * - INTERNAL → 128 (50% transparent)
+     * - Others → 255 (fully opaque, but no fill anyway)
+     */
+    int GetFillAlpha() const;
+    
+    /**
+     * @brief Check if shape should have fill
+     * @return true if fill should be drawn
+     * 
+     * Only INTERNAL shapes have fill.
      */
     bool HasFill() const;
     

@@ -164,6 +164,25 @@ struct DraftShape {
     void Clear();
     
     /**
+     * @brief Create draft from bounding box (Phase B - drag creation)
+     * @param topLeft Top-left corner of box (world coordinates)
+     * @param bottomRight Bottom-right corner of box (world coordinates)
+     * 
+     * Generates appropriate perimeter points from bounding box:
+     * - Rectangle: 3 corners (TL, TR, BR) for 3-point constructor
+     * - Ellipse: 8 points around ellipse perimeter
+     * - Circle: 8 points around circle perimeter (min radius)
+     * - Polygon: Not supported (use AddPoint instead)
+     * 
+     * Used for click-drag-release shape creation workflow.
+     * Clears any existing perimeter points.
+     */
+    void CreateFromBoundingBox(
+        const aperture::Point& topLeft,
+        const aperture::Point& bottomRight
+    );
+    
+    /**
      * @brief Get number of points in draft
      */
     size_t PointCount() const { return perimeterPoints.size(); }

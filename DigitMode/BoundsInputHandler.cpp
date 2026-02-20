@@ -6,6 +6,7 @@
 #include "BoundsInputHandler.h"
 #include "Controls/CApertureCtrls.h"
 #include "CommandDispatcher.h"
+#include "Commands/RemoveShapeCommand.h"
 #include "ImageTempl/ViewTransform.h"
 
 namespace DigitMode {
@@ -92,6 +93,9 @@ bool BoundsInputHandler::OnMouseDown(UINT flags, CPoint pt)
     if (mode == ShapeEditMode::Select) {
         return HandleSelectModeMouseDown(flags, pt);
     }
+    else if (mode == ShapeEditMode::Delete) {
+        return HandleDeleteModeMouseDown(flags, pt);  // Fix for Issue #2
+    }
     else {
         // Add modes (Rectangle, Ellipse, Circle, Polygon)
         return HandleAddModeMouseDown(flags, pt);
@@ -104,7 +108,14 @@ bool BoundsInputHandler::OnMouseMove(UINT flags, CPoint pt)
         return false;
     }
     
-    // Update drag preview if dragging
+    // Phase B: Update draft drag preview if dragging
+    if (m_boundsHandler.IsDraftDragging()) {
+        m_boundsHandler.UpdateDraftDrag(pt);
+        // Invalidate view for live preview (caller should handle this via return value)
+        return true;  // Consumed
+    }
+    
+    // Update drag preview if dragging handle
     if (m_boundsHandler.IsDragging()) {
         m_boundsHandler.UpdateDrag(pt);
         return true;  // Consumed
@@ -125,7 +136,29 @@ bool BoundsInputHandler::OnMouseUp(UINT flags, CPoint pt)
         return false;
     }
     
-    // End drag operation (commit or cancel)
+    // Phase B: Handle draft drag completion
+    if (m_boundsHandler.IsDraftDragging()) {
+        CPoint anchor = m_boundsHandler.GetDragAnchor();
+        int dx = abs(pt.x - anchor.x);
+        int dy = abs(pt.y - anchor.y);
+        
+        const int DRAG_THRESHOLD = 3;  // pixels (defined in BoundsHandler.h)
+        
+        if (dx < DRAG_THRESHOLD && dy < DRAG_THRESHOLD) {
+            // Click (not drag) - add as first point in point-sequence mode
+            m_boundsHandler.EndDraftDrag();  // Cancel drag mode
+            
+            // Add point to draft
+            aperture::Point worldPt = m_boundsHandler.ScreenToAperturePoint(pt);
+            m_boundsHandler.AddDraftPoint(worldPt);
+        } else {
+            // Drag detected - auto-commit bounding box shape
+            m_boundsHandler.CommitDraftDrag();
+        }
+        return true;  // Consumed
+    }
+    
+    // End handle drag operation (commit or cancel)
     if (m_boundsHandler.IsDragging()) {
         m_boundsHandler.EndDrag(true);  // Commit = true
         return true;  // Consumed
@@ -163,7 +196,13 @@ void BoundsInputHandler::Cancel()
         return;
     }
     
-    // Cancel any active drag
+    // Cancel draft drag if active (Phase B)
+    if (m_boundsHandler.IsDraftDragging()) {
+        m_boundsHandler.EndDraftDrag();
+        m_boundsHandler.CancelDraft();
+    }
+    
+    // Cancel any active handle drag
     if (m_boundsHandler.IsDragging()) {
         m_boundsHandler.CancelDrag();
     }
@@ -203,6 +242,37 @@ bool BoundsInputHandler::HandleSelectModeMouseDown(UINT flags, CPoint pt)
     return false;  // Not consumed, allow navigation fallback
 }
 
+bool BoundsInputHandler::HandleDeleteModeMouseDown(UINT flags, CPoint pt)
+{
+    // Fix for Issue #2: Delete mode implementation
+    
+    // Only handle left button in Delete mode
+    if (!(flags & MK_LBUTTON)) {
+        return false;  // Right-click, middle-click → allow fallback
+    }
+    
+    // Hit-test to find shape
+    auto hit = m_boundsHandler.HitTest(pt);
+    
+    if (hit.hit) {
+        // Found a shape - delete it
+        auto cmd = std::make_unique<RemoveShapeCommand>(
+            *m_boundsHandler.GetApertureCtrls(),
+            hit.type,
+            hit.shapeIndex
+        );
+        
+        if (m_boundsHandler.GetDispatcher()) {
+            m_boundsHandler.GetDispatcher()->Execute(std::move(cmd));
+        }
+        
+        return true;  // Consumed
+    }
+    
+    // Clicked on empty space
+    return false;  // Not consumed, allow navigation fallback
+}
+
 bool BoundsInputHandler::HandleAddModeMouseDown(UINT flags, CPoint pt)
 {
     // Only handle left button in Add modes
@@ -210,12 +280,22 @@ bool BoundsInputHandler::HandleAddModeMouseDown(UINT flags, CPoint pt)
         return false;  // Allow fallback
     }
     
-    // Convert to world coordinates
-    aperture::Point worldPt = m_boundsHandler.ScreenToAperturePoint(pt);
+    // Phase B: Drag-based creation vs point-sequence creation
+    // If no draft points exist yet, begin drag mode
+    // If draft already has points, continue with point-sequence mode
     
-    // Add point to draft shape
-    if (m_boundsHandler.AddDraftPoint(worldPt)) {
+    if (!m_boundsHandler.HasDraftPoints()) {
+        // No points yet - begin drag mode (user can drag or click)
+        m_boundsHandler.BeginDraftDrag(pt);
         return true;  // Consumed
+    } else {
+        // Already have points - this is point-sequence mode
+        aperture::Point worldPt = m_boundsHandler.ScreenToAperturePoint(pt);
+        
+        // Add point to draft shape
+        if (m_boundsHandler.AddDraftPoint(worldPt)) {
+            return true;  // Consumed
+        }
     }
     
     return false;  // Draft not accepting points (shouldn't happen)

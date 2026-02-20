@@ -15,6 +15,7 @@
 #include "DigitMode/CommandDispatcher.h"
 #include "DigitMode/CursorManager.h"
 #include "DigitMode/TooltipGenerator.h"
+#include "DigitMode/Rendering/ShapeDrawDispatcher.h"
 #include <afxcmn.h>
 
 class CBaseImageView;
@@ -30,6 +31,7 @@ private:
     
     DigitMode::FringeInputHandler m_fringeHandler;    ///< Fringe editing tool
     DigitMode::BoundsInputHandler m_boundsHandler;    ///< Bounds editing tool
+    DigitMode::ShapeDrawDispatcher m_shapeDrawDispatcher; ///< Shape rendering dispatcher (Phase 4)
     
     // ========================================================================
     // Legacy support infrastructure (will be integrated into tool handlers)

@@ -13,8 +13,11 @@
 #include "Commands\AddShapeCommand.h"
 #include "CommandDispatcher.h"
 #include "Rendering\ShapeDrawStyle.h"
-#include "Rendering\ShapeDrawDispatcher.h"
-#include "ApertureCore\include\aperturecore\geometry\Handle.h"
+#include <cmath>
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 namespace DigitMode {
 
@@ -27,6 +30,7 @@ BoundsHandler::BoundsHandler()
     , m_dragShapeType(aperture::TypeLimits::EXTERNAL)
     , m_dragShapeIndex(0)
     , m_dragControlPointIndex(-1)
+    , m_isDraftDragging(false)
 {
 }
 
@@ -469,6 +473,12 @@ bool BoundsHandler::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
     switch (nChar) {
         case VK_ESCAPE:
+            // Cancel draft drag first (Phase B)
+            if (IsDraftDragging()) {
+                EndDraftDrag();
+                CancelDraft();
+                return true;
+            }
             // Cancel draft or drag
             if (IsDrafting()) {
                 CancelDraft();
@@ -491,6 +501,107 @@ bool BoundsHandler::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         default:
             return false;  // Not handled
     }
+}
+
+// ========================================================================
+// Draft Drag Operations (Phase B - Bounding Box Creation)
+// ========================================================================
+
+void BoundsHandler::BeginDraftDrag(CPoint anchor)
+{
+    m_isDraftDragging = true;
+    m_dragAnchor = anchor;
+    m_draftDragCurrent = anchor;
+    
+    // Always clear existing draft and start fresh (Fix for Issue #1: ghost points)
+    DraftShape draft;
+    draft.type = m_shapeType;
+    
+    switch (m_editMode) {
+        case ShapeEditMode::AddRectangle:
+            draft.kind = DraftShape::Kind::Rectangle;
+            break;
+        case ShapeEditMode::AddEllipse:
+            draft.kind = DraftShape::Kind::Ellipse;
+            break;
+        case ShapeEditMode::AddCircle:
+            draft.kind = DraftShape::Kind::Circle;
+            break;
+        default:
+            // Polygon doesn't support drag-creation
+            m_isDraftDragging = false;
+            return;
+    }
+    
+    m_draft = draft;  // Replace any existing draft with fresh one
+    
+    // Fix for Issue #3: Make anchor point be ON the shape perimeter
+    // Add anchor as first perimeter point
+    aperture::Point anchorWorld = ScreenToAperturePoint(anchor);
+    m_draft->AddPoint(anchorWorld);
+}
+
+void BoundsHandler::UpdateDraftDrag(CPoint current)
+{
+    if (!m_isDraftDragging || !m_draft.has_value()) {
+        return;
+    }
+    
+    m_draftDragCurrent = current;
+    
+    // Fix for Issue #3: Add current point to perimeter instead of bounding box
+    // This makes the shape grow from anchor point as user drags
+    
+    // Clear all points except the first (anchor)
+    aperture::Point anchorWorld = m_draft->perimeterPoints.front();
+    m_draft->perimeterPoints.clear();
+    m_draft->perimeterPoints.push_back(anchorWorld);
+    
+    // Add current point as second perimeter point
+    aperture::Point currentWorld = ScreenToAperturePoint(current);
+    m_draft->perimeterPoints.push_back(currentWorld);
+    
+    // For circles/ellipses, add more points around the perimeter for better fit
+    if (m_draft->kind == DraftShape::Kind::Circle || m_draft->kind == DraftShape::Kind::Ellipse) {
+        // Calculate radius/axes from anchor to current
+        double dx = currentWorld.x - anchorWorld.x;
+        double dy = currentWorld.y - anchorWorld.y;
+        double radius = std::sqrt(dx * dx + dy * dy);
+        
+        if (radius > 0.001) {  // Avoid division by zero
+            // Add 6 more points around the circle/ellipse for LSM fitting
+            for (int i = 1; i <= 6; ++i) {
+                double angle = (2.0 * M_PI * i) / 8.0;
+                double x = anchorWorld.x + radius * std::cos(angle);
+                double y = anchorWorld.y + radius * std::sin(angle);
+                m_draft->perimeterPoints.push_back(aperture::Point(x, y));
+            }
+        }
+    }
+    
+    // Update preview for rendering
+    m_draftPreview = m_draft->GetPreview();
+}
+
+void BoundsHandler::CommitDraftDrag()
+{
+    if (!m_isDraftDragging) {
+        return;
+    }
+    
+    // Commit the current draft (uses existing CommitDraft logic)
+    if (CommitDraft()) {
+        // Success - draft was committed
+    }
+    
+    // Clear drag state
+    m_isDraftDragging = false;
+}
+
+void BoundsHandler::EndDraftDrag()
+{
+    m_isDraftDragging = false;
+    // Don't clear draft - allow point-sequence mode to continue
 }
 
 } // namespace DigitMode

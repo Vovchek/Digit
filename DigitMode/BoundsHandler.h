@@ -118,6 +118,18 @@ public:
      */
     aperture::TypeLimits GetShapeType() const { return m_shapeType; }
     
+    /**
+     * @brief Get command dispatcher for undo/redo
+     * @return Pointer to dispatcher, or nullptr if not initialized
+     */
+    CommandDispatcher* GetDispatcher() const { return m_pDispatcher; }
+    
+    /**
+     * @brief Get aperture controls for shape access
+     * @return Pointer to aperture controls, or nullptr if not initialized
+     */
+    CApertureCtrls* GetApertureCtrls() const { return m_pApertureCtrls; }
+    
     // ========================================================================
     // Hit-Testing (delegates to CApertureCtrls)
     // ========================================================================
@@ -280,6 +292,40 @@ public:
     void CancelDraft();
     
     /**
+     * @brief Begin draft drag operation (Phase B - bounding box creation)
+     * @param anchor First click point (screen coordinates)
+     * 
+     * Initiates drag-based shape creation. Used for Rectangle/Ellipse/Circle
+     * when no draft points exist yet. Allows click-drag-release workflow.
+     */
+    void BeginDraftDrag(CPoint anchor);
+    
+    /**
+     * @brief Update draft drag with current mouse position
+     * @param current Current mouse position (screen coordinates)
+     * 
+     * Creates bounding box from anchor to current point, generates draft
+     * shape, and updates preview for real-time visual feedback.
+     */
+    void UpdateDraftDrag(CPoint current);
+    
+    /**
+     * @brief Commit draft created by drag operation
+     * 
+     * Auto-commits the shape created by bounding box drag.
+     * Dispatches AddShapeCommand and clears draft state.
+     */
+    void CommitDraftDrag();
+    
+    /**
+     * @brief End draft drag without committing
+     * 
+     * Cancels drag operation, typically used when mouse-up is actually
+     * a click (distance < DRAG_THRESHOLD), not a drag.
+     */
+    void EndDraftDrag();
+    
+    /**
      * @brief Get draft preview for rendering
      * @return Preview shape, or nullptr if no draft or insufficient points
      * 
@@ -287,6 +333,16 @@ public:
      * Caller should render this with dashed outline (draft style).
      */
     const aperture::Shape* GetDraftPreview() const;
+    
+    /**
+     * @brief Get current draft for accessing perimeter points
+     * @return Pointer to draft, or nullptr if no draft active
+     * 
+     * Used for rendering vertex markers during draft creation.
+     */
+    const DraftShape* GetDraft() const { 
+        return m_draft.has_value() ? &m_draft.value() : nullptr; 
+    }
     
     /**
      * @brief Check if currently creating a draft
@@ -339,6 +395,9 @@ public:
     
     bool IsInitialized() const { return m_pView != nullptr && m_pApertureCtrls != nullptr; }
     bool IsDragging() const { return m_isDragging; }
+    bool IsDraftDragging() const { return m_isDraftDragging; }
+    CPoint GetDragAnchor() const { return m_dragAnchor; }
+    bool HasDraftPoints() const { return m_draft.has_value() && !m_draft->perimeterPoints.empty(); }
 
 private:
     // Modern mode only
@@ -375,8 +434,14 @@ private:
     CPoint m_dragStart;
     CPoint m_dragCurrent;
     
+    // Draft drag state (Phase B - bounding box creation)
+    bool m_isDraftDragging = false;       ///< True if drag-creating shape
+    CPoint m_dragAnchor;                  ///< First click point (screen coords)
+    CPoint m_draftDragCurrent;            ///< Current mouse position during draft drag
+    
     // Constants
     static constexpr int HANDLE_TOLERANCE = 5;  // Pixels for hit testing
+    static constexpr int DRAG_THRESHOLD = 3;     // Pixels to distinguish click from drag
 };
 
 } // namespace DigitMode

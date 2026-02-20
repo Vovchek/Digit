@@ -139,6 +139,12 @@ private:
     bool HandleSelectModeMouseDown(UINT flags, CPoint pt);
     
     /**
+     * @brief Handle mouse down in Delete mode
+     * @return true if event consumed
+     */
+    bool HandleDeleteModeMouseDown(UINT flags, CPoint pt);
+    
+    /**
      * @brief Handle mouse down in Add modes (creation)
      * @return true if event consumed
      */

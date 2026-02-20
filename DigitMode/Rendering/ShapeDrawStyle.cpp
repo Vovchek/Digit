@@ -25,46 +25,60 @@ COLORREF ShapeDrawStyle::GetOutlineColor() const {
 }
 
 int ShapeDrawStyle::GetOutlineWidth() const {
+    // COSMETIC pens must use width 0 or 1 (GDI limitation)
+    // For dashed lines (Draft or INTERNAL), always use 0 (thinnest)
+    if (state == State::Draft || type == aperture::TypeLimits::INTERNAL) {
+        return 0;  // Thinnest cosmetic pen
+    }
+    
     switch (state) {
         case State::Idle:
-            return 1;  // Thin
+            return 0;  // Thin (cosmetic)
         
         case State::Hovered:
-        case State::Draft:
-            return 2;  // Thicker
+            return 1;  // Slightly thicker (cosmetic)
         
         case State::Selected:
         case State::Dragging:
-            return 3;  // Thick
+            return 1;  // Thick as possible with cosmetic
         
         default:
-            return 1;
+            return 0;
     }
 }
 
 int ShapeDrawStyle::GetOutlineStyle() const {
     // INTERNAL shapes always have dashed outline
     if (type == aperture::TypeLimits::INTERNAL) {
-        return PS_DASH;
+        return PS_DASH | PS_COSMETIC;  // COSMETIC required for dashed lines
     }
     
     // Draft shapes have dashed outline
     if (state == State::Draft) {
-        return PS_DASH;
+        return PS_DASH | PS_COSMETIC;  // COSMETIC required for dashed lines
     }
     
     // All others are solid
-    return PS_SOLID;
+    return PS_SOLID | PS_COSMETIC;  // Use COSMETIC for consistency
 }
 
 COLORREF ShapeDrawStyle::GetFillColor() const {
     if (type == aperture::TypeLimits::INTERNAL) {
-        // Semi-transparent red (alpha blending done manually with brush)
-        return RGB(255, 0, 0);
+        // Semi-transparent orange/red for INTERNAL obstructions
+        // Note: GDI doesn't support true alpha, so we'll use lighter color
+        // to simulate transparency (or use AlphaBlend in renderers)
+        return RGB(255, 128, 64);  // Light orange (simulated transparency)
     }
     
     // No fill for other types
     return RGB(0, 0, 0);  // Won't be used
+}
+
+int ShapeDrawStyle::GetFillAlpha() const {
+    if (type == aperture::TypeLimits::INTERNAL) {
+        return 128;  // 50% transparency (0-255 scale)
+    }
+    return 255;  // Fully opaque
 }
 
 bool ShapeDrawStyle::HasFill() const {

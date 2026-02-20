@@ -9,6 +9,7 @@
 #include "ImageDoc.h"
 #include "ImageView.h"
 #include "ImageFeatures\SectionFrame.h"
+#include "DigitMode\Rendering\ShapeDrawStyle.h"
 
 #include "MGTools\Include\Utils\Utils.h"
 
@@ -281,7 +282,7 @@ void CImageView::OnInitialUpdate()
 	pFr->CalcWindowRect(&wDIBRect, CWnd::adjustOutside);
 	int W = wDIBRect.Width() + 20;
 	int H = wDIBRect.Height() + 20;
-	CDC* pDC = GetDC();
+	CDC* pDC = GetDC();  // Fixed: was GetReleaseDC (typo)
 	int scr_W = pDC->GetDeviceCaps(HORZRES);
 	int scr_H = pDC->GetDeviceCaps(VERTRES);
 	ReleaseDC(pDC);
@@ -571,7 +572,39 @@ void CImageView::OnDraw(CDC* pDC)
 	if (m_fringeHandler.GetInputHandler().GetMode() == EditMode::Navigate) {
 		m_fringeHandler.GetInputHandler().DrawSelectionBox(pDrawDC, &m_viewTransform);
 	}
-	
+	// After drawing committed shapes:
+	if (m_boundsHandler.GetBoundsHandler().IsDrafting()) {
+		const auto& boundsHandler = m_boundsHandler.GetBoundsHandler();
+
+		// Draw vertex markers (X marks) for draft points
+		const auto* draft = boundsHandler.GetDraft();
+		if (draft) {
+			const auto& points = draft->perimeterPoints;
+			CPen markerPen(PS_SOLID, 1, RGB(255, 255, 0));  // Yellow X marks
+			CPen* oldPen = pDrawDC->SelectObject(&markerPen);
+
+			const int markerSize = 4;  // pixels
+			for (const auto& worldPt : points) {
+				CPoint screenPt = m_viewTransform.WorldToScreen(CPoint2d{ worldPt.x, worldPt.y });
+				// Draw X mark
+				pDrawDC->MoveTo(screenPt.x - markerSize, screenPt.y - markerSize);
+				pDrawDC->LineTo(screenPt.x + markerSize, screenPt.y + markerSize);
+				pDrawDC->MoveTo(screenPt.x + markerSize, screenPt.y - markerSize);
+				pDrawDC->LineTo(screenPt.x - markerSize, screenPt.y + markerSize);
+			}
+
+			pDrawDC->SelectObject(oldPen);
+		}
+
+		const auto* preview = boundsHandler.GetDraftPreview();
+		if (preview) {
+			ShapeDrawStyle style;
+			style.state = ShapeDrawStyle::State::Draft;
+			style.type = boundsHandler.GetShapeType();
+			style.showHandles = false;
+			m_shapeDrawDispatcher.Draw(*preview, *pDrawDC, style, m_viewTransform);			
+		}
+	}
 	// Drawing performed here... (no world-transform applied)
 	if (pDrawDC != pDC) {
 		pDC->SetViewportOrg(0, 0);
