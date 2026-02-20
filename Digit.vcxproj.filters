@@ -509,6 +509,21 @@
     <ClInclude Include="DigitMode\ShapeConversionHelpers.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="DigitMode\ToolCapabilities.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\ToolContext.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\IInteractionTool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\InteractionManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\InputHandlerAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />
@@ -794,6 +809,17 @@
     <None Include="Docs\PHASE_A_VISUAL_FIXES.md" />
     <None Include="Docs\PHASE_B_COMPLETE.md" />
     <None Include="Docs\PHASE_B_BUGFIXES.md" />
+    <None Include="Docs\ARCHITECTURE_ANALYSIS_INTERACTION_MANAGER.md" />
+    <None Include="Docs\INTERACTION_MANAGER_SPECIFICATION.md" />
+    <None Include="Docs\ARCHITECTURAL_DECISION_INTERACTION_MANAGER.md" />
+    <None Include="Docs\INTERACTION_MANAGER_QUICK_REFERENCE.md" />
+    <None Include="Docs\PHASE_1_IMPLEMENTATION_ROADMAP.md" />
+    <None Include="Docs\DAY_1_COMPLETE.md" />
+    <None Include="Docs\PHASE_1_DAY_1_STATUS.md" />
+    <None Include="Docs\DAY_2_IMPLEMENTATION_GUIDE.md" />
+    <None Include="Docs\INTERACTION_MANAGER_MASTER_ROADMAP.md" />
+    <None Include="Docs\DAY_1_SUMMARY.md" />
+    <None Include="Docs\INTERACTIONMANAGER_DOCUMENTATION_INDEX.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
