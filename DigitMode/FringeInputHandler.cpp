@@ -45,7 +45,7 @@ bool FringeInputHandler::IsInitialized() const
 // Mode Management
 // ========================================================================
 
-void FringeInputHandler::SetMode(EditMode mode)
+void FringeInputHandler::SetMode(FringeEditMode mode)
 {
     // Cancel current operation before switching
     Cancel();
@@ -53,9 +53,9 @@ void FringeInputHandler::SetMode(EditMode mode)
     m_inputHandler.SetMode(mode);
 }
 
-EditMode FringeInputHandler::GetMode() const
+FringeEditMode FringeInputHandler::GetEditMode() const
 {
-    return m_inputHandler.GetMode();
+    return m_inputHandler.GetEditMode();
 }
 
 // ========================================================================

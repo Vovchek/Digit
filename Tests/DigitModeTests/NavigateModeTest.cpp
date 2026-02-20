@@ -26,7 +26,7 @@ protected:
         digitInfo.Init();
         digitInfo.CurrentNumber = 0.0;
         digitInfo.numStep = 1.0;
-        inputHandler.SetMode(EditMode::Navigate);
+        inputHandler.SetMode(FringeEditMode::Navigate);
     }
 
     void TearDown() override {
@@ -226,8 +226,8 @@ TEST_F(NavigateModeTest, SelectionPersistsAcrossModeSwitch) {
     digitInfo.selectionManager.SelectDot(0, 0);
     EXPECT_EQ(1, digitInfo.selectionManager.GetCount());
     
-    inputHandler.SetMode(EditMode::Draw);
-    inputHandler.SetMode(EditMode::Navigate);
+    inputHandler.SetMode(FringeEditMode::Draw);
+    inputHandler.SetMode(FringeEditMode::Navigate);
     
     EXPECT_EQ(1u, digitInfo.selectionManager.GetCount());  // Selection persisted
 }

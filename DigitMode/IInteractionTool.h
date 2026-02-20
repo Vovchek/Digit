@@ -27,34 +27,6 @@ class ViewTransform;
 namespace DigitMode {
 
 /**
- * @brief Result of hit-testing a tool
- * 
- * Unified result structure used by manager to arbitrate between tools.
- */
-struct HitResult {
-    bool hit = false;
-    
-    /// Which tool reported this hit (set by manager, not tool)
-    class IInteractionTool* tool = nullptr;
-    
-    /// Tool-specific context (what was hit: shape index, handle, etc.)
-    void* toolContext = nullptr;
-    
-    /// Distance from query point (for tie-breaking)
-    double distance = std::numeric_limits<double>::max();
-    
-    /// Priority for arbitration (from tool capabilities)
-    int priority = 0;
-    
-    /// Comparison for sorting (higher priority first, closer distance second)
-    bool operator<(const HitResult& other) const {
-        if (priority != other.priority) return priority > other.priority;
-        if (distance != other.distance) return distance < other.distance;
-        return false;
-    }
-};
-
-/**
  * @brief Tool interface for interaction system
  * 
  * All interaction tools (Bounds, Fringe, Fiducials, etc.) implement this.

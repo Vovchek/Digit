@@ -173,7 +173,9 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\FringeSegmentAdaptor.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
+    <ClCompile Include="DigitMode\InputHandlerAdapter.cpp" />
     <ClCompile Include="DigitMode\InputRouter.cpp" />
+    <ClCompile Include="DigitMode\InteractionManager.cpp" />
     <ClCompile Include="DigitMode\NavigationInputHandler.cpp" />
     <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />
     <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp" />
@@ -356,7 +358,10 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\COMPLETE_SOLUTION_SUMMARY.md" />
     <None Include="Docs\DAY_1_COMPLETE.md" />
     <None Include="Docs\DAY_1_SUMMARY.md" />
+    <None Include="Docs\DAY_2_COMPLETE.md" />
     <None Include="Docs\DAY_2_IMPLEMENTATION_GUIDE.md" />
+    <None Include="Docs\DAY_2_STATUS.md" />
+    <None Include="Docs\DAY_3_INTEGRATION_PLAN.md" />
     <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
     <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
     <None Include="Docs\DRAWMODETEST_FIX_SUMMARY.md" />
@@ -406,6 +411,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\PHASE5_SESSION_SUMMARY_AND_ARCHITECTURE.md" />
     <None Include="Docs\PHASE_1_DAY_1_STATUS.md" />
     <None Include="Docs\PHASE_1_IMPLEMENTATION_ROADMAP.md" />
+    <None Include="Docs\PHASE_1_PROGRESS.md" />
     <None Include="Docs\PHASE_A_COMPLETE.md" />
     <None Include="Docs\PHASE_A_VISUAL_FIXES.md" />
     <None Include="Docs\PHASE_B_BUGFIXES.md" />

@@ -27,7 +27,7 @@ protected:
         digitInfo.Init();
         digitInfo.CurrentNumber = 1.0;
         digitInfo.numStep = 0.5;
-        inputHandler.SetMode(EditMode::Draw);
+        inputHandler.SetMode(FringeEditMode::Draw);
     }
 
     void TearDown() override {
@@ -237,7 +237,7 @@ TEST_F(DrawModeTest, LeavingDrawModeEndsSegment) {
     EXPECT_GE(iSeg, 0);
     EXPECT_TRUE(inputHandler.IsActiveSegmentValid(&digitInfo));
     
-    inputHandler.SetMode(EditMode::Navigate);
+    inputHandler.SetMode(FringeEditMode::Navigate);
     // Segment is finalized but index is remembered
     EXPECT_EQ(iSeg, inputHandler.GetActiveSegment());
     EXPECT_FALSE(inputHandler.IsActiveSegmentValid(&digitInfo));

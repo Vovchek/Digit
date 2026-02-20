@@ -10,8 +10,8 @@
 
 namespace DigitMode {
 
-void InputHandler::SetMode(EditMode newMode) {
-    if (currentMode == EditMode::Draw && newMode != EditMode::Draw) {
+void InputHandler::SetMode(FringeEditMode newMode) {
+    if (currentMode == FringeEditMode::Draw && newMode != FringeEditMode::Draw) {
         // Finalize any active segment when leaving Draw mode
         EndCurrentSegment();
     }
@@ -60,7 +60,7 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
         }
     }
 
-    if (currentMode == EditMode::Draw) {
+    if (currentMode == FringeEditMode::Draw) {
         // If we already have an active segment, empty clicks should add a dot to its active end
         if (IsActiveSegmentValid(pDigit)) {
             if (level == SelectionLevel::None) {
@@ -118,7 +118,7 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
     }
 
     // Navigate mode: handle selection and box select
-    if (currentMode == EditMode::Navigate) {
+    if (currentMode == FringeEditMode::Navigate) {
         if (level == SelectionLevel::None) {
             // Empty click: start box select
             m_drag.active = true;
@@ -497,7 +497,7 @@ void InputHandler::HandleBoxSelection(CPoint start, CPoint end, CDigitInfo* pDig
 }
 
 void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
-    if (currentMode == EditMode::Navigate) {
+    if (currentMode == FringeEditMode::Navigate) {
         HandleBoxSelection(start, end, pDigit);
     }
 }

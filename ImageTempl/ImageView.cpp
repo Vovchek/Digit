@@ -232,7 +232,11 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_COMMAND(ID_BOUND_MODE_SELECT, OnBoundModeSelect)
 	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_SELECT, OnUpdateBoundModeSelect)
 	ON_COMMAND(ID_BOUND_MODE_DELETE, OnBoundModeDelete)
-	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_DELETE, OnUpdateBoundModeDelete)	//}}AFX_MSG_MAP
+	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_DELETE, OnUpdateBoundModeDelete)	
+	// fringes editing - temporary on IDD_ADD_DOT_D
+	ON_COMMAND(IDD_ADD_DOT_D, OnFringesEdit)
+	ON_UPDATE_COMMAND_UI(IDD_ADD_DOT_D, OnUpdateFringesEdit)
+	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
 /////////////////////////////////////////////////////////////////////////////
@@ -569,7 +573,7 @@ void CImageView::OnDraw(CDC* pDC)
 	// Draw selection box rubber-band if active (Navigate mode)
 	// m_drag points are in world coordinates, pass viewTransform for screen conversion
 	using namespace DigitMode;
-	if (m_fringeHandler.GetInputHandler().GetMode() == EditMode::Navigate) {
+	if (m_fringeHandler.GetInputHandler().GetEditMode() == FringeEditMode::Navigate) {
 		m_fringeHandler.GetInputHandler().DrawSelectionBox(pDrawDC, &m_viewTransform);
 	}
 	// After drawing committed shapes:
@@ -1407,5 +1411,25 @@ void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 
 	pCmdUI->SetRadio(
 		m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete ? TRUE : FALSE
+	);
+}
+void CImageView::OnFringesEdit()
+{
+	ActivateFringeTool();
+	m_fringeHandler.SetMode(DigitMode::FringeEditMode::Draw);
+	GetMainFrame()->SetStatusText(_T("Fringes: Draw mode - click segment to continue"));
+	Invalidate(FALSE);
+}
+// TODO: consider fringes drawing mode swithing scenarios
+void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
+{
+	bool hasImage = GetImageCtrls()->HasImage();
+	pCmdUI->Enable(hasImage ? TRUE : FALSE);
+	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_fringeHandler);
+	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
+
+	pCmdUI->SetRadio(
+		m_fringeHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
 	);
 }

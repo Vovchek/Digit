@@ -172,22 +172,20 @@ protected:
     // Add shapes
     afx_msg void OnAddBoundCircle();
     afx_msg void OnUpdateAddBound(CCmdUI* pCmdUI);
-
     afx_msg void OnAddBoundEllipse();
-
     afx_msg void OnAddBoundRect();
-
     afx_msg void OnAddBoundPolygon();
-
     // Mode switching
     afx_msg void OnBoundVisisbility();
     afx_msg void OnUpdateBoundVisibility(CCmdUI* pCmdUI);
-
     afx_msg void OnBoundModeSelect();
     afx_msg void OnUpdateBoundModeSelect(CCmdUI* pCmdUI);
-
     afx_msg void OnBoundModeDelete();
     afx_msg void OnUpdateBoundModeDelete(CCmdUI* pCmdUI);
+
+    // Fringes edit (temporary)
+    afx_msg void OnFringesEdit();
+    afx_msg void OnUpdateFringesEdit(CCmdUI* pCmdUI);
     //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 };

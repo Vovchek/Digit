@@ -246,7 +246,7 @@ void CControls::OnCloseImageDocument()
 	}
 }
 
-DigitMode::EditMode CControls::GetEditMode()
+DigitMode::FringeEditMode CControls::GetEditMode()
 {
 	/*
 #define E_ADD_DOT        0
@@ -262,12 +262,12 @@ DigitMode::EditMode CControls::GetEditMode()
 	*/
 	switch (ActiveEditMode) {
 	  case E_ADD_SECTION:
-		return DigitMode::EditMode::Navigate;
+		return DigitMode::FringeEditMode::Navigate;
 	  case E_ADD_DOT:
-		return DigitMode::EditMode::Draw;
+		return DigitMode::FringeEditMode::Draw;
 	  case E_RENUM_DOT:
-		return DigitMode::EditMode::DotEdit;
+		return DigitMode::FringeEditMode::DotEdit;
 	  default:
-		return DigitMode::EditMode::Navigate;
+		return DigitMode::FringeEditMode::Navigate;
 	}
 }

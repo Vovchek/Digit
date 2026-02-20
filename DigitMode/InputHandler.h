@@ -63,7 +63,7 @@ struct ModifierState {
  * - Draw: Create and extend segments
  * - DotEdit: Fine geometry editing (move/insert/delete dots)
  */
-enum class EditMode {
+enum class FringeEditMode {
     Navigate,  ///< Default mode: selection and navigation
     Draw,      ///< Drawing mode: create/continue/connect segments
     DotEdit    ///< Dot edit mode: geometry-only editing
@@ -92,7 +92,7 @@ enum class ActiveEnd {
  */
 class InputHandler {
 private:
-    EditMode currentMode = EditMode::Navigate;  ///< Initialize currentMode to Navigate
+    FringeEditMode currentMode = FringeEditMode::Navigate;  ///< Initialize currentMode to Navigate
 
     // Internal helpers for drag lifecycle
     void BeginDotDrag(int segIdx, int dotIdx, CPoint start, ::CDigitInfo* pDigit);
@@ -142,12 +142,12 @@ public:
      * - Finalizes active segment if leaving Draw mode
      * - Updates cursor (via caller)
      */
-    void SetMode(EditMode newMode);
+    void SetMode(FringeEditMode newMode);
 
     /**
      * @brief Get the current editing mode
      */
-    EditMode GetMode() const { return currentMode; }
+    FringeEditMode GetEditMode() const { return currentMode; }
 
     // Default constructor (keeps existing member-field usage in ImageView)
     InputHandler() = default;
@@ -155,12 +155,12 @@ public:
     /**
      * @brief Check if currently in Draw mode
      */
-    bool IsInDrawMode() const { return currentMode == EditMode::Draw; }
+    bool IsInDrawMode() const { return currentMode == FringeEditMode::Draw; }
 
     /**
      * @brief Check if currently in Navigate mode
      */
-    bool IsInNavigateMode() const { return currentMode == EditMode::Navigate; }
+    bool IsInNavigateMode() const { return currentMode == FringeEditMode::Navigate; }
 
     // ===== Draw Mode Operations =====
 

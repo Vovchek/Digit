@@ -57,7 +57,7 @@ public:
      * 
      * @note Phase 1: Overlays not yet implemented
      */
-    void UpdateCursor(EditMode mode, ModifierState mods, SelectionLevel under);
+    void UpdateCursor(FringeEditMode mode, ModifierState mods, SelectionLevel under);
 
 private:
     /**

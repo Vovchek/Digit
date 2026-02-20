@@ -13,19 +13,19 @@ CursorManager::CursorManager() {
     hCursorVertex = hCursorArrow;  // Placeholder
 }
 
-void CursorManager::UpdateCursor(EditMode mode, ModifierState mods, SelectionLevel under) {
+void CursorManager::UpdateCursor(FringeEditMode mode, ModifierState mods, SelectionLevel under) {
     CursorType base;
     CursorOverlay overlay = CursorOverlay::None;
 
     // 1. Determine base cursor by mode
     switch (mode) {
-        case EditMode::Navigate:
+        case FringeEditMode::Navigate:
             base = CursorType::Arrow;
             break;
-        case EditMode::Draw:
+        case FringeEditMode::Draw:
             base = CursorType::Crosshair;
             break;
-        case EditMode::DotEdit:
+        case FringeEditMode::DotEdit:
             base = CursorType::Vertex;
             break;
         default:

@@ -274,6 +274,12 @@
     <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\InteractionManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InputHandlerAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -820,6 +826,10 @@
     <None Include="Docs\INTERACTION_MANAGER_MASTER_ROADMAP.md" />
     <None Include="Docs\DAY_1_SUMMARY.md" />
     <None Include="Docs\INTERACTIONMANAGER_DOCUMENTATION_INDEX.md" />
+    <None Include="Docs\DAY_2_COMPLETE.md" />
+    <None Include="Docs\DAY_3_INTEGRATION_PLAN.md" />
+    <None Include="Docs\DAY_2_STATUS.md" />
+    <None Include="Docs\PHASE_1_PROGRESS.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

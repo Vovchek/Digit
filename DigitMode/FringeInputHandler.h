@@ -90,12 +90,12 @@ public:
      * 
      * Automatically finalizes pending operations when switching modes.
      */
-    void SetMode(EditMode mode);
+    void SetMode(FringeEditMode mode);
     
     /**
      * @brief Get current edit mode
      */
-    EditMode GetMode() const;
+    FringeEditMode GetEditMode() const;
     
     /**
      * @brief Get underlying InputHandler for legacy integration
