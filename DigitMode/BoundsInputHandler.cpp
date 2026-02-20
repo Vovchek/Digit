@@ -141,16 +141,16 @@ bool BoundsInputHandler::OnMouseUp(UINT flags, CPoint pt)
         CPoint anchor = m_boundsHandler.GetDragAnchor();
         int dx = abs(pt.x - anchor.x);
         int dy = abs(pt.y - anchor.y);
-        
+
         const int DRAG_THRESHOLD = 3;  // pixels (defined in BoundsHandler.h)
-        
+
         if (dx < DRAG_THRESHOLD && dy < DRAG_THRESHOLD) {
-            // Click (not drag) - add as first point in point-sequence mode
-            m_boundsHandler.EndDraftDrag();  // Cancel drag mode
-            
-            // Add point to draft
-            aperture::Point worldPt = m_boundsHandler.ScreenToAperturePoint(pt);
-            m_boundsHandler.AddDraftPoint(worldPt);
+            // Click (not drag): interpret as first perimeter sample only.
+            // BeginDraftDrag() already seeded the draft with the anchor
+            // point, so we just end drag mode and keep that single point.
+            // Do NOT add another point here, otherwise the first click
+            // produces two identical samples.
+            m_boundsHandler.EndDraftDrag();  // leave draft with 1 point
         } else {
             // Drag detected - auto-commit bounding box shape
             m_boundsHandler.CommitDraftDrag();
@@ -233,12 +233,13 @@ bool BoundsInputHandler::HandleSelectModeMouseDown(UINT flags, CPoint pt)
     }
     
     if (hit.hit && hit.isBody()) {
-        // Clicked on shape body (future: selection, move entire shape)
-        // For now, just consume the event
+        // Clicked on shape body → begin dragging to move entire shape
+        // controlPointIndex = -1 indicates body drag (not a specific control point)
+        m_boundsHandler.BeginDrag(hit.type, hit.shapeIndex, -1, pt);
         return true;  // Consumed
     }
     
-    // Clicked on empty space → deselect (future implementation)
+    // Clicked on empty space → allow navigation fallback
     return false;  // Not consumed, allow navigation fallback
 }
 

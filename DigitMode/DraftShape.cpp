@@ -2,7 +2,6 @@
  * @file DraftShape.cpp
  * @brief Implementation of DraftShape methods
  */
-
 #include "DraftShape.h"
 #include "ApertureCore/include/aperturecore/geometry/Rectangle.h"
 #include "ApertureCore/include/aperturecore/geometry/Ellipse.h"
@@ -153,6 +152,8 @@ std::unique_ptr<aperture::Shape> DraftShape::GetPreview() const {
 }
 
 void DraftShape::AddPoint(const aperture::Point& pt) {
+    static aperture::Point last_pt{ 0.,0. };
+    last_pt = pt;
     perimeterPoints.push_back(pt);
 }
 

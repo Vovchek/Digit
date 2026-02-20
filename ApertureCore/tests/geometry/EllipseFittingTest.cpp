@@ -117,6 +117,44 @@ TEST(EllipseFittingTest, FivePoints_Exact) {
     EXPECT_TRUE(isNear(ellipse.semiMinor(), 5.0, 0.5));
 }
 
+// Test: Five points - general-position ellipse (translated and rotated)
+TEST(EllipseFittingTest, FivePoints_GeneralPosition) {
+    // Ellipse parameters: a=8, b=4, center=(3,-2), rotation=30 degrees
+    std::vector<Point> points;
+    const double a = 8.0;
+    const double b = 4.0;
+    const double cx = 3.0;
+    const double cy = -2.0;
+    const double rotation = M_PI / 6.0;  // 30 degrees
+
+    // Sample 5 points uniformly on the ellipse
+    const int numPoints = 5;
+    for (int i = 0; i < numPoints; ++i) {
+        double t = 2.0 * M_PI * i / numPoints;
+        double xLocal = a * cos(t);
+        double yLocal = b * sin(t);
+
+        // Apply rotation
+        double xRot = xLocal * cos(rotation) - yLocal * sin(rotation);
+        double yRot = xLocal * sin(rotation) + yLocal * cos(rotation);
+
+        // Translate to global coordinates
+        points.push_back({cx + xRot, cy + yRot});
+    }
+
+    Ellipse ellipse(points);
+
+    // Center should be close to (cx, cy)
+    EXPECT_TRUE(isNear(ellipse.center().x, cx, 0.5));
+    EXPECT_TRUE(isNear(ellipse.center().y, cy, 0.5));
+
+    // Semi-axes should match (allowing for semiMajor/semiMinor swapping)
+    double fittedMax = std::max(ellipse.semiMajor(), ellipse.semiMinor());
+    double fittedMin = std::min(ellipse.semiMajor(), ellipse.semiMinor());
+    EXPECT_TRUE(isNear(fittedMax, a, 1.0));
+    EXPECT_TRUE(isNear(fittedMin, b, 1.0));
+}
+
 // Test: Many points - least squares fit (circle)
 TEST(EllipseFittingTest, ManyPoints_Circle) {
     // Generate points on a circle radius 10 centered at (0, 0)
@@ -163,6 +201,52 @@ TEST(EllipseFittingTest, ManyPoints_Ellipse) {
     EXPECT_TRUE(isNear(ellipse.center().y, 0.0, 0.5));
     EXPECT_TRUE(isNear(ellipse.semiMajor(), a, 1.0));
     EXPECT_TRUE(isNear(ellipse.semiMinor(), b, 1.0));
+}
+
+// Test: Many points - least squares fit for a rotated, translated ellipse
+TEST(EllipseFittingTest, ManyPoints_RotatedTranslatedEllipse) {
+    std::vector<Point> points;
+    const int numPoints = 40;
+    const double a = 15.0;
+    const double b = 8.0;
+    const double cx = -5.0;
+    const double cy = 7.0;
+    const double rotation = M_PI / 3.0;  // 60 degrees
+
+    // Generate points on an ellipse in general position
+    for (int i = 0; i < numPoints; ++i) {
+        double t = 2.0 * M_PI * i / numPoints;
+
+        // Parametric point in local (axis-aligned) coordinates
+        double xLocal = a * cos(t);
+        double yLocal = b * sin(t);
+
+        // Rotate into world coordinates
+        double xRot = xLocal * cos(rotation) - yLocal * sin(rotation);
+        double yRot = xLocal * sin(rotation) + yLocal * cos(rotation);
+
+        // Translate to final center
+        points.push_back({cx + xRot, cy + yRot});
+    }
+
+    Ellipse ellipse(points);
+
+    // Center should be close to the true center
+    EXPECT_TRUE(isNear(ellipse.center().x, cx, 0.5));
+    EXPECT_TRUE(isNear(ellipse.center().y, cy, 0.5));
+
+    // Semi-axes should be close to a and b (order may swap)
+    double fittedMax = std::max(ellipse.semiMajor(), ellipse.semiMinor());
+    double fittedMin = std::min(ellipse.semiMajor(), ellipse.semiMinor());
+    EXPECT_TRUE(isNear(fittedMax, a, 1.0));
+    EXPECT_TRUE(isNear(fittedMin, b, 1.0));
+
+    // Rotation should indicate a non-axis-aligned ellipse in general position
+    double rotDeg = std::abs(ellipse.rotationDegrees());
+    while (rotDeg > 90.0) rotDeg -= 90.0;
+    // Expect something significantly away from 0/90 degrees
+    bool hasRotation = !isNear(rotDeg, 0.0, 5.0) && !isNear(rotDeg, 90.0, 5.0);
+    EXPECT_TRUE(hasRotation);
 }
 
 // Test: Fitted ellipse contains original points

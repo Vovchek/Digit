@@ -276,67 +276,149 @@ namespace {
     // Helper: Convert conic coefficients to ellipse parameters
     // Conic: ax² + bxy + cy² + dx + ey + f = 0
     // Returns false if not an ellipse
-    bool conicToEllipse(double a, double b, double c, double d, double e, double f,
-                       double& centerX, double& centerY,
-                       double& semiMajor, double& semiMinor, double& rotationDeg) {
-        constexpr double EPSILON = 1e-10;
-        
-        // Check if it's an ellipse: b²-4ac < 0
-        double discriminant = b * b - 4.0 * a * c;
-        if (discriminant >= -EPSILON) {
-            return false;  // Not an ellipse (parabola or hyperbola)
+
+    bool conicToEllipse(double a, double b, double c,
+        double d, double e, double f,
+        double& cx, double& cy,
+        double& A, double& B,
+        double& rotDeg)
+    {
+        constexpr double EPS = 1e-12;
+
+        double q11 = a;
+        double q12 = 0.5 * b;
+        double q22 = c;
+
+        double detQ = q11 * q22 - q12 * q12;
+        if (detQ <= EPS) return false;
+
+        double invQ11 = q22 / detQ;
+        double invQ12 = -q12 / detQ;
+        double invQ22 = q11 / detQ;
+
+        cx = -0.5 * (invQ11 * d + invQ12 * e);
+        cy = -0.5 * (invQ12 * d + invQ22 * e);
+
+        double k =
+            q11 * cx * cx +
+            2 * q12 * cx * cy +
+            q22 * cy * cy
+            - f;
+
+        if (k <= EPS) return false;
+
+        double tr = q11 + q22;
+        double diff = q11 - q22;
+        double root = sqrt(diff * diff + 4 * q12 * q12);
+
+        double l1 = 0.5 * (tr + root);
+        double l2 = 0.5 * (tr - root);
+
+        if (l1 <= EPS || l2 <= EPS) return false;
+
+        double a1 = sqrt(k / l1);
+        double a2 = sqrt(k / l2);
+
+        if (a1 >= a2) {
+            A = a1; B = a2;
+            rotDeg = 0.5 * atan2(2 * q12, diff) * 180.0 / M_PI;
         }
-        
-        // Center calculation
-        // From conic Ax² + Bxy + Cy² + Dx + Ey + F = 0
-        // Completing the square gives:
-        // (x - xc)²/a² + (y - yc)²/b² = 1 (for rotated ellipse)
-        // Center: xc = (2CD - BE) / (B² - 4AC), yc = (2AE - BD) / (B² - 4AC)
-        double denominator = b * b - 4.0 * a * c;
-        if (std::abs(denominator) < EPSILON) {
-            return false;
+        else {
+            A = a2; B = a1;
+            rotDeg = 0.5 * atan2(2 * q12, diff) * 180.0 / M_PI + 90.0;
         }
-        
-        centerX = (2.0 * c * d - b * e) / denominator;
-        centerY = (2.0 * a * e - b * d) / denominator;
-        
-        // Semi-axes calculation
-        // Compute the numerator for the axis lengths
-        // num = 2(Ae² + Cd² + Fb² - Bde - ACf) / (B² - 4AC)
-        double numerator = 2.0 * (a * e * e + c * d * d + f * b * b - b * d * e - 4.0 * a * c * f);
-        
-        // The denominators involve eigenvalues
-        double sqrtTerm = std::sqrt((a - c) * (a - c) + b * b);
-        double denom1 = (b * b - 4.0 * a * c) * (sqrtTerm - (a + c));
-        double denom2 = (b * b - 4.0 * a * c) * (-sqrtTerm - (a + c));
-        
-        if (denom1 >= -EPSILON || denom2 >= -EPSILON) {
-            return false;  // Degenerate
-        }
-        
-        double axis1 = std::sqrt(std::abs(numerator / denom1));
-        double axis2 = std::sqrt(std::abs(numerator / denom2));
-        
-        semiMajor = std::max(axis1, axis2);
-        semiMinor = std::min(axis1, axis2);
-        
-        // Rotation angle
-        // tan(2θ) = B / (A - C)
-        if (std::abs(b) < EPSILON) {
-            rotationDeg = 0.0;
-        } else {
-            double angleRad = 0.5 * std::atan2(b, a - c);
-            rotationDeg = angleRad * 180.0 / M_PI;
-        }
-        
+        if (rotDeg >= 180.) rotDeg -= 180;
+        if (rotDeg <= -180.) rotDeg += 180.;
+
         return true;
     }
+
+    // Helper: Inver 3x3 matrix
+    // 
+    //static bool invert3x3(const double m[3][3], double inv[3][3])
+    //{
+    //    double det =
+    //        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
+    //        m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
+    //        m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+
+    //    if (fabs(det) < 1e-12) return false;
+
+    //    double id = 1.0 / det;
+
+    //    inv[0][0] = id * (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
+    //    inv[0][1] = -id * (m[0][1] * m[2][2] - m[0][2] * m[2][1]);
+    //    inv[0][2] = id * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
+
+    //    inv[1][0] = -id * (m[1][0] * m[2][2] - m[1][2] * m[2][0]);
+    //    inv[1][1] = id * (m[0][0] * m[2][2] - m[0][2] * m[2][0]);
+    //    inv[1][2] = -id * (m[0][0] * m[1][2] - m[0][2] * m[1][0]);
+
+    //    inv[2][0] = id * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+    //    inv[2][1] = -id * (m[0][0] * m[2][1] - m[0][1] * m[2][0]);
+    //    inv[2][2] = id * (m[0][0] * m[1][1] - m[0][1] * m[1][0]);
+
+    //    return true;
+    //}
+
+    //
+    // Helper: Small symmetric 3×3 Jacobi eigen solver
+    // 
+    //static void eigenSym3(double A[3][3], double w[3], double V[3][3])
+    //{
+    //    for (int i = 0; i < 3; i++)
+    //        for (int j = 0; j < 3; j++)
+    //            V[i][j] = (i == j);
+
+    //    for (int it = 0; it < 32; it++)
+    //    {
+    //        int p = 0, q = 1;
+    //        double max = fabs(A[0][1]);
+    //        if (fabs(A[0][2]) > max) { p = 0; q = 2; max = fabs(A[0][2]); }
+    //        if (fabs(A[1][2]) > max) { p = 1; q = 2; max = fabs(A[1][2]); }
+    //        if (max < 1e-12) break;
+
+    //        double app = A[p][p];
+    //        double aqq = A[q][q];
+    //        double apq = A[p][q];
+
+    //        double phi = 0.5 * atan2(2 * apq, aqq - app);
+    //        double c = cos(phi);
+    //        double s = sin(phi);
+
+    //        for (int k = 0; k < 3; k++)
+    //        {
+    //            double aik = A[p][k];
+    //            double aqk = A[q][k];
+    //            A[p][k] = c * aik - s * aqk;
+    //            A[q][k] = s * aik + c * aqk;
+    //        }
+    //        for (int k = 0; k < 3; k++)
+    //        {
+    //            double akp = A[k][p];
+    //            double akq = A[k][q];
+    //            A[k][p] = c * akp - s * akq;
+    //            A[k][q] = s * akp + c * akq;
+    //        }
+    //        for (int k = 0; k < 3; k++)
+    //        {
+    //            double vip = V[k][p];
+    //            double viq = V[k][q];
+    //            V[k][p] = c * vip - s * viq;
+    //            V[k][q] = s * vip + c * viq;
+    //        }
+    //    }
+
+    //    for (int i = 0; i < 3; i++)
+    //        w[i] = A[i][i];
+    //}
+
 }
 
 Ellipse::Ellipse(const std::vector<Point>& points,
-                TypeLimits typeLimits,
-                CoordinateSystem spatialSystem,
-                NormalizationState normState)
+    TypeLimits typeLimits,
+    CoordinateSystem spatialSystem,
+    NormalizationState normState)
     : semiMajor_(0.0)
     , semiMinor_(0.0)
     , center_(0.0, 0.0)
@@ -348,21 +430,21 @@ Ellipse::Ellipse(const std::vector<Point>& points,
     typeLimits_ = typeLimits;
     spatialSystem_ = spatialSystem;
     normState_ = normState;
-    
+
     constexpr double EPSILON = 1e-10;
     const size_t n = points.size();
-    
+
     if (n == 0) {
         // Empty - leave at origin with zero radii
         return;
     }
-    
+
     if (n == 1) {
         // Single point - degenerate ellipse
         center_ = points[0];
         return;
     }
-    
+
     if (n == 2) {
         // Two points define circle diameter
         center_.x = (points[0].x + points[1].x) / 2.0;
@@ -372,44 +454,44 @@ Ellipse::Ellipse(const std::vector<Point>& points,
         semiMinor_ = radius;
         return;
     }
-    
+
     if (n == 3) {
         // Three points define a circle (geometric fit)
         double x1 = points[0].x, y1 = points[0].y;
         double x2 = points[1].x, y2 = points[1].y;
         double x3 = points[2].x, y3 = points[2].y;
-        
+
         double A = x1 * (y2 - y3) - y1 * (x2 - x3) + x2 * y3 - x3 * y2;
-        
+
         if (std::abs(A) < EPSILON) {
             // Collinear points - use centroid
             center_.x = (x1 + x2 + x3) / 3.0;
             center_.y = (y1 + y2 + y3) / 3.0;
             return;
         }
-        
+
         double B = (x1 * x1 + y1 * y1) * (y3 - y2) +
-                   (x2 * x2 + y2 * y2) * (y1 - y3) +
-                   (x3 * x3 + y3 * y3) * (y2 - y1);
+            (x2 * x2 + y2 * y2) * (y1 - y3) +
+            (x3 * x3 + y3 * y3) * (y2 - y1);
         double C = (x1 * x1 + y1 * y1) * (x2 - x3) +
-                   (x2 * x2 + y2 * y2) * (x3 - x1) +
-                   (x3 * x3 + y3 * y3) * (x1 - x2);
-        
+            (x2 * x2 + y2 * y2) * (x3 - x1) +
+            (x3 * x3 + y3 * y3) * (x1 - x2);
+
         center_.x = -B / (2.0 * A);
         center_.y = -C / (2.0 * A);
-        
+
         double radius = std::sqrt((x1 - center_.x) * (x1 - center_.x) +
-                                 (y1 - center_.y) * (y1 - center_.y));
+            (y1 - center_.y) * (y1 - center_.y));
         semiMajor_ = radius;
         semiMinor_ = radius;
         return;
     }
-    
+
     if (n == 4) {
         // Four points - axis-aligned ellipse (bounding box approach)
         center_.x = (points[0].x + points[1].x + points[2].x + points[3].x) / 4.0;
         center_.y = (points[0].y + points[1].y + points[2].y + points[3].y) / 4.0;
-        
+
         double maxX = 0.0, maxY = 0.0;
         for (size_t i = 0; i < 4; i++) {
             double dx = std::abs(points[i].x - center_.x);
@@ -417,19 +499,19 @@ Ellipse::Ellipse(const std::vector<Point>& points,
             maxX = std::max(maxX, dx);
             maxY = std::max(maxY, dy);
         }
-        
+
         semiMajor_ = maxX;
         semiMinor_ = maxY;
         return;
     }
-    
+
     if (n == 5) {
         // Five points - exact ellipse fit (general conic)
         // Solve: Ax² + Bxy + Cy² + Dx + Ey + F = 0 with F = 1
-        
+
         double A[5][5];
         double b[5];
-        
+
         for (size_t i = 0; i < 5; i++) {
             double x = points[i].x;
             double y = points[i].y;
@@ -440,7 +522,7 @@ Ellipse::Ellipse(const std::vector<Point>& points,
             A[i][4] = y;
             b[i] = 1.0;
         }
-        
+
         double solution[5];
         if (solveLinearSystem5x5(A, b, solution)) {
             double a = solution[0];
@@ -449,64 +531,66 @@ Ellipse::Ellipse(const std::vector<Point>& points,
             double d = solution[3];
             double e = solution[4];
             double f = -1.0;  // We normalized with F = 1
-            
+
             if (conicToEllipse(a, bxy, c, d, e, f,
-                             center_.x, center_.y,
-                             semiMajor_, semiMinor_, rotationDeg_)) {
+                center_.x, center_.y,
+                semiMajor_, semiMinor_, rotationDeg_)) {
                 rotationRad_ = rotationDeg_ * M_PI / 180.0;
                 updateRotationCache();
                 return;
             }
         }
-        
+
         // Fallback to 4-point method
         std::vector<Point> fourPoints(points.begin(), points.begin() + 4);
         *this = Ellipse(fourPoints, typeLimits, spatialSystem, normState);
         return;
     }
-    
+
     // n > 5: Least squares ellipse fit
+    // !!! This is only temporary stub - must be replaced in production !!!
+    // TODO: !!! redesign - the solution is mathematically unstable !!!
     // Build design matrix D and scatter matrix S = D'*D
-    
-    double S[5][5] = {{0}};  // Scatter matrix (symmetric)
-    
+
+    double S[5][5] = { {0} }; // Scatter matrix (symmetric)
+
     // S = D'*D where D = [x² xy y² x y]
+
     for (size_t k = 0; k < n; k++) {
         double x = points[k].x;
         double y = points[k].y;
         double x2 = x * x;
         double xy = x * y;
         double y2 = y * y;
-        
-        double row[5] = {x2, xy, y2, x, y};
-        
+        double row[5] = { x2, xy, y2, x, y };
         for (int i = 0; i < 5; i++) {
             for (int j = 0; j < 5; j++) {
                 S[i][j] += row[i] * row[j];
             }
         }
     }
-    
+
     // Right-hand side: D' * (-ones(n,1))
     // We're solving D'*D*coeff = -D'*ones
     // because conic equation is: Ax² + Bxy + Cy² + Dx + Ey + F = 0
     // with F = -1 (normalization), so: Ax² + Bxy + Cy² + Dx + Ey = 1
-    double rhs[5] = {0};
+
+    double rhs[5] = { 0 };
     for (size_t k = 0; k < n; k++) {
         double x = points[k].x;
         double y = points[k].y;
         double x2 = x * x;
         double xy = x * y;
         double y2 = y * y;
-        
+
         // Each row of D contributes to rhs: D'*ones = sum of each column
-        rhs[0] -= x2;  // Negative because we solve for Ax²+...=-F with F=-1
-        rhs[1] -= xy;
-        rhs[2] -= y2;
-        rhs[3] -= x;
-        rhs[4] -= y;
+        rhs[0] += x2;
+        rhs[1] += xy;
+        rhs[2] += y2;
+        rhs[3] += x;
+        rhs[4] += y;
     }
-    
+
     // Solve S * solution = rhs
     double solution[5];
     if (solveLinearSystem5x5(S, rhs, solution)) {
@@ -516,16 +600,16 @@ Ellipse::Ellipse(const std::vector<Point>& points,
         double d = solution[3];
         double e = solution[4];
         double f = -1.0;
-        
+
         if (conicToEllipse(a, bxy, c, d, e, f,
-                         center_.x, center_.y,
-                         semiMajor_, semiMinor_, rotationDeg_)) {
+            center_.x, center_.y,
+            semiMajor_, semiMinor_, rotationDeg_)) {
             rotationRad_ = rotationDeg_ * M_PI / 180.0;
             updateRotationCache();
             return;
         }
-    }
-    
+    }    
+
     // Final fallback to 4-point method
     std::vector<Point> fourPoints(points.begin(), points.begin() + 4);
     *this = Ellipse(fourPoints, typeLimits, spatialSystem, normState);

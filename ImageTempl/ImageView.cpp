@@ -605,6 +605,20 @@ void CImageView::OnDraw(CDC* pDC)
 			m_shapeDrawDispatcher.Draw(*preview, *pDrawDC, style, m_viewTransform);			
 		}
 	}
+	
+	// Phase D: Draw preview shape during drag operations (move/resize handles, body drag)
+	if (m_boundsHandler.GetBoundsHandler().IsDragging()) {
+		const auto& boundsHandler = m_boundsHandler.GetBoundsHandler();
+		const auto* previewShape = boundsHandler.GetPreviewShape();
+		if (previewShape) {
+			ShapeDrawStyle style;
+			style.state = ShapeDrawStyle::State::Selected;
+			style.type = boundsHandler.GetHoveredShapeType();
+			style.showHandles = true;
+			m_shapeDrawDispatcher.Draw(*previewShape, *pDrawDC, style, m_viewTransform);
+			m_shapeDrawDispatcher.DrawHandles(*previewShape, *pDrawDC, style, m_viewTransform);
+		}
+	}
 	// Drawing performed here... (no world-transform applied)
 	if (pDrawDC != pDC) {
 		pDC->SetViewportOrg(0, 0);
