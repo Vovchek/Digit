@@ -338,7 +338,22 @@ void CImageView::OnInitialUpdate()
 			);
 		}
 		
-		// Set fringe handler as default active tool
+		// ====================================================================
+		// Day 3: Initialize InteractionManager with Tool Adapters
+		// ====================================================================
+		
+		// Create tool adapters wrapping existing handlers
+		m_boundsToolAdapter = new DigitMode::BoundsToolAdapter(&m_boundsHandler, &m_boundsHandler.GetBoundsHandler());
+		m_fringeToolAdapter = new DigitMode::FringeToolAdapter(&m_fringeHandler);
+		
+		// Register tools with interaction manager
+		GetInteractionManager().RegisterTool(m_boundsToolAdapter);
+		GetInteractionManager().RegisterTool(m_fringeToolAdapter);
+		
+		// Set fringe handler as initial active tool
+		GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
+		
+		// Keep old InputRouter working as fallback (for compatibility during transition)
 		GetInputRouter().SetActiveTool(&m_fringeHandler);
 	}
 }
@@ -635,6 +650,25 @@ void CImageView::OnDraw(CDC* pDC)
 			&dc, 0, 0, SRCCOPY);
 		dc.SelectObject(pOldBitmap);
 	}
+	
+	// ========================================================================
+	// Day 3: Render InteractionManager View State (unified tool visualization)
+	// ========================================================================
+	
+	auto viewState = GetInteractionManager().GetViewState();
+	
+	// Render shapes from all active tools (bounds, fringe, etc.)
+	for (const auto& layer : viewState.layers) {
+		for (const auto& shape : layer.toolState.shapes) {
+			m_shapeDrawDispatcher.Draw(
+				*shape.shape,
+				*pDrawDC,
+				shape.style,
+				m_viewTransform
+			);
+		}
+	}
+	
 	if (pDoc) {
 		// Update text controls
 		pDoc->SetZoomToTitle();

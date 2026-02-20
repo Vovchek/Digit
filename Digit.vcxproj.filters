@@ -280,6 +280,12 @@
     <ClCompile Include="DigitMode\InputHandlerAdapter.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="DigitMode\BoundsToolAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\FringeToolAdapter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
@@ -528,6 +534,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\InputHandlerAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\BoundsToolAdapter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\FringeToolAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -830,6 +842,8 @@
     <None Include="Docs\DAY_3_INTEGRATION_PLAN.md" />
     <None Include="Docs\DAY_2_STATUS.md" />
     <None Include="Docs\PHASE_1_PROGRESS.md" />
+    <None Include="Docs\DAY_3_COMPLETE.md" />
+    <None Include="Docs\PHASE_1_COMPLETE.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

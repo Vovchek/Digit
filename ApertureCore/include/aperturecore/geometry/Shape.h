@@ -183,6 +183,10 @@
 #undef NORMALIZED
 #endif
 
+#ifdef EXTERNAL
+#undef EXTERNAL
+#endif
+
 namespace aperture {
 
 /**

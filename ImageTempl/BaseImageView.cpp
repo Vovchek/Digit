@@ -101,7 +101,7 @@ void CBaseImageView::DocToClient(CSize& size)
     dc.LPtoDP(&size);
 }
 
-//Преобразует координаты прямоуголька (rect) из логических координат в  
+//Преобразует координаты прямоугольника (rect) из логических координат в  
 // координаты устройства
 void CBaseImageView::DocToClient(CRect& rect)
 {
@@ -658,6 +658,22 @@ void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
 {
     SetCapture();
     m_bCaptured = TRUE;
+    
+    // Priority 1: Navigation (pan/zoom) - handled FIRST
+    if (m_navigationHandler && m_navigationHandler->OnMouseDown(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnLButtonDown(nFlags, point);
+        return;  // ← Navigation consumed it, stop here
+    }
+    
+    // Priority 2: Tools (bounds, fringe) via InteractionManager
+    if (m_interactionManager.OnMouseDown(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnLButtonDown(nFlags, point);
+        return;  // ← InteractionManager consumed it
+    }
+    
+    // Priority 3: Fallback to InputRouter (legacy handlers)
     m_inputRouter.OnMouseDown(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnLButtonDown(nFlags, point);
@@ -665,6 +681,29 @@ void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
 
 void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
 {
+    // Priority 1: Navigation
+    if (m_navigationHandler && m_navigationHandler->OnMouseUp(nFlags, point)) {
+        if (m_bCaptured && GetCapture() == this) {
+            ReleaseCapture();
+        }
+        m_bCaptured = FALSE;
+        Invalidate(FALSE);
+        CScrollView::OnLButtonUp(nFlags, point);
+        return;
+    }
+    
+    // Priority 2: InteractionManager
+    if (m_interactionManager.OnMouseUp(nFlags, point)) {
+        if (m_bCaptured && GetCapture() == this) {
+            ReleaseCapture();
+        }
+        m_bCaptured = FALSE;
+        Invalidate(FALSE);
+        CScrollView::OnLButtonUp(nFlags, point);
+        return;
+    }
+    
+    // Priority 3: Fallback to InputRouter
     m_inputRouter.OnMouseUp(nFlags, point);
     if (m_bCaptured && GetCapture() == this) {
         ReleaseCapture();
@@ -676,6 +715,21 @@ void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
 
 void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
 {
+    // Navigation first
+    if (m_navigationHandler && m_navigationHandler->OnMouseDown(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnRButtonDown(nFlags, point);
+        return;
+    }
+    
+    // Then InteractionManager
+    if (m_interactionManager.OnMouseDown(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnRButtonDown(nFlags, point);
+        return;
+    }
+    
+    // Fallback
     m_inputRouter.OnMouseDown(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnRButtonDown(nFlags, point);
@@ -683,6 +737,21 @@ void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
 
 void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
 {
+    // Navigation first
+    if (m_navigationHandler && m_navigationHandler->OnMouseUp(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnRButtonUp(nFlags, point);
+        return;
+    }
+    
+    // Then InteractionManager
+    if (m_interactionManager.OnMouseUp(nFlags, point)) {
+        Invalidate(FALSE);
+        CScrollView::OnRButtonUp(nFlags, point);
+        return;
+    }
+    
+    // Fallback
     m_inputRouter.OnMouseUp(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnRButtonUp(nFlags, point);
@@ -690,7 +759,23 @@ void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
 
 void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
 {
-    bool consumed = m_inputRouter.OnMouseMove(nFlags, point);
+    bool consumed = false;
+    
+    // Priority 1: Navigation
+    if (m_navigationHandler) {
+        consumed = m_navigationHandler->OnMouseMove(nFlags, point);
+    }
+    
+    // Priority 2: InteractionManager (if navigation didn't consume)
+    if (!consumed) {
+        consumed = m_interactionManager.OnMouseMove(nFlags, point);
+    }
+    
+    // Priority 3: InputRouter fallback
+    if (!consumed) {
+        consumed = m_inputRouter.OnMouseMove(nFlags, point);
+    }
+    
     if (consumed || m_bCaptured) {
         Invalidate(FALSE);
     }
@@ -702,6 +787,19 @@ BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     // pt comes in SCREEN coordinates - convert to client
     ScreenToClient(&pt);
 
+    // Priority 1: Navigation
+    if (m_navigationHandler && m_navigationHandler->OnMouseWheel(nFlags, zDelta, pt)) {
+        Invalidate(FALSE);
+        return TRUE;
+    }
+
+    // Priority 2: InteractionManager
+    if (m_interactionManager.OnMouseWheel(nFlags, zDelta, pt)) {
+        Invalidate(FALSE);
+        return TRUE;
+    }
+
+    // Priority 3: InputRouter fallback
     if (m_inputRouter.OnMouseWheel(nFlags, zDelta, pt)) {
         Invalidate(FALSE);
         return TRUE;
@@ -712,6 +810,19 @@ BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 
 void CBaseImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
+    // Priority 1: Navigation
+    if (m_navigationHandler && m_navigationHandler->OnKeyDown(nChar)) {
+        Invalidate(FALSE);
+        return;
+    }
+
+    // Priority 2: InteractionManager
+    if (m_interactionManager.OnKeyDown(nChar)) {
+        Invalidate(FALSE);
+        return;
+    }
+
+    // Priority 3: InputRouter fallback
     if (m_inputRouter.OnKeyDown(nChar)) {
         Invalidate(FALSE);
         return;
@@ -1073,7 +1184,7 @@ void CBaseImageView::CreateBoundMenu(CPoint point)
    ItemText = CRS("Удалить все границы", "Remove all bounds");
    Main.AppendMenu(RemoveAllFlag, IDD_BOUND_ALLREMOVE, ItemText);
    
-   ItemText = CRS("Тип установки", "Set up type");
+   ItemText = CRS("Тип установки", "Apply type");
    Main.AppendMenu(SetTypeFlag, (UINT)SetUpMenu.m_hMenu, ItemText);
    ItemText = CRS("Тип границы", "Bound type");
    Main.AppendMenu(ScreenFlag, (UINT)ScreenMenu.m_hMenu, ItemText);

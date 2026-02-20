@@ -10,6 +10,8 @@
 #include "Utils\contour.h"
 #include "DigitMode/FringeInputHandler.h"
 #include "DigitMode/BoundsInputHandler.h"
+#include "DigitMode/BoundsToolAdapter.h"
+#include "DigitMode/FringeToolAdapter.h"
 #include "DigitMode/HitTester.h"
 #include "DigitMode/SelectionManager.h"
 #include "DigitMode/CommandDispatcher.h"
@@ -17,6 +19,7 @@
 #include "DigitMode/TooltipGenerator.h"
 #include "DigitMode/Rendering/ShapeDrawDispatcher.h"
 #include <afxcmn.h>
+#include <memory>
 
 class CBaseImageView;
 /////////////////////////////////////////////////////////////////////////////
@@ -32,6 +35,13 @@ private:
     DigitMode::FringeInputHandler m_fringeHandler;    ///< Fringe editing tool
     DigitMode::BoundsInputHandler m_boundsHandler;    ///< Bounds editing tool
     DigitMode::ShapeDrawDispatcher m_shapeDrawDispatcher; ///< Shape rendering dispatcher (Phase 4)
+    
+    // ========================================================================
+    // Day 3: Tool Adapters for InteractionManager
+    // ========================================================================
+    
+    DigitMode::BoundsToolAdapter* m_boundsToolAdapter;   ///< Adapter for InteractionManager (raw ptr)
+    DigitMode::FringeToolAdapter* m_fringeToolAdapter;   ///< Adapter for InteractionManager (raw ptr)
     
     // ========================================================================
     // Legacy support infrastructure (will be integrated into tool handlers)

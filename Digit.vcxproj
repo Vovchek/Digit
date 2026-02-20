@@ -160,6 +160,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="Controls\CApertureCtrls.cpp" />
     <ClCompile Include="DigitMode\BoundsHandler.cpp" />
     <ClCompile Include="DigitMode\BoundsInputHandler.cpp" />
+    <ClCompile Include="DigitMode\BoundsToolAdapter.cpp" />
     <ClCompile Include="DigitMode\CFringeSegment.cpp" />
     <ClCompile Include="DigitMode\CommandDispatcher.cpp" />
     <ClCompile Include="DigitMode\Commands\AddShapeCommand.cpp" />
@@ -171,6 +172,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\EditMode.cpp" />
     <ClCompile Include="DigitMode\FringeInputHandler.cpp" />
     <ClCompile Include="DigitMode\FringeSegmentAdaptor.cpp" />
+    <ClCompile Include="DigitMode\FringeToolAdapter.cpp" />
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
     <ClCompile Include="DigitMode\InputHandlerAdapter.cpp" />
@@ -235,6 +237,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="Controls\CApertureCtrls.h" />
     <ClInclude Include="DigitMode\BoundsHandler.h" />
     <ClInclude Include="DigitMode\BoundsInputHandler.h" />
+    <ClInclude Include="DigitMode\BoundsToolAdapter.h" />
     <ClInclude Include="DigitMode\CFringeSegment.h" />
     <ClInclude Include="DigitMode\CommandDispatcher.h" />
     <ClInclude Include="DigitMode\Commands\AddShapeCommand.h" />
@@ -249,6 +252,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\DigitInfoExt.hxx" />
     <ClInclude Include="DigitMode\DigitInfoFringe.hxx" />
     <ClInclude Include="DigitMode\FringeSegmentAdaptor.h" />
+    <ClInclude Include="DigitMode\FringeToolAdapter.h" />
     <ClInclude Include="DigitMode\IInteractionTool.h" />
     <ClInclude Include="DigitMode\InputHandlerAdapter.h" />
     <ClInclude Include="DigitMode\InteractionManager.h" />
@@ -361,6 +365,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\DAY_2_COMPLETE.md" />
     <None Include="Docs\DAY_2_IMPLEMENTATION_GUIDE.md" />
     <None Include="Docs\DAY_2_STATUS.md" />
+    <None Include="Docs\DAY_3_COMPLETE.md" />
     <None Include="Docs\DAY_3_INTEGRATION_PLAN.md" />
     <None Include="Docs\DIGITINFO_DOCUMENTATION_SUMMARY.md" />
     <None Include="Docs\DRAWMODETEST_COMMAND_MIGRATION.md" />
@@ -409,6 +414,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="Docs\PHASE5_BOUNDS_SOLUTION_SUMMARY.md" />
     <None Include="Docs\PHASE5_INPUT_ARCHITECTURE_GUIDE.md" />
     <None Include="Docs\PHASE5_SESSION_SUMMARY_AND_ARCHITECTURE.md" />
+    <None Include="Docs\PHASE_1_COMPLETE.md" />
     <None Include="Docs\PHASE_1_DAY_1_STATUS.md" />
     <None Include="Docs\PHASE_1_IMPLEMENTATION_ROADMAP.md" />
     <None Include="Docs\PHASE_1_PROGRESS.md" />

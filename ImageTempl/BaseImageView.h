@@ -10,6 +10,7 @@
 #include "BaseImageView.h"
 #include "DigitMode/InputRouter.h"
 #include "DigitMode/NavigationInputHandler.h"
+#include "DigitMode/InteractionManager.h"
 #include "Utils/mutils.h"
 #include <afxext.h>
 #include <memory>
@@ -46,6 +47,15 @@ public:
     // ========================================================================
     
     /**
+     * @brief Get interaction manager for tool management
+     * 
+     * Used by derived views (CImageView) to:
+     * - Register tools
+     * - Set active tool
+     */
+    DigitMode::InteractionManager& GetInteractionManager() { return m_interactionManager; }
+    
+    /**
      * @brief Get input router for tool management
      * 
      * Used by derived views (CImageView) to:
@@ -66,6 +76,7 @@ protected:
     ViewTransform m_viewTransform;                             ///< World ↔ screen transform
     std::unique_ptr<DigitMode::NavigationInputHandler> m_navigationHandler;  ///< Pan/zoom/cancel handler (lazy-init)
     DigitMode::InputRouter m_inputRouter;                      ///< Central event router
+    DigitMode::InteractionManager m_interactionManager;        ///< Tool manager (new, Day 3)
 
 // Operations
 public:
