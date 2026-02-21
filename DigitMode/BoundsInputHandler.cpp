@@ -81,10 +81,19 @@ bool BoundsInputHandler::OnMouseDown(UINT flags, CPoint pt)
             // dispatched via AddShapeCommand.
             if (m_boundsHandler.CommitDraft())
             {
+                // Successfully committed - exit Add mode back to Select
+                SetEditMode(ShapeEditMode::Select);
                 return true; // consumed
             }
         }
-        return false; // not handled, allow fallback
+        
+        // Right-click in Add mode without valid draft - exit to Select mode
+        if (mode != ShapeEditMode::Select && mode != ShapeEditMode::Delete) {
+            SetEditMode(ShapeEditMode::Select);
+            return true; // consumed
+        }
+        
+        return false; // not handled, allow fallback (context menu, etc.)
     }
 
     // Route based on current mode
@@ -154,6 +163,9 @@ bool BoundsInputHandler::OnMouseUp(UINT flags, CPoint pt)
         } else {
             // Drag detected - auto-commit bounding box shape
             m_boundsHandler.CommitDraftDrag();
+            
+            // Successfully committed - exit Add mode back to Select
+            SetEditMode(ShapeEditMode::Select);
         }
         return true;  // Consumed
     }
@@ -180,7 +192,44 @@ bool BoundsInputHandler::OnKeyDown(UINT nChar)
         return false;
     }
     
-    // Delegate to BoundsHandler (handles Escape, Enter)
+    // Handle Esc key - cancel current operation and exit to Select mode
+    if (nChar == VK_ESCAPE) {
+        ShapeEditMode currentMode = GetEditMode();
+        
+        // Cancel any active operations first
+        if (m_boundsHandler.IsDraftDragging()) {
+            m_boundsHandler.EndDraftDrag();
+            m_boundsHandler.CancelDraft();
+        }
+        else if (m_boundsHandler.IsDrafting()) {
+            m_boundsHandler.CancelDraft();
+        }
+        else if (m_boundsHandler.IsDragging()) {
+            m_boundsHandler.CancelDrag();
+        }
+        
+        // Exit to Select mode from any mode
+        if (currentMode != ShapeEditMode::Select) {
+            SetEditMode(ShapeEditMode::Select);
+        }
+        
+        return true;  // Consumed
+    }
+    
+    // Handle Enter key - commit draft and exit to Select mode
+    if (nChar == VK_RETURN) {
+        if (m_boundsHandler.IsDrafting()) {
+            // Try to commit the draft
+            if (m_boundsHandler.CommitDraft()) {
+                // Successfully committed - exit to Select mode
+                SetEditMode(ShapeEditMode::Select);
+                return true;  // Consumed
+            }
+        }
+        return false;  // Not handled or commit failed
+    }
+    
+    // Delegate other keys to BoundsHandler
     return m_boundsHandler.OnKeyDown(nChar, 0, 0);
 }
 
