@@ -188,14 +188,15 @@ bool FringeInputHandler::OnKeyUp(UINT nChar)
     return false;  // Don't consume key-up events
 }
 
-void FringeInputHandler::Cancel()
+bool FringeInputHandler::Cancel()
 {
     if (!IsInitialized()) {
-        return;
+        return false;
     }
     
     // Cancel any active drawing or drag via escape handling
     m_inputHandler.OnKeyDown(VK_ESCAPE, m_pDigit, m_pDispatcher);
+    return true;
 }
 
 // ========================================================================

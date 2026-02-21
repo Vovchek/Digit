@@ -133,8 +133,7 @@ bool NavigationInputHandler::OnKeyDown(UINT nChar)
 {
     // Escape cancels navigation state
     if (nChar == VK_ESCAPE) {
-        Cancel();
-        return true;  // Consumed
+        return Cancel(); // Consumed?
     }
     
     // Space key - just update cursor (no consumption, allow tools to see it)
@@ -158,13 +157,15 @@ bool NavigationInputHandler::OnKeyUp(UINT nChar)
     return false;  // Not handled
 }
 
-void NavigationInputHandler::Cancel()
+bool NavigationInputHandler::Cancel()
 {
     // Reset pan state
     if (m_isPanning) {
         m_isPanning = false;
         ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+        return true;
     }
+    return false;
 }
 
 // ========================================================================

@@ -119,7 +119,7 @@ public:
     bool OnMouseWheel(UINT flags, short delta, CPoint pt) override;
     bool OnKeyDown(UINT nChar) override;
     bool OnKeyUp(UINT nChar) override;
-    void Cancel() override;
+    bool Cancel() override;
     
 private:
     // ========================================================================

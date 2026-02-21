@@ -449,14 +449,16 @@ void CImageView::OnZoomFit()
 
 void CImageView::ActivateFringeTool()
 {
-	// Set fringe handler as active tool in InputRouter
+	// Set fringe handler as active tool in both InteractionManager and InputRouter
+	GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
 	GetInputRouter().SetActiveTool(&m_fringeHandler);
 	Invalidate(FALSE);
 }
 
 void CImageView::ActivateBoundsTool()
 {
-	// Set bounds handler as active tool in InputRouter
+	// Set bounds handler as active tool in both InteractionManager and InputRouter
+	GetInteractionManager().SetActiveTool(m_boundsToolAdapter);
 	GetInputRouter().SetActiveTool(&m_boundsHandler);
 	Invalidate(FALSE);
 }

@@ -94,4 +94,7 @@
       <Filter>Source Files</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Docs\EVENT_FLOW_ARCHITECTURE_ANALYSIS.md" />
+  </ItemGroup>
 </Project>

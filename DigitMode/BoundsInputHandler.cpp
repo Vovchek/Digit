@@ -239,10 +239,10 @@ bool BoundsInputHandler::OnKeyUp(UINT nChar)
     return false;
 }
 
-void BoundsInputHandler::Cancel()
+bool BoundsInputHandler::Cancel()
 {
     if (!IsInitialized()) {
-        return;
+        return false;
     }
     
     // Cancel draft drag if active (Phase B)
@@ -263,6 +263,8 @@ void BoundsInputHandler::Cancel()
     
     // Clear hover state
     m_boundsHandler.ClearHover();
+
+    return true;
 }
 
 bool BoundsInputHandler::HandleSelectModeMouseDown(UINT flags, CPoint pt)

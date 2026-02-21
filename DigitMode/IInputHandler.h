@@ -141,7 +141,7 @@ public:
      * - Dispatch commands
      * - Mutate document
      */
-    virtual void Cancel() = 0;
+    virtual bool Cancel() = 0;
     
     virtual ~IInputHandler() = default;
 };
