@@ -650,6 +650,24 @@ public:
     std::vector<Point> getContour(double stepSize) const override;
     
     /**
+     * @brief Test if point is on the polygon contour (boundary)
+     * @param point Point to test in world coordinates
+     * @param tolerance Distance tolerance in current units
+     * @return true if point is within tolerance of any polygon edge
+     * 
+     * Tests if a point lies on or near the polygon boundary by computing
+     * the minimum distance from the point to any edge segment.
+     * 
+     * @param point Point to test (in same coordinate system as polygon)
+     * @param tolerance Maximum distance from boundary (must be positive)
+     * @return true if distance to nearest edge <= tolerance
+     * 
+     * @note O(n) complexity where n = number of vertices
+     * @see isInside() - Interior containment test
+     */
+    bool isOnContour(const Point& point, double tolerance) const override;
+    
+    /**
      * @brief Calculate perimeter (sum of edge lengths)
      * @return Total length of polygon boundary
      * 

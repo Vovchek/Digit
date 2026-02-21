@@ -90,12 +90,12 @@ public:
     void DocToClient(CSize& size);
 
     void GetZoomCoefficent(double& kZ);
-    double GetZoomLevel() { return m_zoomLevel; }
+    //double GetZoomLevel() { return m_zoomLevel; }
     void SetZoomMinMax(float minZ, float maxZ) { m_zoomMin = minZ; m_zoomMax = maxZ; }
     void ZoomIn(CPoint* p=nullptr, float factor=1.1f) { m_zoomLevel *= factor; if(m_zoomLevel>m_zoomMax) m_zoomLevel=m_zoomMax; }
     void ZoomOut(CPoint* p=nullptr, float factor=1.1f) { m_zoomLevel /= factor; if(m_zoomLevel<m_zoomMin) m_zoomLevel=m_zoomMin; }
     void ZoomFit() { /* best effort: caller should implement */ }
-    CRect GetImageRegion(bool absReg=false);
+    //CRect GetImageRegion(bool absReg=false);
     void DrawImage(CDC* pDC);
 	void DrawBounds(CDC* pDC);
     void DrawBackGround(CDC* pDC);

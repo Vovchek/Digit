@@ -181,6 +181,32 @@ std::vector<Point> Rectangle::getContour(double stepSize) const {
     return contour;
 }
 
+bool Rectangle::isOnContour(const Point& point, double tolerance) const {
+    // Transform to rectangle-local coordinates
+    Point local = toLocalCoordinates(point);
+    
+    // Check if point is inside enlarged rectangle (sides + tolerance)
+    double enlargedHalfWidth = (width_ / 2.0) + tolerance;
+    double enlargedHalfHeight = (height_ / 2.0) + tolerance;
+    
+    if (std::abs(local.x) > enlargedHalfWidth || std::abs(local.y) > enlargedHalfHeight) {
+        return false;  // Outside enlarged rectangle - too far from contour
+    }
+    
+    // Check if point is outside diminished rectangle (sides - tolerance)
+    double diminishedHalfWidth = std::max(0.0, (width_ / 2.0) - tolerance);
+    double diminishedHalfHeight = std::max(0.0, (height_ / 2.0) - tolerance);
+    
+    // If diminished rectangle is degenerate (tolerance >= half-width or half-height),
+    // and we're inside enlarged, then we're on the contour
+    if (diminishedHalfWidth < 1e-10 || diminishedHalfHeight < 1e-10) {
+        return true;
+    }
+    
+    // Point is on contour if it's inside enlarged but outside diminished
+    return (std::abs(local.x) > diminishedHalfWidth || std::abs(local.y) > diminishedHalfHeight);
+}
+
 double Rectangle::perimeter() const {
     return 2.0 * (width_ + height_);
 }

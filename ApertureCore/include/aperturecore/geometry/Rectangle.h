@@ -590,6 +590,45 @@ public:
     std::vector<Point> getContour(double stepSize) const override;
     
     /**
+     * @brief Test if point is on the rectangle contour (boundary)
+     * @param point Point to test in world coordinates
+     * @param tolerance Distance tolerance in current units
+     * @return true if point is within tolerance of the rectangle boundary
+     * 
+     * Tests if a point lies on or near the rectangle boundary by checking
+     * if the point is inside the enlarged rectangle (sides + tolerance) but
+     * not inside the diminished rectangle (sides - tolerance).
+     * 
+     * @code{.cpp}
+     * Rectangle rect(100.0, 50.0, 0.0, 0.0, 45.0);  // Rotated
+     * 
+     * // Point exactly on edge
+     * Point onEdge = rect.corners()[0];  // Get corner
+     * assert(rect.isOnContour(onEdge, 0.1));
+     * 
+     * // Point near edge
+     * Point nearEdge{51.0, 0.0};  // 1 unit outside (if not rotated)
+     * assert(rect.isOnContour(nearEdge, 2.0));
+     * 
+     * // Point far from edge
+     * Point farAway{200.0, 200.0};
+     * assert(!rect.isOnContour(farAway, 2.0));
+     * 
+     * // Works with rotation
+     * assert(!rect.isOnContour(rect.center(), tolerance));  // Center not on edge
+     * @endcode
+     * 
+     * @param point Point to test (in same coordinate system as rectangle)
+     * @param tolerance Maximum distance from boundary (must be positive)
+     * @return true if distance to boundary <= tolerance
+     * 
+     * @note Efficient O(1) implementation using coordinate transformation
+     * @note Handles rotated rectangles correctly
+     * @see isInside() - Interior containment test
+     */
+    bool isOnContour(const Point& point, double tolerance) const override;
+    
+    /**
      * @brief Calculate perimeter (boundary length)
      * @return Total length of rectangle boundary
      * 

@@ -800,3 +800,82 @@ TEST_F(EllipseTest, ApplyHandleDrag_Rotate) {
     EXPECT_DOUBLE_EQ(ellipse.semiMajor(), 15.0);
     EXPECT_DOUBLE_EQ(ellipse.semiMinor(), 10.0);
 }
+
+// ============================================================================
+// isOnContour Tests
+// ============================================================================
+
+TEST_F(EllipseTest, IsOnContour_ExactlyOnBoundary) {
+    Ellipse circle(50.0, 50.0, 100.0, 100.0);  // Circle at (100,100), radius 50
+    
+    // Point exactly on boundary (right side)
+    Point onBoundary{150.0, 100.0};
+    EXPECT_TRUE(circle.isOnContour(onBoundary, 0.1));
+    
+    // Point exactly on boundary (top)
+    Point onTop{100.0, 150.0};
+    EXPECT_TRUE(circle.isOnContour(onTop, 0.1));
+}
+
+TEST_F(EllipseTest, IsOnContour_NearBoundary) {
+    Ellipse circle(50.0, 50.0, 100.0, 100.0);
+    
+    // Point 1 unit outside
+    Point nearOutside{151.0, 100.0};
+    EXPECT_TRUE(circle.isOnContour(nearOutside, 2.0));
+    EXPECT_FALSE(circle.isOnContour(nearOutside, 0.5));
+    
+    // Point 1 unit inside
+    Point nearInside{149.0, 100.0};
+    EXPECT_TRUE(circle.isOnContour(nearInside, 2.0));
+    EXPECT_FALSE(circle.isOnContour(nearInside, 0.5));
+}
+
+TEST_F(EllipseTest, IsOnContour_FarFromBoundary) {
+    Ellipse circle(50.0, 50.0, 100.0, 100.0);
+    
+    // Center (far inside)
+    EXPECT_FALSE(circle.isOnContour(circle.center(), 2.0));
+    
+    // Far outside
+    Point farAway{200.0, 200.0};
+    EXPECT_FALSE(circle.isOnContour(farAway, 2.0));
+}
+
+TEST_F(EllipseTest, IsOnContour_Ellipse) {
+    Ellipse ellipse(50.0, 30.0, 0.0, 0.0);  // Ellipse 50x30 at origin
+    
+    // Point on major axis
+    Point onMajor{50.0, 0.0};
+    EXPECT_TRUE(ellipse.isOnContour(onMajor, 0.1));
+    
+    // Point on minor axis
+    Point onMinor{0.0, 30.0};
+    EXPECT_TRUE(ellipse.isOnContour(onMinor, 0.1));
+    
+    // Point at center (not on contour)
+    EXPECT_FALSE(ellipse.isOnContour({0.0, 0.0}, 1.0));
+}
+
+TEST_F(EllipseTest, IsOnContour_RotatedEllipse) {
+    Ellipse ellipse(50.0, 30.0, 0.0, 0.0, 45.0);  // Rotated 45 degrees
+    
+    // Point on rotated major axis
+    double cos45 = std::cos(45.0 * M_PI / 180.0);
+    double sin45 = std::sin(45.0 * M_PI / 180.0);
+    Point onRotatedMajor{50.0 * cos45, 50.0 * sin45};
+    
+    EXPECT_TRUE(ellipse.isOnContour(onRotatedMajor, 1.0));
+}
+
+TEST_F(EllipseTest, IsOnContour_SmallTolerance) {
+    Ellipse ellipse(10.0, 5.0, 0.0, 0.0);
+    
+    // With very small tolerance, interior points should not be on contour
+    Point interior{5.0, 0.0};  // Halfway to edge
+    EXPECT_FALSE(ellipse.isOnContour(interior, 0.01));
+    
+    // But edge point should be
+    Point edge{10.0, 0.0};
+    EXPECT_TRUE(ellipse.isOnContour(edge, 0.01));
+}

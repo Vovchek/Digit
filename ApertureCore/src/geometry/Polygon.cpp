@@ -6,6 +6,7 @@
 #include "aperturecore/geometry/Polygon.h"
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846
@@ -133,6 +134,64 @@ std::vector<Point> Polygon::getContour(double stepSize) const {
     }
     
     return contour;
+}
+
+bool Polygon::isOnContour(const Point& point, double tolerance) const {
+    if (vertices_.size() < 2) {
+        return false;  // Degenerate polygon
+    }
+    
+    // Helper lambda to compute distance from point to line segment
+    auto distanceToSegment = [](const Point& p, const Point& segStart, const Point& segEnd) -> double {
+        // Vector from segStart to segEnd
+        double dx = segEnd.x - segStart.x;
+        double dy = segEnd.y - segStart.y;
+        
+        // Squared length of segment
+        double segmentLengthSq = dx * dx + dy * dy;
+        
+        if (segmentLengthSq < 1e-20) {
+            // Degenerate segment (point), return distance to point
+            return p.distanceTo(segStart);
+        }
+        
+        // Vector from segStart to p
+        double vx = p.x - segStart.x;
+        double vy = p.y - segStart.y;
+        
+        // Project p onto line defined by segment
+        // t = dot(v, segment) / |segment|^2
+        double t = (vx * dx + vy * dy) / segmentLengthSq;
+        
+        // Clamp t to [0, 1] to keep closest point on segment
+        t = std::max(0.0, std::min(1.0, t));
+        
+        // Compute closest point on segment
+        Point closest{
+            segStart.x + t * dx,
+            segStart.y + t * dy
+        };
+        
+        // Return distance from p to closest point
+        return p.distanceTo(closest);
+    };
+    
+    // Find minimum distance to any edge
+    double minDistance = std::numeric_limits<double>::max();
+    size_t n = vertices_.size();
+    
+    for (size_t i = 0; i < n - 1; ++i) {
+        double dist = distanceToSegment(point, vertices_[i], vertices_[i + 1]);
+        minDistance = std::min(minDistance, dist);
+    }
+    
+    // Check closing edge if not already closed
+    if (!isClosed()) {
+        double dist = distanceToSegment(point, vertices_[n - 1], vertices_[0]);
+        minDistance = std::min(minDistance, dist);
+    }
+    
+    return minDistance <= tolerance;
 }
 
 double Polygon::perimeter() const {

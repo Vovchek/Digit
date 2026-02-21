@@ -195,7 +195,7 @@ public:
      * 
      * ### 6+ Points - Least Squares Ellipse Fit
      * 
-     * Minimizes algebraic distance: Σ(Ax²ᵉ + Bxᵡyᵢ + Cy²ᵢ + Dxᵢ + Eyᵢ + F)²
+     * Minimizes algebraic distance: Σ(Ax²ᵉ + Bxᵡyᵢ + Cy²ᵢ + Dxᵡ + Eyᵡ + F)²
      * 
      * Subject to ellipse constraint: B²-4AC < 0
      * 
@@ -475,6 +475,45 @@ public:
      * @see perimeter() - Get total perimeter
      */
     std::vector<Point> getContour(double stepSize) const override;
+    
+    /**
+     * @brief Test if point is on the ellipse contour (boundary)
+     * @param point Point to test in world coordinates
+     * @param tolerance Distance tolerance in current units
+     * @return true if point is within tolerance of the ellipse boundary
+     * 
+     * Tests if a point lies on or near the ellipse boundary by checking
+     * if the point is inside the enlarged ellipse (axes + tolerance) but
+     * not inside the diminished ellipse (axes - tolerance).
+     * 
+     * @code{.cpp}
+     * Ellipse ellipse(50.0, 30.0, 100.0, 100.0, 45.0);
+     * 
+     * // Point exactly on boundary
+     * Point onEdge{150.0, 100.0};  // On major axis
+     * assert(ellipse.isOnContour(onEdge, 0.1));
+     * 
+     * // Point near boundary
+     * Point nearEdge{151.0, 100.0};  // 1 unit outside
+     * assert(ellipse.isOnContour(nearEdge, 2.0));
+     * 
+     * // Point far from boundary
+     * Point farAway{200.0, 100.0};
+     * assert(!ellipse.isOnContour(farAway, 2.0));
+     * 
+     * // Works with rotation
+     * assert(ellipse.isOnContour(ellipse.center(), tolerance) == false);  // Center not on edge
+     * @endcode
+     * 
+     * @param point Point to test (in same coordinate system as ellipse)
+     * @param tolerance Maximum distance from boundary (must be positive)
+     * @return true if distance to boundary <= tolerance
+     * 
+     * @note Efficient O(1) implementation using ellipse equation
+     * @note Handles rotated ellipses correctly
+     * @see isInside() - Interior containment test
+     */
+    bool isOnContour(const Point& point, double tolerance) const override;
     
     /**
      * @brief Calculate perimeter using Ramanujan's approximation

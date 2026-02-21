@@ -130,6 +130,37 @@ std::vector<Point> Ellipse::getContour(double stepSize) const {
     return contour;
 }
 
+bool Ellipse::isOnContour(const Point& point, double tolerance) const {
+    // Transform to ellipse-local coordinates
+    Point local = toLocalCoordinates(point);
+    
+    // Check if point is inside enlarged ellipse (axes + tolerance)
+    double enlargedA = semiMajor_ + tolerance;
+    double enlargedB = semiMinor_ + tolerance;
+    double term1_enlarged = (local.x * local.x) / (enlargedA * enlargedA);
+    double term2_enlarged = (local.y * local.y) / (enlargedB * enlargedB);
+    
+    if (term1_enlarged + term2_enlarged > 1.0) {
+        return false;  // Outside enlarged ellipse - too far from contour
+    }
+    
+    // Check if point is outside diminished ellipse (axes - tolerance)
+    double diminishedA = std::max(0.0, semiMajor_ - tolerance);
+    double diminishedB = std::max(0.0, semiMinor_ - tolerance);
+    
+    // If diminished ellipse is degenerate (tolerance >= axis), 
+    // and we're inside enlarged, then we're on the contour
+    if (diminishedA < 1e-10 || diminishedB < 1e-10) {
+        return true;
+    }
+    
+    double term1_diminished = (local.x * local.x) / (diminishedA * diminishedA);
+    double term2_diminished = (local.y * local.y) / (diminishedB * diminishedB);
+    
+    // Point is on contour if it's inside enlarged but outside diminished
+    return (term1_diminished + term2_diminished) >= 1.0;
+}
+
 double Ellipse::perimeter() const {
     // Use Ramanujan's approximation for ellipse perimeter
     // P ? ? * (3(a + b) - sqrt((3a + b)(a + 3b)))

@@ -616,3 +616,89 @@ TEST_F(RectangleTest, ThreePointConstructor_TypeLimitsPreserved) {
     
     EXPECT_EQ(rect.getTypeLimits(), TypeLimits::INTERNAL);
 }
+
+// ============================================================================
+// isOnContour Tests
+// ============================================================================
+
+TEST_F(RectangleTest, IsOnContour_ExactlyOnEdge) {
+    Rectangle rect(100.0, 50.0, 0.0, 0.0);  // 100x50 centered at origin
+    
+    // Point on right edge
+    Point onRight{50.0, 0.0};
+    EXPECT_TRUE(rect.isOnContour(onRight, 0.1));
+    
+    // Point on top edge
+    Point onTop{0.0, 25.0};
+    EXPECT_TRUE(rect.isOnContour(onTop, 0.1));
+    
+    // Point at corner
+    Point atCorner{50.0, 25.0};
+    EXPECT_TRUE(rect.isOnContour(atCorner, 0.1));
+}
+
+TEST_F(RectangleTest, IsOnContour_NearEdge) {
+    Rectangle rect(100.0, 50.0, 0.0, 0.0);
+    
+    // Point 1 unit outside right edge
+    Point nearOutside{51.0, 0.0};
+    EXPECT_TRUE(rect.isOnContour(nearOutside, 2.0));
+    EXPECT_FALSE(rect.isOnContour(nearOutside, 0.5));
+    
+    // Point 1 unit inside right edge
+    Point nearInside{49.0, 0.0};
+    EXPECT_TRUE(rect.isOnContour(nearInside, 2.0));
+    EXPECT_FALSE(rect.isOnContour(nearInside, 0.5));
+}
+
+TEST_F(RectangleTest, IsOnContour_FarFromEdge) {
+    Rectangle rect(100.0, 50.0, 0.0, 0.0);
+    
+    // Center (far inside)
+    EXPECT_FALSE(rect.isOnContour(rect.center(), 2.0));
+    
+    // Far outside
+    Point farAway{200.0, 200.0};
+    EXPECT_FALSE(rect.isOnContour(farAway, 2.0));
+}
+
+TEST_F(RectangleTest, IsOnContour_RotatedRectangle) {
+    Rectangle rect(100.0, 50.0, 0.0, 0.0, 45.0);  // Rotated 45 degrees
+    
+    // Get a corner and verify it's on contour
+    auto corners = rect.corners();
+    EXPECT_TRUE(rect.isOnContour(corners[0], 0.1));
+    EXPECT_TRUE(rect.isOnContour(corners[1], 0.1));
+    EXPECT_TRUE(rect.isOnContour(corners[2], 0.1));
+    EXPECT_TRUE(rect.isOnContour(corners[3], 0.1));
+    
+    // Center should not be on contour
+    EXPECT_FALSE(rect.isOnContour(rect.center(), 1.0));
+}
+
+TEST_F(RectangleTest, IsOnContour_AllEdges) {
+    Rectangle rect(100.0, 50.0, 0.0, 0.0);
+    
+    // Test points on all four edges
+    Point rightEdge{50.0, 10.0};
+    Point leftEdge{-50.0, -10.0};
+    Point topEdge{20.0, 25.0};
+    Point bottomEdge{-20.0, -25.0};
+    
+    EXPECT_TRUE(rect.isOnContour(rightEdge, 0.1));
+    EXPECT_TRUE(rect.isOnContour(leftEdge, 0.1));
+    EXPECT_TRUE(rect.isOnContour(topEdge, 0.1));
+    EXPECT_TRUE(rect.isOnContour(bottomEdge, 0.1));
+}
+
+TEST_F(RectangleTest, IsOnContour_SmallTolerance) {
+    Rectangle rect(20.0, 10.0, 0.0, 0.0);
+    
+    // With very small tolerance, interior points should not be on contour
+    Point interior{5.0, 0.0};  // Halfway to edge
+    EXPECT_FALSE(rect.isOnContour(interior, 0.01));
+    
+    // But edge point should be
+    Point edge{10.0, 0.0};
+    EXPECT_TRUE(rect.isOnContour(edge, 0.01));
+}

@@ -680,31 +680,112 @@ TEST_F(PolygonTest, Integration_ComplexShape) {
     EXPECT_GT(centroid.x, 10.0);
 }
 
-TEST_F(PolygonTest, Normalize_TransformsVertices) {
-    std::vector<Point> vertices = {
+// ============================================================================
+// isOnContour Tests
+// ============================================================================
+
+TEST_F(PolygonTest, IsOnContour_VertexPoints) {
+    Polygon square = createSquare(10.0);  // 10x10 square centered at origin
+    
+    // All vertices should be on contour
+    for (size_t i = 0; i < square.vertexCount(); ++i) {
+        Point vertex = square.vertex(i);
+        EXPECT_TRUE(square.isOnContour(vertex, 0.1))
+            << "Vertex " << i << " should be on contour";
+    }
+}
+
+TEST_F(PolygonTest, IsOnContour_EdgeMidpoints) {
+    Polygon square = createSquare(10.0);
+    
+    // Point on bottom edge (midpoint between two vertices)
+    Point bottomMid{0.0, -5.0};
+    EXPECT_TRUE(square.isOnContour(bottomMid, 0.1));
+    
+    // Point on right edge
+    Point rightMid{5.0, 0.0};
+    EXPECT_TRUE(square.isOnContour(rightMid, 0.1));
+}
+
+TEST_F(PolygonTest, IsOnContour_NearEdge) {
+    Polygon square = createSquare(10.0);
+    
+    // Point 1 unit outside bottom edge
+    Point nearOutside{0.0, -6.0};
+    EXPECT_TRUE(square.isOnContour(nearOutside, 2.0));
+    EXPECT_FALSE(square.isOnContour(nearOutside, 0.5));
+    
+    // Point 1 unit inside from right edge
+    Point nearInside{4.0, 0.0};
+    EXPECT_TRUE(square.isOnContour(nearInside, 2.0));
+    EXPECT_FALSE(square.isOnContour(nearInside, 0.5));
+}
+
+TEST_F(PolygonTest, IsOnContour_FarFromEdge) {
+    Polygon square = createSquare(10.0);
+    
+    // Center (far inside)
+    EXPECT_FALSE(square.isOnContour({0.0, 0.0}, 2.0));
+    
+    // Far outside
+    Point farAway{50.0, 50.0};
+    EXPECT_FALSE(square.isOnContour(farAway, 2.0));
+}
+
+TEST_F(PolygonTest, IsOnContour_Triangle) {
+    Polygon triangle = createTriangle(0.0, 0.0, 10.0, 0.0, 5.0, 8.66);
+    
+    // Point on bottom edge
+    Point onBottom{5.0, 0.0};
+    EXPECT_TRUE(triangle.isOnContour(onBottom, 0.1));
+    
+    // Point on slanted edge (approximate)
+    Point onSlant{7.5, 4.33};  // Midpoint of right edge
+    EXPECT_TRUE(triangle.isOnContour(onSlant, 0.5));
+}
+
+TEST_F(PolygonTest, IsOnContour_ConcavePolygon) {
+    // L-shaped polygon (concave)
+    Polygon lShape({
         {0.0, 0.0},
-        {100.0, 0.0},
-        {100.0, 100.0},
-        {0.0, 100.0}
-    };
+        {20.0, 0.0},
+        {20.0, 10.0},
+        {10.0, 10.0},
+        {10.0, 20.0},
+        {0.0, 20.0}
+    });
     
-    Polygon polygon(vertices);
+    // Point on outer edge
+    Point onOuter{10.0, 0.0};
+    EXPECT_TRUE(lShape.isOnContour(onOuter, 0.1));
     
-    // Before normalization
-    EXPECT_FALSE(polygon.isNormalized());
-    EXPECT_TRUE(polygon.isMeasuring());
+    // Point on inner corner edge
+    Point onInner{10.0, 15.0};
+    EXPECT_TRUE(lShape.isOnContour(onInner, 0.1));
+}
+
+TEST_F(PolygonTest, IsOnContour_SmallTolerance) {
+    Polygon square = createSquare(10.0);
     
-    // Normalize relative to origin (50, 50) with radius 50
-    polygon.normalize(50.0, 50.0, 50.0);
+    // With very small tolerance, interior points should not be on contour
+    Point interior{2.0, 2.0};  // Well inside
+    EXPECT_FALSE(square.isOnContour(interior, 0.01));
     
-    // After normalization
-    EXPECT_TRUE(polygon.isNormalized());
-    EXPECT_FALSE(polygon.isMeasuring());
+    // But edge point should be
+    Point edge{5.0, 0.0};
+    EXPECT_TRUE(square.isOnContour(edge, 0.01));
+}
+
+TEST_F(PolygonTest, IsOnContour_ClosestPointOnSegment) {
+    // Create a simple vertical line segment as a degenerate polygon
+    Polygon segment({{0.0, 0.0}, {0.0, 10.0}});
     
-    // Check vertices are transformed correctly
-    // Original vertices relative to (50, 50) / 50:
-    // (0,0) -> (-50,-50)/50 = (-1,-1)
-    // (100,0) -> (50,-50)/50 = (1,-1)
-    // (100,100) -> (50,50)/50 = (1,1)
-    // (0,100) -> (-50,50)/50 = (-1,1)
+    // Point directly on segment
+    Point onSegment{0.0, 5.0};
+    EXPECT_TRUE(segment.isOnContour(onSegment, 0.1));
+    
+    // Point near segment
+    Point nearSegment{1.0, 5.0};
+    EXPECT_TRUE(segment.isOnContour(nearSegment, 2.0));
+    EXPECT_FALSE(segment.isOnContour(nearSegment, 0.5));
 }

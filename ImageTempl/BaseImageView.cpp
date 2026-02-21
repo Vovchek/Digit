@@ -111,64 +111,65 @@ void CBaseImageView::DocToClient(CRect& rect)
     rect.NormalizeRect();
 }
 
-void CBaseImageView::GetZoomCoefficent(double& kZ)
-{
-    CRect clientR; GetClientRect(clientR);
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CRect rcDIB(pImCtrls->GetDIBRect());
-	double kZoom = GetZoomLevel();
-	kZ = kZoom;
-}
+// deprecated/eliminated - zoom state is now managed by m_zoomLevel, m_zoomMin, m_zoomMax, and ZoomIn/ZoomOut methods
+//void CBaseImageView::GetZoomCoefficent(double& kZ)
+//{
+//    CRect clientR; GetClientRect(clientR);
+//    CImageCtrls* pImCtrls = GetImageCtrls(this);
+//    CRect rcDIB(pImCtrls->GetDIBRect());
+//	double kZoom = GetZoomLevel();
+//	kZ = kZoom;
+//}
 
-CRect CBaseImageView::GetImageRegion(bool absReg/*false*/)
-{
-    CImageCtrls* pImCtrls = GetImageCtrls(this);
-    CRect rcDIB(pImCtrls->GetDIBRect());
-    if(rcDIB == CRect(0,0,0,0))
-        return rcDIB;
-
-    CRect clientR; GetClientRect(clientR);
-  
-    CRect rcDest;
-    int scrW, scrH;
-    scrW = GetScrollPos(SB_HORZ);
-    scrH = GetScrollPos(SB_VERT);
-    double kZ;  
-    GetZoomCoefficent(kZ);
-    rcDIB.right = rcDIB.left + (int)(rcDIB.Width()*kZ);
-    rcDIB.bottom = rcDIB.top + (int)(rcDIB.Height()*kZ);
-    if((rcDIB.Width() <= clientR.Width() && rcDIB.Height() <= clientR.Height())){
-      rcDest.left = (clientR.Width() - rcDIB.Width())/2;
-      rcDest.right = rcDest.left + rcDIB.Width();
-      rcDest.top = (clientR.Height() - rcDIB.Height())/2;
-      rcDest.bottom = rcDest.top + rcDIB.Height();
-    }
-    else if(rcDIB.Width() >= clientR.Width() && rcDIB.Height() >= clientR.Height()){
-      rcDest.left = clientR.left;
-      rcDest.top = clientR.top;
-      rcDest.right = rcDest.left + rcDIB.Width();
-      rcDest.bottom = rcDest.top + rcDIB.Height();
-    }
-    else if(rcDIB.Width() <= clientR.Width() && rcDIB.Height() >= clientR.Height()){
-      rcDest.left = (clientR.Width() - rcDIB.Width())/2;
-      rcDest.right = rcDest.left + rcDIB.Width();
-      rcDest.top = clientR.top;
-      rcDest.bottom = rcDest.top+rcDIB.Height();
-    }
-    else if(rcDIB.Width() >= clientR.Width() && rcDIB.Height() <= clientR.Height()){
-      rcDest.left = clientR.left;
-      rcDest.right = rcDest.left+rcDIB.Width();
-      rcDest.top = (clientR.Height() - rcDIB.Height())/2;
-      rcDest.bottom = rcDest.top + rcDIB.Height();
-    }
-    if(absReg){
-        rcDest.left -= scrW;
-        rcDest.right -= scrW;
-        rcDest.top -= scrH;
-        rcDest.bottom -= scrH;
-    }
-    return rcDest;
-}
+//CRect CBaseImageView::GetImageRegion(bool absReg/*false*/)
+//{
+//    CImageCtrls* pImCtrls = GetImageCtrls(this);
+//    CRect rcDIB(pImCtrls->GetDIBRect());
+//    if(rcDIB == CRect(0,0,0,0))
+//        return rcDIB;
+//
+//    CRect clientR; GetClientRect(clientR);
+//  
+//    CRect rcDest;
+//    int scrW, scrH;
+//    scrW = GetScrollPos(SB_HORZ);
+//    scrH = GetScrollPos(SB_VERT);
+//    double kZ;  
+//    GetZoomCoefficent(kZ);
+//    rcDIB.right = rcDIB.left + (int)(rcDIB.Width()*kZ);
+//    rcDIB.bottom = rcDIB.top + (int)(rcDIB.Height()*kZ);
+//    if((rcDIB.Width() <= clientR.Width() && rcDIB.Height() <= clientR.Height())){
+//      rcDest.left = (clientR.Width() - rcDIB.Width())/2;
+//      rcDest.right = rcDest.left + rcDIB.Width();
+//      rcDest.top = (clientR.Height() - rcDIB.Height())/2;
+//      rcDest.bottom = rcDest.top + rcDIB.Height();
+//    }
+//    else if(rcDIB.Width() >= clientR.Width() && rcDIB.Height() >= clientR.Height()){
+//      rcDest.left = clientR.left;
+//      rcDest.top = clientR.top;
+//      rcDest.right = rcDest.left + rcDIB.Width();
+//      rcDest.bottom = rcDest.top + rcDIB.Height();
+//    }
+//    else if(rcDIB.Width() <= clientR.Width() && rcDIB.Height() >= clientR.Height()){
+//      rcDest.left = (clientR.Width() - rcDIB.Width())/2;
+//      rcDest.right = rcDest.left + rcDIB.Width();
+//      rcDest.top = clientR.top;
+//      rcDest.bottom = rcDest.top+rcDIB.Height();
+//    }
+//    else if(rcDIB.Width() >= clientR.Width() && rcDIB.Height() <= clientR.Height()){
+//      rcDest.left = clientR.left;
+//      rcDest.right = rcDest.left+rcDIB.Width();
+//      rcDest.top = (clientR.Height() - rcDIB.Height())/2;
+//      rcDest.bottom = rcDest.top + rcDIB.Height();
+//    }
+//    if(absReg){
+//        rcDest.left -= scrW;
+//        rcDest.right -= scrW;
+//        rcDest.top -= scrH;
+//        rcDest.bottom -= scrH;
+//    }
+//    return rcDest;
+//}
 
 // Отрисовка изображения в контексте устройства CDC
 void CBaseImageView::DrawImage(CDC* pDC)

@@ -582,6 +582,60 @@ public:
     virtual std::vector<Point> getContour(double stepSize) const = 0;
     
     /**
+     * @brief Test if a point is on the shape's contour (boundary)
+     * @param point Point to test in current coordinate system
+     * @param tolerance Distance tolerance (in current units)
+     * @return true if point is within tolerance distance of the shape boundary
+     * 
+     * Pure virtual method - must be implemented by all concrete shapes.
+     * 
+     * Tests whether a point lies on or near the shape's boundary within
+     * the specified tolerance. This is useful for:
+     * - Interactive selection (clicking near shape edge)
+     * - Hit testing for editing handles
+     * - Proximity detection for snapping
+     * - Boundary validation
+     * 
+     * Implementation strategies:
+     * - **Ellipse/Rectangle**: Test if point is inside enlarged shape but
+     *   not inside diminished shape (tolerance applied to axes/sides)
+     * - **Polygon**: Check minimum distance to any edge segment
+     * - Other efficient geometric algorithms as appropriate
+     * 
+     * @code{.cpp}
+     * Ellipse circle(50.0, 50.0, 100.0, 100.0);  // Radius 50 at (100,100)
+     * 
+     * Point onBoundary{150.0, 100.0};    // Exactly on edge
+     * Point nearBoundary{151.0, 100.0};  // 1 unit outside
+     * Point farAway{200.0, 100.0};       // 50 units outside
+     * 
+     * assert(circle.isOnContour(onBoundary, 0.1));     // true - on edge
+     * assert(circle.isOnContour(nearBoundary, 2.0));   // true - within tolerance
+     * assert(!circle.isOnContour(farAway, 2.0));       // false - too far
+     * 
+     * // Works for rotated shapes
+     * Rectangle rect(100.0, 50.0, 0.0, 0.0, 45.0);
+     * Point nearEdge = rect.corners()[0];  // Get corner
+     * assert(rect.isOnContour(nearEdge, 0.1));  // true - on corner
+     * @endcode
+     * 
+     * @param point Point to test (in same coordinate system as shape)
+     * @param tolerance Maximum distance from boundary to consider "on contour".
+     *                  Must be positive. Larger values = more lenient.
+     * @return true if distance from point to nearest boundary point <= tolerance
+     * 
+     * @note Tolerance is in the same units as shape coordinates
+     * @note For performance, tolerance should be reasonable (not too large)
+     * @note Points exactly on boundary should return true with any positive tolerance
+     * @note Interior points far from boundary should return false
+     * 
+     * @see isInside() - for interior point testing
+     * @see getContour() - for boundary point generation
+     * @see getBounds() - for quick rejection test
+     */
+    virtual bool isOnContour(const Point& point, double tolerance) const = 0;
+    
+    /**
      * @brief Calculate perimeter/circumference of the shape
      * @return Total length of shape boundary in current units
      * 
