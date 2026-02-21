@@ -113,6 +113,8 @@ CImageView::CImageView()
 CImageView::~CImageView()
 {
 	//    ::DeleteObject(HGDIOBJ(bkColorBrush));
+	delete m_boundsToolAdapter;
+	delete m_fringeToolAdapter;
 }
 
 bool CImageView::GetXPixelLine(CPoint d_P, double*& pR, double*& pF, int& nP)
@@ -218,6 +220,11 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_UPDATE_COMMAND_UI(IDD_AUTO_D, OnUpdateClearDigit)
 	ON_COMMAND(IDD_CALC_APROX, OnCalcAproximation)
 	ON_UPDATE_COMMAND_UI(IDD_CALC_APROX, OnUpdateCalcAproximation)
+	// undo/redo
+	ON_COMMAND(IDD_EDIT_UNDO, OnEditUndo)
+	ON_UPDATE_COMMAND_UI(IDD_EDIT_UNDO, OnUpdateEditUndo)
+	ON_COMMAND(IDD_EDIT_REDO, OnEditRedo)
+	ON_UPDATE_COMMAND_UI(IDD_EDIT_REDO, OnUpdateEditRedo)
 	// bounds editing commands
 	ON_COMMAND(ID_ADD_BOUND_CIRCLE, OnAddBoundCircle)
 	ON_UPDATE_COMMAND_UI(ID_ADD_BOUND_CIRCLE, OnUpdateAddBound)
@@ -318,23 +325,28 @@ void CImageView::OnInitialUpdate()
 	// Phase 5: Initialize Tool Input Handlers (CAD-Grade Architecture)
 	// ========================================================================
 	
-	CImageDoc* pDoc = (CImageDoc*)CView::GetDocument(); // CImageView::GetDocument() calls GetWIActiveDocument()
+	CImageDoc* pDoc = (CImageDoc*)CView::GetDocument(); // othewise CImageView::GetDocument() calls GetWIActiveDocument()
+	m_pDoc = pDoc; // save actual document pointer
 	if (pDoc) {
+		// Initialize aperture controls and get centralized command dispatcher
+		DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+		DigitMode::CommandDispatcher* pDispatcher = pApertureCtrls ? 
+			&pApertureCtrls->GetCommandDispatcher() : &m_cmdDispatcher;
+		
 		// Initialize fringe handler
 		m_fringeHandler.Initialize(
 			&pDoc->Digit,
 			&GetViewTransform(),
-			&m_cmdDispatcher
+			pDispatcher
 		);
 		
 		// Initialize bounds handler with aperture subsystem and image provider
-		DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
 		if (pImage && pApertureCtrls) {
 			m_boundsHandler.Initialize(
 				pApertureCtrls,
 				pImage,
 				&GetViewTransform(),
-				&m_cmdDispatcher
+				pDispatcher
 			);
 		}
 		
@@ -1466,4 +1478,88 @@ void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
 	pCmdUI->SetRadio(
 		m_fringeHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
 	);
+}
+
+// ========================================================================
+// Undo/Redo Command Handlers
+// ========================================================================
+
+void CImageView::OnEditUndo()
+{
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	
+	DigitMode::CommandDispatcher& dispatcher = pApertureCtrls->GetCommandDispatcher();
+	if (dispatcher.CanUndo()) {
+		dispatcher.Undo();
+		Invalidate(FALSE);
+		
+		// Update status bar
+		CString status;
+		if (dispatcher.CanUndo()) {
+			status.Format(_T("Undone. %s available"), 
+				CString(dispatcher.GetUndoLabel().c_str()));
+		} else {
+			status = _T("Undone. No more undo available");
+		}
+		GetMainFrame()->SetStatusText(status);
+	}
+}
+
+void CImageView::OnUpdateEditUndo(CCmdUI* pCmdUI)
+{
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) {
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	
+	DigitMode::CommandDispatcher& dispatcher = pApertureCtrls->GetCommandDispatcher();
+	pCmdUI->Enable(dispatcher.CanUndo() ? TRUE : FALSE);
+	
+	// Update menu text with action name
+	CString text = CString(dispatcher.GetUndoLabel().c_str());
+	if (!text.IsEmpty()) {
+		pCmdUI->SetText(text);
+	}
+}
+
+void CImageView::OnEditRedo()
+{
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	
+	DigitMode::CommandDispatcher& dispatcher = pApertureCtrls->GetCommandDispatcher();
+	if (dispatcher.CanRedo()) {
+		dispatcher.Redo();
+		Invalidate(FALSE);
+		
+		// Update status bar
+		CString status;
+		if (dispatcher.CanRedo()) {
+			status.Format(_T("Redone. %s available"), 
+				CString(dispatcher.GetRedoLabel().c_str()));
+		} else {
+			status = _T("Redone. No more redo available");
+		}
+		GetMainFrame()->SetStatusText(status);
+	}
+}
+
+void CImageView::OnUpdateEditRedo(CCmdUI* pCmdUI)
+{
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) {
+		pCmdUI->Enable(FALSE);
+		return;
+	}
+	
+	DigitMode::CommandDispatcher& dispatcher = pApertureCtrls->GetCommandDispatcher();
+	pCmdUI->Enable(dispatcher.CanRedo() ? TRUE : FALSE);
+	
+	// Update menu text with action name
+	CString text = CString(dispatcher.GetRedoLabel().c_str());
+	if (!text.IsEmpty()) {
+		pCmdUI->SetText(text);
+	}
 }

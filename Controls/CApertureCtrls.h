@@ -10,12 +10,14 @@
  * - ShapeCollection (pure geometry container)
  * - VisibilityMaskProvider (cached mask with lazy rebuild)
  * - ShapeDrawDispatcher (rendering coordinator - Phase 3)
+ * - CommandDispatcher (undo/redo manager)
  * 
  * Coordinates:
  * - Invalidation when shapes or image change
  * - Hit-testing and read access
  * - Semantic APIs for file load and initialization
  * - Shape rendering via dispatcher
+ * - Command execution and undo/redo
  * 
  * Does NOT:
  * - Implement undo/redo (that's Commands)
@@ -37,6 +39,7 @@
 #include "ApertureCore\include\aperturecore\geometry\Rectangle.h"
 #include "ApertureCore\include\aperturecore\geometry\Polygon.h"
 #include "DigitMode\Rendering\ShapeDrawDispatcher.h"
+#include "DigitMode\CommandDispatcher.h"
 #include <memory>
 #include <vector>
 
@@ -50,7 +53,7 @@ struct VisibilityDomain {
 /**
  * @brief Aperture Subsystem Coordinator
  * 
- * Owns ShapeCollection and VisibilityMaskProvider.
+ * Owns ShapeCollection, VisibilityMaskProvider, and CommandDispatcher.
  * Coordinates invalidation and provides semantic APIs.
  * 
  * IMPORTANT:
@@ -95,6 +98,14 @@ public:
      */
     DigitMode::ShapeDrawDispatcher& GetDispatcher() { return m_dispatcher; }
     const DigitMode::ShapeDrawDispatcher& GetDispatcher() const { return m_dispatcher; }
+    
+    /**
+     * @brief Get command dispatcher for undo/redo operations
+     * 
+     * Used by BoundsHandler to execute commands with undo support.
+     */
+    DigitMode::CommandDispatcher& GetCommandDispatcher() { return m_commandDispatcher; }
+    const DigitMode::CommandDispatcher& GetCommandDispatcher() const { return m_commandDispatcher; }
     
     // ========================================================================
     // Invalidation Coordination (MANDATORY)
@@ -213,6 +224,7 @@ private:
     mutable aperture::visibility::VisibilityMaskProvider m_maskProvider;
     VisibilityDomain m_visibilityDomain;
     DigitMode::ShapeDrawDispatcher m_dispatcher;  ///< Phase 3: Rendering coordinator
+    DigitMode::CommandDispatcher m_commandDispatcher; ///< Undo/redo manager
     
     const std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type) const;
     std::vector<std::unique_ptr<aperture::Shape>>* GetContainer(aperture::TypeLimits type);

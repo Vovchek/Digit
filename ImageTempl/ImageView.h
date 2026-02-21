@@ -28,6 +28,7 @@ class CBaseImageView;
 class CImageView : public CBaseImageView
 {
 private:
+    CDocument* m_pDoc{nullptr}; // Cached pointer to document (for convenience)
     // ========================================================================
     // Phase 5: Tool Input Handlers (CAD-Grade Architecture)
     // ========================================================================
@@ -92,7 +93,11 @@ public:
 
 // Operations
 public:
-    CDocument* GetDocument() { return GetWIActiveDocument(); }
+    CDocument* GetDocument() { 
+        if(!m_pDoc)
+            return GetWIActiveDocument(); 
+		return m_pDoc;
+    }
     void Init();
     bool GetXPixelLine(CPoint P, double*& pR, double*& pF, int& nP);
     bool GetYPixelLine(CPoint P, double*& pR, double*& pF, int& nP);
@@ -155,29 +160,37 @@ protected:
 	// Generated message map functions
 	//{{AFX_MSG(CImageView)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
+	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg void OnUpdateFileOpen(CCmdUI* pCmdUI);
     afx_msg void OnMeasure();
     afx_msg void OnUpdateMeasure(CCmdUI* pCmdUI);
     afx_msg void OnFotoSections();
     afx_msg void OnUpdateFotoSections(CCmdUI* pCmdUI);
 	afx_msg void OnAutoDigit();
+	afx_msg void OnUpdateAutoDigit(CCmdUI* pCmdUI);
 	afx_msg void OnFCMax();
 	afx_msg void OnUpdateFCMax(CCmdUI* pCmdUI);
 	afx_msg void OnFCMin();
 	afx_msg void OnUpdateFCMin(CCmdUI* pCmdUI);
 	afx_msg void OnFCMinMax();
 	afx_msg void OnUpdateFCMinMax(CCmdUI* pCmdUI);
-	afx_msg void OnUpdateAutoDigit(CCmdUI* pCmdUI);
 	afx_msg void OnClearDigit();
 	afx_msg void OnUpdateClearDigit(CCmdUI* pCmdUI);
 	afx_msg void OnCalcAproximation();
-    afx_msg void OnUpdateCalcAproximation(CCmdUI* pCmdUI);
-	// Phase 5: Window resize and zoom centering
-	afx_msg void OnSize(UINT nType, int cx, int cy);
-	// Bounds editing handlers
-    // ========================================================================
-    // Bounds Editing Command Handlers (Phase 5)
-    // ========================================================================
+	afx_msg void OnUpdateCalcAproximation(CCmdUI* pCmdUI);
+	
+	// ========================================================================
+	// Undo/Redo Command Handlers
+	// ========================================================================
+	
+	afx_msg void OnEditUndo();
+	afx_msg void OnUpdateEditUndo(CCmdUI* pCmdUI);
+	afx_msg void OnEditRedo();
+	afx_msg void OnUpdateEditRedo(CCmdUI* pCmdUI);
+	
+	// ========================================================================
+	// Bounds Editing Command Handlers
+	// ========================================================================
 
     // Add shapes
     afx_msg void OnAddBoundCircle();
