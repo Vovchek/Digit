@@ -79,7 +79,7 @@ std::unique_ptr<aperture::Shape> DraftShape::ToShape() const {
     }
 }
 
-std::unique_ptr<aperture::Shape> DraftShape::GetPreview() const {
+std::unique_ptr<aperture::Shape> DraftShape::GetPreview() {
     const size_t n = perimeterPoints.size();
     
     if (n == 0) {
@@ -108,6 +108,10 @@ std::unique_ptr<aperture::Shape> DraftShape::GetPreview() const {
             }
             else {
                 // Three or more points - use final 3-point constructor
+                // Remove unused points exceeding 3, if any
+                if (n > 3) {
+                    perimeterPoints.erase(perimeterPoints.begin()+2, perimeterPoints.begin() + n - 1);
+                }
                 return std::make_unique<aperture::Rectangle>(
                     perimeterPoints[0],
                     perimeterPoints[1],
@@ -118,11 +122,15 @@ std::unique_ptr<aperture::Shape> DraftShape::GetPreview() const {
         }
         
         case Kind::Ellipse: {
-            if (n < 3) {
-                // Need at least 3 points for ellipse fit
+            if (n < 4) {
+                // Need at least 4 points for ellipse fit
                 return nullptr;
             }
-            // Show current LSM fit
+            // band-aid: limit to 5 points while LST is buggy
+            // TODO: fix >5 points LSM fit in ellips constructor
+            if (n > 5) {
+                perimeterPoints.erase(perimeterPoints.begin() + 4, perimeterPoints.begin() + n - 1);
+            }
             return aperture::Ellipse::FitEllipse(perimeterPoints, type);
         }
         

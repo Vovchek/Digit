@@ -760,6 +760,7 @@ void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
 
 void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
 {
+    m_CursorPos = point;
     bool consumed = false;
     
     // Priority 1: Navigation

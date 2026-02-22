@@ -311,7 +311,7 @@ void InputHandler::CancelDraw(CDigitInfo* pDigit) {
     }
 }
 
-void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+bool InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
 
     ModifierState mods = ModifierState::FromKeyboard();
 
@@ -322,14 +322,15 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
         if (m_drag.active) {
             // Cancel active drag
             m_drag = DragState();
-            return;
+            return true;
         }
         else if (IsInDrawMode()) {
             CancelDraw(pDigit);
-            return;
+            return true;
         }
 	}
 
+    bool consumed = false;
     if (IsInDrawMode()) {
         if (nChar == VK_BACK) {
             // Delete last dot on active segment (if any)
@@ -343,24 +344,28 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                     pCmdDisp->Execute(std::move(cmd));
                     iActiveSegment = -1;
                     activeEnd = ActiveEnd::None;
-					return;
+					return true;
                 }
                 else if (last > 0) {
                     auto cmd = std::make_unique<RemoveLastDotCommand>(pDigit, seg);
                     pCmdDisp->Execute(std::move(cmd));
+                    consumed = true;
                 }
             }
         }
         else if (nChar == VK_ESCAPE) {
             CancelDraw(pDigit);
+            consumed = true;
         }
         else if (nChar == VK_RETURN) {
             // Finalize active segment
             EndCurrentSegment();
+            consumed = true;
         }
         else if (nChar == 'b' || nChar == 'B') {
             // flip rubber band status
             m_rubberBand = !m_rubberBand;
+            consumed = true;
         }
         else if((nChar == VK_ADD || nChar == VK_OEM_PLUS) && mods.None()) {
             // Increase current number
@@ -371,6 +376,7 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                     auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
                     pCmdDisp->Execute(std::move(cmd));
                 }
+                consumed = true;
             }
         }
         else if ((nChar == VK_SUBTRACT || nChar == VK_OEM_MINUS) && mods.None()) {
@@ -382,18 +388,23 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                     auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
                     pCmdDisp->Execute(std::move(cmd));
                 }
+                consumed = true;
             }
         }
         else if (nChar == VK_TAB && IsActiveSegmentValid(pDigit)) {
             if (mods.shift) {
                 // switch to the previous segment if any
-                if (iActiveSegment > 0)
+                if (iActiveSegment > 0) {
                     iActiveSegment--;
+                    consumed = true;
+                }
             } else {
                 // progress to the next segment if any
                 int num_fringes = static_cast<int>(pDigit->Fringes.size());
-                if (num_fringes > 1 && iActiveSegment < num_fringes - 1)
+                if (num_fringes > 1 && iActiveSegment < num_fringes - 1) {
                     iActiveSegment++;
+                    consumed = true;
+                }
             }
             pDigit->CurrentNumber = pDigit->Fringes[iActiveSegment].GetNumber();
         }
@@ -428,12 +439,14 @@ void InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                     0.7     // default confidence threshold
                 );
                 pCmdDisp->Execute(std::move(cmd));
-                
+                consumed = true;
+
                 TRACE("InputHandler::OnKeyDown: Auto-number triggered with %zu trusted segments\n", 
                       trustedIndices.size());
             }
         }
     }
+	return consumed;
 }
 
 void InputHandler::OnKeyUp(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {

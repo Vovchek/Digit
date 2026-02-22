@@ -145,7 +145,7 @@ struct DraftShape {
      * @note Preview updates on each AddPoint() call
      * @note Not the same as final committed shape
      */
-    std::unique_ptr<aperture::Shape> GetPreview() const;
+    std::unique_ptr<aperture::Shape> GetPreview();
     
     /**
      * @brief Add a point to the draft

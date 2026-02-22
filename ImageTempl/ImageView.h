@@ -87,7 +87,6 @@ protected:
 
 // Attributes
 public:
-    CPoint CursorPos;
 
     HDC hDC;
 

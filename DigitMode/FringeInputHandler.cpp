@@ -158,22 +158,7 @@ bool FringeInputHandler::OnKeyDown(UINT nChar)
     }
     
     // Delegate to InputHandler (handles arrows, backspace, escape, etc.)
-    m_inputHandler.OnKeyDown(nChar, m_pDigit, m_pDispatcher);
-    
-    // Consume key events that InputHandler handles
-    switch (nChar) {
-        case VK_ESCAPE:
-        case VK_RETURN:
-        case VK_BACK:
-        case VK_LEFT:
-        case VK_RIGHT:
-        case VK_UP:
-        case VK_DOWN:
-            return true;  // Consumed
-        
-        default:
-            return false;  // Not handled, allow fallback
-    }
+    return m_inputHandler.OnKeyDown(nChar, m_pDigit, m_pDispatcher);
 }
 
 bool FringeInputHandler::OnKeyUp(UINT nChar)

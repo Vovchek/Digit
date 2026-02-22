@@ -214,9 +214,6 @@
     <ClCompile Include="DigitMode\TooltipGenerator.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\BoundsHandler.cpp">
-      <Filter>Source Files\DigitMode</Filter>
-    </ClCompile>
     <ClCompile Include="Controls\CApertureCtrls.cpp">
       <Filter>Source Files\Controls</Filter>
     </ClCompile>
@@ -259,9 +256,6 @@
     <ClCompile Include="DigitMode\Rendering\ShapeDrawStyle.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\DraftShape.cpp">
-      <Filter>Source Files\DigitMode</Filter>
-    </ClCompile>
     <ClCompile Include="DigitMode\EditMode.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
@@ -285,6 +279,12 @@
     </ClCompile>
     <ClCompile Include="DigitMode\FringeToolAdapter.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\BoundsHandler.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\DraftShape.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

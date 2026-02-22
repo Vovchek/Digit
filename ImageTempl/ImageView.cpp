@@ -270,7 +270,7 @@ int CImageView::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 void CImageView::Init()
 {
-	CursorPos = CPoint(-1, -1);
+	m_CursorPos = CPoint(-1, -1);
 	MeasureLine = CRect(0, 0, 0, 0);
 	m_bLinning = FALSE;
 	m_Captured = FALSE;
@@ -282,7 +282,7 @@ void CImageView::OnInitialUpdate()
 {
 	CBaseImageView::OnInitialUpdate();
 
-	CursorPos = CPoint(-1, -1);
+	m_CursorPos = CPoint(-1, -1);
 	CImageCtrls* pImage = GetImageCtrls(this);
 	CControls* pCtrls = GetControls();
 
@@ -293,7 +293,7 @@ void CImageView::OnInitialUpdate()
 	pFr->CalcWindowRect(&wDIBRect, CWnd::adjustOutside);
 	int W = wDIBRect.Width() + 20;
 	int H = wDIBRect.Height() + 20;
-	CDC* pDC = GetDC();  // Fixed: was GetReleaseDC (typo)
+	CDC* pDC = GetDC();  // Get DC - will be released below
 	int scr_W = pDC->GetDeviceCaps(HORZRES);
 	int scr_H = pDC->GetDeviceCaps(VERTRES);
 	ReleaseDC(pDC);
@@ -365,8 +365,11 @@ void CImageView::OnInitialUpdate()
 		// Set fringe handler as initial active tool
 		GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
 		
-		// Keep old InputRouter working as fallback (for compatibility during transition)
-		GetInputRouter().SetActiveTool(&m_fringeHandler);
+		// BAND-AID: Keep InputRouter working as fallback for now
+		// Both systems manage the same handlers, but event routing properly checks return values
+		// so events are only processed once per system (not twice)
+		// TODO: Later migration - make InteractionManager the sole routing system and remove InputRouter
+		GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED for stability
 	}
 }
 
@@ -449,17 +452,19 @@ void CImageView::OnZoomFit()
 
 void CImageView::ActivateFringeTool()
 {
-	// Set fringe handler as active tool in both InteractionManager and InputRouter
+	// Set fringe handler as active tool in BOTH systems
+	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
-	GetInputRouter().SetActiveTool(&m_fringeHandler);
+	GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
 }
 
 void CImageView::ActivateBoundsTool()
 {
-	// Set bounds handler as active tool in both InteractionManager and InputRouter
+	// Set bounds handler as active tool in BOTH systems
+	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_boundsToolAdapter);
-	GetInputRouter().SetActiveTool(&m_boundsHandler);
+	GetInputRouter().SetActiveTool(&m_boundsHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
 }
 
@@ -502,7 +507,7 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
 	CPoint active = m_fringeHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
 	// CursorPos is already in world coordinates (set in OnMouseMove)
-	CPoint cursor = CursorPos;
+	CPoint cursor = m_viewTransform.ScreenToWorld(m_CursorPos);
 	bool rubber = m_fringeHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
 	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
 
@@ -593,7 +598,7 @@ void CImageView::OnDraw(CDC* pDC)
 	}
 	if (pDoc->IsFotoSections()) {
 		DrawCrossedLines(pDrawDC);
-		pDoc->ReSetSections(CursorPos);
+		pDoc->ReSetSections(m_CursorPos);
 	}
 	DrawBounds(pDrawDC);
 	DrawDigitInfo(pDrawDC);
@@ -970,8 +975,8 @@ void CImageView::DrawCrossedLines(CDC* pDC)
 	CRect scrRect(tl, br);
 	CPoint P1, P2;
 
-	if (CursorPos != CPoint(-1, -1)) {
-		CPoint s = m_viewTransform.WorldToScreen(CPoint2d{ (double)CursorPos.x, (double)CursorPos.y });
+	if (m_CursorPos != CPoint(-1, -1)) {
+		CPoint s = m_viewTransform.WorldToScreen(CPoint2d{ (double)m_CursorPos.x, (double)m_CursorPos.y });
 		P1.x = scrRect.left; P1.y = s.y;
 		P2.x = scrRect.right; P2.y = s.y;
 		pDC->MoveTo(P1); pDC->LineTo(P2);
@@ -1000,24 +1005,24 @@ void CImageView::DrawMouseMoveCrossedLines(CPoint P)
 	ClientToDoc(clientR);
 	CPoint P1, P2;
 
-	if (CursorPos != CPoint(-1, -1)) {
-		P1.x = clientR.left; P1.y = CursorPos.y;
-		P2.x = clientR.right; P2.y = CursorPos.y;
+	if (m_CursorPos != CPoint(-1, -1)) {
+		P1.x = clientR.left; P1.y = m_CursorPos.y;
+		P2.x = clientR.right; P2.y = m_CursorPos.y;
 		dc.MoveTo(P1);
 		dc.LineTo(P2);
-		P1.x = CursorPos.x; P1.y = clientR.top;
-		P2.x = CursorPos.x; P2.y = clientR.bottom;
+		P1.x = m_CursorPos.x; P1.y = clientR.top;
+		P2.x = m_CursorPos.x; P2.y = clientR.bottom;
 		dc.MoveTo(P1);
 		dc.LineTo(P2);
 	}
 
-	CursorPos = P;
-	P1.x = clientR.left; P1.y = CursorPos.y;
-	P2.x = clientR.right; P2.y = CursorPos.y;
+	m_CursorPos = P;
+	P1.x = clientR.left; P1.y = m_CursorPos.y;
+	P2.x = clientR.right; P2.y = m_CursorPos.y;
 	dc.MoveTo(P1);
 	dc.LineTo(P2);
-	P1.x = CursorPos.x; P1.y = clientR.top;
-	P2.x = CursorPos.x; P2.y = clientR.bottom;
+	P1.x = m_CursorPos.x; P1.y = clientR.top;
+	P2.x = m_CursorPos.x; P2.y = clientR.bottom;
 	dc.MoveTo(P1);
 	dc.LineTo(P2);
 	dc.SetROP2(orop);

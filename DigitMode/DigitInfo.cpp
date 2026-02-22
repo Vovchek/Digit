@@ -275,8 +275,8 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
     }
 
     // Draw fringe polylines
-    if (pCtrls->ViewState & V_DOTLINES) {
-        if (m_bUseFringeModel) {
+    if (m_bUseFringeModel) {
+        if (pCtrls->ViewState & V_DOTLINES) {
             for (size_t iF = 0; iF < Fringes.size(); ++iF) {
                 double num = Fringes[iF].GetNumber();
                 COLORREF Color; pCtrls->GetIndexColor(num, Color);
@@ -287,11 +287,10 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
                 pDC->SelectObject(oldP);
             }
         }
-    }
+    
 
-    // Draw dots and active rubber-band
-    if (pCtrls->ViewState & V_DOTS) {
-        if (m_bUseFringeModel) {
+        // Draw dots and active rubber-band
+        if (pCtrls->ViewState & V_DOTS) {
             for (size_t iF = 0; iF < Fringes.size(); ++iF) {
                 double num = Fringes[iF].GetNumber();
                 COLORREF Color; pCtrls->GetIndexColor(num, Color);
@@ -303,27 +302,27 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
                 if (worldDotSide < 2) worldDotSide = 2;
                 Fringes[iF].DrawDots(pDC, worldDotSide, Color);
             }
+        }
 
-            if (activeDot != CPoint(-1, -1)) {
-                // Use same world-scaling for active dot so it doesn't become huge
-                double screenDot = DotSide + 2;
-                double dotScale = scale;
-                int worldDotSide = (int)(screenDot / (dotScale == 0.0 ? 1.0 : dotScale) + 0.5);
-                if (worldDotSide < 2) worldDotSide = 2;
-                int half = worldDotSide / 2;
-                CBrush brush(RGB(255,64,64)); CBrush* oldBr = pDC->SelectObject(&brush);
-                pDC->Ellipse(activeDot.x-half, activeDot.y-half, activeDot.x+half, activeDot.y+half);
-                pDC->SelectObject(oldBr);
+        if (activeDot != CPoint(-1, -1)) {
+            // Use same world-scaling for active dot so it doesn't become huge
+            double screenDot = DotSide + 2;
+            double dotScale = scale;
+            int worldDotSide = (int)(screenDot / (dotScale == 0.0 ? 1.0 : dotScale) + 0.5);
+            if (worldDotSide < 2) worldDotSide = 2;
+            int half = worldDotSide / 2;
+            CBrush brush(RGB(255,64,64)); CBrush* oldBr = pDC->SelectObject(&brush);
+            pDC->Ellipse(activeDot.x-half, activeDot.y-half, activeDot.x+half, activeDot.y+half);
+            pDC->SelectObject(oldBr);
 
-                if (cursorPos != CPoint(-1, -1) && rubberBand) {
-                    // Rubber-band pen: use world width to keep 1px on screen
-                    int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
-                    CPen rubberPen; rubberPen.CreatePen(PS_DOT, w, RGB(255,128,0));
-                    CPen* oldPen = pDC->SelectObject(&rubberPen);
-                    pDC->MoveTo(activeDot);
-                    pDC->LineTo(cursorPos);
-                    pDC->SelectObject(oldPen);
-                }
+            if (cursorPos != CPoint(-1, -1) && rubberBand) {
+                // Rubber-band pen: use world width to keep 1px on screen
+                int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
+                CPen rubberPen; rubberPen.CreatePen(PS_DOT, w, RGB(255,128,0));
+                CPen* oldPen = pDC->SelectObject(&rubberPen);
+                pDC->MoveTo(activeDot);
+                pDC->LineTo(cursorPos);
+                pDC->SelectObject(oldPen);
             }
         }
     }

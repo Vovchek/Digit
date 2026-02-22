@@ -27,6 +27,7 @@ protected:
 
 // Attributes
 public:
+    CPoint        m_CursorPos{ -1, -1 };  // curresnt mouse position
     DigitViewMode m_cvwMode;              //Current 'mode'
     BOOL          m_bCaptured;            //Is the mouse captured?
     CRect         m_rectDrag;             //The dragging rectangle for zoomrect mode.
@@ -107,7 +108,7 @@ public:
 	void DropCustomDot(CPoint point);
     void DrawTracker(CDC* pDC);
     CPoint GetHandle(int nHandle);
-    void SetTrackerRect(CRect wR = CRect(-1,-1,-1,-1));
+    //void SetTrackerRect(CRect wR = CRect(-1,-1,-1,-1));
 
 // Overrides
 	// ClassWizard generated virtual function overrides

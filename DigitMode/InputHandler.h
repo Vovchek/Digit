@@ -214,8 +214,8 @@ public:
     // Cancel active draw without committing
     void CancelDraw(::CDigitInfo* pDigit);
 
-    // Keyboard handling while in draw mode (arrows, backspace, escape)
-    void OnKeyDown(UINT nChar, ::CDigitInfo* pDigit, CommandDispatcher* pCmdDisp);
+    // Keyboard handling while in draw mode, retures consumed state
+    bool OnKeyDown(UINT nChar, ::CDigitInfo* pDigit, CommandDispatcher* pCmdDisp);
 
     /**
      * @brief Get the index of the currently active segment
