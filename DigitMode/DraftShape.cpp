@@ -186,16 +186,13 @@ void DraftShape::CreateFromBoundingBox(
         }
         
         case Kind::Ellipse: {
-            // Generate 8 points around ellipse perimeter for LSM fitting
-            double radiusX = width / 2.0;
-            double radiusY = height / 2.0;
-            
-            for (int i = 0; i < 8; ++i) {
-                double angle = (2.0 * M_PI * i) / 8.0;
-                double x = centerX + radiusX * std::cos(angle);
-                double y = centerY + radiusY * std::sin(angle);
-                perimeterPoints.push_back(aperture::Point(x, y));
-            }
+            // Generate 4 points around ellipse
+            double radiusX = width / std::sqrt(2.0);
+            double radiusY = height / std::sqrt(2.0);
+            perimeterPoints.push_back(aperture::Point(centerX - radiusX, centerY));
+            perimeterPoints.push_back(aperture::Point(centerX + radiusX, centerY));
+            perimeterPoints.push_back(aperture::Point(centerX, centerY - radiusY));
+            perimeterPoints.push_back(aperture::Point(centerX, centerY + radiusY));
             break;
         }
         

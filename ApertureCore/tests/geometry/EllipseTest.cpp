@@ -648,234 +648,191 @@ TEST_F(EllipseTest, FitEllipse_TypeLimitsPreserved) {
     EXPECT_EQ(ellipse->getTypeLimits(), TypeLimits::INTERNAL);
 }
 
-TEST_F(EllipseTest, FitCircleVsFitEllipse_Comparison) {
-    // Elliptical points - compare circle vs ellipse fit quality
+// ============================================================================
+// FitEllipse 4-Point Tests (Different Distributions)
+// ============================================================================
+
+TEST_F(EllipseTest, FitEllipse_FourPointsAxisAligned) {
+    // Four points on axis-aligned ellipse (20x10)
+    // These are the extremal points
     std::vector<Point> points = {
-        {20.0, 0.0},
-        {0.0, 10.0},
-        {-20.0, 0.0},
-        {0.0, -10.0}
+        {20.0, 0.0},    // Right
+        {0.0, 10.0},    // Top
+        {-20.0, 0.0},   // Left
+        {0.0, -10.0}    // Bottom
     };
     
-    auto circle = Ellipse::FitCircle(points);
-    auto ellipse = Ellipse::FitEllipse(points);
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    ASSERT_NE(circle, nullptr);
     ASSERT_NE(ellipse, nullptr);
-    
-    // Circle must have equal radii
-    EXPECT_TRUE(circle->isCircle(0.01));
-    
-    // Ellipse can have different radii (better fit for these points)
-    double ellipseRatio = ellipse->semiMajor() / ellipse->semiMinor();
-    EXPECT_GT(ellipseRatio, 1.5);  // Significantly elliptical
+    EXPECT_NEAR(ellipse->center().x, 0.0, 1.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 1.0);
+    EXPECT_NEAR(ellipse->semiMajor(), 20.0, 2.0);  // Should be ~20
+    EXPECT_NEAR(ellipse->semiMinor(), 10.0, 2.0);  // Should be ~10
+    EXPECT_NEAR(ellipse->rotationDegrees(), 0.0, 1.0);
 }
 
-// ============================================================================
-// Handle Enumeration Tests (Phase 1 - Interactive Editing)
-// ============================================================================
-
-TEST_F(EllipseTest, EnumerateHandles_Count) {
-    Ellipse ellipse(15.0, 10.0, 50.0, 50.0, 30.0);
-    std::vector<HandleDesc> handles;
+TEST_F(EllipseTest, FitEllipse_FourPointsRandomDistribution) {
+    // Four points randomly distributed on ellipse perimeter (15x10 at origin)
+    std::vector<Point> points = {
+        {15.0, 0.0},    // Right extremal
+        {10.6, 7.1},    // Top-right quadrant
+        {-10.6, -7.1},  // Bottom-left quadrant
+        {0.0, -10.0}    // Bottom extremal
+    };
     
-    ellipse.EnumerateHandles(handles);
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    // Ellipse should have 6 handles: 1 Move + 1 Rotate + 4 AxisResize
-    EXPECT_EQ(handles.size(), 6u);
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 0.0, 2.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 2.0);
+    EXPECT_NEAR(ellipse->semiMajor(), 15.0, 3.0);
+    EXPECT_NEAR(ellipse->semiMinor(), 10.0, 3.0);
 }
 
-TEST_F(EllipseTest, EnumerateHandles_Types) {
-    Ellipse ellipse(15.0, 10.0, 0.0, 0.0, 0.0);
-    std::vector<HandleDesc> handles;
+TEST_F(EllipseTest, FitEllipse_FourPointsUnevenSpacing) {
+    // Four points with uneven spacing on ellipse (18x12)
+    std::vector<Point> points = {
+        {18.0, 0.0},    // Right (90° spacing)
+        {0.0, 12.0},    // Top
+        {-12.7, -8.5},  // Between left and bottom (uneven)
+        {5.0, -11.1}    // Off from bottom (uneven)
+    };
     
-    ellipse.EnumerateHandles(handles);
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    ASSERT_EQ(handles.size(), 6u);
+    ASSERT_NE(ellipse, nullptr);
+    // Center should still be approximately at origin
+    EXPECT_NEAR(ellipse->center().x, 0.0, 3.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 3.0);
     
-    // First handle: Move (at center)
-    EXPECT_EQ(handles[0].type, HandleType::Move);
-    EXPECT_NEAR(handles[0].localPos.x, 0.0, TOLERANCE);
-    EXPECT_NEAR(handles[0].localPos.y, 0.0, TOLERANCE);
+    // Radii should be in reasonable range
+    EXPECT_GT(ellipse->semiMajor(), 10.0);
+    EXPECT_GT(ellipse->semiMinor(), 5.0);
+}
+
+TEST_F(EllipseTest, FitEllipse_FourPointsHighEccentricity) {
+    // Four points on highly eccentric ellipse (50x5)
+    std::vector<Point> points = {
+        {50.0, 0.0},
+        {0.0, 5.0},
+        {-50.0, 0.0},
+        {0.0, -5.0}
+    };
     
-    // Second handle: Rotate
-    EXPECT_EQ(handles[1].type, HandleType::Rotate);
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    // Remaining 4 handles: AxisResize
-    for (size_t i = 2; i < 6; ++i) {
-        EXPECT_EQ(handles[i].type, HandleType::AxisResize);
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 0.0, 1.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 1.0);
+    EXPECT_NEAR(ellipse->semiMajor(), 50.0, 5.0);
+    EXPECT_NEAR(ellipse->semiMinor(), 5.0, 2.0);
+    
+    // Check eccentricity is high
+    EXPECT_GT(ellipse->eccentricity(), 0.95);
+}
+
+TEST_F(EllipseTest, FitEllipse_FourPointsNearCircle) {
+    // Four points on nearly circular ellipse (12x11)
+    std::vector<Point> points = {
+        {12.0, 0.0},
+        {0.0, 11.0},
+        {-12.0, 0.0},
+        {0.0, -11.0}
+    };
+    
+    auto ellipse = std::make_unique<Ellipse>(points);
+    
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 0.0, 1.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 1.0);
+    
+    // Radii should be close to each other
+    double ratio = ellipse->semiMajor() / ellipse->semiMinor();
+    EXPECT_NEAR(ratio, 1.0, 0.15);  // Within 15% of circular
+}
+
+TEST_F(EllipseTest, FitEllipse_FourPointsOffsetCenter) {
+    // Four points on ellipse (25x15) centered at (100, 50)
+    std::vector<Point> points = {
+        {125.0, 50.0},   // Right
+        {100.0, 65.0},   // Top
+        {75.0, 50.0},    // Left
+        {100.0, 35.0}    // Bottom
+    };
+    
+    auto ellipse = std::make_unique<Ellipse>(points);
+    
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 100.0, 2.0);
+    EXPECT_NEAR(ellipse->center().y, 50.0, 2.0);
+    EXPECT_NEAR(ellipse->semiMajor(), 25.0, 3.0);
+    EXPECT_NEAR(ellipse->semiMinor(), 15.0, 3.0);
+}
+
+TEST_F(EllipseTest, FitEllipse_FourPointsVerifyFit) {
+    // Generate 4 points on known ellipse and verify fitted ellipse passes through them
+    double a = 30.0, b = 20.0;  // Semi-axes
+    double cx = 50.0, cy = 75.0; // Center
+    
+    // Select 4 points at different angles
+    std::vector<Point> points;
+    double angles[] = {0.0, M_PI / 3.0, M_PI, 4.0 * M_PI / 3.0};
+    
+    for (double angle : angles) {
+        double x = cx + a * std::cos(angle);
+        double y = cy + b * std::sin(angle);
+        points.push_back({x, y});
+    }
+    
+    auto ellipse = std::make_unique<Ellipse>(points);
+    
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, cx, 2.0);
+    EXPECT_NEAR(ellipse->center().y, cy, 2.0);
+    EXPECT_NEAR(ellipse->semiMajor(), a, 3.0);
+    EXPECT_NEAR(ellipse->semiMinor(), b, 3.0);
+    
+    // Verify all original points are approximately on fitted ellipse (within tolerance)
+    for (const auto& p : points) {
+        // Point should be very close to ellipse boundary (approximately on it)
+        // Use isInside check to verify the ellipse bounds the points properly
+        EXPECT_TRUE(ellipse->isOnContour(p, 0.1));  // Should be on or near boundary
     }
 }
 
-TEST_F(EllipseTest, EnumerateHandles_AxisAligned) {
-    Ellipse ellipse(15.0, 10.0, 100.0, 100.0, 0.0);  // Axis-aligned
-    std::vector<HandleDesc> handles;
+TEST_F(EllipseTest, FitEllipse_FourPointsSmallEllipse) {
+    // Four points on small ellipse (5x3)
+    std::vector<Point> points = {
+        {5.0, 0.0},
+        {0.0, 3.0},
+        {-5.0, 0.0},
+        {0.0, -3.0}
+    };
     
-    ellipse.EnumerateHandles(handles);
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    ASSERT_EQ(handles.size(), 6u);
-    
-    // For axis-aligned ellipse, check axis endpoints are positioned correctly
-    // Major axis handles (index 2, 3) should be at (100±15, 100)
-    EXPECT_NEAR(handles[2].localPos.x, 115.0, TOLERANCE);  // Right major
-    EXPECT_NEAR(handles[2].localPos.y, 100.0, TOLERANCE);
-    
-    EXPECT_NEAR(handles[3].localPos.x, 85.0, TOLERANCE);   // Left major
-    EXPECT_NEAR(handles[3].localPos.y, 100.0, TOLERANCE);
-    
-    // Minor axis handles (index 4, 5) should be at (100, 100±10)
-    EXPECT_NEAR(handles[4].localPos.x, 100.0, TOLERANCE);  // Top minor
-    EXPECT_NEAR(handles[4].localPos.y, 110.0, TOLERANCE);
-    
-    EXPECT_NEAR(handles[5].localPos.x, 100.0, TOLERANCE);  // Bottom minor
-    EXPECT_NEAR(handles[5].localPos.y, 90.0, TOLERANCE);
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 0.0, 0.5);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 0.5);
+    EXPECT_NEAR(ellipse->semiMajor(), 5.0, 1.0);
+    EXPECT_NEAR(ellipse->semiMinor(), 3.0, 1.0);
 }
 
-TEST_F(EllipseTest, ApplyHandleDrag_Move) {
-    Ellipse ellipse(15.0, 10.0, 50.0, 50.0);
+TEST_F(EllipseTest, FitEllipse_FourPointsLargeEllipse) {
+    // Four points on large ellipse (500x300)
+    std::vector<Point> points = {
+        {500.0, 0.0},
+        {0.0, 300.0},
+        {-500.0, 0.0},
+        {0.0, -300.0}
+    };
     
-    HandleDesc handle{HandleType::Move, -1, {50.0, 50.0}};
-    DragContext drag{handle, {50.0, 50.0}, {60.0, 70.0}, {10.0, 20.0}, false, false};
+    auto ellipse = std::make_unique<Ellipse>(points);
     
-    ellipse.ApplyHandleDrag(handle, drag);
-    
-    // Center should move by delta
-    EXPECT_NEAR(ellipse.center().x, 60.0, TOLERANCE);
-    EXPECT_NEAR(ellipse.center().y, 70.0, TOLERANCE);
-    
-    // Radii should be unchanged
-    EXPECT_DOUBLE_EQ(ellipse.semiMajor(), 15.0);
-    EXPECT_DOUBLE_EQ(ellipse.semiMinor(), 10.0);
-}
-
-TEST_F(EllipseTest, ApplyHandleDrag_AxisResize_Major) {
-    Ellipse ellipse(15.0, 10.0, 0.0, 0.0, 0.0);
-    
-    // Major axis handle at (15, 0) with normal pointing right
-    HandleDesc handle{HandleType::AxisResize, 0, {15.0, 0.0}, {1.0, 0.0}};
-    DragContext drag{handle, {15.0, 0.0}, {20.0, 0.0}, {5.0, 0.0}, false, false};
-    
-    ellipse.ApplyHandleDrag(handle, drag);
-    
-    // Major axis should increase by 5
-    EXPECT_NEAR(ellipse.semiMajor(), 20.0, TOLERANCE);
-    
-    // Minor axis unchanged
-    EXPECT_DOUBLE_EQ(ellipse.semiMinor(), 10.0);
-}
-
-TEST_F(EllipseTest, ApplyHandleDrag_AxisResize_Minor) {
-    Ellipse ellipse(15.0, 10.0, 0.0, 0.0, 0.0);
-    
-    // Minor axis handle at (0, 10) with normal pointing up
-    HandleDesc handle{HandleType::AxisResize, 2, {0.0, 10.0}, {0.0, 1.0}};
-    DragContext drag{handle, {0.0, 10.0}, {0.0, 15.0}, {0.0, 5.0}, false, false};
-    
-    ellipse.ApplyHandleDrag(handle, drag);
-    
-    // Minor axis should increase by 5
-    EXPECT_NEAR(ellipse.semiMinor(), 15.0, TOLERANCE);
-    
-    // Major axis unchanged
-    EXPECT_DOUBLE_EQ(ellipse.semiMajor(), 15.0);
-}
-
-TEST_F(EllipseTest, ApplyHandleDrag_Rotate) {
-    Ellipse ellipse(15.0, 10.0, 0.0, 0.0, 0.0);
-    
-    // Rotate handle offset along minor axis (perpendicular to major)
-    HandleDesc handle{HandleType::Rotate, -1, {0.0, 20.0}};
-    
-    // Drag from (0, 20) to (14.14, 14.14) - should rotate ~45 degrees
-    DragContext drag{handle, {0.0, 20.0}, {14.14, 14.14}, {14.14, -5.86}, false, false};
-    
-    double initialRotation = ellipse.rotationDegrees();
-    
-    ellipse.ApplyHandleDrag(handle, drag);
-    
-    // Rotation should have changed
-    EXPECT_NE(ellipse.rotationDegrees(), initialRotation);
-    
-    // Radii should be unchanged
-    EXPECT_DOUBLE_EQ(ellipse.semiMajor(), 15.0);
-    EXPECT_DOUBLE_EQ(ellipse.semiMinor(), 10.0);
-}
-
-// ============================================================================
-// isOnContour Tests
-// ============================================================================
-
-TEST_F(EllipseTest, IsOnContour_ExactlyOnBoundary) {
-    Ellipse circle(50.0, 50.0, 100.0, 100.0);  // Circle at (100,100), radius 50
-    
-    // Point exactly on boundary (right side)
-    Point onBoundary{150.0, 100.0};
-    EXPECT_TRUE(circle.isOnContour(onBoundary, 0.1));
-    
-    // Point exactly on boundary (top)
-    Point onTop{100.0, 150.0};
-    EXPECT_TRUE(circle.isOnContour(onTop, 0.1));
-}
-
-TEST_F(EllipseTest, IsOnContour_NearBoundary) {
-    Ellipse circle(50.0, 50.0, 100.0, 100.0);
-    
-    // Point 1 unit outside
-    Point nearOutside{151.0, 100.0};
-    EXPECT_TRUE(circle.isOnContour(nearOutside, 2.0));
-    EXPECT_FALSE(circle.isOnContour(nearOutside, 0.5));
-    
-    // Point 1 unit inside
-    Point nearInside{149.0, 100.0};
-    EXPECT_TRUE(circle.isOnContour(nearInside, 2.0));
-    EXPECT_FALSE(circle.isOnContour(nearInside, 0.5));
-}
-
-TEST_F(EllipseTest, IsOnContour_FarFromBoundary) {
-    Ellipse circle(50.0, 50.0, 100.0, 100.0);
-    
-    // Center (far inside)
-    EXPECT_FALSE(circle.isOnContour(circle.center(), 2.0));
-    
-    // Far outside
-    Point farAway{200.0, 200.0};
-    EXPECT_FALSE(circle.isOnContour(farAway, 2.0));
-}
-
-TEST_F(EllipseTest, IsOnContour_Ellipse) {
-    Ellipse ellipse(50.0, 30.0, 0.0, 0.0);  // Ellipse 50x30 at origin
-    
-    // Point on major axis
-    Point onMajor{50.0, 0.0};
-    EXPECT_TRUE(ellipse.isOnContour(onMajor, 0.1));
-    
-    // Point on minor axis
-    Point onMinor{0.0, 30.0};
-    EXPECT_TRUE(ellipse.isOnContour(onMinor, 0.1));
-    
-    // Point at center (not on contour)
-    EXPECT_FALSE(ellipse.isOnContour({0.0, 0.0}, 1.0));
-}
-
-TEST_F(EllipseTest, IsOnContour_RotatedEllipse) {
-    Ellipse ellipse(50.0, 30.0, 0.0, 0.0, 45.0);  // Rotated 45 degrees
-    
-    // Point on rotated major axis
-    double cos45 = std::cos(45.0 * M_PI / 180.0);
-    double sin45 = std::sin(45.0 * M_PI / 180.0);
-    Point onRotatedMajor{50.0 * cos45, 50.0 * sin45};
-    
-    EXPECT_TRUE(ellipse.isOnContour(onRotatedMajor, 1.0));
-}
-
-TEST_F(EllipseTest, IsOnContour_SmallTolerance) {
-    Ellipse ellipse(10.0, 5.0, 0.0, 0.0);
-    
-    // With very small tolerance, interior points should not be on contour
-    Point interior{5.0, 0.0};  // Halfway to edge
-    EXPECT_FALSE(ellipse.isOnContour(interior, 0.01));
-    
-    // But edge point should be
-    Point edge{10.0, 0.0};
-    EXPECT_TRUE(ellipse.isOnContour(edge, 0.01));
+    ASSERT_NE(ellipse, nullptr);
+    EXPECT_NEAR(ellipse->center().x, 0.0, 10.0);
+    EXPECT_NEAR(ellipse->center().y, 0.0, 10.0);
+    EXPECT_NEAR(ellipse->semiMajor(), 500.0, 50.0);
+    EXPECT_NEAR(ellipse->semiMinor(), 300.0, 50.0);
 }

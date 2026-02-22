@@ -245,26 +245,27 @@ void Ellipse::shiftY(double deltaY) {
 //===========================================================================
 
 namespace {
-    // Helper: Solve 5x5 linear system using Gaussian elimination
+    // Helper: Solve NxN linear system using Gaussian elimination
     // Returns true if solution found, false if singular
-    bool solveLinearSystem5x5(double A[5][5], double b[5], double x[5]) {
+    template<size_t N>
+    bool solveLinearSystemNxN(double A[N][N], double b[N], double x[N]) {
         constexpr double EPSILON = 1e-10;
         
         // Create augmented matrix
-        double aug[5][6];
-        for (int i = 0; i < 5; i++) {
-            for (int j = 0; j < 5; j++) {
+        double aug[N][N+1];
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
                 aug[i][j] = A[i][j];
             }
-            aug[i][5] = b[i];
+            aug[i][N] = b[i];
         }
         
         // Forward elimination with partial pivoting
-        for (int k = 0; k < 5; k++) {
+        for (int k = 0; k < N; k++) {
             // Find pivot
             int maxRow = k;
             double maxVal = std::abs(aug[k][k]);
-            for (int i = k + 1; i < 5; i++) {
+            for (int i = k + 1; i < N; i++) {
                 double val = std::abs(aug[i][k]);
                 if (val > maxVal) {
                     maxVal = val;
@@ -278,24 +279,24 @@ namespace {
             
             // Swap rows
             if (maxRow != k) {
-                for (int j = 0; j < 6; j++) {
+                for (int j = 0; j < N+1; j++) {
                     std::swap(aug[k][j], aug[maxRow][j]);
                 }
             }
             
             // Eliminate
-            for (int i = k + 1; i < 5; i++) {
+            for (int i = k + 1; i < N; i++) {
                 double factor = aug[i][k] / aug[k][k];
-                for (int j = k; j < 6; j++) {
+                for (int j = k; j < N+1; j++) {
                     aug[i][j] -= factor * aug[k][j];
                 }
             }
         }
         
         // Back substitution
-        for (int i = 4; i >= 0; i--) {
-            double sum = aug[i][5];
-            for (int j = i + 1; j < 5; j++) {
+        for (int i = N-1; i >= 0; i--) {
+            double sum = aug[i][N];
+            for (int j = i + 1; j < N; j++) {
                 sum -= aug[i][j] * x[j];
             }
             x[i] = sum / aug[i][i];
@@ -519,60 +520,165 @@ Ellipse::Ellipse(const std::vector<Point>& points,
     }
 
     if (n == 4) {
-        // Four points - axis-aligned ellipse (bounding box approach)
-        center_.x = (points[0].x + points[1].x + points[2].x + points[3].x) / 4.0;
-        center_.y = (points[0].y + points[1].y + points[2].y + points[3].y) / 4.0;
+        // For axis-aligned ellipse: (x-x0)^2/a^2 + (y-y0)^2/b^2 = 1
 
-        double maxX = 0.0, maxY = 0.0;
-        for (size_t i = 0; i < 4; i++) {
-            double dx = std::abs(points[i].x - center_.x);
-            double dy = std::abs(points[i].y - center_.y);
-            maxX = std::max(maxX, dx);
-            maxY = std::max(maxY, dy);
+        // We have 4 unknowns: x0, y0, a, b
+        // Need to solve system of 4 equations
+
+        // Rearranged form: (x-x0)^2 * b^2 + (y-y0)^2 * a^2 = a^2 * b^2
+        // Let's use numerical optimization (Gauss-Newton)
+
+        // Initial guess: center as mean of points
+        double sumX = 0, sumY = 0;
+        for (int i = 0; i < 4; i++) {
+            sumX += points[i].x;
+            sumY += points[i].y;
+        }
+        center_.x = sumX / 4.0;
+        center_.y = sumY / 4.0;
+
+        // Initial guess for axes: based on point distances from center
+        double maxDistX = 0, maxDistY = 0;
+        for (int i = 0; i < 4; i++) {
+            maxDistX = std::max(maxDistX, std::abs(points[i].x - center_.x));
+            maxDistY = std::max(maxDistY, std::abs(points[i].y - center_.y));
+        }
+        semiMajor_ = maxDistX;
+        semiMinor_ = maxDistY;
+
+        // Refine using least squares (Gauss-Newton iteration)
+        for (int iter = 0; iter < 10; iter++) {
+            double J[4][4] = { {0} };  // Jacobian
+            double r[4];              // Residuals
+            double sumJTJ[4][4] = { {0} };
+            double sumJTr[4] = { 0 };
+
+            for (int i = 0; i < 4; i++) {
+                double dx = points[i].x - center_.x;
+                double dy = points[i].y - center_.y;
+
+                // Residual: (dx^2/a^2 + dy^2/b^2 - 1)
+                double val = dx * dx / (semiMajor_ * semiMajor_) + dy * dy / (semiMinor_ * semiMinor_) - 1.0;
+                r[i] = val;
+
+                // Jacobian entries
+                J[i][0] = -2.0 * dx / (semiMajor_ * semiMajor_);                 // d/dx0
+                J[i][1] = -2.0 * dy / (semiMinor_ * semiMinor_);                 // d/dy0
+                J[i][2] = -2.0 * dx * dx / (semiMajor_ * semiMajor_ * semiMajor_);   // d/da
+                J[i][3] = -2.0 * dy * dy / (semiMinor_ * semiMinor_ * semiMinor_);   // d/db
+
+                // Build normal equations
+                for (int j = 0; j < 4; j++) {
+                    for (int k = 0; k < 4; k++) {
+                        sumJTJ[j][k] += J[i][j] * J[i][k];
+                    }
+                    sumJTr[j] += J[i][j] * r[i];
+                }
+            }
+
+            // In the Gauss-Newton iteration, after building sumJTJ:
+            double lambda = 1e-6;  // Levenberg-Marquardt regularization
+            for (int i = 0; i < 4; i++) {
+                sumJTJ[i][i] *= (1.0 + lambda);  // Add to diagonal
+            }
+
+            // Solve JTJ * delta = -JTr
+            double delta[4];
+            if(!solveLinearSystemNxN<4>(sumJTJ, sumJTr, delta)) {
+                // If still singular, increase regularization
+                lambda *= 10.0;
+                continue;
+                // Or break if too many iterations
+            }
+
+            // Update parameters
+            center_.x -= delta[0];
+            center_.y -= delta[1];
+            semiMajor_ -= delta[2];
+            semiMinor_ -= delta[3];
+
+            // Ensure positive axes
+            semiMajor_ = std::max(semiMajor_, 1e-6);
+            semiMinor_ = std::max(semiMinor_, 1e-6);
         }
 
-        semiMajor_ = maxX;
-        semiMinor_ = maxY;
         return;
     }
 
-    if (n == 5) {
-        // Five points - exact ellipse fit (general conic)
-        // Solve: Ax² + Bxy + Cy² + Dx + Ey + F = 0 with F = 1
+    if (n == 5)
+    {
+        // Build D^T D  (6x6 symmetric)
+        double S[6][6] = { 0 };
 
-        double A[5][5];
-        double b[5];
-
-        for (size_t i = 0; i < 5; i++) {
+        for (int i = 0; i < 5; i++)
+        {
             double x = points[i].x;
             double y = points[i].y;
-            A[i][0] = x * x;
-            A[i][1] = x * y;
-            A[i][2] = y * y;
-            A[i][3] = x;
-            A[i][4] = y;
-            b[i] = 1.0;
+            double d[6] = { x * x, x * y, y * y, x, y, 1.0 };
+
+            for (int r = 0; r < 6; r++)
+                for (int c = 0; c <= r; c++)
+                    S[r][c] += d[r] * d[c];
         }
+        for (int r = 0; r < 6; r++)
+            for (int c = r + 1; c < 6; c++)
+                S[r][c] = S[c][r];
 
-        double solution[5];
-        if (solveLinearSystem5x5(A, b, solution)) {
-            double a = solution[0];
-            double bxy = solution[1];
-            double c = solution[2];
-            double d = solution[3];
-            double e = solution[4];
-            double f = -1.0;  // We normalized with F = 1
+        // Jacobi eigen: smallest eigenvector of S
+        double V[6][6] = { 0 };
+        for (int i = 0; i < 6; i++) V[i][i] = 1;
 
-            if (conicToEllipse(a, bxy, c, d, e, f,
-                center_.x, center_.y,
-                semiMajor_, semiMinor_, rotationDeg_)) {
-                rotationRad_ = rotationDeg_ * M_PI / 180.0;
-                updateRotationCache();
-                return;
+        for (int it = 0; it < 50; it++)
+        {
+            int p = 0, q = 1;
+            double m = fabs(S[p][q]);
+            for (int i = 0; i < 6; i++)
+                for (int j = i + 1; j < 6; j++)
+                    if (fabs(S[i][j]) > m) { m = fabs(S[i][j]); p = i; q = j; }
+            if (m < 1e-12) break;
+
+            double phi = 0.5 * atan2(2 * S[p][q], S[q][q] - S[p][p]);
+            double c = cos(phi), s = sin(phi);
+
+            for (int k = 0; k < 6; k++) {
+                double Spk = S[p][k], Sqk = S[q][k];
+                S[p][k] = c * Spk - s * Sqk;
+                S[q][k] = s * Spk + c * Sqk;
+            }
+            for (int k = 0; k < 6; k++) {
+                double Skp = S[k][p], Skq = S[k][q];
+                S[k][p] = c * Skp - s * Skq;
+                S[k][q] = s * Skp + c * Skq;
+            }
+            for (int k = 0; k < 6; k++) {
+                double Vkp = V[k][p], Vkq = V[k][q];
+                V[k][p] = c * Vkp - s * Vkq;
+                V[k][q] = s * Vkp + c * Vkq;
             }
         }
 
-        // Fallback to 4-point method
+        int idx = 0;
+        for (int i = 1; i < 6; i++)
+            if (S[i][i] < S[idx][idx]) idx = i;
+
+        double a = V[0][idx];
+        double bxy = V[1][idx];
+        double c = V[2][idx];
+        double d = V[3][idx];
+        double e = V[4][idx];
+        double f = V[5][idx];
+
+        if (4 * a * c - bxy * bxy > 0 &&
+            conicToEllipse(a, bxy, c, d, e, f,
+                center_.x, center_.y,
+                semiMajor_, semiMinor_, rotationDeg_))
+        {
+            rotationRad_ = rotationDeg_ * M_PI / 180.0;
+            updateRotationCache();
+            return;
+        }
+
+        // fallback
         std::vector<Point> fourPoints(points.begin(), points.begin() + 4);
         *this = Ellipse(fourPoints, typeLimits, spatialSystem, normState);
         return;
@@ -624,7 +730,7 @@ Ellipse::Ellipse(const std::vector<Point>& points,
 
     // Solve S * solution = rhs
     double solution[5];
-    if (solveLinearSystem5x5(S, rhs, solution)) {
+    if (solveLinearSystemNxN<5>(S, rhs, solution)) {
         double a = solution[0];
         double bxy = solution[1];
         double c = solution[2];
@@ -641,9 +747,9 @@ Ellipse::Ellipse(const std::vector<Point>& points,
         }
     }    
 
-    // Final fallback to 4-point method
-    std::vector<Point> fourPoints(points.begin(), points.begin() + 4);
-    *this = Ellipse(fourPoints, typeLimits, spatialSystem, normState);
+    // Final fallback to 5-point method
+    std::vector<Point> fivePoints(points.begin(), points.begin() + 5);
+    *this = Ellipse(fivePoints, typeLimits, spatialSystem, normState);
 }
 
 // ========================================================================

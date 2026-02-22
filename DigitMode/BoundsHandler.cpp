@@ -530,7 +530,8 @@ void BoundsHandler::BeginDraftDrag(CPoint anchor)
         default:
             // Polygon doesn't support drag-creation
             m_isDraftDragging = false;
-            return;
+            draft.kind = DraftShape::Kind::Polygon;
+            break;
     }
     
     m_draft = draft;  // Replace any existing draft with fresh one
@@ -555,28 +556,37 @@ void BoundsHandler::UpdateDraftDrag(CPoint current)
     // Clear all points except the first (anchor)
     aperture::Point anchorWorld = m_draft->perimeterPoints.front();
     m_draft->perimeterPoints.clear();
-    m_draft->perimeterPoints.push_back(anchorWorld);
-    
-    // Add current point as second perimeter point
+    m_draft->perimeterPoints.push_back(anchorWorld); // save 1st anchor point
+
     aperture::Point currentWorld = ScreenToAperturePoint(current);
-    m_draft->perimeterPoints.push_back(currentWorld);
-    
-    // For circles/ellipses, add more points around the perimeter for better fit
-    if (m_draft->kind == DraftShape::Kind::Circle || m_draft->kind == DraftShape::Kind::Ellipse) {
-        // Calculate radius/axes from anchor to current
-        double dx = currentWorld.x - anchorWorld.x;
-        double dy = currentWorld.y - anchorWorld.y;
-        double radius = std::sqrt(dx * dx + dy * dy);
-        
-        if (radius > 0.001) {  // Avoid division by zero
-            // Add 6 more points around the circle/ellipse for LSM fitting
-            for (int i = 1; i <= 6; ++i) {
-                double angle = (2.0 * M_PI * i) / 8.0;
-                double x = anchorWorld.x + radius * std::cos(angle);
-                double y = anchorWorld.y + radius * std::sin(angle);
-                m_draft->perimeterPoints.push_back(aperture::Point(x, y));
-            }
-        }
+
+	double centerX = (anchorWorld.x + currentWorld.x) / 2.0;
+	double centerY = (anchorWorld.y + currentWorld.y) / 2.0;
+	double halfWidth = std::abs(currentWorld.x - anchorWorld.x) / 2.;
+	double halfHeight = std::abs(currentWorld.y - anchorWorld.y) / 2.;
+
+    switch (m_draft->kind)
+    {
+    case DraftShape::Kind::Rectangle: {
+        m_draft->perimeterPoints.push_back({ anchorWorld.x, currentWorld.y });
+        m_draft->perimeterPoints.push_back(currentWorld);
+        break;
+    }
+
+    case DraftShape::Kind::Ellipse: {
+        m_draft->perimeterPoints.push_back(currentWorld);
+        m_draft->perimeterPoints.push_back({ anchorWorld.x, currentWorld.y });
+        m_draft->perimeterPoints.push_back({ currentWorld.x, anchorWorld.y });
+        break;
+    }
+    case DraftShape::Kind::Circle: {
+        double radius = std::sqrt(halfWidth*halfWidth + halfHeight*halfHeight);
+        m_draft->perimeterPoints.push_back(aperture::Point(centerX - radius, centerY));
+        m_draft->perimeterPoints.push_back(aperture::Point(centerX + radius, centerY));
+        m_draft->perimeterPoints.push_back(aperture::Point(centerX, centerY - radius));
+        break;
+    }
+
     }
     
     // Update preview for rendering

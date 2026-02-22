@@ -215,7 +215,8 @@ CApertureCtrls::HitTestResult CApertureCtrls::HitTest(
             // TODO: Test control points first (corners, vertices)
             // For now, just test shape body
             
-            if (shape->isInside(worldPt)) {
+            //if (shape->isInside(worldPt)) { // check on contour - otherwise aperture can mask everything else
+            if (shape->isOnContour(worldPt, tolerance)) {
                 result.shape = shape.get();
                 result.type = type;
                 result.controlPointIndex = -1;  // Body hit

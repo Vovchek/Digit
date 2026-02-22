@@ -41,8 +41,8 @@ private:
     // Day 3: Tool Adapters for InteractionManager
     // ========================================================================
     
-    DigitMode::BoundsToolAdapter* m_boundsToolAdapter;   ///< Adapter for InteractionManager (raw ptr)
-    DigitMode::FringeToolAdapter* m_fringeToolAdapter;   ///< Adapter for InteractionManager (raw ptr)
+    DigitMode::BoundsToolAdapter* m_boundsToolAdapter{nullptr};   ///< Adapter for InteractionManager (raw ptr)
+    DigitMode::FringeToolAdapter* m_fringeToolAdapter{nullptr};   ///< Adapter for InteractionManager (raw ptr)
     
     // ========================================================================
     // Legacy support infrastructure (will be integrated into tool handlers)
