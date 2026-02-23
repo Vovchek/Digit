@@ -216,6 +216,8 @@ protected:
     afx_msg void OnUpdateFringesEdit(CCmdUI* pCmdUI);
     //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
+public:
+    virtual BOOL PreTranslateMessage(MSG* pMsg);
 };
 
 /////////////////////////////////////////////////////////////////////////////

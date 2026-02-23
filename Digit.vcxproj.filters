@@ -232,9 +232,6 @@
     <ClCompile Include="DigitMode\FringeInputHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\InputRouter.cpp">
-      <Filter>Source Files\DigitMode</Filter>
-    </ClCompile>
     <ClCompile Include="DigitMode\NavigationInputHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
@@ -284,6 +281,9 @@
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
     <ClCompile Include="DigitMode\DraftShape.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InputRouter.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
@@ -453,9 +453,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\Rendering\ShapeDrawDispatcher.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="DigitMode\InputRouter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\\DigitizationParams.h">

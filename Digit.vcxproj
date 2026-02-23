@@ -268,7 +268,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\IBoundsData.h" />
     <ClInclude Include="DigitMode\IInputHandler.h" />
     <ClInclude Include="DigitMode\InputHandler.h" />
-    <ClInclude Include="DigitMode\InputRouter.h" />
     <ClInclude Include="DigitMode\NavigationInputHandler.h" />
     <ClInclude Include="DigitMode\Rendering\EllipseRenderer.h" />
     <ClInclude Include="DigitMode\Rendering\IShapeRenderer.h" />

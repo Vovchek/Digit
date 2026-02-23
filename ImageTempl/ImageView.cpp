@@ -364,12 +364,6 @@ void CImageView::OnInitialUpdate()
 		
 		// Set fringe handler as initial active tool
 		GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
-		
-		// BAND-AID: Keep InputRouter working as fallback for now
-		// Both systems manage the same handlers, but event routing properly checks return values
-		// so events are only processed once per system (not twice)
-		// TODO: Later migration - make InteractionManager the sole routing system and remove InputRouter
-		// GetInputRouter().SetActiveTool(&m_fringeInputHandler);  // ← RE-ENABLED for stability
 	}
 }
 
@@ -452,19 +446,13 @@ void CImageView::OnZoomFit()
 
 void CImageView::ActivateFringeTool()
 {
-	// Set fringe handler as active tool in BOTH systems
-	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
-	//GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
 }
 
 void CImageView::ActivateBoundsTool()
 {
-	// Set bounds handler as active tool in BOTH systems
-	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_boundsToolAdapter);
-	//GetInputRouter().SetActiveTool(&m_boundsInputHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
 }
 
@@ -1334,8 +1322,8 @@ void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 	}
 
 	// Button should only appear active if the bounds tool is the active tool
-	auto* activeTool = GetInputRouter().GetActiveTool();
-	bool boundsToolActive = (activeTool == &m_boundsInputHandler);
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	bool boundsToolActive = (activeTool == m_boundsToolAdapter);
 	if (!boundsToolActive) {
 		pCmdUI->SetRadio(FALSE);
 		return;
@@ -1452,7 +1440,7 @@ void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsInputHandler);
+	bool boundsToolActive = (GetInteractionManager().GetActiveTool() == m_boundsToolAdapter);
 	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
@@ -1472,7 +1460,7 @@ void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsInputHandler);
+	bool boundsToolActive = (GetInteractionManager().GetActiveTool() == m_boundsToolAdapter);
 	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
@@ -1492,8 +1480,8 @@ void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
 	bool hasImage = GetImageCtrls()->HasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_fringeInputHandler);
-	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
+	bool fringesToolActive = (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter);
+	if (!fringesToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
 		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
@@ -1582,4 +1570,31 @@ void CImageView::OnUpdateEditRedo(CCmdUI* pCmdUI)
 	if (!text.IsEmpty()) {
 		pCmdUI->SetText(text);
 	}
+}
+
+BOOL CImageView::PreTranslateMessage(MSG* pMsg)
+{
+	if (pMsg && m_tooltip.m_hWnd && ::IsWindow(m_tooltip.m_hWnd)) {
+		// Relay to tooltip control only when it is a valid window and message available
+		m_tooltip.RelayEvent(pMsg);
+	}
+
+	// Handle Ctrl+'+'/'-'/'0' for zoom
+	if (pMsg && pMsg->message == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0x8000)) {
+		if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS || pMsg->wParam == 0xBB) {
+			OnZoomIn();
+			return TRUE;
+		}
+		else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS || pMsg->wParam == 0xBD) {
+			OnZoomOut();
+			return TRUE;
+		}
+		else if (pMsg->wParam == '0' || pMsg->wParam == VK_NUMPAD0) {
+			OnZoomFit();
+			return TRUE;
+		}
+	}
+
+	// Always call base PreTranslateMessage if available
+	return CBaseImageView::PreTranslateMessage(pMsg);
 }
