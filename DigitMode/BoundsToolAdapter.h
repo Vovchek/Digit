@@ -27,17 +27,22 @@ class BoundsToolAdapter : public InputHandlerAdapter {
 public:
     /// Construct adapter wrapping bounds handler
     /// @param boundsInputHandler The input handler to wrap
-    /// @param boundsHandler The domain logic handler
-    BoundsToolAdapter(BoundsInputHandler* boundsInputHandler, BoundsHandler* boundsHandler);
-    
+    BoundsToolAdapter(BoundsInputHandler* boundsInputHandler);
+
+    /// Override to track hover state for tooltips
+    void OnMouseMove(const ToolContext& ctx) override;
+
     /// Test for hits against bounds shapes
     HitResult HitTest(CPoint screenPt, int tolerance = 5) override;
-    
+
     /// Get visual state: draft shapes, handles, status text
     ViewState GetViewState(bool isActive, bool isCapturing) const override;
-    
+
 private:
-    BoundsHandler* m_boundsHandler;
+    BoundsInputHandler* m_boundsInputHandler;
+
+    /// Hover state for tooltip generation (mutable for GetViewState const-correctness)
+    mutable const aperture::Shape* m_hoveredShape{};
 };
 
 }  // namespace DigitMode

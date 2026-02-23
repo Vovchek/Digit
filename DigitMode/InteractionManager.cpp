@@ -172,7 +172,14 @@ bool InteractionManager::OnMouseMove(UINT flags, CPoint pt)
     
     // Route event
     tool->OnMouseMove(ctx);
-    
+    // Also update hover state on hovered tool if different
+    if (m_hoveredTool && m_hoveredTool != tool) {
+        // Call OnMouseMove on hovered tool for hover state only
+        // This ensures its hover state is current for GetViewState()
+        ToolContext hoverCtx = MakeContext(flags, pt, m_lastHit);
+        m_hoveredTool->OnMouseMove(hoverCtx);  // ← Updates hover state!
+    }
+
     // Request invalidation for preview updates
     m_requestInvalidate = true;
     return true;  // Always consumed during active drag/interaction
@@ -289,14 +296,14 @@ InteractionManager::CompositeViewState InteractionManager::GetViewState() const
         }
     }
     
-    // Resolve tooltip (from hovered, if different from active)
-    if (m_hoveredTool && m_hoveredTool != m_activeTool) {
-        auto toolState = m_hoveredTool->GetViewState(false, false);
-        if (!toolState.tooltip.IsEmpty()) {
-            state.tooltip = toolState.tooltip;
+    // Resolve tooltip (first non-empty from layers) 
+    for (const auto& layer : state.layers) {
+        if (!layer.toolState.tooltip.IsEmpty()) {
+            state.tooltip = layer.toolState.tooltip;
+            break;
         }
     }
-    
+
     // Request invalidation if any tool needs it
     for (const auto& layer : state.layers) {
         if (layer.toolState.requestInvalidate) {

@@ -101,7 +101,7 @@ BoundsHandler::HitResult BoundsHandler::HitTest(const CPoint& screenPt, int tole
     // Delegate to CApertureCtrls hit-testing
     auto apertureResult = m_pApertureCtrls->HitTest(worldPt, worldTolerance);
     
-    if (apertureResult.hitShape()) {
+    if (apertureResult.hitShape(worldTolerance)) {
         result.hit = true;
         result.type = apertureResult.type;
         result.shapeIndex = static_cast<size_t>(m_pApertureCtrls->GetShapeIndex(apertureResult.shape));
@@ -129,7 +129,7 @@ bool BoundsHandler::UpdateHoveredHandle(const CPoint& screenPt)
     if (hit.hit) {
         m_hoveredShapeType = hit.type;
         m_hoveredShapeIndex = hit.shapeIndex;
-        m_hoveredHandleIndex = hit.controlPointIndex;  // -1 for body, >=0 for handle
+        m_hoveredHandleIndex = hit.controlPointIndex;  // -1 no hover, 0 = contour, >0 for handle
     } else {
         // No hit - clear hover
         m_hoveredHandleIndex = -1;

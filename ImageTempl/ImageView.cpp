@@ -334,7 +334,7 @@ void CImageView::OnInitialUpdate()
 			&pApertureCtrls->GetCommandDispatcher() : &m_cmdDispatcher;
 		
 		// Initialize fringe handler
-		m_fringeHandler.Initialize(
+		m_fringeInputHandler.Initialize(
 			&pDoc->Digit,
 			&GetViewTransform(),
 			pDispatcher
@@ -342,7 +342,7 @@ void CImageView::OnInitialUpdate()
 		
 		// Initialize bounds handler with aperture subsystem and image provider
 		if (pImage && pApertureCtrls) {
-			m_boundsHandler.Initialize(
+			m_boundsInputHandler.Initialize(
 				pApertureCtrls,
 				pImage,
 				&GetViewTransform(),
@@ -355,8 +355,8 @@ void CImageView::OnInitialUpdate()
 		// ====================================================================
 		
 		// Create tool adapters wrapping existing handlers
-		m_boundsToolAdapter = new DigitMode::BoundsToolAdapter(&m_boundsHandler, &m_boundsHandler.GetBoundsHandler());
-		m_fringeToolAdapter = new DigitMode::FringeToolAdapter(&m_fringeHandler);
+		m_boundsToolAdapter = new DigitMode::BoundsToolAdapter(&m_boundsInputHandler);
+		m_fringeToolAdapter = new DigitMode::FringeToolAdapter(&m_fringeInputHandler);
 		
 		// Register tools with interaction manager
 		GetInteractionManager().RegisterTool(m_boundsToolAdapter);
@@ -369,7 +369,7 @@ void CImageView::OnInitialUpdate()
 		// Both systems manage the same handlers, but event routing properly checks return values
 		// so events are only processed once per system (not twice)
 		// TODO: Later migration - make InteractionManager the sole routing system and remove InputRouter
-		GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED for stability
+		// GetInputRouter().SetActiveTool(&m_fringeInputHandler);  // ← RE-ENABLED for stability
 	}
 }
 
@@ -455,7 +455,7 @@ void CImageView::ActivateFringeTool()
 	// Set fringe handler as active tool in BOTH systems
 	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
-	GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED
+	//GetInputRouter().SetActiveTool(&m_fringeHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
 }
 
@@ -464,8 +464,21 @@ void CImageView::ActivateBoundsTool()
 	// Set bounds handler as active tool in BOTH systems
 	// (both check return values to prevent double-processing)
 	GetInteractionManager().SetActiveTool(m_boundsToolAdapter);
-	GetInputRouter().SetActiveTool(&m_boundsHandler);  // ← RE-ENABLED
+	//GetInputRouter().SetActiveTool(&m_boundsInputHandler);  // ← RE-ENABLED
 	Invalidate(FALSE);
+}
+
+// ============================================================================
+// Tooltip Update (from BaseImageView virtual hook)
+// ============================================================================
+
+void CImageView::UpdateTooltip(const CString& tooltip)
+{
+	if (m_tooltip.m_hWnd && tooltip != m_lastTip) {
+		m_tooltip.UpdateTipText(tooltip, this);
+		m_lastTip = tooltip;
+		m_tooltip.Activate(!tooltip.IsEmpty());
+	}
 }
 
 // ============================================================================
@@ -505,10 +518,10 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	// Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
 	// fringes and rubber-band consistently in world coordinates.
 	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	CPoint active = m_fringeHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
+	CPoint active = m_fringeInputHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
 	// CursorPos is already in world coordinates (set in OnMouseMove)
 	CPoint cursor = m_viewTransform.ScreenToWorld(m_CursorPos);
-	bool rubber = m_fringeHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
+	bool rubber = m_fringeInputHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
 	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
 
 	// Restore previous transform/state
@@ -607,12 +620,12 @@ void CImageView::OnDraw(CDC* pDC)
 	// Draw selection box rubber-band if active (Navigate mode)
 	// m_drag points are in world coordinates, pass viewTransform for screen conversion
 	using namespace DigitMode;
-	if (m_fringeHandler.GetInputHandler().GetEditMode() == FringeEditMode::Navigate) {
-		m_fringeHandler.GetInputHandler().DrawSelectionBox(pDrawDC, &m_viewTransform);
+	if (m_fringeInputHandler.GetInputHandler().GetEditMode() == FringeEditMode::Navigate) {
+		m_fringeInputHandler.GetInputHandler().DrawSelectionBox(pDrawDC, &m_viewTransform);
 	}
 	// After drawing committed shapes:
-	if (m_boundsHandler.GetBoundsHandler().IsDrafting()) {
-		const auto& boundsHandler = m_boundsHandler.GetBoundsHandler();
+	if (m_boundsInputHandler.GetBoundsHandler().IsDrafting()) {
+		const auto& boundsHandler = m_boundsInputHandler.GetBoundsHandler();
 
 		// Draw vertex markers (X marks) for draft points
 		const auto* draft = boundsHandler.GetDraft();
@@ -645,8 +658,8 @@ void CImageView::OnDraw(CDC* pDC)
 	}
 	
 	// Phase D: Draw preview shape during drag operations (move/resize handles, body drag)
-	if (m_boundsHandler.GetBoundsHandler().IsDragging()) {
-		const auto& boundsHandler = m_boundsHandler.GetBoundsHandler();
+	if (m_boundsInputHandler.GetBoundsHandler().IsDragging()) {
+		const auto& boundsHandler = m_boundsInputHandler.GetBoundsHandler();
 		const auto* previewShape = boundsHandler.GetPreviewShape();
 		if (previewShape) {
 			ShapeDrawStyle style;
@@ -1302,7 +1315,7 @@ void CImageView::OnAddBoundCircle()
 		return;
 
 	ActivateBoundsTool();
-	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddCircle);
@@ -1322,14 +1335,14 @@ void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 
 	// Button should only appear active if the bounds tool is the active tool
 	auto* activeTool = GetInputRouter().GetActiveTool();
-	bool boundsToolActive = (activeTool == &m_boundsHandler);
+	bool boundsToolActive = (activeTool == &m_boundsInputHandler);
 	if (!boundsToolActive) {
 		pCmdUI->SetRadio(FALSE);
 		return;
 	}
 
 	using DigitMode::ShapeEditMode;
-	ShapeEditMode mode = m_boundsHandler.GetEditMode();
+	ShapeEditMode mode = m_boundsInputHandler.GetEditMode();
 
 	bool isThisMode = false;
 	switch (pCmdUI->m_nID)
@@ -1360,7 +1373,7 @@ void CImageView::OnAddBoundEllipse()
 		return;
 
 	ActivateBoundsTool();
-	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddEllipse);
@@ -1373,7 +1386,7 @@ void CImageView::OnAddBoundRect()
 		return;
 
 	ActivateBoundsTool();
-	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddRectangle);
@@ -1386,7 +1399,7 @@ void CImageView::OnAddBoundPolygon()
 		return;
 
 	ActivateBoundsTool();
-	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	handler.SetShapeType(currentType);
 	handler.SetEditMode(DigitMode::ShapeEditMode::AddPolygon);
@@ -1397,7 +1410,7 @@ void CImageView::OnBoundVisisbility()
 {
     // Toggle between APERTURE and INTERNAL bounds type for subsequent Add commands
 	ActivateBoundsTool();
-	DigitMode::BoundsHandler& handler = m_boundsHandler.GetBoundsHandler();
+	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	aperture::TypeLimits nextType =
 		(currentType == aperture::TypeLimits::INTERNAL)
@@ -1422,14 +1435,14 @@ void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
 	if (!hasImage)
 		return;
 
-	aperture::TypeLimits currentType = m_boundsHandler.GetBoundsHandler().GetShapeType();
+	aperture::TypeLimits currentType = m_boundsInputHandler.GetBoundsHandler().GetShapeType();
 	bool isInternal = (currentType == aperture::TypeLimits::INTERNAL);
 	pCmdUI->SetCheck(isInternal ? TRUE : FALSE);
 }
 void CImageView::OnBoundModeSelect()
 {
 	ActivateBoundsTool();
-	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
+	m_boundsInputHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
 	GetMainFrame()->SetStatusText(_T("Bounds: Select mode - drag to modify shapes"));
 	Invalidate(FALSE);
 }
@@ -1439,17 +1452,17 @@ void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsHandler);
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsInputHandler);
 	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
-		m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Select ? TRUE : FALSE
+		m_boundsInputHandler.GetEditMode() == DigitMode::ShapeEditMode::Select ? TRUE : FALSE
 	);
 }
 void CImageView::OnBoundModeDelete()
 {
 	ActivateBoundsTool();
-	m_boundsHandler.SetEditMode(DigitMode::ShapeEditMode::Delete);
+	m_boundsInputHandler.SetEditMode(DigitMode::ShapeEditMode::Delete);
 	GetMainFrame()->SetStatusText(_T("Bounds: Delete mode - click shapes to remove"));
 	Invalidate(FALSE);
 }
@@ -1459,17 +1472,17 @@ void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsHandler);
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_boundsInputHandler);
 	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
-		m_boundsHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete ? TRUE : FALSE
+		m_boundsInputHandler.GetEditMode() == DigitMode::ShapeEditMode::Delete ? TRUE : FALSE
 	);
 }
 void CImageView::OnFringesEdit()
 {
 	ActivateFringeTool();
-	m_fringeHandler.SetMode(DigitMode::FringeEditMode::Draw);
+	m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::Draw);
 	GetMainFrame()->SetStatusText(_T("Fringes: Draw mode - click segment to continue"));
 	Invalidate(FALSE);
 }
@@ -1479,11 +1492,11 @@ void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
 	bool hasImage = GetImageCtrls()->HasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
-	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_fringeHandler);
+	bool boundsToolActive = (GetInputRouter().GetActiveTool() == &m_fringeInputHandler);
 	if (!boundsToolActive) { pCmdUI->SetRadio(FALSE); return; }
 
 	pCmdUI->SetRadio(
-		m_fringeHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
+		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
 	);
 }
 

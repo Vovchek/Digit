@@ -6,6 +6,8 @@
 #include "stdafx.h"
 #include "FringeToolAdapter.h"
 #include "FringeInputHandler.h"
+#include "TooltipGenerator.h"
+#include "DigitMode/DigitInfo.h"
 
 namespace DigitMode {
 
@@ -14,6 +16,23 @@ FringeToolAdapter::FringeToolAdapter(FringeInputHandler* fringeInputHandler)
     , m_fringeInputHandler(fringeInputHandler)
 {
     ASSERT(fringeInputHandler && "FringeInputHandler must not be null");
+}
+
+// ========================================================================
+// Mouse Event Handling (Hover Tracking)
+// ========================================================================
+
+void FringeToolAdapter::OnMouseMove(const ToolContext& ctx)
+{
+    // Forward to base implementation first (updates handler state including hover)
+    InputHandlerAdapter::OnMouseMove(ctx);
+    
+    // Get hover state from InputHandler for tooltip generation
+    if (m_fringeInputHandler) {
+        m_hoveredObject = m_fringeInputHandler->GetInputHandler().GetHoveredObject();
+    } else {
+        m_hoveredObject.level = SelectionLevel::None;
+    }
 }
 
 // ========================================================================
@@ -37,6 +56,23 @@ IInteractionTool::ViewState FringeToolAdapter::GetViewState(bool isActive, bool 
     // - CImageView::DrawSelectionBox() for navigate mode selection
     // 
     // This can be enhanced in Phase 2 if needed for unified rendering.
+    
+    // ================================================================
+    // Tooltip (for hovered fringe element)
+    // ================================================================
+    
+    if (m_hoveredObject.IsValid() && m_hoveredObject.level != SelectionLevel::None) {
+        // Get CDigitInfo from FringeInputHandler to generate tooltip
+        auto* pDigit = m_fringeInputHandler->GetDigitInfo();
+        
+        if (pDigit) {
+            TooltipGenerator tooltipGen;
+            std::string tooltip = tooltipGen.GetTooltip(m_hoveredObject, *pDigit);
+            if (!tooltip.empty()) {
+                state.tooltip = CString(tooltip.c_str());
+            }
+        }
+    }
     
     return state;
 }

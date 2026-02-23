@@ -248,6 +248,18 @@ public:
 	CPoint GetActiveDot(const ::CDigitInfo* doc) const;
     
     /**
+     * @brief Get hover state as SelectedObject for tooltip generation
+     * @return SelectedObject representing currently hovered element
+     */
+    SelectionManager::SelectedObject GetHoveredObject() const {
+        SelectionManager::SelectedObject obj;
+        obj.level = m_hoverLevel;
+        obj.iSegment = m_hoverSeg;
+        obj.iDot = m_hoverDot;
+        return obj;
+    }
+    
+    /**
      * @brief Draw selection box (rubber band) during box select drag
      * @param pDC Device context to draw on (in screen coordinates)
      * @param viewTransform Pointer to view transform for world-to-screen conversion (optional, nullptr if m_drag points already in screen coords)

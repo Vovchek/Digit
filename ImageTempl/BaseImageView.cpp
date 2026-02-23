@@ -778,6 +778,14 @@ void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
         consumed = m_inputRouter.OnMouseMove(nFlags, point);
     }
     
+    // Update tooltip from InteractionManager (after all event routing)
+    auto viewState = m_interactionManager.GetViewState();
+    if (!viewState.tooltip.IsEmpty()) {
+        UpdateTooltip(viewState.tooltip);
+    } else {
+        UpdateTooltip(_T(""));  // Clear tooltip
+    }
+    
     if (consumed || m_bCaptured) {
         Invalidate(FALSE);
     }

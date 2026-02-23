@@ -33,8 +33,8 @@ private:
     // Phase 5: Tool Input Handlers (CAD-Grade Architecture)
     // ========================================================================
     
-    DigitMode::FringeInputHandler m_fringeHandler;    ///< Fringe editing tool
-    DigitMode::BoundsInputHandler m_boundsHandler;    ///< Bounds editing tool
+    DigitMode::FringeInputHandler m_fringeInputHandler;    ///< Fringe editing tool
+    DigitMode::BoundsInputHandler m_boundsInputHandler;    ///< Bounds editing tool
     DigitMode::ShapeDrawDispatcher m_shapeDrawDispatcher; ///< Shape rendering dispatcher (Phase 4)
     
     // ========================================================================
@@ -80,6 +80,12 @@ public:
      * Called from toolbar/menu handlers.
      */
     void ActivateBoundsTool();
+    
+    /**
+     * @brief Update tooltip control (override from BaseImageView)
+     * @param tooltip Tooltip text to display
+     */
+    void UpdateTooltip(const CString& tooltip) override;
 
 protected:
 	CImageView();           // protected constructor used by dynamic creation

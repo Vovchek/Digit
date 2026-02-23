@@ -178,17 +178,17 @@ public:
     struct HitTestResult {
         aperture::Shape* shape = nullptr;
         aperture::TypeLimits type = aperture::TypeLimits::EXTERNAL;
-        int controlPointIndex = -1;  ///< Corner/vertex index (-1 = body)
+        int controlPointIndex = -1;  ///< Contour/Corner/vertex index (-1 = none)
         double distance = 0.0;
         
-        bool hitShape() const { return shape != nullptr; }
+        bool hitShape(double tolerance) const { return shape != nullptr; }
         bool hitControlPoint() const { return shape != nullptr && controlPointIndex >= 0; }
         bool hitBody() const { return shape != nullptr && controlPointIndex == -1 && distance >= 0; }
     };
     
     HitTestResult HitTest(const aperture::Point& worldPt, double tolerance) const;
     int HitTestControlPoints(aperture::Shape* shape, const aperture::Point& worldPt, double tolerance) const;
-    bool HitTestShapeBody(aperture::Shape* shape, const aperture::Point& worldPt) const;
+    bool HitTestShapeBody(aperture::Shape* shape, const aperture::Point& worldPt, double tolerance) const;
     
     // ========================================================================
     // Visibility Testing

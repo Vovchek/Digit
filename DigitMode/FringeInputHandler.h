@@ -107,6 +107,12 @@ public:
     InputHandler& GetInputHandler() { return m_inputHandler; }
     const InputHandler& GetInputHandler() const { return m_inputHandler; }
     
+    /**
+     * @brief Get CDigitInfo for tooltip generation
+     * @return Pointer to CDigitInfo, or nullptr if not initialized
+     */
+    CDigitInfo* GetDigitInfo() const { return m_pDigit; }
+    
     // ========================================================================
     // IInputHandler Implementation
     // ========================================================================

@@ -421,7 +421,7 @@ private:
     // Hover tracking state (Phase 4 - visual feedback)
     aperture::TypeLimits m_hoveredShapeType = aperture::TypeLimits::EXTERNAL;
     size_t m_hoveredShapeIndex = 0;
-    int m_hoveredHandleIndex = -1;  ///< -1 = no hover, >=0 = handle index
+    int m_hoveredHandleIndex = -1;  ///< -1 = no hover, 0 = contour,  >0 = handle index
 
     // Preview state (Command pattern - NO direct mutation)
     bool m_isDragging = false;

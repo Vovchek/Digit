@@ -239,7 +239,7 @@ TEST_F(ApertureCtrlsTest, HitTest_PointInsideShape_ReturnsHit) {
     Point testPoint{100.0, 100.0};
     auto result = apertureCtrls->HitTest(testPoint, 5.0);
     
-    EXPECT_TRUE(result.hitShape());
+    EXPECT_TRUE(result.hitShape(1));
     EXPECT_TRUE(result.hitBody());
     EXPECT_FALSE(result.hitControlPoint());
 }
@@ -252,5 +252,5 @@ TEST_F(ApertureCtrlsTest, HitTest_PointOutsideShape_ReturnsNoHit) {
     Point testPoint{500.0, 500.0};
     auto result = apertureCtrls->HitTest(testPoint, 5.0);
     
-    EXPECT_FALSE(result.hitShape());
+    EXPECT_FALSE(result.hitShape(1));
 }

@@ -219,7 +219,7 @@ CApertureCtrls::HitTestResult CApertureCtrls::HitTest(
             if (shape->isOnContour(worldPt, tolerance)) {
                 result.shape = shape.get();
                 result.type = type;
-                result.controlPointIndex = -1;  // Body hit
+                result.controlPointIndex = 0;  // Body hit
                 result.distance = 0.0;
                 return true;  // Found exact hit
             }
@@ -261,13 +261,14 @@ int CApertureCtrls::HitTestControlPoints(
 
 bool CApertureCtrls::HitTestShapeBody(
     aperture::Shape* shape,
-    const aperture::Point& worldPt) const
+    const aperture::Point& worldPt,
+    double tolerance) const
 {
     if (!shape) {
         return false;
     }
     
-    return shape->isInside(worldPt);
+    return shape->isOnContour(worldPt, tolerance);
 }
 
 // ========================================================================

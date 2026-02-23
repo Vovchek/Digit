@@ -71,6 +71,18 @@ public:
      * Provides access to pan/zoom state for derived views.
      */
     DigitMode::NavigationInputHandler* GetNavigationHandler() { return m_navigationHandler.get(); }
+    
+    /**
+     * @brief Update tooltip (virtual hook for derived classes)
+     * @param tooltip Tooltip text from InteractionManager
+     * 
+     * Called from OnMouseMove after InteractionManager processes events.
+     * Derived classes can override to update their tooltip controls.
+     */
+    virtual void UpdateTooltip(const CString& tooltip) {
+        // Base implementation: do nothing
+        // CImageView overrides this to update m_tooltip
+    }
 
 protected:
     // Input routing infrastructure (Phase 5 - CAD-grade architecture)
