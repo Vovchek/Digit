@@ -327,7 +327,8 @@ void CApertureCtrls::DrawShapes(
     CDC& dc,
     const ViewTransform& worldToScreen,
     const aperture::Shape* selectedShape,
-    int hoveredHandle) const
+    const aperture::Shape* hoveredShape,
+    int activeHandleIndex) const
 {
     using namespace aperture;
     
@@ -339,17 +340,26 @@ void CApertureCtrls::DrawShapes(
         for (const auto& shapePtr : shapes) {
             if (!shapePtr) continue;
             
-            // Compute style based on selection and type
+            // Compute style based on selection and hover state
             DigitMode::ShapeDrawStyle style;
             style.type = type;
             
-            // Determine state
+            // Determine state and handle visibility
             bool isSelected = (shapePtr.get() == selectedShape);
+            bool isHovered = (shapePtr.get() == hoveredShape);
+            
             if (isSelected) {
+                // Selected: show handles, highlight active handle if dragging
                 style.state = DigitMode::ShapeDrawStyle::State::Selected;
                 style.showHandles = true;
-                style.activeHandleIndex = hoveredHandle;
+                style.activeHandleIndex = activeHandleIndex;  // -1 = none, 0+ = specific handle
+            } else if (isHovered) {
+                // Hovered (but not selected): show handles for easier clicking
+                style.state = DigitMode::ShapeDrawStyle::State::Idle;  // Still idle, just showing handles
+                style.showHandles = true;
+                style.activeHandleIndex = activeHandleIndex;  // Highlight hovered handle
             } else {
+                // Neither selected nor hovered: no handles
                 style.state = DigitMode::ShapeDrawStyle::State::Idle;
                 style.showHandles = false;
                 style.activeHandleIndex = -1;
@@ -358,7 +368,7 @@ void CApertureCtrls::DrawShapes(
             // Render shape
             m_dispatcher.Draw(*shapePtr, dc, style, worldToScreen);
             
-            // Render handles if selected
+            // Render handles if enabled
             if (style.showHandles) {
                 m_dispatcher.DrawHandles(*shapePtr, dc, style, worldToScreen);
             }

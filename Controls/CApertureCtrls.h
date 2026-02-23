@@ -181,7 +181,7 @@ public:
         int controlPointIndex = -1;  ///< Contour/Corner/vertex index (-1 = none)
         double distance = 0.0;
         
-        bool hitShape(double tolerance) const { return shape != nullptr; }
+        bool hitShape(double tolerance) const { return shape != nullptr && distance <= tolerance; }
         bool hitControlPoint() const { return shape != nullptr && controlPointIndex >= 0; }
         bool hitBody() const { return shape != nullptr && controlPointIndex == -1 && distance >= 0; }
     };
@@ -207,16 +207,24 @@ public:
      * @param dc Device context to render to
      * @param worldToScreen Coordinate transformation
      * @param selectedShape Currently selected shape (nullptr if none)
-     * @param hoveredHandle Index of hovered handle (-1 if none)
+     * @param hoveredShape Currently hovered shape for handle visibility (nullptr if none)
+     * @param activeHandleIndex Index of active/hovered handle (-1 if none)
      * 
-     * Renders shapes in order: EXTERNAL → APERTURE → INTERNAL
-     * Selected shapes drawn with thicker outlines and handles.
+     * Renders shapes in order: EXTERNAL → APERTURE → INTERNAL.
+     * 
+     * Handle visibility:
+     * - Selected shapes: always show handles
+     * - Hovered shapes: show handles for better UX (easier to click)
+     * - Other shapes: no handles
+     * 
+     * The activeHandleIndex highlights the currently interacted handle.
      */
     void DrawShapes(
         CDC& dc,
         const class ViewTransform& worldToScreen,
         const aperture::Shape* selectedShape = nullptr,
-        int hoveredHandle = -1
+        const aperture::Shape* hoveredShape = nullptr,
+        int activeHandleIndex = -1
     ) const;
 
 private:

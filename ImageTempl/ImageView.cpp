@@ -37,7 +37,11 @@ void CImageView::DrawBounds(CDC* pDC)
         return;
     }
 
-    pApertureCtrls->DrawShapes(*pDC, m_viewTransform, nullptr, -1);
+    // Get hovered shape from bounds handler for UI feedback
+	const aperture::Shape* hoveredShape = m_boundsInputHandler.GetBoundsHandler().GetHoveredShape();
+	int activeHandleIndex = m_boundsInputHandler.GetBoundsHandler().GetHoveredHandleIndex();    
+
+    pApertureCtrls->DrawShapes(*pDC, m_viewTransform, nullptr, hoveredShape, activeHandleIndex);
 }
 
 // Override image drawing to draw bitmap without the world transform (to get proper resampling)

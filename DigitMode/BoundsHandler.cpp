@@ -145,7 +145,7 @@ bool BoundsHandler::UpdateHoveredHandle(const CPoint& screenPt)
 
 const aperture::Shape* BoundsHandler::GetHoveredShape() const
 {
-    if (m_hoveredHandleIndex == -1 && !m_pApertureCtrls) {
+    if (m_hoveredHandleIndex == -1 || !m_pApertureCtrls) {
         return nullptr;  // No hover or not initialized
     }
     
@@ -190,6 +190,9 @@ void BoundsHandler::BeginDrag(aperture::TypeLimits type, size_t index, int contr
         return;  // Already dragging
     }
 
+    // Clear hover state when starting drag
+    ClearHover();
+    
     // Get the shape at (type, index)
     const std::vector<std::unique_ptr<aperture::Shape>>* container = nullptr;
     
