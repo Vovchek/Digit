@@ -56,6 +56,14 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_BITMAP18            BITMAP                  "Res\\toolbar_aperture8bit.bmp"
+
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -196,10 +204,10 @@ BEGIN
     "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL, NOINVERT
     "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL, NOINVERT
     VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT, NOINVERT
-    VK_BACK,        IDD_EDIT_UNDO,           VIRTKEY, ALT, NOINVERT
-    "Y",            IDD_EDIT_REDO,           VIRTKEY, CONTROL, NOINVERT
-    "Z",            IDD_EDIT_REDO,           VIRTKEY, SHIFT,CONTROL, NOINVERT
-    "Z",            IDD_EDIT_UNDO,           VIRTKEY, CONTROL, NOINVERT
+    VK_BACK,        IDD_EDIT_UNDO,          VIRTKEY, ALT, NOINVERT
+    "Y",            IDD_EDIT_REDO,          VIRTKEY, CONTROL, NOINVERT
+    "Z",            IDD_EDIT_REDO,          VIRTKEY, SHIFT, CONTROL, NOINVERT
+    "Z",            IDD_EDIT_UNDO,          VIRTKEY, CONTROL, NOINVERT
     "N",            ID_FILE_NEW,            VIRTKEY, CONTROL, NOINVERT
     "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL, NOINVERT
     "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL, NOINVERT
@@ -378,8 +386,16 @@ BEGIN
     ID_EDIT_REPEAT          "Repeat the last action\nRepeat"
     ID_EDIT_REPLACE         "Replace specific text with different text\nReplace"
     ID_EDIT_SELECT_ALL      "Select the entire document\nSelect All"
+END
+
+STRINGTABLE
+BEGIN
     IDD_EDIT_UNDO           "Undo the last action\nUndo"
-    IDD_EDIT_REDO            "Redo the previously undone action\nRedo"
+END
+
+STRINGTABLE
+BEGIN
+    IDD_EDIT_REDO           "Redo the previously undone action\nRedo"
 END
 
 STRINGTABLE

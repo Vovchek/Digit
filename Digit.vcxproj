@@ -462,5 +462,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <Image Include="res\Digit.ico" />
     <Image Include="res\DigitDoc.ico" />
     <Image Include="res\Toolbar.bmp" />
+    <Image Include="Res\toolbar_aperture.bmp" />
+    <Image Include="Res\toolbar_aperture8bit.bmp" />
   </ItemGroup>
 </Project>

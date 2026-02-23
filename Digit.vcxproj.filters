@@ -857,5 +857,11 @@
     <Image Include="res\Toolbar.bmp">
       <Filter>Resource Files</Filter>
     </Image>
+    <Image Include="Res\toolbar_aperture.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="Res\toolbar_aperture8bit.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
   </ItemGroup>
 </Project>

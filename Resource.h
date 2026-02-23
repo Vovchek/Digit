@@ -60,6 +60,9 @@
 #define IDR_EDITTOOLS                   199
 #define IDB_BITMAP17                    200
 #define IDD_APPROXSET_DLG               201
+#define IDR_TOOLBAR_APERTURE            201
+#define IDR_TOOLBAR_APERTURE_P          202
+#define IDB_BITMAP18                    204
 #define IDC_SEL_PT_CURSOR               210
 #define IDC_SEL_SEC_CURSOR              221
 #define IDC_MEASURE_CUR                 226
@@ -120,7 +123,6 @@
 #define IDD_FILE_OPEN                   32771
 #define IDD_FILE_SAVE_AS                32772
 #define IDD_EDIT_UNDO                   32773
-#define IDD_EDIT_REDO                   32876
 #define IDD_ZOOM_IMAGE                  32774
 #define IDD_CONTRAST_BRIGHTNESS         32775
 #define IDD_ROTATION_IMAGE              32776
@@ -214,34 +216,25 @@
 #define IDD_DIGIT_PARAMETERS            32873
 #define IDD_ADV_PARAMETERS              32874
 #define IDD_CALC_APROX                  32875
+#define IDD_EDIT_REDO                   32876
 #define ID_FRINGE_NUM                   59395
 #define ID_FRINGE_NUM_CTRL              59396
 #define IDW_EDIT                        59397
-
-// Bounds editing - Add shapes (command IDs must stay within 16-bit range for MFC)
-#define ID_BOUND_VISIBILITY             59400 // switch APERTURE / INTERNAL bounds editing mode 
+#define ID_BOUND_VISIBILITY             59400
 #define ID_ADD_BOUND_CIRCLE             59401
 #define ID_ADD_BOUND_ELLIPSE            59402
 #define ID_ADD_BOUND_RECT               59403
 #define ID_ADD_BOUND_POLYGON            59404
-
-// Aperture toolbar bitmap/resource id (toolbar_aperture in .rc)
-#define IDR_TOOLBAR_APERTURE            201
-#define IDR_TOOLBAR_APERTURE_P          202
-
-// Bounds editing - Mode commands
 #define ID_BOUND_MODE_SELECT            59405
 #define ID_BOUND_MODE_DELETE            59406
 #define ID_BOUND_CANCEL_DRAFT           59407
-
-
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_3D_CONTROLS                     1
-#define _APS_NEXT_RESOURCE_VALUE        203
+#define _APS_NEXT_RESOURCE_VALUE        205
 #define _APS_NEXT_COMMAND_VALUE         32877
 #define _APS_NEXT_CONTROL_VALUE         1037
 #define _APS_NEXT_SYMED_VALUE           101

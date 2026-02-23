@@ -327,8 +327,8 @@ IDR_VIEWTOOLS           BITMAP  DISCARDABLE     "res\\viewtool.bmp"
 IDR_EDITTOOLS           BITMAP  DISCARDABLE     "res\\toolbar1.bmp"
 IDR_DIGITTOOLS          BITMAP  DISCARDABLE     "res\\toolbar_digit.bmp" // "res\\digittoo.bmp"
 IDR_MAINFRAME           BITMAP  DISCARDABLE     "res\\bmp00001.bmp"
-IDR_TOOLBAR_APERTURE    BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit.bmp"
-IDR_TOOLBAR_APERTURE_P  BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit_pushed.bmp"
+IDR_TOOLBAR_APERTURE    BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit_.bmp"
+IDR_TOOLBAR_APERTURE_P  BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit_pushed_.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //
