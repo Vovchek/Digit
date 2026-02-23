@@ -98,11 +98,14 @@ bool BoundsInputHandler::OnMouseDown(UINT flags, CPoint pt)
 
     // Route based on current mode
     ShapeEditMode mode = GetEditMode();
+	// Alt is deleting modifier in Select mode (temporary switch to Delete), 
+    // but doesn't affect Delete mode
+    bool isAltDown = (::GetKeyState(VK_MENU) & 0x8000) != 0;
     
-    if (mode == ShapeEditMode::Select) {
+    if (mode == ShapeEditMode::Select && !isAltDown) {
         return HandleSelectModeMouseDown(flags, pt);
     }
-    else if (mode == ShapeEditMode::Delete) {
+    else if (mode == ShapeEditMode::Delete || ((mode == ShapeEditMode::Select) && isAltDown)) {
         return HandleDeleteModeMouseDown(flags, pt);  // Fix for Issue #2
     }
     else {
