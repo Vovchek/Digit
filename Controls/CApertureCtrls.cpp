@@ -212,16 +212,24 @@ CApertureCtrls::HitTestResult CApertureCtrls::HitTest(
     auto testContainer = [&](const std::vector<std::unique_ptr<aperture::Shape>>& container,
                             aperture::TypeLimits type) {
         for (const auto& shape : container) {
-            // TODO: Test control points first (corners, vertices)
-            // For now, just test shape body
+            // Test control points (handles) first - highest priority
+            int handleIndex = HitTestControlPoints(shape.get(), worldPt, tolerance);
+            if (handleIndex >= 0) {
+                result.shape = shape.get();
+                result.type = type;
+                result.controlPointIndex = handleIndex;  // Handle hit
+                result.distance = 0.0;
+                return true;  // Found handle hit
+            }
             
-            //if (shape->isInside(worldPt)) { // check on contour - otherwise aperture can mask everything else
+            // Test shape body (contour) as fallback
+            // Body hit is treated as handle #0 (Move handle for shape translation)
             if (shape->isOnContour(worldPt, tolerance)) {
                 result.shape = shape.get();
                 result.type = type;
-                result.controlPointIndex = 0;  // Body hit
+                result.controlPointIndex = 0;  // Body hit = handle #0 (Move)
                 result.distance = 0.0;
-                return true;  // Found exact hit
+                return true;  // Found body hit
             }
         }
         return false;
@@ -251,12 +259,30 @@ int CApertureCtrls::HitTestControlPoints(
         return -1;
     }
     
-    // TODO: Implement control point hit testing
-    // Will need to query shape for corner/vertex positions
-    // For rectangle: test 4 corners
-    // For polygon: test N vertices
+    // Enumerate all handles for this shape
+    std::vector<aperture::HandleDesc> handles;
+    shape->EnumerateHandles(handles);
     
-    return -1;  // Not implemented yet
+    // Find the closest handle within tolerance
+    int closestHandleIndex = -1;
+    double closestDistance = tolerance;
+    
+    for (size_t i = 0; i < handles.size(); ++i) {
+        const auto& handle = handles[i];
+        
+        // Calculate distance from test point to handle position
+        double dx = worldPt.x - handle.localPos.x;
+        double dy = worldPt.y - handle.localPos.y;
+        double distance = std::sqrt(dx * dx + dy * dy);
+        
+        // Keep track of closest handle within tolerance
+        if (distance < closestDistance) {
+            closestDistance = distance;
+            closestHandleIndex = static_cast<int>(i);
+        }
+    }
+    
+    return closestHandleIndex;
 }
 
 bool CApertureCtrls::HitTestShapeBody(
