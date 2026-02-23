@@ -509,7 +509,10 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	CPoint active = m_fringeInputHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
 	// CursorPos is already in world coordinates (set in OnMouseMove)
 	CPoint cursor = m_viewTransform.ScreenToWorld(m_CursorPos);
-	bool rubber = m_fringeInputHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
+	bool rubber = false;
+	if (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter) {
+		rubber = m_fringeInputHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
+	}
 	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
 
 	// Restore previous transform/state

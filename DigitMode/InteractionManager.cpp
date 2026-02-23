@@ -123,35 +123,32 @@ bool InteractionManager::OnMouseDown(UINT flags, CPoint pt)
 {
     if (!m_activeTool) return false;
     
-    // Find what was hit
+    // Find what was hit (for CONTEXT, not for ROUTING DECISION)
     auto hit = BestHit(pt, 5);
     m_lastHit = hit;
     auto ctx = MakeContext(flags, pt, hit);
     
-    if (!hit.hit) {
-        // Nothing hit - not consumed, let navigation handle it
-        return false;
-    }
-    
-    // Check if hit belongs to active tool
-    if (hit.tool == m_activeTool) {
-        // Normal case: active tool handles it
-        bool consumed = m_activeTool->OnMouseDown(ctx);
+    // ✓ ALWAYS call active tool first - it decides what to do with the hit context
+    // This allows tools to handle empty-space clicks (e.g., starting a draft shape)
+    bool consumed = m_activeTool->OnMouseDown(ctx);
+    if (consumed) {
         m_requestInvalidate = true;
-        return consumed;
+        return true;
     }
     
-    // Foreign tool hit - check if we can capture
-    if (!m_activeTool->GetCapabilities().allowForeignDrags) {
-        // Not allowed to capture - not consumed
-        return false;
+    // ✓ If active tool rejected, THEN check for foreign drags
+    // (e.g., clicking on bounds while in fringe mode)
+    if (hit.hit && hit.tool != m_activeTool) {
+        if (m_activeTool->GetCapabilities().allowForeignDrags) {
+            m_captureTool = hit.tool;
+            bool foreignConsumed = m_captureTool->OnMouseDown(ctx);
+            m_requestInvalidate = true;
+            return foreignConsumed;
+        }
     }
     
-    // Capture semantics: temporary tool capture without mode switch
-    m_captureTool = hit.tool;
-    bool consumed = m_captureTool->OnMouseDown(ctx);
-    m_requestInvalidate = true;
-    return consumed;
+    // Not consumed by anyone
+    return false;
 }
 
 bool InteractionManager::OnMouseMove(UINT flags, CPoint pt)
