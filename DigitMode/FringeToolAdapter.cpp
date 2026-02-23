@@ -8,6 +8,8 @@
 #include "FringeInputHandler.h"
 #include "TooltipGenerator.h"
 #include "DigitMode/DigitInfo.h"
+#include "DigitMode/HitTester.h"
+#include "ImageTempl/ViewTransform.h"
 
 namespace DigitMode {
 
@@ -17,6 +19,34 @@ FringeToolAdapter::FringeToolAdapter(FringeInputHandler* fringeInputHandler)
 {
     ASSERT(fringeInputHandler && "FringeInputHandler must not be null");
 }
+
+HitResult FringeToolAdapter::HitTest(CPoint screenPt, int tolerance)
+{
+    if (!m_fringeInputHandler) {
+        return HitResult();
+    }
+
+    // Delegate to FringeInputHandler's hit-test capability
+    CPoint worldPt = screenPt;
+    if (m_fringeInputHandler->GetViewTransform()) {
+        worldPt = m_fringeInputHandler->GetViewTransform()->ScreenToWorld(screenPt);
+    }
+
+    int hitSeg = -1, hitDot = -1;
+    HitTester tester;
+    SelectionLevel level = tester.HitTest(worldPt, hitSeg, hitDot, 
+        m_fringeInputHandler->GetDigitInfo()->Fringes);
+
+    // Convert FringeInputHandler::HitResult to DigitMode::HitResult
+    HitResult result;
+    result.hit = (level != SelectionLevel::None);
+    result.distance = 0;  // Distance calculation not implemented
+    result.toolContext = nullptr;  // FringeInputHandler doesn't provide context, set to null
+    // Note: tool pointer is set by manager, not here
+
+    return result;
+}
+
 
 // ========================================================================
 // Mouse Event Handling (Hover Tracking)

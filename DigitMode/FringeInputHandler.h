@@ -112,6 +112,8 @@ public:
      * @return Pointer to CDigitInfo, or nullptr if not initialized
      */
     CDigitInfo* GetDigitInfo() const { return m_pDigit; }
+
+	ViewTransform* GetViewTransform() const { return m_pTransform; }
     
     // ========================================================================
     // IInputHandler Implementation

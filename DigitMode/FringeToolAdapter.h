@@ -29,6 +29,8 @@ public:
     /// @param fringeInputHandler The input handler to wrap
     FringeToolAdapter(FringeInputHandler* fringeInputHandler);
     
+	HitResult HitTest(CPoint screenPt, int tolerance = 5) override;
+
     /// Override to track hover state for tooltips
     void OnMouseMove(const ToolContext& ctx) override;
     
