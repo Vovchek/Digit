@@ -235,6 +235,8 @@ void CDigitInfo::CreateZAPSections()
 	int nLines = static_cast<int>(bH / SecGap) + 1;
 	for (i = 1; i < nLines - 1; i++) {
 		int iy = static_cast<int>(begY + SecGap * i);
+		if (iy < 0 || iy >= Sections.GetSize())
+			continue;
 		CZapLineInfo zL;
 		zL.L = Sections[iy].L;
 		zL.iSec = iy;

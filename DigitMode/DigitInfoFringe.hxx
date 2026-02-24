@@ -284,6 +284,8 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	DigitMode::CopyApertureToEllipses(pA->GetShapes(), IntInfo.ArrEll);
 	DigitMode::CopyApertureToRects(pA->GetShapes(), IntInfo.ArrRect);
 	DigitMode::CopyApertureToPolygons(pA->GetShapes(), IntInfo.ArrPlg);
+	auto bounds = pA->GetShapes().getCombinedBounds();
+	IntInfo.EBnd = XYBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
 
 	IntInfo.ImageSize[0] = pIm->ImageSize.cx;
 	IntInfo.ImageSize[1] = pIm->ImageSize.cy;

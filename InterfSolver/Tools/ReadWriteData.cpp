@@ -760,7 +760,6 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	}
 
 	Fl.WriteStringWithEnd("[BOUNDS]");
-	CalcBounds(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, IntInfo.EBnd);
 	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf", IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop,
 		IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
 	Fl.WriteStringWithEnd(Str, " E\n");
