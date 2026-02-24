@@ -153,6 +153,8 @@ bool InteractionManager::OnMouseDown(UINT flags, CPoint pt)
 
 bool InteractionManager::OnMouseMove(UINT flags, CPoint pt)
 {
+    static decltype(m_hoveredTool) previousHoveredTool{ nullptr };
+    
     // Route to capture tool if active, else active tool
     auto tool = m_captureTool ? m_captureTool : m_activeTool;
     if (!tool) return false;
@@ -176,6 +178,12 @@ bool InteractionManager::OnMouseMove(UINT flags, CPoint pt)
         ToolContext hoverCtx = MakeContext(flags, pt, m_lastHit);
         m_hoveredTool->OnMouseMove(hoverCtx);  // ← Updates hover state!
     }
+	// clean previous hovered tool if no longer hovered
+    if(previousHoveredTool && previousHoveredTool != m_hoveredTool) {
+        ToolContext clearHoverCtx = MakeContext(flags, pt, HitResult());
+        previousHoveredTool->OnMouseMove(clearHoverCtx);  // ← Clears hover state!
+	}
+    previousHoveredTool = m_hoveredTool;  // Update previous hovered tool
 
     // Request invalidation for preview updates
     m_requestInvalidate = true;
