@@ -45,7 +45,7 @@ CBaseImageView::CBaseImageView()
     m_navigationHandler = std::make_unique<DigitMode::NavigationInputHandler>(&m_viewTransform);
     
     // Configure input router (Phase 5)
-    m_inputRouter.SetNavigationHandler(m_navigationHandler.get());
+    //m_inputRouter.SetNavigationHandler(m_navigationHandler.get());
 }
 
 CBaseImageView::~CBaseImageView()
@@ -675,7 +675,7 @@ void CBaseImageView::OnLButtonDown(UINT nFlags, CPoint point)
     }
     
     // Priority 3: Fallback to InputRouter (legacy handlers)
-    m_inputRouter.OnMouseDown(nFlags, point);
+    //m_inputRouter.OnMouseDown(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnLButtonDown(nFlags, point);
 }
@@ -705,7 +705,7 @@ void CBaseImageView::OnLButtonUp(UINT nFlags, CPoint point)
     }
     
     // Priority 3: Fallback to InputRouter
-    m_inputRouter.OnMouseUp(nFlags, point);
+    //m_inputRouter.OnMouseUp(nFlags, point);
     if (m_bCaptured && GetCapture() == this) {
         ReleaseCapture();
     }
@@ -731,7 +731,7 @@ void CBaseImageView::OnRButtonDown(UINT nFlags, CPoint point)
     }
     
     // Fallback
-    m_inputRouter.OnMouseDown(nFlags, point);
+    //m_inputRouter.OnMouseDown(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnRButtonDown(nFlags, point);
 }
@@ -753,7 +753,7 @@ void CBaseImageView::OnRButtonUp(UINT nFlags, CPoint point)
     }
     
     // Fallback
-    m_inputRouter.OnMouseUp(nFlags, point);
+    //m_inputRouter.OnMouseUp(nFlags, point);
     Invalidate(FALSE);
     CScrollView::OnRButtonUp(nFlags, point);
 }
@@ -774,9 +774,9 @@ void CBaseImageView::OnMouseMove(UINT nFlags, CPoint point)
     }
     
     // Priority 3: InputRouter fallback
-    if (!consumed) {
-        consumed = m_inputRouter.OnMouseMove(nFlags, point);
-    }
+    //if (!consumed) {
+    //    consumed = m_inputRouter.OnMouseMove(nFlags, point);
+    //}
     
     // Update tooltip from InteractionManager (after all event routing)
     auto viewState = m_interactionManager.GetViewState();
@@ -809,11 +809,11 @@ BOOL CBaseImageView::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
         return TRUE;
     }
 
-    // Priority 3: InputRouter fallback
-    if (m_inputRouter.OnMouseWheel(nFlags, zDelta, pt)) {
-        Invalidate(FALSE);
-        return TRUE;
-    }
+    //// Priority 3: InputRouter fallback
+    //if (m_inputRouter.OnMouseWheel(nFlags, zDelta, pt)) {
+    //    Invalidate(FALSE);
+    //    return TRUE;
+    //}
 
     return CScrollView::OnMouseWheel(nFlags, zDelta, pt);
 }
@@ -832,21 +832,21 @@ void CBaseImageView::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
         return;
     }
 
-    // Priority 3: InputRouter fallback
-    if (m_inputRouter.OnKeyDown(nChar)) {
-        Invalidate(FALSE);
-        return;
-    }
+    //// Priority 3: InputRouter fallback
+    //if (m_inputRouter.OnKeyDown(nChar)) {
+    //    Invalidate(FALSE);
+    //    return;
+    //}
 
     CScrollView::OnKeyDown(nChar, nRepCnt, nFlags);
 }
 
 void CBaseImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-    if (m_inputRouter.OnKeyUp(nChar)) {
-        Invalidate(FALSE);
-        return;
-    }
+    //if (m_inputRouter.OnKeyUp(nChar)) {
+    //    Invalidate(FALSE);
+    //    return;
+    //}
 
     CScrollView::OnKeyUp(nChar, nRepCnt, nFlags);
 }
@@ -854,7 +854,7 @@ void CBaseImageView::OnKeyUp(UINT nChar, UINT nRepCnt, UINT nFlags)
 void CBaseImageView::OnKillFocus(CWnd* pNewWnd)
 {
     CScrollView::OnKillFocus(pNewWnd);
-    m_inputRouter.Cancel();
+    //m_inputRouter.Cancel();
     if (m_bCaptured && GetCapture() == this) {
         ReleaseCapture();
     }

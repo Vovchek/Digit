@@ -8,7 +8,7 @@
 //
 // Removed dependency on SECZoomView to adopt custom ViewTransform approach
 #include "BaseImageView.h"
-#include "DigitMode/InputRouter.h"
+//#include "DigitMode/InputRouter.h"
 #include "DigitMode/NavigationInputHandler.h"
 #include "DigitMode/InteractionManager.h"
 #include "Utils/mutils.h"
@@ -63,7 +63,7 @@ public:
      * - Set active tool (SetActiveTool)
      * - Configure navigation handler
      */
-    DigitMode::InputRouter& GetInputRouter() { return m_inputRouter; }
+    //DigitMode::InputRouter& GetInputRouter() { return m_inputRouter; }
     
     /**
      * @brief Get navigation input handler
@@ -88,7 +88,7 @@ protected:
     // Input routing infrastructure (Phase 5 - CAD-grade architecture)
     ViewTransform m_viewTransform;                             ///< World ↔ screen transform
     std::unique_ptr<DigitMode::NavigationInputHandler> m_navigationHandler;  ///< Pan/zoom/cancel handler (lazy-init)
-    DigitMode::InputRouter m_inputRouter;                      ///< Central event router
+    //DigitMode::InputRouter m_inputRouter;                      ///< Central event router
     DigitMode::InteractionManager m_interactionManager;        ///< Tool manager (new, Day 3)
 
 // Operations

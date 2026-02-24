@@ -176,7 +176,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\HitTester.cpp" />
     <ClCompile Include="DigitMode\InputHandler.cpp" />
     <ClCompile Include="DigitMode\InputHandlerAdapter.cpp" />
-    <ClCompile Include="DigitMode\InputRouter.cpp" />
     <ClCompile Include="DigitMode\InteractionManager.cpp" />
     <ClCompile Include="DigitMode\NavigationInputHandler.cpp" />
     <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />

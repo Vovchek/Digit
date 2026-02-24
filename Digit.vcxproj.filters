@@ -283,9 +283,6 @@
     <ClCompile Include="DigitMode\DraftShape.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\InputRouter.cpp">
-      <Filter>Source Files\DigitMode</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
