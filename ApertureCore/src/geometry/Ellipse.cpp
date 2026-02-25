@@ -844,14 +844,18 @@ void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag)
             bool isMajorAxis = (handle.index == 0 || handle.index == 1);
             
             // Project drag delta onto handle normal to get resize amount
-            double resize = drag.deltaWorld.x * handle.normal.x +
-                           drag.deltaWorld.y * handle.normal.y;
+            double resize = (drag.deltaWorld.x * handle.normal.x +
+                           drag.deltaWorld.y * handle.normal.y) / 2.0;
             
             if (isMajorAxis) {
                 semiMajor_ += resize;
+                if (handle.index == 0) center_.x += resize;
+                else center_.x -= resize;
                 semiMajor_ = std::max(semiMajor_, 1.0);  // Minimum size
             } else {
                 semiMinor_ += resize;
+                if (handle.index == 2) center_.y += resize;
+                else center_.y -= resize;
                 semiMinor_ = std::max(semiMinor_, 1.0);  // Minimum size
             }
             break;
