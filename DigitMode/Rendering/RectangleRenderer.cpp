@@ -9,6 +9,10 @@
 #include "ApertureCore/include/aperturecore/geometry/Rectangle.h"
 #include "ImageTempl/ViewTransform.h"
 
+// GDI+ for alpha-blended fills
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
+
 namespace DigitMode {
 
 void RectangleRenderer::Draw(
@@ -30,25 +34,64 @@ void RectangleRenderer::Draw(
         screenCorners[i] = worldToScreen.WorldToScreen(worldPt);
     }
     
-    // 4. Create pen based on style
+    // 4. Draw outline (GDI pen)
     CPen pen(style.GetOutlineStyle(), style.GetOutlineWidth(), style.GetOutlineColor());
     CPen* oldPen = dc.SelectObject(&pen);
     
-    // 5. Create brush (if needed for INTERNAL shapes)
-    CBrush* oldBrush = nullptr;
-    CBrush brush;
+    // 5. Draw fill with alpha blending (GDI+ for transparency)
     if (style.HasFill()) {
-        // Semi-transparent fill for INTERNAL shapes
-        // Note: GDI doesn't support alpha blending directly, so we use solid color
-        // For true transparency, would need AlphaBlend() or GDI+
-        brush.CreateSolidBrush(style.GetFillColor());
-        oldBrush = dc.SelectObject(&brush);
-    } else {
-        // No fill - transparent brush
-        oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
+        COLORREF fillColorRef = style.GetFillColor();
+        BYTE alpha = static_cast<BYTE>(style.GetFillAlpha());
+        BYTE red = GetRValue(fillColorRef);
+        BYTE green = GetGValue(fillColorRef);
+        BYTE blue = GetBValue(fillColorRef);
+        
+        try {
+            // Create GDI+ Graphics object from device context
+            Gdiplus::Graphics graphics(dc.GetSafeHdc());
+            graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+            graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+            
+            // Create alpha-blended color (order: alpha, red, green, blue)
+            Gdiplus::Color fillColor(alpha, red, green, blue);
+            
+            // Create brush with alpha
+            Gdiplus::SolidBrush gdiBrush(fillColor);
+            
+            // Convert screen corners to GDI+ PointF
+            Gdiplus::PointF gdiPoints[4];
+            for (int i = 0; i < 4; ++i) {
+                gdiPoints[i] = Gdiplus::PointF(
+                    static_cast<Gdiplus::REAL>(screenCorners[i].x),
+                    static_cast<Gdiplus::REAL>(screenCorners[i].y)
+                );
+            }
+            
+            // Fill polygon with alpha-blended brush
+            graphics.FillPolygon(&gdiBrush, gdiPoints, 4);
+        }
+        catch (const std::exception& e) {
+            // Fallback to GDI solid fill if GDI+ fails
+            CBrush brush;
+            brush.CreateSolidBrush(style.GetFillColor());
+            CBrush* oldBrush = dc.SelectObject(&brush);
+            dc.Polygon(screenCorners, 4);
+            dc.SelectObject(oldBrush);
+        }
+        catch (...) {
+            // Fallback to GDI solid fill if GDI+ fails
+            CBrush brush;
+            brush.CreateSolidBrush(style.GetFillColor());
+            CBrush* oldBrush = dc.SelectObject(&brush);
+            dc.Polygon(screenCorners, 4);
+            dc.SelectObject(oldBrush);
+        }
     }
     
-    // 6. Draw polygon (closed 4-sided shape)
+    // 6. Redraw outline ONLY (no fill) - select NULL_BRUSH to prevent fill
+    CBrush* oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
+    
+    // Draw just the outline with the pen
     dc.Polygon(screenCorners, 4);
     
     // 7. Restore device context

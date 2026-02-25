@@ -1,4 +1,4 @@
-// Digit.cpp : Defines the class behaviors for the application.
+Ôªø// Digit.cpp : Defines the class behaviors for the application.
 //
 
 #include <direct.h>
@@ -26,6 +26,10 @@
 #include "MGTools\Include\Graph\2DGraph.h"
 #include "MGTools\Include\Graph\3DGraph.h"
 #include "MGTools\MGTools.h"
+
+// GDI+ for alpha-blended shape rendering
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -100,6 +104,16 @@ BOOL CDigitApp::FirstInstance(LPCTSTR CmdLine)
 
 BOOL CDigitApp::InitInstance()
 {
+	// ========================================================================
+	// GDI+ Initialization (for alpha-blended fills in shape rendering)
+	// ========================================================================
+	Gdiplus::GdiplusStartupInput gdiplusStartupInput;
+	ULONG_PTR gdiplusToken;
+	if (Gdiplus::GdiplusStartup(&gdiplusToken, &gdiplusStartupInput, NULL) != Gdiplus::Ok) {
+		TRACE("GDI+ initialization failed\n");
+		// Continue anyway - renderers will fall back to GDI
+	}
+	
 	TCHAR dir[_MAX_PATH];
 	_getcwd(dir, _MAX_PATH);
 	fINI = dir;
@@ -131,7 +145,7 @@ BOOL CDigitApp::InitInstance()
 		intrLang = ENG_LANG;
 
 	if (!ChangeIntrLang(intrLang)) {
-		LPCTSTR Str = CRS("RusLang.dll ÌÂ Ì‡È‰ÂÌ‡","EngLang.dll is not available");
+		LPCTSTR Str = CRS("RusLang.dll –Ω–µ –Ω–∞–π–¥–µ–Ω–∞","EngLang.dll is not available");
 		AfxMessageBox(Str, MB_OK | MB_ICONSTOP);
 		return FALSE;
 	}
@@ -310,7 +324,7 @@ bool CDigitApp::ChangeIntrLang(int iLang/*-1*/)
 
 void CDigitApp::OnFileOpen()
 {
-	LPCTSTR title = CRS("ŒÚÍ˚Ú¸ Ù‡ÈÎ", "Open file");
+	LPCTSTR title = CRS("–û—Ç–∫—Ä—ã—Ç—å —Ñ–∞–π–ª", "Open file");
 	CSpecialFileDialog fileDlg(TRUE);
 	CString fIndex;
 
@@ -322,11 +336,11 @@ void CDigitApp::OnFileOpen()
 	LPCTSTR lan;
 	CString str;
 	str.Empty();
-	lan = CRS("‘‡ÈÎ˚ (*.bmp;*.jpg;*.pcx;*.tif;*.tga)", "Files (*.bmp;*.jpg;*.pcx;*.tif;*.tga)");
+	lan = CRS("–§–∞–π–ª—ã (*.bmp;*.jpg;*.pcx;*.tif;*.tga)", "Files (*.bmp;*.jpg;*.pcx;*.tif;*.tga)");
 	str += lan; str += (TCHAR)NULL;
 	str += "*.bmp;*.jpg;*.pcx;*.tif;*.tga"; str += (TCHAR)NULL;
 
-	lan = CRS("‘‡ÈÎ˚ (*.frn;*.zap)", "Files (*.frn;*.zap)");
+	lan = CRS("–§–∞–π–ª—ã (*.frn;*.zap)", "Files (*.frn;*.zap)");
 	str += lan; str += (TCHAR)NULL;
 	str += "*.frn;*.zap"; str += (TCHAR)NULL;
 

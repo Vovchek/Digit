@@ -10,6 +10,10 @@
 #include "ImageTempl/ViewTransform.h"
 #include <cmath>
 
+// GDI+ for alpha-blended fills
+#include <gdiplus.h>
+#pragma comment(lib, "gdiplus.lib")
+
 namespace DigitMode {
 
 // Helper to convert aperture::Point to CPoint2d
@@ -71,16 +75,44 @@ void EllipseRenderer::DrawAxisAligned(
     CPen pen(style.GetOutlineStyle(), style.GetOutlineWidth(), style.GetOutlineColor());
     CPen* oldPen = dc.SelectObject(&pen);
     
-    CBrush* oldBrush = nullptr;
-    CBrush brush;
+    // Draw fill with alpha blending (GDI+ for transparency)
     if (style.HasFill()) {
-        brush.CreateSolidBrush(style.GetFillColor());
-        oldBrush = dc.SelectObject(&brush);
-    } else {
-        oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
+        try {
+            // Create GDI+ Graphics object from device context
+            Gdiplus::Graphics graphics(dc.GetSafeHdc());
+            graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+            graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+            
+            // Get fill color and alpha
+            COLORREF fillColorRef = style.GetFillColor();
+            BYTE alpha = static_cast<BYTE>(style.GetFillAlpha());
+            BYTE red = GetRValue(fillColorRef);
+            BYTE green = GetGValue(fillColorRef);
+            BYTE blue = GetBValue(fillColorRef);
+            
+            // Create alpha-blended color
+            Gdiplus::Color fillColor(alpha, red, green, blue);
+            Gdiplus::SolidBrush gdiBrush(fillColor);
+            
+            // Draw filled ellipse with GDI+
+            graphics.FillEllipse(&gdiBrush, 
+                screenCenter.x - screenRadiusX,
+                screenCenter.y - screenRadiusY,
+                screenRadiusX * 2,
+                screenRadiusY * 2);
+        }
+        catch (...) {
+            // Fallback to GDI solid fill
+            CBrush brush;
+            brush.CreateSolidBrush(style.GetFillColor());
+            CBrush* oldBrush = dc.SelectObject(&brush);
+            dc.Ellipse(boundingRect);
+            dc.SelectObject(oldBrush);
+        }
     }
     
-    // Draw ellipse
+    // Draw outline ONLY (no fill) - select NULL_BRUSH
+    CBrush* oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
     dc.Ellipse(boundingRect);
     
     // Restore DC
@@ -130,16 +162,50 @@ void EllipseRenderer::DrawRotated(
     CPen pen(style.GetOutlineStyle(), style.GetOutlineWidth(), style.GetOutlineColor());
     CPen* oldPen = dc.SelectObject(&pen);
     
-    CBrush* oldBrush = nullptr;
-    CBrush brush;
+    // Draw fill with alpha blending (GDI+ for transparency)
     if (style.HasFill()) {
-        brush.CreateSolidBrush(style.GetFillColor());
-        oldBrush = dc.SelectObject(&brush);
-    } else {
-        oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
+        try {
+            // Create GDI+ Graphics object from device context
+            Gdiplus::Graphics graphics(dc.GetSafeHdc());
+            graphics.SetSmoothingMode(Gdiplus::SmoothingModeAntiAlias);
+            graphics.SetCompositingMode(Gdiplus::CompositingModeSourceOver);
+            
+            // Get fill color and alpha
+            COLORREF fillColorRef = style.GetFillColor();
+            BYTE alpha = static_cast<BYTE>(style.GetFillAlpha());
+            BYTE red = GetRValue(fillColorRef);
+            BYTE green = GetGValue(fillColorRef);
+            BYTE blue = GetBValue(fillColorRef);
+            
+            // Create alpha-blended color
+            Gdiplus::Color fillColor(alpha, red, green, blue);
+            Gdiplus::SolidBrush gdiBrush(fillColor);
+            
+            // Convert to GDI+ PointF array
+            std::vector<Gdiplus::PointF> gdiPoints;
+            gdiPoints.reserve(screenPoints.size());
+            for (const auto& pt : screenPoints) {
+                gdiPoints.push_back(Gdiplus::PointF(
+                    static_cast<Gdiplus::REAL>(pt.x),
+                    static_cast<Gdiplus::REAL>(pt.y)
+                ));
+            }
+            
+            // Draw filled polygon with GDI+
+            graphics.FillPolygon(&gdiBrush, gdiPoints.data(), static_cast<INT>(gdiPoints.size()));
+        }
+        catch (...) {
+            // Fallback to GDI solid fill
+            CBrush brush;
+            brush.CreateSolidBrush(style.GetFillColor());
+            CBrush* oldBrush = dc.SelectObject(&brush);
+            dc.Polygon(screenPoints.data(), static_cast<int>(screenPoints.size()));
+            dc.SelectObject(oldBrush);
+        }
     }
     
-    // Draw polygon approximation
+    // Draw outline ONLY (no fill) - select NULL_BRUSH
+    CBrush* oldBrush = (CBrush*)dc.SelectStockObject(NULL_BRUSH);
     dc.Polygon(screenPoints.data(), static_cast<int>(screenPoints.size()));
     
     // Restore DC
