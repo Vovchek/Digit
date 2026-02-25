@@ -11,7 +11,7 @@
 #include "ImageFeatures\SectionFrame.h"
 #include "Utils\Edit\BaseTextDoc.h"
 #include "Options\ApproxSetDlg.h"
-
+#include "DigitMode/IsoLinesToTopogram.h"
 #include "MGTools\Include\Utils\Utils.h"
 
 #ifdef _DEBUG
@@ -53,22 +53,23 @@ CImageDoc::~CImageDoc()
 	if (pVert) { delete pVert; pVert = NULL; }
 }
 
+// deprecated/eliminated use Command pattern for undo/redo
 void CImageDoc::PrepareOperationUndo(int OperType)
 {
-	LastOperationType = OperType;
+	//LastOperationType = OperType;
 
-	switch (LastOperationType) {
-	case O_ROTATION:
-	case O_INCLINE_CORRECT:
-	case O_GAMMA:
-	case O_GAUSS:
-	case O_ZOOM:
-	case O_CROP:
-	case O_BRITGHTNESS_CONTRAST:
-	case O_EXPAND:
-		::CopyFile(LPCTSTR(TmpPath), LPCTSTR(UndoTmpPath), FALSE);
-		break;
-	}
+	//switch (LastOperationType) {
+	//case O_ROTATION:
+	//case O_INCLINE_CORRECT:
+	//case O_GAMMA:
+	//case O_GAUSS:
+	//case O_ZOOM:
+	//case O_CROP:
+	//case O_BRITGHTNESS_CONTRAST:
+	//case O_EXPAND:
+	//	::CopyFile(LPCTSTR(TmpPath), LPCTSTR(UndoTmpPath), FALSE);
+	//	break;
+	//}
 }
 
 void CImageDoc::OnActivate()
@@ -80,38 +81,39 @@ void CImageDoc::OnActivate()
 
 void CImageDoc::DeActivateAllMode()
 {
-	DeActivateMode(I_BOUNDS_EXT);
-	DeActivateMode(I_BOUNDS_INS);
+	//DeActivateMode(I_BOUNDS_EXT);
+	//DeActivateMode(I_BOUNDS_INS);
 	DeActivateMode(I_MEASURELINE);
 	DeActivateMode(I_FOTO_SECTIONS);
 }
 
+// deprecated/eliminated use Command pattern for undo/redo
 void CImageDoc::LastOperationUndo()
 {
-	CImageCtrls* pImCtrls = GetImageCtrls();
-	switch (LastOperationType) {
-	case O_IMAGE_SCENARIO:
-		::CopyFile(LPCTSTR(UndoTmpPath), LPCTSTR(TmpPath), FALSE);
-		ReloadDocument(LPCTSTR(UndoTmpPath));
-		break;
-	case O_ROTATION:
-	case O_INCLINE_CORRECT:
-	case O_GAMMA:
-	case O_GAUSS:
-	case O_CROP:
-	case O_EXPAND:
-		::CopyFile(LPCTSTR(UndoTmpPath), LPCTSTR(TmpPath), FALSE);
-		ReloadDocument(LPCTSTR(UndoTmpPath));
-		RemoveLastRecordScenario();
-		break;
-	case O_BRITGHTNESS_CONTRAST:
-		pImCtrls->kBright = pImCtrls->undokBright;
-		pImCtrls->kContrast = pImCtrls->undokContrast;
-		ReloadDocument(LPCTSTR(UndoTmpPath));
-		RemoveLastRecordScenario();
-		break;
-	}
-	LastOperationType = O_NO_UNDO;
+	//CImageCtrls* pImCtrls = GetImageCtrls();
+	//switch (LastOperationType) {
+	//case O_IMAGE_SCENARIO:
+	//	::CopyFile(LPCTSTR(UndoTmpPath), LPCTSTR(TmpPath), FALSE);
+	//	ReloadDocument(LPCTSTR(UndoTmpPath));
+	//	break;
+	//case O_ROTATION:
+	//case O_INCLINE_CORRECT:
+	//case O_GAMMA:
+	//case O_GAUSS:
+	//case O_CROP:
+	//case O_EXPAND:
+	//	::CopyFile(LPCTSTR(UndoTmpPath), LPCTSTR(TmpPath), FALSE);
+	//	ReloadDocument(LPCTSTR(UndoTmpPath));
+	//	RemoveLastRecordScenario();
+	//	break;
+	//case O_BRITGHTNESS_CONTRAST:
+	//	pImCtrls->kBright = pImCtrls->undokBright;
+	//	pImCtrls->kContrast = pImCtrls->undokContrast;
+	//	ReloadDocument(LPCTSTR(UndoTmpPath));
+	//	RemoveLastRecordScenario();
+	//	break;
+	//}
+	//LastOperationType = O_NO_UNDO;
 }
 
 void CImageDoc::ActivateMeasure(BOOL key)
@@ -130,42 +132,44 @@ void CImageDoc::ActivateMeasure(BOOL key)
 	pV->Invalidate(FALSE);
 }
 
+// deprecated/eliminated switched to CApertureCtrls
 void CImageDoc::ActivateExtBounds(BOOL key)
 {
-	CImageView* pV = GetView();
-	CControls* pCtrls = GetControls();
-	if (key) {
-		pCtrls->LoadBoundSettings();
-		pCtrls->EnableOptions &= ~I_BOUNDS_INS;
-		pCtrls->EnableOptions |= I_BOUNDS_EXT;
-		if (!pCtrls->EnableCustomDots && !pCtrls->EnableTracker)
-			pCtrls->EnableCustomDots = TRUE;
-	}
-	else {
-		pCtrls->SaveBoundSettings();
-		pCtrls->EnableOptions &= ~I_BOUNDS_EXT;
-		Tracker.SetEnableState(FALSE);
-		//boundCtrls.CustomDots.RemoveAll();
-	}
-	pV->Invalidate(FALSE);
+//	CImageView* pV = GetView();
+//	CControls* pCtrls = GetControls();
+//	if (key) {
+//		pCtrls->LoadBoundSettings();
+//		pCtrls->EnableOptions &= ~I_BOUNDS_INS;
+//		pCtrls->EnableOptions |= I_BOUNDS_EXT;
+//		if (!pCtrls->EnableCustomDots && !pCtrls->EnableTracker)
+//			pCtrls->EnableCustomDots = TRUE;
+//	}
+//	else {
+//		pCtrls->SaveBoundSettings();
+//		pCtrls->EnableOptions &= ~I_BOUNDS_EXT;
+//		Tracker.SetEnableState(FALSE);
+//		//boundCtrls.CustomDots.RemoveAll();
+//	}
+//	pV->Invalidate(FALSE);
 }
 
+// deprecated/eliminated switched to CApertureCtrls
 void CImageDoc::ActivateInsBounds(BOOL key)
 {
-	CImageView* pV = GetView();
-	CControls* pCtrls = GetControls();
-	if (key) {
-		pCtrls->EnableOptions &= ~I_BOUNDS_EXT;
-		pCtrls->EnableOptions |= I_BOUNDS_INS;
-		if (!pCtrls->EnableCustomDots && !pCtrls->EnableTracker)
-			pCtrls->EnableCustomDots = TRUE;
-	}
-	else {
-		pCtrls->EnableOptions &= ~I_BOUNDS_INS;
-		Tracker.SetEnableState(FALSE);
-		//boundCtrls.CustomDots.RemoveAll();
-	}
-	pV->Invalidate(FALSE);
+	//CImageView* pV = GetView();
+	//CControls* pCtrls = GetControls();
+	//if (key) {
+	//	pCtrls->EnableOptions &= ~I_BOUNDS_EXT;
+	//	pCtrls->EnableOptions |= I_BOUNDS_INS;
+	//	if (!pCtrls->EnableCustomDots && !pCtrls->EnableTracker)
+	//		pCtrls->EnableCustomDots = TRUE;
+	//}
+	//else {
+	//	pCtrls->EnableOptions &= ~I_BOUNDS_INS;
+	//	Tracker.SetEnableState(FALSE);
+	//	//boundCtrls.CustomDots.RemoveAll();
+	//}
+	//pV->Invalidate(FALSE);
 }
 
 void CImageDoc::WriteMeasureCtrls()
@@ -224,30 +228,43 @@ void CImageDoc::ActivateAproximation()
 	}
 }
 
+// temporary check algorithms for restoring topography from isolines
+#include <fstream>
 void CImageDoc::CalcAproximation()
 {
-	CControls* pCtrls = GetControls();
-	CApproxSetDlg D(GetMainFrame());
-	D.Eps = pCtrls->Eps;
-	D.Pow = pCtrls->MaxPow;
-	int res = D.DoModal();
-	if (res == IDOK) {
-		pCtrls->Eps = D.Eps;
-		pCtrls->MaxPow = D.Pow;
-		::SetCursor(::LoadCursor(NULL, IDC_WAIT));
-		NUMBERING_INTERFEROGRAM_INFO IntInfo;
-		if (Digit.CollectNumberingInterferogramInfo(IntInfo)) {
-			BOOL res = CalcPolAprImageMatr(IntInfo, pCtrls->MaxPow, pCtrls->Eps, MApr);
-			if (res) {
-				IsAproxMatrix = TRUE;
-				CArrayDouble ArrFNumbers;
-				IntInfo.GetFringeNumbers(ArrFNumbers);
-				CreateAproxImage(ArrFNumbers);
-				GetView()->Invalidate(FALSE);
-			}
-		}
-		::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-	}
+
+	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
+	auto &aperture = pA->GetShapes();
+	auto* maskProvider = &pA->GetMaskProvider();
+	WavefrontFromIsolines solver;
+	WavefrontFromIsolines::Params params;
+	auto topogram = solver.solve(Digit.Fringes, aperture, maskProvider->getMask(), params);
+	
+	std::ofstream out("C:\\Temp\\topogram.txt");
+	out << topogram;
+
+	//CControls* pCtrls = GetControls();
+	//CApproxSetDlg D(GetMainFrame());
+	//D.Eps = pCtrls->Eps;
+	//D.Pow = pCtrls->MaxPow;
+	//int res = D.DoModal();
+	//if (res == IDOK) {
+	//	pCtrls->Eps = D.Eps;
+	//	pCtrls->MaxPow = D.Pow;
+	//	::SetCursor(::LoadCursor(NULL, IDC_WAIT));
+	//	NUMBERING_INTERFEROGRAM_INFO IntInfo;
+	//	if (Digit.CollectNumberingInterferogramInfo(IntInfo)) {
+	//		BOOL res = CalcPolAprImageMatr(IntInfo, pCtrls->MaxPow, pCtrls->Eps, MApr);
+	//		if (res) {
+	//			IsAproxMatrix = TRUE;
+	//			CArrayDouble ArrFNumbers;
+	//			IntInfo.GetFringeNumbers(ArrFNumbers);
+	//			CreateAproxImage(ArrFNumbers);
+	//			GetView()->Invalidate(FALSE);
+	//		}
+	//	}
+	//	::SetCursor(::LoadCursor(NULL, IDC_ARROW));
+	//}
 }
 
 void CImageDoc::CreateAproxImage(CArrayDouble& ArrFNumbers)

@@ -256,6 +256,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\IInteractionTool.h" />
     <ClInclude Include="DigitMode\InputHandlerAdapter.h" />
     <ClInclude Include="DigitMode\InteractionManager.h" />
+    <ClInclude Include="DigitMode\IsoLinesToTopogram.h" />
     <ClInclude Include="DigitMode\RedCenterDetector.h" />
     <ClInclude Include="DigitMode\ShapeConversionHelpers.h" />
     <ClInclude Include="DigitMode\ToolCapabilities.h" />
