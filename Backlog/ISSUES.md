@@ -2,8 +2,9 @@
 
 ---
 # Bugs (100+)
-### 101 Rectangular bound refuses to be streched with handles
-### 102 Rectangular bound is drag-born 90-degrees rotated
+### 101 <del>Rectangular bound refuses to be stretched with handles</del>
+### 102 drag-created rectangular bound is 90-degrees rotated
+
 ---
 # Incomplete (200+)
 ### 201 Fringes numbers auto-assignment
@@ -12,7 +13,7 @@
 * inplement saddles
 
 ### 202 Fringes auto-tracing   
-* finish refactoring
+* more refactoring
 * clean dependences
 * strategy pattern
 * encapsulate to command for undo/redo
@@ -29,7 +30,7 @@
 ### 303 Fringes navigation with `<Tab>` in Navigation mode
 
 ## <u>Bounds editor</u>
-### 310 ? Make handles permanent in Selection mode
+### <del>310 ? Make handles permanent in Selection mode</del>
 ### 311 ? Hide old bound's position while dragging
 ### 312 Make obstruction(semi-)transparent
 

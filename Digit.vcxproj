@@ -177,6 +177,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\InputHandler.cpp" />
     <ClCompile Include="DigitMode\InputHandlerAdapter.cpp" />
     <ClCompile Include="DigitMode\InteractionManager.cpp" />
+    <ClCompile Include="DigitMode\IsoLinesToTopogram.cpp" />
     <ClCompile Include="DigitMode\NavigationInputHandler.cpp" />
     <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />
     <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp" />

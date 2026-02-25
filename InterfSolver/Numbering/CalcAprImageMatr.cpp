@@ -1,4 +1,4 @@
-#include <math.h>
+﻿#include <math.h>
 #include "Include\Int_Cons.h"
 #include "Tools\XYPoint.h"
 #include "Tools\isPupil.h"
@@ -62,3 +62,4 @@ BOOL CalcPolAprImageMatr(NUMBERING_INTERFEROGRAM_INFO &IntInfo, int MaxPow, doub
   return TRUE;
   }
 //=========================================================================
+

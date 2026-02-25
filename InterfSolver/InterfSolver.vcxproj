@@ -163,7 +163,9 @@
     <ClCompile Include="Tools\XYPolygon.cpp" />
     <ClCompile Include="Tools\XYPolynom.cpp" />
     <ClCompile Include="Tools\XYRect.cpp" />
-    <ClCompile Include="Numbering\CalcAprImageMatr.cpp" />
+    <ClCompile Include="Numbering\CalcAprImageMatr.cpp">
+      <FunctionLevelLinking Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</FunctionLevelLinking>
+    </ClCompile>
     <ClCompile Include="InterfSolver.cpp" />
     <ClCompile Include="StdAfx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
