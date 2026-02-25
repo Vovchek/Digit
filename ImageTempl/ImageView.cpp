@@ -448,6 +448,14 @@ void CImageView::OnZoomFit()
 // Phase 5: Tool Activation Methods (CAD-Grade Architecture)
 // ============================================================================
 
+void CImageView::ActivateDefaultTool()
+{
+	ActivateFringeTool();
+	m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::Navigate);
+	GetMainFrame()->SetStatusText(_T("Fringes: Navigate mode - select & manipulate fringes"));
+	Invalidate(FALSE);
+}
+
 void CImageView::ActivateFringeTool()
 {
 	GetInteractionManager().SetActiveTool(m_fringeToolAdapter);
@@ -1436,9 +1444,17 @@ void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
 }
 void CImageView::OnBoundModeSelect()
 {
-	ActivateBoundsTool();
-	m_boundsInputHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
-	GetMainFrame()->SetStatusText(_T("Bounds: Select mode - drag to modify shapes"));
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	bool boundsToolActive = (activeTool == m_boundsToolAdapter);
+
+	if (boundsToolActive && m_boundsInputHandler.GetEditMode() == DigitMode::ShapeEditMode::Select) {
+		ActivateDefaultTool();
+	}
+	else {
+		ActivateBoundsTool();
+		m_boundsInputHandler.SetEditMode(DigitMode::ShapeEditMode::Select);
+		GetMainFrame()->SetStatusText(_T("Bounds: Select mode - drag to modify shapes"));
+	}
 	Invalidate(FALSE);
 }
 void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
@@ -1476,9 +1492,17 @@ void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 }
 void CImageView::OnFringesEdit()
 {
-	ActivateFringeTool();
-	m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::Draw);
-	GetMainFrame()->SetStatusText(_T("Fringes: Draw mode - click segment to continue"));
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	bool fringeToolActive = (activeTool == m_fringeToolAdapter);
+
+	if (fringeToolActive && m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Draw) {
+		ActivateDefaultTool();
+	}
+	else {
+		ActivateFringeTool();
+		m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::Draw);
+		GetMainFrame()->SetStatusText(_T("Fringes: Draw mode - click segment to continue"));
+	}
 	Invalidate(FALSE);
 }
 // TODO: consider fringes drawing mode swithing scenarios

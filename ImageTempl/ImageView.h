@@ -66,9 +66,17 @@ public:
     ViewTransform& GetViewTransform() { return CBaseImageView::m_viewTransform; }
     
     /**
+     * @brief Activate default editing tool in default mode
+     *
+     * Sets default tool handler as active tool in InteractionManager.
+     * Called from toolbar/menu handlers.
+     */
+    void ActivateDefaultTool();
+
+    /**
      * @brief Activate fringe editing tool
      * 
-     * Sets fringe handler as active tool in InputRouter.
+     * Sets fringe handler as active tool in InteractionManager.
      * Called from toolbar/menu handlers.
      */
     void ActivateFringeTool();
@@ -76,7 +84,7 @@ public:
     /**
      * @brief Activate bounds editing tool
      * 
-     * Sets bounds handler as active tool in InputRouter.
+     * Sets bounds handler as active tool in InteractionManager.
      * Called from toolbar/menu handlers.
      */
     void ActivateBoundsTool();
