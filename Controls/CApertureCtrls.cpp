@@ -328,7 +328,8 @@ void CApertureCtrls::DrawShapes(
     const ViewTransform& worldToScreen,
     const aperture::Shape* selectedShape,
     const aperture::Shape* hoveredShape,
-    int activeHandleIndex) const
+    int activeHandleIndex,
+    bool forceDrawHandles) const
 {
     using namespace aperture;
     
@@ -361,7 +362,7 @@ void CApertureCtrls::DrawShapes(
             } else {
                 // Neither selected nor hovered: no handles
                 style.state = DigitMode::ShapeDrawStyle::State::Idle;
-                style.showHandles = false;
+                style.showHandles = forceDrawHandles;
                 style.activeHandleIndex = -1;
             }
             

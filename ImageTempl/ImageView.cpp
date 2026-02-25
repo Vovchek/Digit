@@ -39,9 +39,12 @@ void CImageView::DrawBounds(CDC* pDC)
 
     // Get hovered shape from bounds handler for UI feedback
 	const aperture::Shape* hoveredShape = m_boundsInputHandler.GetBoundsHandler().GetHoveredShape();
-	int activeHandleIndex = m_boundsInputHandler.GetBoundsHandler().GetHoveredHandleIndex();    
-
-    pApertureCtrls->DrawShapes(*pDC, m_viewTransform, nullptr, hoveredShape, activeHandleIndex);
+	int activeHandleIndex = m_boundsInputHandler.GetBoundsHandler().GetHoveredHandleIndex();;
+	auto activeTool = GetInteractionManager().GetActiveTool();
+	bool forceDrawHandles = (activeTool == m_boundsToolAdapter 
+		&& m_boundsInputHandler.GetEditMode() == DigitMode::ShapeEditMode::Select) ? true : false;
+	
+    pApertureCtrls->DrawShapes(*pDC, m_viewTransform, nullptr, hoveredShape, activeHandleIndex, forceDrawHandles);
 }
 
 // Override image drawing to draw bitmap without the world transform (to get proper resampling)

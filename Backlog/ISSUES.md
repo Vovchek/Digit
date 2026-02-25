@@ -1,64 +1,41 @@
-﻿## #001 - Bug, сотояние - не исправлено
-Не работает автоматическая оцифровка
-
-### Описание проблемы
-При попыткке автоматической оцифровки ZeroMKC_digit_2026.frn (ZeroMKC.jpg) выдается беспорядочное облако точек, не соответствующее исходному изображению.
-
-### Файлы для воспроизведения
-в папке Backlog/ISSUES/001/
-
-
-### Шаги для воспроизведения
-1. Загрузить файл ZeroMKC_digit_2026.frn
-2. Очистить оцифровку
-3. Запустить автоматическую оцифровку
-
-### Ожидаемое поведение
-точки расположены по полосам - темным, светлым или тем и другим в зависимости от на тулбаре выбранной опции
-
-### Фактическое поведение
-Создается хаотическое облако точек
+﻿# Urgent needs (000+)
 
 ---
+# Bugs (100+)
 
-## #002 - Bug, состояние - тестирование после исправления
-Аварийное завершение при удалении точки
+---
+# Incomplete (200+)
+### Fringes numbers auto-assignment
+* test circles
+* implement mixed circles/fringes
+* inplement saddles
 
-### Описание проблемы
-При удалении точки на полосе с помощью Alt-LClick непосредственно после открытия файла происходит аварийное завершение программы.
+### Fringes auto-tracing   
+* finish refactoring
+* clean dependences
+* strategy pattern
+* encapsulate to command for undo/redo
 
-### Файлы для воспроизведения
-в папке Backlog/ISSUES/001/
+### LSM/SVD ellipse fitting
 
-### Шаги для воспроизведения
-1. Загрузить файл ZeroMKC_digit_2026.frn
-2. Кликнуть на любую точка при нажатом Alt
+---
+# Need refiment (300+)
 
-### Ожидаемое поведение
-Точка удалена
+## <u>Fringes editor</u>
+### 300 Fix ringes thickness in pixels
+### 301 Less glow/thiknes for selected fringes
+### 302 Review cursors
+### 303 Fringes navigation with `<Tab>` in Navigation mode
 
-### Фактическое поведение
-Аварийное завнершение программы. Сообщение в консоли:
-```
-ucrtbased.dll!690c3546() Нет данных
-  [Указанные ниже кадры могут быть неверны или отсутствовать, символы для ucrtbased.dll не загружены]
-  [Внешний код]
-> Digit.exe!DigitMode::InputHandler::OnLButtonDown(unsigned int flags, CPoint pt, CDigitInfo * pDigit, DigitMode::CommandDispatcher * pCmdDisp) Строка 36 C++
-  Digit.exe!CImageView::OnLButtonDown(unsigned int nFlags, CPoint point) Строка 1367 C++
-  [Внешний код]
-  Digit.exe!WinMain(HINSTANCE__ * hInstance, HINSTANCE__ * hPrevInstance, char * lpCmdLine, int nCmdShow) Строка 26 C++
-  [Внешний код] 
-```
+## <u>Bounds editor</u>
+### 310 ? Make handles permanent in Selection mode
+### 311 ? Hide old bound's position while dragging
+### 312 Make obstruction(semi-)transparent
 
-### Выявленная причина
-Для индексации массива Fringes ошибочно использовался iActiveSegment имеющий значение -1, 
-при не выбранной активной полосе что приводит к выходу за границы массива.
-```cpp
-/*36*/       if (pDigit->Fringes[iActiveSegmen].GetPointCount() == 1) {
-```
+---
+# Epic feats (500+)
 
-### Исправление
-Индексация Fringes по переменной hitSeg имеющей актуальное значение индекса выбранной полосы.
-```cpp
-/*36*/       if (pDigit->Fringes[hitSeg].GetPointCount() == 1) {
-```
+## Fringes Navigation mode toolbar (bumeration, etc)
+## Add phase calculation
+## Add save to mtr
+## 

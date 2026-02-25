@@ -224,7 +224,8 @@ public:
         const class ViewTransform& worldToScreen,
         const aperture::Shape* selectedShape = nullptr,
         const aperture::Shape* hoveredShape = nullptr,
-        int activeHandleIndex = -1
+        int activeHandleIndex = -1,
+        bool forceDrawHandles = false
     ) const;
 
 private:
