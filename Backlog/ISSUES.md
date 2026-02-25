@@ -2,15 +2,16 @@
 
 ---
 # Bugs (100+)
-
+### 101 Rectangular bound refuses to be streched with handles
+### 102 Rectangular bound is drag-born 90-degrees rotated
 ---
 # Incomplete (200+)
-### Fringes numbers auto-assignment
+### 201 Fringes numbers auto-assignment
 * test circles
 * implement mixed circles/fringes
 * inplement saddles
 
-### Fringes auto-tracing   
+### 202 Fringes auto-tracing   
 * finish refactoring
 * clean dependences
 * strategy pattern

@@ -325,7 +325,7 @@ void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& dra
             // Calculate angle from center to current drag position
             double dx = drag.dragCurrentWorld.x - center_.x;
             double dy = drag.dragCurrentWorld.y - center_.y;
-            double angleRad = std::atan2(dx, dy);  // atan2(x,y) for +Y = up in shape space
+            double angleRad = std::atan2(dy, dx);  // atan2(x,y) for +Y = up in shape space
             
             double angleDeg = angleRad * 180.0 / M_PI;
             
@@ -341,15 +341,91 @@ void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& dra
             break;
         }
             
-        case HandleType::CornerResize:
-        case HandleType::EdgeResize:
-            // TODO: Implement resize logic
-            // This requires determining which corner/edge is opposite,
-            // calculating new dimensions based on drag position,
-            // and respecting Shift (preserve aspect) and Alt (from center) modifiers
-            // Defer to next iteration - geometry gets complex with rotation
+        case HandleType::CornerResize: {
+            // Transform drag position to local (rectangle-aligned) coordinates
+            Point localPos = toLocalCoordinates(drag.dragCurrentWorld);
+
+            // Opposite corner stays fixed (corners: 0↔2, 1↔3)
+            int oppositeIdx = (handle.index + 2) % 4;
+
+            // Get opposite corner local position
+            double halfW = width_ / 2.0;
+            double halfH = height_ / 2.0;
+            double oppX = (oppositeIdx == 1 || oppositeIdx == 2) ? halfW : -halfW;
+            double oppY = (oppositeIdx == 2 || oppositeIdx == 3) ? halfH : -halfH;
+
+            // New bounding box from dragged corner to opposite corner
+            double minX = std::min(localPos.x, oppX);
+            double maxX = std::max(localPos.x, oppX);
+            double minY = std::min(localPos.y, oppY);
+            double maxY = std::max(localPos.y, oppY);
+
+            // New center in local coords
+            double newCenterLocalX = (minX + maxX) / 2.0;
+            double newCenterLocalY = (minY + maxY) / 2.0;
+
+            // New dimensions
+            double newHalfWidth = (maxX - minX) / 2.0;
+            double newHalfHeight = (maxY - minY) / 2.0;
+
+            // Convert center change from local to world space
+            double deltaWorldX = newCenterLocalX * cosRot_ - newCenterLocalY * sinRot_;
+            double deltaWorldY = newCenterLocalX * sinRot_ + newCenterLocalY * cosRot_;
+
+            center_.x += deltaWorldX;
+            center_.y += deltaWorldY;
+            width_ = std::max(newHalfWidth * 2.0, 1.0);
+            height_ = std::max(newHalfHeight * 2.0, 1.0);
             break;
-            
+        }
+
+        case HandleType::EdgeResize: {
+            // Transform drag position to local (rectangle-aligned) coordinates
+            Point localPos = toLocalCoordinates(drag.dragCurrentWorld);
+
+            double halfW = width_ / 2.0;
+            double halfH = height_ / 2.0;
+
+            // Determine edge orientation: 0,2 = horizontal (top/bottom), 1,3 = vertical (right/left)
+            bool isHorizontalEdge = (handle.index == 0 || handle.index == 2);
+
+            if (isHorizontalEdge) {
+                // Dragging top (0) or bottom (2): opposite y stays fixed
+                double oppY = (handle.index == 0) ? halfH : -halfH;
+
+                double minY = std::min(localPos.y, oppY);
+                double maxY = std::max(localPos.y, oppY);
+                double newCenterLocalY = -(minY + maxY) / 2.0;
+                double newHalfHeight = (maxY - minY) / 2.0;
+
+                // Transform center shift from local to world
+                double deltaWorldX = newCenterLocalY * sinRot_;
+                double deltaWorldY = -newCenterLocalY * cosRot_;
+
+                center_.x += deltaWorldX;
+                center_.y += deltaWorldY;
+                height_ = std::max(newHalfHeight * 2.0, 1.0);
+            }
+            else {
+                // Dragging right (1) or left (3): opposite x stays fixed
+                double oppX = (handle.index == 1) ? -halfW : halfW;
+
+                double minX = std::min(localPos.x, oppX);
+                double maxX = std::max(localPos.x, oppX);
+                double newCenterLocalX = (minX + maxX) / 2.0;
+                double newHalfWidth = (maxX - minX) / 2.0;
+
+                // Transform center shift from local to world
+                double deltaWorldX = newCenterLocalX * cosRot_;
+                double deltaWorldY = newCenterLocalX * sinRot_;
+
+                center_.x += deltaWorldX;
+                center_.y += deltaWorldY;
+                width_ = std::max(newHalfWidth * 2.0, 1.0);
+            }
+            break;
+        }
+
         default:
             break;
     }

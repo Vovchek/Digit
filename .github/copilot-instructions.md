@@ -16,3 +16,6 @@
 
 ## Topology Considerations
 - Saddle cases are not based on shared endpoints; they occur when more than two curves are adjacent around a point, and constraints should reflect that topology rather than shared endpoints.
+
+## Bug Tracking
+- Rectangle stretch handles are not responding to drag; only move/rotate work. Verify that the controlPointIndex is being set properly for Rectangle shapes, likely in `CApertureCtrls::HitTest`. The issue may be in the BoundsHandler hit-test or CApertureCtrls hit-test not correctly identifying Rectangle stretch handle indices. Ellipse and polygon handles are functioning correctly.
