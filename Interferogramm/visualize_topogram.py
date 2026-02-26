@@ -61,10 +61,11 @@ surf = ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8, edgecolor='none')
 # This makes the surface details appear exaggerated
 Z_min, Z_max = np.nanmin(data), np.nanmax(data)
 Z_range = Z_max - Z_min
+print(f"Original Z range: {Z_min:.2f} to {Z_max:.2f} (range: {Z_range:.2f})")
 
 # SIMPLE Z-AXIS CONTROL - adjust these directly:
-Z_AXIS_MIN = -2      # Set custom min (e.g., 1.0)
-Z_AXIS_MAX = 2      # Set custom max (e.g., 2.0)
+Z_AXIS_MIN = Z_min      # Set custom min (e.g., 1.0)
+Z_AXIS_MAX = Z_max      # Set custom max (e.g., 2.0)
 ax.set_zlim([Z_AXIS_MIN, Z_AXIS_MAX])
 
 # Also set box aspect for additional visual enhancement

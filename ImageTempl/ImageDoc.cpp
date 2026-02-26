@@ -230,17 +230,23 @@ void CImageDoc::ActivateAproximation()
 
 // temporary check algorithms for restoring topography from isolines
 #include <fstream>
+#include <memory>
+#include "DigitMode/GradientPoissonStrategy.h"
 void CImageDoc::CalcAproximation()
 {
 
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
 	auto &aperture = pA->GetShapes();
 	auto* maskProvider = &pA->GetMaskProvider();
-	WavefrontFromIsolines solver;
-	WavefrontFromIsolines::Params params;
-	auto topogram = solver.solve(Digit.Fringes, aperture, maskProvider->getMask(), params);
 	
-	std::ofstream out("C:\\Temp\\topogram.txt");
+	WavefrontFromIsolines wf;
+	wf.setStrategy(std::make_unique<GradientPoissonStrategy>());
+	WavefrontFromIsolines::Params p;
+	Eigen::MatrixXd topogram = wf.solve(Digit.Fringes, aperture, maskProvider->getMask(), p);
+	
+	std::string filename = GetRealPath();
+	filename += _T("topogram.txt");
+	std::ofstream out(filename);
 	out << topogram;
 
 	//CControls* pCtrls = GetControls();

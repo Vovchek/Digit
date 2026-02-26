@@ -7,10 +7,11 @@
 #include "ApertureCore/include/aperturecore/visibility/VisibilityMask.h"
 #include "ApertureCore/include/aperturecore/visibility/ShapeCollection.h"
 #include "DigitMode/CFringeSegment.h"
+#include "DigitMode/IReconstructionStrategy.h"
 
 /**
  * @brief Wavefront reconstruction from fringe contours
- * 
+ *
  * Reconstructs a height map (topogram) from fringe line contours
  * using Poisson equation solving over a visibility mask.
  * Output resolution is determined by aperture bounding box and requested resolution.
@@ -22,9 +23,9 @@ public:
 	struct Params
 	{
 		double nanValue = std::numeric_limits<double>::quiet_NaN();
-		double cgTol    = 1e-6;
-		int    cgIter   = 2000;
-		
+		double cgTol = 1e-6;
+		int    cgIter = 2000;
+
 		// Resolution parameters
 		// outWidth: desired output matrix width (columns along x-axis)
 		// outWidth = 0 means use aperture bounding box width
@@ -50,7 +51,7 @@ public:
 
 	/**
 	 * @brief Serialize topogram matrix to output stream
-	 * 
+	 *
 	 * Format: rows x columns matrix with NaN-aware formatting
 	 * @param os Output stream
 	 * @param matrix Matrix to serialize
@@ -58,10 +59,10 @@ public:
 	 */
 	friend std::ostream& operator<<(std::ostream& os, const Eigen::MatrixXd& matrix);
 
-private:
-
 	typedef Eigen::SparseMatrix<double> SpMat;
 	typedef Eigen::Triplet<double> T;
+
+private:
 
 	std::vector<char> visible;
 	std::vector<char> knownZ;
@@ -82,7 +83,7 @@ private:
 	 * @param p Solver parameters
 	 * @return Resampled topogram at (outHeight x outWidth)
 	 */
-	Eigen::MatrixXd resampleToResolution(
+	static Eigen::MatrixXd resampleToResolution(
 		const Eigen::MatrixXd& original,
 		const aperture::Bounds& apertureBounds,
 		int outWidth,
@@ -99,7 +100,7 @@ private:
 	 * @param p Params (for nanValue)
 	 * @return Interpolated value (or NaN if outside bounds)
 	 */
-	double bilinearInterpolate(
+	static double bilinearInterpolate(
 		const Eigen::MatrixXd& image,
 		double x, double y,
 		double minX, double minY,
@@ -109,7 +110,7 @@ private:
 	// Mask Builder
 	// ========================================================================
 
-	void buildMask(const aperture::visibility::VisibilityMask& mask);
+	static void buildMask(const aperture::visibility::VisibilityMask& mask);
 
 	// ========================================================================
 	// Fringe Rasterization (Bresenham — single pixel thick)
@@ -122,14 +123,14 @@ private:
 	 * @param h Height value (fringe number)
 	 * @param mask Visibility mask
 	 */
-	void drawLine(int x0, int y0, int x1, int y1,
+	static void drawLine(int x0, int y0, int x1, int y1,
 		double h, const aperture::visibility::VisibilityMask& mask);
 
 	/**
 	 * @brief Rasterize all fringe contours
 	 * Extracts point sequences from each fringe and draws them
 	 */
-	void rasterizeFringes(
+	static void rasterizeFringes(
 		const std::vector<CFringeSegment>& fringes,
 		const aperture::visibility::VisibilityMask& mask);
 
@@ -137,13 +138,13 @@ private:
 	// Laplacian Builder (auto-Neumann on aperture edge)
 	// ========================================================================
 
-	SpMat buildMaskedL(const aperture::visibility::VisibilityMask& mask);
+	static SpMat buildMaskedL(const aperture::visibility::VisibilityMask& mask);
 
 	// ========================================================================
 	// Poisson Solver (Conjugate Gradient)
 	// ========================================================================
 
-	Eigen::VectorXd solvePoisson(
+	static Eigen::VectorXd solvePoisson(
 		SpMat& L,
 		const std::vector<char>& known,
 		const Eigen::VectorXd& rhs,
@@ -154,7 +155,7 @@ private:
 	// Output Conversion
 	// ========================================================================
 
-	Eigen::MatrixXd toImage(
+	static Eigen::MatrixXd toImage(
 		const Eigen::VectorXd& z,
 		const aperture::visibility::VisibilityMask& mask,
 		const Params& p);
@@ -166,5 +167,14 @@ private:
 	inline int id(int x, int y, const aperture::visibility::VisibilityMask& mask) const
 	{
 		return y * mask.width + x;
+	}
+
+
+	std::unique_ptr<IReconstructionStrategy> strategy;
+
+public:
+	void setStrategy(std::unique_ptr<IReconstructionStrategy> s)
+	{
+		strategy = std::move(s);
 	}
 };
