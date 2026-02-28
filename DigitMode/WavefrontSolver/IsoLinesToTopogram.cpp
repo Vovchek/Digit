@@ -1,4 +1,4 @@
-﻿#include "DigitMode/IsoLinesToTopogram.h"
+﻿#include "DigitMode/WaveFrontSolver/IsoLinesToTopogram.h"
 
 // ============================================================================
 // Public API

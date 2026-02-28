@@ -177,7 +177,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\InputHandler.cpp" />
     <ClCompile Include="DigitMode\InputHandlerAdapter.cpp" />
     <ClCompile Include="DigitMode\InteractionManager.cpp" />
-    <ClCompile Include="DigitMode\IsoLinesToTopogram.cpp" />
     <ClCompile Include="DigitMode\NavigationInputHandler.cpp" />
     <ClCompile Include="DigitMode\Rendering\EllipseRenderer.cpp" />
     <ClCompile Include="DigitMode\Rendering\PolygonRenderer.cpp" />
@@ -187,6 +186,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\SelectionManager.cpp" />
     <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp" />
     <ClCompile Include="DigitMode\TooltipGenerator.cpp" />
+    <ClCompile Include="DigitMode\WavefrontSolver\WavefrontFromContours.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
     <ClCompile Include="Controls\controls.cpp" />
@@ -256,7 +256,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\IInteractionTool.h" />
     <ClInclude Include="DigitMode\InputHandlerAdapter.h" />
     <ClInclude Include="DigitMode\InteractionManager.h" />
-    <ClInclude Include="DigitMode\IsoLinesToTopogram.h" />
+    <ClInclude Include="DigitMode\WavefrontSolver\IsoLinesToTopogram.h" />
     <ClInclude Include="DigitMode\RedCenterDetector.h" />
     <ClInclude Include="DigitMode\ShapeConversionHelpers.h" />
     <ClInclude Include="DigitMode\ToolCapabilities.h" />

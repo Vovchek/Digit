@@ -7,7 +7,7 @@
 #include "ApertureCore/include/aperturecore/visibility/VisibilityMask.h"
 #include "ApertureCore/include/aperturecore/visibility/ShapeCollection.h"
 #include "DigitMode/CFringeSegment.h"
-#include "DigitMode/IReconstructionStrategy.h"
+#include "DigitMode/WavefrontSolver/IReconstructionStrategy.h"
 
 /**
  * @brief Wavefront reconstruction from fringe contours
@@ -83,7 +83,7 @@ private:
 	 * @param p Solver parameters
 	 * @return Resampled topogram at (outHeight x outWidth)
 	 */
-	static Eigen::MatrixXd resampleToResolution(
+	 Eigen::MatrixXd resampleToResolution(
 		const Eigen::MatrixXd& original,
 		const aperture::Bounds& apertureBounds,
 		int outWidth,
@@ -100,7 +100,7 @@ private:
 	 * @param p Params (for nanValue)
 	 * @return Interpolated value (or NaN if outside bounds)
 	 */
-	static double bilinearInterpolate(
+	 double bilinearInterpolate(
 		const Eigen::MatrixXd& image,
 		double x, double y,
 		double minX, double minY,
@@ -110,7 +110,7 @@ private:
 	// Mask Builder
 	// ========================================================================
 
-	static void buildMask(const aperture::visibility::VisibilityMask& mask);
+	 void buildMask(const aperture::visibility::VisibilityMask& mask);
 
 	// ========================================================================
 	// Fringe Rasterization (Bresenham — single pixel thick)
@@ -123,14 +123,14 @@ private:
 	 * @param h Height value (fringe number)
 	 * @param mask Visibility mask
 	 */
-	static void drawLine(int x0, int y0, int x1, int y1,
+	 void drawLine(int x0, int y0, int x1, int y1,
 		double h, const aperture::visibility::VisibilityMask& mask);
 
 	/**
 	 * @brief Rasterize all fringe contours
 	 * Extracts point sequences from each fringe and draws them
 	 */
-	static void rasterizeFringes(
+	 void rasterizeFringes(
 		const std::vector<CFringeSegment>& fringes,
 		const aperture::visibility::VisibilityMask& mask);
 
@@ -138,13 +138,13 @@ private:
 	// Laplacian Builder (auto-Neumann on aperture edge)
 	// ========================================================================
 
-	static SpMat buildMaskedL(const aperture::visibility::VisibilityMask& mask);
+	SpMat buildMaskedL(const aperture::visibility::VisibilityMask& mask);
 
 	// ========================================================================
 	// Poisson Solver (Conjugate Gradient)
 	// ========================================================================
 
-	static Eigen::VectorXd solvePoisson(
+	 Eigen::VectorXd solvePoisson(
 		SpMat& L,
 		const std::vector<char>& known,
 		const Eigen::VectorXd& rhs,
@@ -155,7 +155,7 @@ private:
 	// Output Conversion
 	// ========================================================================
 
-	static Eigen::MatrixXd toImage(
+	 Eigen::MatrixXd toImage(
 		const Eigen::VectorXd& z,
 		const aperture::visibility::VisibilityMask& mask,
 		const Params& p);

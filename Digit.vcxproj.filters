@@ -283,8 +283,8 @@
     <ClCompile Include="DigitMode\DraftShape.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\IsoLinesToTopogram.cpp">
-      <Filter>Source Files\DigitMode</Filter>
+    <ClCompile Include="DigitMode\WavefrontSolver\WavefrontFromContours.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -539,7 +539,7 @@
     <ClInclude Include="DigitMode\FringeToolAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\IsoLinesToTopogram.h">
+    <ClInclude Include="DigitMode\WavefrontSolver\IsoLinesToTopogram.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

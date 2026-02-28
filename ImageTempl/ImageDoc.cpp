@@ -11,7 +11,6 @@
 #include "ImageFeatures\SectionFrame.h"
 #include "Utils\Edit\BaseTextDoc.h"
 #include "Options\ApproxSetDlg.h"
-#include "DigitMode/IsoLinesToTopogram.h"
 #include "MGTools\Include\Utils\Utils.h"
 
 #ifdef _DEBUG
@@ -231,23 +230,31 @@ void CImageDoc::ActivateAproximation()
 // temporary check algorithms for restoring topography from isolines
 #include <fstream>
 #include <memory>
-#include "DigitMode/GradientPoissonStrategy.h"
+#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
 void CImageDoc::CalcAproximation()
 {
 
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
-	auto &aperture = pA->GetShapes();
-	auto* maskProvider = &pA->GetMaskProvider();
+	auto &aperture = pA->GetShapes().getVisibleRegion();
+	auto mask = pA->GetMaskProvider().getMask();
 	
-	WavefrontFromIsolines wf;
-	wf.setStrategy(std::make_unique<GradientPoissonStrategy>());
-	WavefrontFromIsolines::Params p;
-	Eigen::MatrixXd topogram = wf.solve(Digit.Fringes, aperture, maskProvider->getMask(), p);
+	WavefrontFromContoursInput input(
+        aperture, 
+		mask, 
+		Digit.Fringes
+    );
 	
-	std::string filename = GetRealPath();
-	filename += _T("topogram.txt");
-	std::ofstream out(filename);
-	out << topogram;
+	WavefrontFromContours wf(input);
+
+	//wf.setStrategy(std::make_unique<GradientPoissonStrategy>());
+	// auto bilinearSolver
+	//WavefrontFromIsolines::Params p;
+	//auto topogram = wf.solve();
+	//
+	//std::string filename = GetRealPath();
+	//filename += _T("topogram.txt");
+	//std::ofstream out(filename);
+	//out << topogram;
 
 	//CControls* pCtrls = GetControls();
 	//CApproxSetDlg D(GetMainFrame());
