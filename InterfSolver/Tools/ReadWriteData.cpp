@@ -329,12 +329,14 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		while (Fl.ReadStringWithEnd("E", Str))
 		{
 			FormArrFromString(Str, Buf);
-			int TypLim = int(Buf[0]);
-			int TypeSystCoor = int(Buf[1]);
-			Buf.RemoveAt(0, 2);
-			Plg0 = XYPolygon(Buf, TypLim, TypeSystCoor);
-			IntInfo.ArrPlg.Add(Plg0);
-			if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
+			if (Buf.GetSize() >= 7) {
+				int TypLim = int(Buf[0]);
+				int TypeSystCoor = int(Buf[1]);
+				Buf.RemoveAt(0, 2);
+				Plg0 = XYPolygon(Buf, TypLim, TypeSystCoor);
+				IntInfo.ArrPlg.Add(Plg0);
+				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
+			}
 		}
 	}
 
@@ -342,8 +344,8 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str)) // WinFringe format)
 	{
 		FormArrFromString(Str, Buf);
-		IntInfo.ImageSize[0] = int(Buf[0]);
-		IntInfo.ImageSize[1] = int(Buf[1]);
+		if(Buf.GetSize()) IntInfo.ImageSize[0] = int(Buf[0]);
+		if (Buf.GetSize() > 1) IntInfo.ImageSize[1] = int(Buf[1]);
 	}
 	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str) || // Digit format
 		Fl.GetStringAfter("[IMAGE_FILE]", "Name", Str))  // WinFringe format
@@ -360,11 +362,12 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
 			else if (Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, feature ?
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[2], Buf[1], Buf[3]);
-				auto ax = (Buf[1] - Buf[0]) / 2.0;
-				auto by = (Buf[3] - Buf[2]) / 2.0;
-				auto xc = (Buf[1] + Buf[0]) / 2.0;
-				auto yc = (Buf[3] + Buf[2]) / 2.0;
+				// bounds may dup aperture definitions, so ignore redundant
 				if (!apertureDefined) {
+					auto ax = (Buf[1] - Buf[0]) / 2.0;
+					auto by = (Buf[3] - Buf[2]) / 2.0;
+					auto xc = (Buf[1] + Buf[0]) / 2.0;
+					auto yc = (Buf[3] + Buf[2]) / 2.0;
 					if (int(Buf[4]) == 0) { // circular or elliptic
 						auto Ell0 = XYEllipse(ax, by, xc, yc);
 						IntInfo.ArrEll.Add(Ell0);

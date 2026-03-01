@@ -19,14 +19,16 @@ void InputHandler::SetMode(FringeEditMode newMode) {
     // Note: Cursor update is handled by caller (ImageView)
     }
 
-void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+void InputHandler::OnLButtonDown(UINT flags, CDPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp,
+    const ::ViewTransform* view) {
     m_cursorPos = pt;
     ModifierState mods = ModifierState::FromKeyboard();
 
     // Update hover via hit tester (ImageView passes hit test earlier, but keep local)
     int hitSeg=-1, hitDot=-1;
     HitTester tester;
-    SelectionLevel level = tester.HitTest(pt, hitSeg, hitDot, pDigit->Fringes);
+	double tolerance = std::max(1., (view ? 5.0 / view->GetScale() : 5.0)); // Adjust tolerance for zoom level
+    SelectionLevel level = tester.HitTest(pt, hitSeg, hitDot, pDigit->Fringes, tolerance);
     m_hoverLevel = level; m_hoverSeg = hitSeg; m_hoverDot = hitDot;
 
     // Alt+L-Click destructive actions (delete dot / split edge)
@@ -196,7 +198,8 @@ void InputHandler::OnLButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, Comm
     }
 }
 
-void InputHandler::OnRButtonDown(UINT flags, CPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+void InputHandler::OnRButtonDown(UINT flags, CDPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp,
+    const ::ViewTransform* view) {
     // Context menu typically handled by view; InputHandler does not implement
 }
 
@@ -207,7 +210,7 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit, C
     // Optionally emit commands via pCmdDisp
 }
 
-void InputHandler::StartNewSegment(CPoint P, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+void InputHandler::StartNewSegment(CDPoint P, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
     // Use command to create the new segment (no points yet)
     double newNumber = pDigit->CurrentNumber + pDigit->numStep;
     auto createCmd = std::make_unique<CreateSegmentCommand>(*pDigit, std::vector<CDPoint>{}, newNumber);
@@ -244,12 +247,14 @@ void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, C
     // No legacy fallback: callers must pass a dispatcher
 }
 
-void InputHandler::OnMouseMove(CPoint pt, const ModifierState& mods, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+void InputHandler::OnMouseMove(CDPoint pt, const ModifierState& mods, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp,
+    const ::ViewTransform* view) {
     m_cursorPos = pt;
     // Update hover via hit tester
     if (pDigit) {
+        double tolerance = (view ? 5.0 / view->GetScale() : 5.0); // Adjust tolerance for zoom level
         int hitSeg=-1, hitDot=-1;
-        SelectionLevel level = HitTester().HitTest(pt, hitSeg, hitDot, pDigit->Fringes);
+        SelectionLevel level = HitTester().HitTest(pt, hitSeg, hitDot, pDigit->Fringes, tolerance);
         m_hoverLevel = level; m_hoverSeg = hitSeg; m_hoverDot = hitDot;
     }
 
@@ -290,7 +295,7 @@ void InputHandler::EndPan() {
     m_lastPanPoint = CPoint(-1, -1);
 }
 
-void InputHandler::OnLButtonUp(CPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
+void InputHandler::OnLButtonUp(CDPoint pt, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp, const ::ViewTransform* view) {
     m_cursorPos = pt;
     // If a drag was active, commit appropriate command
     if (m_drag.active) {
@@ -483,11 +488,10 @@ void InputHandler::EndCurrentSegment() {
     }
 }
 
-void InputHandler::HandleBoxSelection(CPoint start, CPoint end, CDigitInfo* pDigit) {
+void InputHandler::HandleBoxSelection(CDPoint start, CDPoint end, CDigitInfo* pDigit) {
     ASSERT(pDigit != nullptr);
 
-    CRect box;
-    box.SetRect(start, end);
+    CDRect box(start.x, start.y, end.x, end.y);
     box.NormalizeRect();
 
     // Determine mode from current modifiers
@@ -509,7 +513,7 @@ void InputHandler::HandleBoxSelection(CPoint start, CPoint end, CDigitInfo* pDig
     TRACE("InputHandler::HandleBoxSelection: Selected %zu objects (mode=%d)\n", count, static_cast<int>(mode));
 }
 
-void InputHandler::OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit) {
+void InputHandler::OnMouseDrag(CDPoint start, CDPoint end, CDigitInfo* pDigit) {
     if (currentMode == FringeEditMode::Navigate) {
         HandleBoxSelection(start, end, pDigit);
     }
@@ -523,7 +527,7 @@ bool InputHandler::IsActiveSegmentValid(const ::CDigitInfo* doc) const {
 }
 
 // ---- Drag helpers (implementation local) ----
-void InputHandler::BeginDotDrag(int segIdx, int dotIdx, CPoint start, CDigitInfo* pDigit) {
+void InputHandler::BeginDotDrag(int segIdx, int dotIdx, CDPoint start, CDigitInfo* pDigit) {
     m_drag.active = true;
     m_drag.type = DragState::Type::MoveDot;
     m_drag.segmentIndex = segIdx;
@@ -533,7 +537,7 @@ void InputHandler::BeginDotDrag(int segIdx, int dotIdx, CPoint start, CDigitInfo
     m_drag.dotOldPos = pDigit ? pDigit->Fringes[segIdx].GetPoint(dotIdx) : start;
 }
 
-void InputHandler::BeginEdgeDrag(int segIdx, int edgeStartIdx, CPoint start, ::CDigitInfo* pDigit) {
+void InputHandler::BeginEdgeDrag(int segIdx, int edgeStartIdx, CDPoint start, ::CDigitInfo* pDigit) {
     m_drag.active = true;
     m_drag.type = DragState::Type::MoveEdge;
     m_drag.segmentIndex = segIdx;
@@ -547,7 +551,7 @@ void InputHandler::BeginEdgeDrag(int segIdx, int edgeStartIdx, CPoint start, ::C
     }
 }
 
-void InputHandler::UpdateDragPreview(CPoint pt, ::CDigitInfo* pDigit) {
+void InputHandler::UpdateDragPreview(CDPoint pt, ::CDigitInfo* pDigit) {
     // For preview we perform immediate document updates
     if (!pDigit) return;
     if (m_drag.type == DragState::Type::MoveDot) {
@@ -603,7 +607,7 @@ void InputHandler::CommitActiveDrag(CommandDispatcher* pCmdDisp, ::CDigitInfo* p
     }
 }
 
-CPoint InputHandler::GetActiveDot(const ::CDigitInfo* doc) const
+CDPoint InputHandler::GetActiveDot(const ::CDigitInfo* doc) const
 {
 	if (!IsActiveSegmentValid(doc))
         return CPoint(-1, -1);
@@ -629,8 +633,8 @@ void InputHandler::DrawSelectionBox(CDC* pDC, const ViewTransform* viewTransform
     }
     
     // Convert world coordinates to screen if transform provided
-    CPoint start = m_drag.start;
-    CPoint current = m_drag.current;
+    auto start = m_drag.start;
+    auto current = m_drag.current;
     
     if (viewTransform) {
         start = viewTransform->WorldToScreen(::CPoint2d{(double)m_drag.start.x, (double)m_drag.start.y});
@@ -638,8 +642,7 @@ void InputHandler::DrawSelectionBox(CDC* pDC, const ViewTransform* viewTransform
     }
     
     // Create selection box rectangle
-    CRect box;
-    box.SetRect(start, current);
+    CRect box(static_cast<int>(start.x), static_cast<int>(start.y), static_cast<int>(current.x), static_cast<int>(current.y));
     box.NormalizeRect();
     
     // Save DC state

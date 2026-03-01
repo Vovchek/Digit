@@ -11,13 +11,21 @@
 namespace DigitMode {
 
 SelectionLevel HitTester::HitTest(
-    CPoint P,
+    CDPoint P,
     int& outSegment,
     int& outDot,
-    const std::vector<CFringeSegment>& segments
+    const std::vector<CFringeSegment>& segments,
+	double tolerance
 ) const {
     // Priority: Dot > Edge > Segment > Nothing
     // Iterate segments in reverse (top to bottom z-order)
+    struct HitResult {
+        int segmentIndex;
+        int dotOrEdgeIndex;
+		double distance;  // Distance for tie-breaking (not used in current priority scheme)
+        SelectionLevel level;
+    };
+	std::vector<HitResult> dotHits, edgeHits;
 
     for (int iSeg = static_cast<int>(segments.size()) - 1; iSeg >= 0; iSeg--) {
         const CFringeSegment& segment = segments[iSeg];
@@ -26,10 +34,9 @@ SelectionLevel HitTester::HitTest(
         // 1. Check dots (highest priority)
         for (int iD = 0; iD < dotCount; iD++) {
             CDPoint dot = segment.GetPoint(iD);
-            if (DotDistance(P, dot) <= HIT_TOLERANCE) {  // Inclusive tolerance
-                outSegment = iSeg;
-                outDot = iD;
-                return SelectionLevel::Dot;
+			auto dist = DotDistance(P, dot);
+            if (dist <= tolerance) {  // Inclusive tolerance
+				dotHits.push_back({ iSeg, iD, dist, SelectionLevel::Dot });
             }
         }
 
@@ -39,24 +46,49 @@ SelectionLevel HitTester::HitTest(
             CDPoint B = segment.GetPoint(iE + 1);
             double dist = DistanceToSegment(P, A, B);
 
-            if (dist <= HIT_TOLERANCE) {  // Inclusive tolerance
-                outSegment = iSeg;
-                outDot = iE;  // Edge start index
-                return SelectionLevel::Edge;
+            if (dist <= tolerance) {  // Inclusive tolerance
+				edgeHits.push_back({ iSeg, iE, dist, SelectionLevel::Edge });
             }
         }
+    }
+	if (dotHits.empty() && edgeHits.empty()) {
+        outSegment = -1;
+        outDot = -1;
+        return SelectionLevel::None;
+    }
+    
+    // Find the best hit based on priority: Dot > Edge
+    auto bestHitIt = std::min_element(dotHits.begin(), dotHits.end(), [](const HitResult& a, const HitResult& b) {
+        return a.distance < b.distance;  // Tie-breaker: closer distance
+    });
+
+    if (bestHitIt != dotHits.end()) {
+        outSegment = bestHitIt->segmentIndex;
+        outDot = bestHitIt->dotOrEdgeIndex;
+        return bestHitIt->level;
+    }
+
+    // If no dot hit, check edge hits
+    bestHitIt = std::min_element(edgeHits.begin(), edgeHits.end(), [](const HitResult& a, const HitResult& b) {
+        return a.distance < b.distance;  // Tie-breaker: closer distance
+        });
+
+    if (bestHitIt != edgeHits.end()) {
+        outSegment = bestHitIt->segmentIndex;
+        outDot = bestHitIt->dotOrEdgeIndex;
+        return bestHitIt->level;
     }
 
     return SelectionLevel::None;
 }
 
-double HitTester::DotDistance(CPoint P, CDPoint dot) const {
+double HitTester::DotDistance(CDPoint P, CDPoint dot) const {
     double dx = P.x - dot.x;
     double dy = P.y - dot.y;
     return std::sqrt(dx * dx + dy * dy);
 }
 
-double HitTester::DistanceToSegment(CPoint P, CDPoint A, CDPoint B) const {
+double HitTester::DistanceToSegment(CDPoint P, CDPoint A, CDPoint B) const {
     // Vector AB
     double ABx = B.x - A.x;
     double ABy = B.y - A.y;

@@ -168,8 +168,6 @@ public:
 class WavefrontFromContoursResult
 {
 public:
-	bool saveAsImage(const std::string& filename) const {return false;};
-	bool saveAsMTR(const std::string& filename) const {return false;};
 
 	// ============================================================================
 	// Getters
@@ -194,6 +192,8 @@ public:
 	// ============================================================================
 
 	friend std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& result);
+	bool saveAsImage(const std::string& filename) const { return false; };
+	bool saveMtrMatrix(std::ostream& os) const;
 
 private:
     std::vector<double> data_;

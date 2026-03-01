@@ -123,22 +123,26 @@ void SelectionManager::PromoteToFringe(const std::vector<CFringeSegment>& segmen
     }
 }
 
-size_t SelectionManager::SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments,
+size_t SelectionManager::SelectBox(const CDRect& box, const std::vector<::CFringeSegment>& segments,
                                    BoxSelectionMode mode) {
     std::vector<SelectedObject> newSelection;
     
     // Helper: Check if edge intersects box
-    auto EdgeIntersectsBox = [](const CDPoint& p1, const CDPoint& p2, const CRect& rect) -> bool {
+    auto PtInRect = [](const auto& p, const auto& r) -> bool {
+        return (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom);
+		};
+    auto EdgeIntersectsBox = [PtInRect](const CDPoint& p1, const CDPoint& p2, const CDRect& rect) -> bool {
         CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
         CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
         
         // If either point inside, edge intersects
-        if (rect.PtInRect(pt1) || rect.PtInRect(pt2)) return true;
+        if (PtInRect(pt1, rect) || PtInRect(pt2, rect)) return true;
         
         // Cohen-Sutherland line-rectangle intersection
         // Simplified: check if line crosses any box edge
         int x1 = pt1.x, y1 = pt1.y, x2 = pt2.x, y2 = pt2.y;
-        int xmin = rect.left, xmax = rect.right, ymin = rect.top, ymax = rect.bottom;
+        int xmin = static_cast<int>(rect.left), xmax = static_cast<int>(rect.right), 
+            ymin = static_cast<int>(rect.top), ymax = static_cast<int>(rect.bottom);
         
         // Line bounding box doesn't overlap rect bounding box
         int maxX1X2 = (x1 > x2) ? x1 : x2;
@@ -244,8 +248,7 @@ size_t SelectionManager::SelectBox(const CRect& box, const std::vector<::CFringe
             // Check dots
             for (int j = 0; j < pointCount; j++) {
                 CDPoint point = segment.GetPoint(j);
-                CPoint screenPoint(static_cast<int>(point.x), static_cast<int>(point.y));
-                if (box.PtInRect(screenPoint)) {
+                if (PtInRect(point, box)) {
                     dotsInBox[j] = true;
                 }
             }

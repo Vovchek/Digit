@@ -20,7 +20,7 @@ public:
 
     // Zoom around a client point (in client/viewport coordinates). factor >1 zooms in.
     // The world point under the cursor remains under the cursor after zoom.
-    void ZoomAt(const CPoint& clientPt, double factor) {
+    void ZoomAt(const CPoint& clientPt /* Screen */, double factor) {
         double newScale = scale * factor;
         // Get world coordinate of the point BEFORE zoom using current scale/offset
         double wx = (clientPt.x - offset.x) / scale;
@@ -33,7 +33,7 @@ public:
     }
 
     // Alternative: explicit client coordinate zoom (safer for windowed views)
-    void ZoomAtClient(const CPoint& clientPt, double factor, CWnd* pWnd = nullptr) {
+    void ZoomAtClient(const CPoint& clientPt /* Screen */, double factor, CWnd* pWnd = nullptr) {
         double newScale = scale * factor;
         double wx = (clientPt.x - offset.x) / scale;
         double wy = (clientPt.y - offset.y) / scale;
@@ -43,7 +43,8 @@ public:
     }
 
     // Zoom to fit image rect into client rect, then center
-    void ZoomToFit(const CRect& imageRect, const CRect& clientRect) {
+	// TODO: consider if use CRect2d for imageRect to avoid int rounding issues at low zoom levels
+    void ZoomToFit(const CRect& imageRect /* World */, const CRect& clientRect /* Screen */) {
         if (imageRect.IsRectEmpty() || clientRect.IsRectEmpty()) return;
         
         // Calculate scale to fit image in client area (with small margin)
@@ -61,21 +62,21 @@ public:
     }
 
     // Pan by screen delta (client pixels)
-    void PanBy(const CPoint& deltaScreen) {
+    void PanBy(const CPoint& deltaScreen /* Screen */) {
         offset.x += deltaScreen.x;
         offset.y += deltaScreen.y;
     }
 
     // Convert screen (client) point to world (document) coordinates
-    CPoint ScreenToWorld(const CPoint& pt) const {
+    CPoint2d ScreenToWorld(const CPoint& pt /* Screen */) const {
         CPoint2d w;
         w.x = (pt.x - offset.x) / scale;
         w.y = (pt.y - offset.y) / scale;
-        return CPoint((int)floor(w.x + 0.5), (int)floor(w.y + 0.5));
+        return w;
     }
 
     // Convert world (document) to screen (client)
-    CPoint WorldToScreen(const CPoint2d& wpt) const {
+    CPoint WorldToScreen(const CPoint2d& wpt /* World */) const {
         double sx = wpt.x * scale + offset.x;
         double sy = wpt.y * scale + offset.y;
         return CPoint((int)floor(sx + 0.5), (int)floor(sy + 0.5));

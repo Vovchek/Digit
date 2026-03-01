@@ -248,10 +248,13 @@ void CImageDoc::CalcAproximation()
 	WavefrontFromContoursSolver_Bilinear solver;
 	auto topogram = wf.run(solver);
 
-	std::string filename = GetRealPath();
-	filename += _T("topogram.txt");
-	std::ofstream out(filename);
+	std::string path = GetRealPath();
+	auto file= path + "topogram.txt";
+	std::ofstream out(file);
 	out << topogram;
+	file = path + "topogram.mtr";
+	std::ofstream outMtr(file);
+	topogram.saveMtrMatrix(outMtr);
 
 	//CControls* pCtrls = GetControls();
 	//CApproxSetDlg D(GetMainFrame());

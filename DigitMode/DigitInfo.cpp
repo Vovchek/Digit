@@ -242,7 +242,7 @@ void CDigitInfo::CreateRedCenters()
 
 }
  
-void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand)
+void CDigitInfo::Draw(CDC* pDC, int DotSide, CDPoint activeDot, CDPoint cursorPos, bool rubberBand)
 {
     CControls* pCtrls = GetControls();
     if (!pCtrls) return;
@@ -317,11 +317,14 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos,
 
             if (cursorPos != CPoint(-1, -1) && rubberBand) {
                 // Rubber-band pen: use world width to keep 1px on screen
-                int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
-                CPen rubberPen; rubberPen.CreatePen(PS_DOT, w, RGB(255,128,0));
+                //int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
+                CPen rubberPen; rubberPen.CreatePen(PS_DOT, 0, RGB(255,128,0));
                 CPen* oldPen = pDC->SelectObject(&rubberPen);
-                pDC->MoveTo(activeDot);
-                pDC->LineTo(cursorPos);
+                // TODO: use GDI++ for better precision
+				CPoint dot = CPoint(static_cast<int>(activeDot.x + 0.5), static_cast<int>(activeDot.y + 0.5));
+                pDC->MoveTo(dot);
+				CPoint cursor = CPoint(static_cast<int>(cursorPos.x + 0.5), static_cast<int>(cursorPos.y + 0.5));
+                pDC->LineTo(cursor);
                 pDC->SelectObject(oldPen);
             }
         }

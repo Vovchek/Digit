@@ -147,21 +147,22 @@ protected:
 protected:
     void DrawCrossedLines(CDC* pDC);
     void DrawBounds(CDC* pDC);
-    void DrawMouseMoveCrossedLines(CPoint P);
-    void BeginLine(CPoint P);
-    void EndLine(CPoint P2);
-    void DrawMouseMoveMeasureLine(CPoint P2);
+    void DrawMouseMoveCrossedLines(CPoint P /* Screen */);
+    void BeginLine(CPoint P /* Screen */);
+    void EndLine(CPoint P2 /* Screen */);
+    void DrawMouseMoveMeasureLine(CPoint P2 /* Screen */);
     void DrawMeasureLine(CDC* pDC);
     void DrawDigitInfo(CDC* pDC);
     void DrawAproximation(CDC* pDC);
 
-    void BeginDragDot(CPoint P);
-    void DragDot(CPoint P, BOOL newPos=TRUE);
-    void DropDot(CPoint P);
+	// deperecated/eliminated use firnges editing methods (replaced by FringeInputHandler)
+    //void BeginDragDot(CPoint P /* Screen */);
+    //void DragDot(CPoint P /* Screen */, BOOL newPos=TRUE);
+    //void DropDot(CPoint P /* Screen */);
 
-    void BeginDragZapSection(CPoint P);
-    void DragZapSection(CPoint P, BOOL newPos=TRUE);
-    void DropZapSection(CPoint P);
+    //void BeginDragZapSection(CPoint P /* Screen */);
+    //void DragZapSection(CPoint P /* Screen */, BOOL newPos=TRUE);
+    //void DropZapSection(CPoint P /* Screen */);
 
 protected:
 	virtual ~CImageView();

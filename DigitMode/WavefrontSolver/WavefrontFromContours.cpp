@@ -186,6 +186,93 @@ std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& re
 	return os;
 }
 
+	
+bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
+{
+	if (data_.empty() || rows_ == 0 || cols_ == 0)
+		return false;
+
+	// Write header
+	os << "Size=" << rows_ << "\n";
+	os << "[MATRIX]\n";
+
+	// Calculate normalization parameters
+	double centerX = (bounds_.minX() + bounds_.maxX()) / 2.0;
+	double centerY = (bounds_.minY() + bounds_.maxY()) / 2.0;
+	double halfWidth = bounds_.width() / 2.0;
+	double halfHeight = bounds_.height() / 2.0;
+	double maxScale = (std::max)(halfWidth, halfHeight);
+
+	if (maxScale == 0.0) maxScale = 1.0;
+
+	// Format settings
+	const int pairsPerLine = 6;
+	const std::string indent(7, ' ');  // 7 spaces to align with first Z value
+
+	std::ios_base::fmtflags oldFlags = os.flags();
+	std::streamsize oldPrec = os.precision();
+	os << std::fixed << std::setprecision(4);
+
+	// Iterate through rows
+	for (int row = 0; row < rows_; ++row)
+	{
+		// Calculate Y coordinate at the center of this row
+		double y_phys = bounds_.minY() + (row + 0.5) * bounds_.height() / rows_;
+		double y_norm = (y_phys - centerY) / maxScale;
+
+		bool firstLineOfRow = true;
+		int pairCount = 0;
+
+		// Write all columns for this row
+		for (int col = 0; col < cols_; ++col)
+		{
+			int idx = row * cols_ + col;
+			double z = data_[idx];
+			if (std::isnan(z) || std::isinf(z))
+				continue;  // Skip NaN/Inf values entirely for MTR output
+
+			// Calculate X coordinate at the center of this column
+			double x_phys = bounds_.minX() + (col + 0.5) * bounds_.width() / cols_;
+			double x_norm = (x_phys - centerX) / maxScale;
+
+			// Start new output line if needed
+			if (pairCount == 0)
+			{
+				if (firstLineOfRow)
+				{
+					os << y_norm;  // First line starts with normalized Y
+					firstLineOfRow = false;
+				}
+				else
+				{
+					os << "\n" << indent;  // Continuation line with indentation
+				}
+			}
+
+			// Write (Z, X) pair
+			os << " " << z << " " << x_norm;
+			pairCount++;
+
+			// Move to next text line after 6 pairs (if more columns remain)
+			if (pairCount == pairsPerLine && col < cols_ - 1)
+			{
+				pairCount = 0;
+			}
+		}
+
+		// End of matrix row with E tag
+		os << " E\n";
+	}
+
+	os << "END\n";
+
+	// Restore formatting
+	os.flags(oldFlags);
+	os.precision(oldPrec);
+
+	return true;
+}
+
 // Solver implementation
 WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const WavefrontFromContoursContext& ctx) const
 {

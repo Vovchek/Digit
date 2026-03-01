@@ -360,6 +360,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="docs\CApertureCtrls-CleanArchitecture.md" />
     <None Include="docs\CApertureCtrls-Simplified.md" />
     <None Include="Docs\COMPLETE_SOLUTION_SUMMARY.md" />
+    <None Include="Docs\CoordinateSystemMarking_Summary.md" />
     <None Include="Docs\DAY_1_COMPLETE.md" />
     <None Include="Docs\DAY_1_SUMMARY.md" />
     <None Include="Docs\DAY_2_COMPLETE.md" />

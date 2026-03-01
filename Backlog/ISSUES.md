@@ -1,15 +1,13 @@
 ﻿# Urgent needs (000+)
 ### 001 WinFringe .frn format compatibility issues
-* END after [BOUNDS], [ELLISPSES], [FRINGES] sections
-* [IMAGE_FILE]
-* Name=
-* BOUNDS: x0 xk y0 yk 0 1
-* ignore bounds on loading (TODO:decide bounds meaning later)
+### 002 smooth and robust interpolation
+### 003 adjust sections spacing to fringes spacing
 
 ---
 # Bugs (100+)
 ### 101 <del>Rectangular bound refuses to be stretched with handles</del>
 ### 102 drag-created rectangular bound is 90-degrees rotated
+### 103 Dragging poins and segments aims at the wrong position
 
 ---
 # Incomplete (200+)

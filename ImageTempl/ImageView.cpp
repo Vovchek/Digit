@@ -521,14 +521,15 @@ void CImageView::DrawDigitInfo(CDC* pDC)
 	// Delegate drawing to CDigitInfo::Draw which handles extremums, dots,
 	// fringes and rubber-band consistently in world coordinates.
 	int DotSide = 6; pCtrls->GetCorrectDotSize(DotSide, pDoc);
-	CPoint active = m_fringeInputHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
-	// CursorPos is already in world coordinates (set in OnMouseMove)
-	CPoint cursor = m_viewTransform.ScreenToWorld(m_CursorPos);
-	bool rubber = false;
+	CDPoint activeDotWorld = m_fringeInputHandler.GetInputHandler().GetActiveDot(&pDoc->Digit);
+	// TODO: resolve mess with CPoint2d vs CDPoint - eliminate one of them
+	CPoint2d cursorPt = m_viewTransform.ScreenToWorld(m_CursorPos);
+	CDPoint cursorPtWorld(cursorPt.x, cursorPt.y);
+	bool showRubber = false;
 	if (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter) {
-		rubber = m_fringeInputHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
+		showRubber = m_fringeInputHandler.GetInputHandler().GetRubberBand(&pDoc->Digit);
 	}
-	pDoc->Digit.Draw(pDC, DotSide, active, cursor, rubber);
+	pDoc->Digit.Draw(pDC, DotSide, activeDotWorld, cursorPtWorld, showRubber);
 
 	// Restore previous transform/state
 	if (hadOld) SetWorldTransform(hdc, &oldX);
@@ -607,14 +608,14 @@ void CImageView::OnDraw(CDC* pDC)
 	// to screen via m_viewTransform.WorldToScreen when needed.
 
 	DrawMeasureLine(pDrawDC);
-	if (pCtrls->EnableCustomDots) {
-		DrawCustomDots(pDrawDC);
-		DrawCurBound(pDrawDC);
-	}
-	else if (pDoc->Tracker.GetEnableState()) {
-		pDoc->Tracker.DrawTracker(pDrawDC);
-		DrawCurBound(pDrawDC);
-	}
+	//if (pCtrls->EnableCustomDots) {
+	//	DrawCustomDots(pDrawDC);
+	//	DrawCurBound(pDrawDC);
+	//}
+	//else if (pDoc->Tracker.GetEnableState()) {
+	//	pDoc->Tracker.DrawTracker(pDrawDC);
+	//	DrawCurBound(pDrawDC);
+	//}
 	if (pDoc->IsFotoSections()) {
 		DrawCrossedLines(pDrawDC);
 		pDoc->ReSetSections(m_CursorPos);
@@ -1051,113 +1052,117 @@ void CImageView::DrawMouseMoveCrossedLines(CPoint P)
 		retPen->DeleteObject();
 }
 
-void CImageView::BeginDragDot(CPoint P)
-{
-	Invalidate(FALSE);
-	SetCapture();
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CPoint P1;
-	pDoc->GetLockedDotPos(P1);
-	m_Captured = TRUE;
-	DragDot(P1);
-}
+// deprecated/eliminated - use fringes edits
+//void CImageView::BeginDragDot(CPoint P)
+//{
+//	Invalidate(FALSE);
+//	SetCapture();
+//	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+//	CPoint P1;
+//	pDoc->GetLockedDotPos(P1);
+//	m_Captured = TRUE;
+//	DragDot(P1);
+//}
 
-void CImageView::DragDot(CPoint P, BOOL newPos)
-{
-	if (m_Captured) {
-		CImageDoc* pDoc = (CImageDoc*)GetDocument();
-		CControls* pCtrls = GetControls();
-		int DotSide;
-		pCtrls->GetCorrectDotSize(DotSide, pDoc);
-		int DotSide12 = DotSide / 2;
-		CClientDC dc(this);
-		OnPrepareDC(&dc);
+// deprecated/eliminated - use fringes edits
+//void CImageView::DragDot(CPoint P, BOOL newPos)
+//{
+//	if (m_Captured) {
+//		CImageDoc* pDoc = (CImageDoc*)GetDocument();
+//		CControls* pCtrls = GetControls();
+//		int DotSide;
+//		pCtrls->GetCorrectDotSize(DotSide, pDoc);
+//		int DotSide12 = DotSide / 2;
+//		CClientDC dc(this);
+//		OnPrepareDC(&dc);
+//
+//		// Save DC state so selections and mapping are restored safely
+//		int nSave = dc.SaveDC();
+//
+//		CPen pen;
+//		pen.CreatePen(PS_SOLID, 0, InvColor);
+//		CBrush br;
+//		br.CreateSolidBrush(InvColor);
+//
+//		dc.SelectObject(&pen);
+//		dc.SelectObject(&br);
+//
+//		int orop = dc.SetROP2(R2_XORPEN);
+//
+//		CPoint P1;
+//
+//		pDoc->GetLockedDotPos(P1);
+//		dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
+//
+//		if (pCtrls->ViewState & V_ZAPSECTIONS) {
+//			P.y = P1.y;
+//		}
+//
+//		pDoc->SetLockedDotPos(P);
+//		if (newPos) {
+//			pDoc->GetLockedDotPos(P1);
+//			dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
+//		}
+//		dc.SetROP2(orop);
+//
+//		// restore the DC (reselects previous pen/brush, clip, mapping, etc.)
+//		dc.RestoreDC(nSave);
+//	}
+//}
 
-		// Save DC state so selections and mapping are restored safely
-		int nSave = dc.SaveDC();
-
-		CPen pen;
-		pen.CreatePen(PS_SOLID, 0, InvColor);
-		CBrush br;
-		br.CreateSolidBrush(InvColor);
-
-		dc.SelectObject(&pen);
-		dc.SelectObject(&br);
-
-		int orop = dc.SetROP2(R2_XORPEN);
-
-		CPoint P1;
-
-		pDoc->GetLockedDotPos(P1);
-		dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
-
-		if (pCtrls->ViewState & V_ZAPSECTIONS) {
-			P.y = P1.y;
-		}
-
-		pDoc->SetLockedDotPos(P);
-		if (newPos) {
-			pDoc->GetLockedDotPos(P1);
-			dc.Ellipse(P1.x - DotSide12, P1.y - DotSide12, P1.x + DotSide12, P1.y + DotSide12);
-		}
-		dc.SetROP2(orop);
-
-		// restore the DC (reselects previous pen/brush, clip, mapping, etc.)
-		dc.RestoreDC(nSave);
-	}
-}
-
-void CImageView::DropDot(CPoint P)
-{
-	m_Captured = FALSE;
-	InvalidateRect(NULL, FALSE);
-}
-
-void CImageView::BeginDragZapSection(CPoint P)
-{
-	//	Invalidate(FALSE);
-	SetCapture();
-	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	CPoint P1, P2;
-	pDoc->GetLockedZapSectionXYPos(P1, P2);
-	m_Captured = TRUE;
-	DragZapSection(P1);
-}
+// deprecated/eliminated - use fringes edits
+//void CImageView::DropDot(CPoint P)
+//{
+//	m_Captured = FALSE;
+//	InvalidateRect(NULL, FALSE);
+//}
+//
+//void CImageView::BeginDragZapSection(CPoint P)
+//{
+//	//	Invalidate(FALSE);
+//	SetCapture();
+//	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+//	CPoint P1, P2;
+//	pDoc->GetLockedZapSectionXYPos(P1, P2);
+//	m_Captured = TRUE;
+//	DragZapSection(P1);
+//}
+//
+//// deprecated/eliminated - no zap sections edits
+//void CImageView::DragZapSection(CPoint P, BOOL newPos/*TRUE*/)
+//{
+//	//if (m_Captured) {
+//	//	CClientDC dc(this);
+//	//	OnPrepareDC(&dc);
+//	//	CPen pen;
+//	//	pen.CreatePen(PS_SOLID, 0, InvColor);
+//	//	CPen* open = dc.SelectObject(&pen);
+//	//	int orop = dc.SetROP2(R2_XORPEN);
+//
+//	//	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+//	//	CPoint P1, P2;
+//	//	pDoc->GetLockedZapSectionXYPos(P1, P2);
+//	//	dc.MoveTo(P1);
+//	//	dc.LineTo(P2);
+//	//	pDoc->SetLockedZapSectionYPos(P.y);
+//	//	if (newPos) {
+//	//		pDoc->GetLockedZapSectionXYPos(P1, P2);
+//	//		dc.MoveTo(P1);
+//	//		dc.LineTo(P2);
+//	//	}
+//	//	dc.SetROP2(orop);
+//	//	CPen* retPen = dc.SelectObject(open);
+//	//	if (retPen)
+//	//		retPen->DeleteObject();
+//	//}
+//}
 
 // deprecated/eliminated - no zap sections edits
-void CImageView::DragZapSection(CPoint P, BOOL newPos/*TRUE*/)
-{
-	//if (m_Captured) {
-	//	CClientDC dc(this);
-	//	OnPrepareDC(&dc);
-	//	CPen pen;
-	//	pen.CreatePen(PS_SOLID, 0, InvColor);
-	//	CPen* open = dc.SelectObject(&pen);
-	//	int orop = dc.SetROP2(R2_XORPEN);
-
-	//	CImageDoc* pDoc = (CImageDoc*)GetDocument();
-	//	CPoint P1, P2;
-	//	pDoc->GetLockedZapSectionXYPos(P1, P2);
-	//	dc.MoveTo(P1);
-	//	dc.LineTo(P2);
-	//	pDoc->SetLockedZapSectionYPos(P.y);
-	//	if (newPos) {
-	//		pDoc->GetLockedZapSectionXYPos(P1, P2);
-	//		dc.MoveTo(P1);
-	//		dc.LineTo(P2);
-	//	}
-	//	dc.SetROP2(orop);
-	//	CPen* retPen = dc.SelectObject(open);
-	//	if (retPen)
-	//		retPen->DeleteObject();
-	//}
-}
-
-void CImageView::DropZapSection(CPoint P)
-{
-	m_Captured = FALSE;
-	InvalidateRect(NULL, FALSE);
-}
+//void CImageView::DropZapSection(CPoint P)
+//{
+//	m_Captured = FALSE;
+//	InvalidateRect(NULL, FALSE);
+//}
 
 void CImageView::OnAutoDigit()
 {

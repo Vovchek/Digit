@@ -102,7 +102,7 @@ public:
     void DocToClient(CRect& rect);
     void DocToClient(CSize& size);
 
-    void GetZoomCoefficent(double& kZ);
+    //void GetZoomCoefficent(double& kZ);
     //double GetZoomLevel() { return m_zoomLevel; }
     void SetZoomMinMax(float minZ, float maxZ) { m_zoomMin = minZ; m_zoomMax = maxZ; }
     void ZoomIn(CPoint* p=nullptr, float factor=1.1f) { m_zoomLevel *= factor; if(m_zoomLevel>m_zoomMax) m_zoomLevel=m_zoomMax; }
@@ -112,14 +112,14 @@ public:
     void DrawImage(CDC* pDC);
 	void DrawBounds(CDC* pDC);
     void DrawBackGround(CDC* pDC);
-    void DrawCurBound(CDC* pDC);
+    //void DrawCurBound(CDC* pDC);
     void DrawMarker(CDC* pDC, CPoint cP, double zoomMark=1., COLORREF Color=RGB(0,0,0));
-    void DrawCustomDots(CDC* pDC);
-    void SetCustomDot(CPoint point);
-	void DragCustomDot(CPoint point, bool ReDraw=true);
-	void DropCustomDot(CPoint point);
-    void DrawTracker(CDC* pDC);
-    CPoint GetHandle(int nHandle);
+    //void DrawCustomDots(CDC* pDC);
+    //void SetCustomDot(CPoint point);
+	//void DragCustomDot(CPoint point, bool ReDraw=true);
+	//void DropCustomDot(CPoint point);
+    //void DrawTracker(CDC* pDC);
+    //CPoint GetHandle(int nHandle);
     //void SetTrackerRect(CRect wR = CRect(-1,-1,-1,-1));
 
 // Overrides
@@ -140,9 +140,10 @@ protected:
     void CreateDefaultMenu(CPoint point);
     void CreateBoundMenu(CPoint point);
 
-	void BeginTracker(CPoint P1);
-    void DragTracker(CPoint P2);
-    void DropTracker(CPoint P2);
+	// deprecated/eliminated tracker methods (replaced by InteractionManager and tool-based interactions)
+    //void BeginTracker(CPoint P1);
+    //   void DragTracker(CPoint P2);
+    //   void DropTracker(CPoint P2);
 
 #ifdef _DEBUG
 	virtual void AssertValid() const;
@@ -164,7 +165,7 @@ protected:
 	afx_msg void OnZoomOut();
 	afx_msg void OnZoomFit();
     afx_msg void OnCopy();
-    afx_msg void OnApplyBound();
+    /*afx_msg void OnApplyBound();
     afx_msg void OnRemoveLastBound();
 	afx_msg void OnRemoveCurBound();
     afx_msg void OnRemoveAllBound();
@@ -172,8 +173,8 @@ protected:
     afx_msg void OnSetupRectBound();
     afx_msg void OnScrRoundBound();
     afx_msg void OnScrEllipseBound();
-    afx_msg void OnScrRectBound();
-	afx_msg void OnScrPlgBound();
+    afx_msg void OnScrRectBound();*/
+	//afx_msg void OnScrPlgBound();
 	afx_msg BOOL OnEraseBkgnd(CDC* pDC);
 	afx_msg void OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);
 	afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar);

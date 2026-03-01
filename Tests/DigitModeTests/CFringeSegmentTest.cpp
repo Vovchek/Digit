@@ -335,7 +335,7 @@ TEST(CFringeTest, IsPointOnPolylineOutsideTolerance) {
 TEST(CFringeTest, GetBoundingRectEmpty) {
     CFringeSegment fringe(1.0);
     
-    CRect rect = fringe.GetBoundingRect();
+    CDRect rect = fringe.GetBoundingRect();
     
     EXPECT_EQ(0, rect.left);
     EXPECT_EQ(0, rect.top);
@@ -347,7 +347,7 @@ TEST(CFringeTest, GetBoundingRectSinglePoint) {
     CFringeSegment fringe(1.0);
     fringe.AddPoint(CDPoint(100, 200));
     
-    CRect rect = fringe.GetBoundingRect();
+    CDRect rect = fringe.GetBoundingRect();
     
     EXPECT_EQ(100, rect.left);
     EXPECT_EQ(200, rect.top);
@@ -361,7 +361,7 @@ TEST(CFringeTest, GetBoundingRectMultiplePoints) {
     fringe.AddPoint(CDPoint(150, 20));
     fringe.AddPoint(CDPoint(100, 80));
     
-    CRect rect = fringe.GetBoundingRect();
+    CDRect rect = fringe.GetBoundingRect();
     
     EXPECT_EQ(50, rect.left);
     EXPECT_EQ(20, rect.top);
@@ -536,7 +536,7 @@ TEST(CFringeTest, EmptyFringeOperations) {
     EXPECT_EQ(0, fringe.GetPointCount());
     EXPECT_EQ(0.0, fringe.GetArcLength());
     
-    CRect rect = fringe.GetBoundingRect();
+    CDRect rect = fringe.GetBoundingRect();
     EXPECT_EQ(0, rect.Width());
     EXPECT_EQ(0, rect.Height());
 }
@@ -561,7 +561,7 @@ TEST(CFringeTest, NegativeCoordinates) {
     EXPECT_EQ(-10.0, fringe.GetPoint(0).x);
     EXPECT_EQ(-20.0, fringe.GetPoint(0).y);
     
-    CRect rect = fringe.GetBoundingRect();
+    CDRect rect = fringe.GetBoundingRect();
     EXPECT_EQ(-10, rect.left);
     EXPECT_EQ(-20, rect.top);
 }

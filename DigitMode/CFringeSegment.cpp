@@ -105,7 +105,7 @@ void CFringeSegment::SetPoint(int idx, CDPoint p)
 
 // ===== Hit Testing =====
 
-int CFringeSegment::FindNearestPoint(CPoint screenP, int tolerance)
+int CFringeSegment::FindNearestPoint(CDPoint screenP, double tolerance) const
 {
     int nearestIdx = -1;
     double minDist = std::numeric_limits<double>::max();
@@ -124,16 +124,16 @@ int CFringeSegment::FindNearestPoint(CPoint screenP, int tolerance)
     return nearestIdx;
 }
 
-BOOL CFringeSegment::IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx)
+bool CFringeSegment::IsPointOnPolyline(CDPoint P, double tolerance, int& nearestIdx) const
 {
     nearestIdx = FindNearestPoint(P, tolerance);
     return (nearestIdx >= 0);
 }
 
-CRect CFringeSegment::GetBoundingRect() const
+CDRect CFringeSegment::GetBoundingRect() const
 {
     if (m_Points.empty()) {
-        return CRect(0, 0, 0, 0);
+        return { 0., 0., 0., 0. };
     }
     
     double minX = std::numeric_limits<double>::max();
@@ -148,8 +148,7 @@ CRect CFringeSegment::GetBoundingRect() const
         if (point.y > maxY) maxY = point.y;
     }
     
-    return CRect(static_cast<int>(minX), static_cast<int>(minY), 
-                 static_cast<int>(maxX), static_cast<int>(maxY));
+    return { minX, minY, maxX, maxY };
 }
 
 // ===== Drawing =====

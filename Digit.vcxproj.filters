@@ -844,6 +844,7 @@
     <None Include="Docs\PHASE_1_PROGRESS.md" />
     <None Include="Docs\DAY_3_COMPLETE.md" />
     <None Include="Docs\PHASE_1_COMPLETE.md" />
+    <None Include="Docs\CoordinateSystemMarking_Summary.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">

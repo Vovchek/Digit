@@ -27,15 +27,19 @@ HitResult FringeToolAdapter::HitTest(CPoint screenPt, int tolerance)
     }
 
     // Delegate to FringeInputHandler's hit-test capability
-    CPoint worldPt = screenPt;
+    CDPoint worldPt = { static_cast<double>(screenPt.x), static_cast<double>(screenPt.y) };
+	double worldTolerance = static_cast<double>(tolerance);
     if (m_fringeInputHandler->GetViewTransform()) {
-        worldPt = m_fringeInputHandler->GetViewTransform()->ScreenToWorld(screenPt);
+        auto p = m_fringeInputHandler->GetViewTransform()->ScreenToWorld(screenPt);
+        worldPt = {p.x, p.y};
+        worldTolerance /= m_fringeInputHandler->GetViewTransform()->GetScale();
+        worldTolerance = (std::max)(1., worldTolerance);
     }
 
     int hitSeg = -1, hitDot = -1;
     HitTester tester;
     SelectionLevel level = tester.HitTest(worldPt, hitSeg, hitDot, 
-        m_fringeInputHandler->GetDigitInfo()->Fringes);
+        m_fringeInputHandler->GetDigitInfo()->Fringes, worldTolerance);
 
     // Convert FringeInputHandler::HitResult to DigitMode::HitResult
     HitResult result;
@@ -46,7 +50,6 @@ HitResult FringeToolAdapter::HitTest(CPoint screenPt, int tolerance)
 
     return result;
 }
-
 
 // ========================================================================
 // Mouse Event Handling (Hover Tracking)

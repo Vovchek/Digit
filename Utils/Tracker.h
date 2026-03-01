@@ -38,8 +38,8 @@ class CMTraker
  	  void DrawMovedTracker(CDC* pDC);
 	  BOOL SetCursor(CWnd* pW, CDC* pDC, UINT nHitTest);
       int SelectPad(CWnd* pW, CDC* pDC);
-      void Track(CWnd* pW, CDC* pDC, CPoint P, bool Init, bool newRect=false);
-      BOOL IsPointInside(CDC* pDC, CPoint l_point);
+      void Track(CWnd* pW, CDC* pDC, CPoint P /* Screen */, bool Init, bool newRect=false);
+      BOOL IsPointInside(CDC* pDC, CPoint l_point /* Screen */);
       void SetPolygon(CDPolygon Plg);
 	  bool GetPolygon(CDPolygon& Plg);
 

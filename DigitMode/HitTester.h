@@ -26,7 +26,7 @@ private:
 public:
     /**
      * @brief Perform hit test at given point
-     * @param P Point in image coordinates
+     * @param P Point in image/world coordinates
      * @param outSegment [out] Segment index if hit
      * @param outDot [out] Dot or edge index if hit
      * @param segments Reference to segment array
@@ -45,29 +45,30 @@ public:
      * Note: Segments in reverse order (top-to-bottom z-order)
      */
     SelectionLevel HitTest(
-        CPoint P,
+        CDPoint P /* World */,
         int& outSegment,
         int& outDot,
-        const std::vector<::CFringeSegment>& segments
+        const std::vector<::CFringeSegment>& segments,
+		double tolerance = HIT_TOLERANCE
     ) const;
 
 private:
     /**
      * @brief Calculate distance from point to dot
-     * @param P Point in image coordinates
+     * @param P Point in image/world coordinates
      * @param dot Dot position
      * @return Euclidean distance in pixels
      */
-    double DotDistance(CPoint P, CDPoint dot) const;
+    double DotDistance(CDPoint P /* World */, CDPoint dot /* World */) const;
 
     /**
      * @brief Calculate distance from point to line segment
-     * @param P Point in image coordinates
+     * @param P Point in image/world coordinates
      * @param A Start point of segment
      * @param B End point of segment
      * @return Perpendicular distance to segment (or endpoint if outside)
      */
-    double DistanceToSegment(CPoint P, CDPoint A, CDPoint B) const;
+    double DistanceToSegment(CDPoint P /* World */, CDPoint A /* World */, CDPoint B /* World */) const;
 };
 
 } // namespace DigitMode

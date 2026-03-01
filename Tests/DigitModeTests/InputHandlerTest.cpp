@@ -284,15 +284,15 @@ TEST_F(InputHandlerTest, IsActiveSegmentValid_RequiresActiveEnd) {
 // ===== GetActiveDot Tests =====
 
 TEST_F(InputHandlerTest, GetActiveDot_NoActiveSegment) {
-    EXPECT_EQ(CPoint(-1, -1), inputHandler.GetActiveDot(&digitInfo));
+    EXPECT_EQ(CDPoint(-1, -1), inputHandler.GetActiveDot(&digitInfo));
 }
 
 TEST_F(InputHandlerTest, GetActiveDot_ActiveTail) {
     inputHandler.SetMode(FringeEditMode::Draw);
-    inputHandler.StartNewSegment(CPoint(10, 10), &digitInfo, &cmdDispatcher);
+    inputHandler.StartNewSegment(CDPoint(10, 10), &digitInfo, &cmdDispatcher);
     cmdDispatcher.Execute(std::make_unique<AddDotCommand>(&digitInfo, 0, 1, CDPoint(20, 20)));
     
-    CPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
+    CDPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
     EXPECT_EQ(20, activeDot.x);
 }
 
@@ -302,7 +302,7 @@ TEST_F(InputHandlerTest, GetActiveDot_ActiveHead) {
     
     inputHandler.ContinueSegment(iSeg, 0, &digitInfo);
     
-    CPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
+    CDPoint activeDot = inputHandler.GetActiveDot(&digitInfo);
     EXPECT_EQ(10, activeDot.x);
 }
 

@@ -87,21 +87,23 @@ public:
     void SetNumber(double n) { m_Number = n; }
     
     /// Check if fringe is closed loop
-    BOOL IsClosed() const { return m_bClosed; }
+    bool IsClosed() const { return m_bClosed; }
     
     /// Set closed loop state
     void SetClosed(BOOL bClosed) { m_bClosed = bClosed; }
     
     // ===== Hit Testing =====
-    /// Find nearest point to screen position within tolerance
+    /// Find nearest point to position within tolerance
+    /// @param worldP Point in screen coordinates
     /// @return Index of nearest point, or -1 if none within tolerance
-    int FindNearestPoint(CPoint screenP, int tolerance = 5);
+    int FindNearestPoint(CDPoint worldP /* World */, double tolerance = 5.) const;
     
     /// Check if point is on polyline within tolerance
-    BOOL IsPointOnPolyline(CPoint P, int tolerance, int& nearestIdx);
+    /// @param P Point in world coordinates
+    bool IsPointOnPolyline(CDPoint P /* World */, double tolerance, int& nearestIdx) const;
     
-    /// Get bounding rectangle
-    CRect GetBoundingRect() const;
+    /// Get bounding rectangle in world coordinates
+    CDRect GetBoundingRect() const;
     
     // ===== Drawing (UI dependency - to be removed later) =====
     void DrawDots(CDC* pDC, int dotSize, COLORREF color);

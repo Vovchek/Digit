@@ -113,10 +113,10 @@ public:
     // IInputHandler Implementation
     // ========================================================================
     
-    bool OnMouseDown(UINT flags, CPoint pt) override;
-    bool OnMouseMove(UINT flags, CPoint pt) override;
-    bool OnMouseUp(UINT flags, CPoint pt) override;
-    bool OnMouseWheel(UINT flags, short delta, CPoint pt) override;
+    bool OnMouseDown(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseMove(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseUp(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseWheel(UINT flags, short delta, CPoint pt /* Screen */) override;
     bool OnKeyDown(UINT nChar) override;
     bool OnKeyUp(UINT nChar) override;
     bool Cancel() override;
@@ -134,21 +134,24 @@ private:
     
     /**
      * @brief Handle mouse down in Select mode
+     * @param pt Point in screen coordinates
      * @return true if event consumed
      */
-    bool HandleSelectModeMouseDown(UINT flags, CPoint pt);
+    bool HandleSelectModeMouseDown(UINT flags, CPoint pt /* Screen */);
     
     /**
      * @brief Handle mouse down in Delete mode
+     * @param pt Point in screen coordinates
      * @return true if event consumed
      */
-    bool HandleDeleteModeMouseDown(UINT flags, CPoint pt);
+    bool HandleDeleteModeMouseDown(UINT flags, CPoint pt /* Screen */);
     
     /**
      * @brief Handle mouse down in Add modes (creation)
+     * @param pt Point in screen coordinates
      * @return true if event consumed
      */
-    bool HandleAddModeMouseDown(UINT flags, CPoint pt);
+    bool HandleAddModeMouseDown(UINT flags, CPoint pt /* Screen */);
 };
 
 } // namespace DigitMode

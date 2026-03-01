@@ -95,23 +95,23 @@ private:
     FringeEditMode currentMode = FringeEditMode::Navigate;  ///< Initialize currentMode to Navigate
 
     // Internal helpers for drag lifecycle
-    void BeginDotDrag(int segIdx, int dotIdx, CPoint start, ::CDigitInfo* pDigit);
-    void BeginEdgeDrag(int segIdx, int edgeStartIdx, CPoint start, ::CDigitInfo* pDigit);
-    void UpdateDragPreview(CPoint pt, ::CDigitInfo* pDigit);
+    void BeginDotDrag(int segIdx, int dotIdx, CDPoint start /* World */, ::CDigitInfo* pDigit);
+    void BeginEdgeDrag(int segIdx, int edgeStartIdx, CDPoint start /* World */, ::CDigitInfo* pDigit);
+    void UpdateDragPreview(CDPoint pt /* World */, ::CDigitInfo* pDigit);
     void CommitActiveDrag(class CommandDispatcher* pCmdDisp, ::CDigitInfo* pDigit);
 
     // Draw mode state
     int iActiveSegment = -1;  ///< Index of segment being drawn (-1 = none)
 	ActiveEnd activeEnd = ActiveEnd::None; ///< Currently active end during drawing
     // Transient interaction state
-    CPoint m_cursorPos = CPoint(-1, -1);
+    CDPoint m_cursorPos = CDPoint(-1, -1);
 	bool m_rubberBand = false;
 
     struct DragState {
         bool active = false;
         enum class Type { None, BoxSelect, MoveDot, MoveEdge, RubberBand } type = Type::None;
-        CPoint start = CPoint(-1, -1);
-        CPoint current = CPoint(-1, -1);
+        CDPoint start = CDPoint(-1, -1);
+        CDPoint current = CDPoint(-1, -1);
         int segmentIndex = -1;
         int dotIndex = -1;
         // For edge drags store original end-point positions
@@ -130,9 +130,9 @@ public:
     // Pan/zoom short-circuit state
     bool m_isPanning = false;
     CPoint m_lastPanPoint = CPoint(-1, -1);
-    void OnMouseWheel(const CPoint& pt, short zDelta, ViewTransform* view);
-    void BeginPan(const CPoint& pt);
-    void ContinuePan(const CPoint& pt, ViewTransform* view);
+    void OnMouseWheel(const CPoint& pt /* Screen */, short zDelta, ViewTransform* view);
+    void BeginPan(const CPoint& pt /* Screen */);
+    void ContinuePan(const CPoint& pt /* Screen */, ViewTransform* view);
     void EndPan();
     /**
      * @brief Set the current editing mode
@@ -166,13 +166,13 @@ public:
 
     /**
      * @brief Start drawing a new segment at point P
-     * @param P Starting point in image coordinates
+     * @param P Starting point in world coordinates
      * @param pDigit Pointer to DigitInfo (for accessing Fringes)
      * @param pCmdDisp Pointer to CommandDispatcher (to create/execute Commands directly)
      *
      * Creates a new segment with incremented Number value
      */
-    void StartNewSegment(CPoint P, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+    void StartNewSegment(CDPoint P /* World */, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
 
     /**
      * @brief Continue drawing from an existing segment end
@@ -202,12 +202,16 @@ public:
     void EndCurrentSegment();
 
     // Preview & commit hooks used by ImageView adapter
-    void OnMouseMove(CPoint pt, const ModifierState& mods, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
-    void OnLButtonUp(CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+    void OnMouseMove(CDPoint pt /* World */, const ModifierState& mods, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp, 
+        const ::ViewTransform* view = nullptr);
+    void OnLButtonUp(CDPoint pt /* World */, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp, 
+        const ::ViewTransform* view = nullptr);
 
     // Full event handlers (higher-level adapter may call these)
-    void OnLButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
-    void OnRButtonDown(UINT flags, CPoint pt, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp);
+    void OnLButtonDown(UINT flags, CDPoint pt /* World */, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp, 
+        const ::ViewTransform* view = nullptr);
+    void OnRButtonDown(UINT flags, CDPoint pt /* World */, ::CDigitInfo* pDigit, class CommandDispatcher* pCmdDisp, 
+        const ::ViewTransform* view = nullptr);
 
     void OnKeyUp(UINT nChar, ::CDigitInfo* pDigit, CommandDispatcher* pCmdDisp);
 
@@ -225,27 +229,27 @@ public:
 
     /**
      * @brief Handle mouse drag for box selection in Navigate mode
-     * @param start Start point of drag (screen coordinates)
-     * @param end End point of drag (screen coordinates)
+     * @param start Start point of drag (world coordinates)
+     * @param end End point of drag (world coordinates)
      * @param pDigit Pointer to DigitInfo (for accessing segments)
      */
-    void HandleBoxSelection(CPoint start, CPoint end, class CDigitInfo* pDigit);
+    void HandleBoxSelection(CDPoint start /* World */, CDPoint end /* World */, class CDigitInfo* pDigit);
 
     /**
      * @brief Handle mouse drag events
-     * @param start Starting point of the drag
-     * @param end Ending point of the drag
+     * @param start Starting point of the drag (world coordinates)
+     * @param end Ending point of the drag (world coordinates)
      * @param pDigit Pointer to the digit information
      */
-    void OnMouseDrag(CPoint start, CPoint end, CDigitInfo* pDigit);
+    void OnMouseDrag(CDPoint start /* World */, CDPoint end /* World */, CDigitInfo* pDigit);
 
     // Query helpers
     bool HasActiveSegment() const { return iActiveSegment >= 0; }
     bool IsActiveSegmentValid(const ::CDigitInfo* doc) const;
     bool GetRubberBand(const ::CDigitInfo* doc) const;
     ActiveEnd GetActiveEnd() const { return activeEnd; }
-    CPoint GetCurrentCursorPos() const { return m_cursorPos; }
-	CPoint GetActiveDot(const ::CDigitInfo* doc) const;
+    CDPoint GetCurrentCursorPos() const { return m_cursorPos; }
+	CDPoint GetActiveDot(const ::CDigitInfo* doc) const;
     
     /**
      * @brief Get hover state as SelectedObject for tooltip generation

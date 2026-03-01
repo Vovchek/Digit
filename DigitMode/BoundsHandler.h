@@ -201,12 +201,14 @@ public:
     
     /**
      * Begin dragging a shape control point
+     * @param screenStart Starting position in screen coordinates
      * Creates preview clone, does NOT modify document
      */
     void BeginDrag(aperture::TypeLimits type, size_t index, int controlPointIndex, const CPoint& screenStart);
     
     /**
      * Update drag position
+     * @param screenCurrent Current position in screen coordinates
      * Modifies preview only, does NOT touch document
      */
     void UpdateDrag(const CPoint& screenCurrent);
@@ -234,11 +236,15 @@ public:
     
     /**
      * Convert screen coordinates to world with double precision
+     * @param screenPt Point in screen coordinates
+     * @return Point in world coordinates
      */
     CPoint2d ScreenToWorldDouble(const CPoint& screenPt) const;
     
     /**
      * Convert world coordinates to ApertureCore Point
+     * @param worldPt Point in world coordinates
+     * @return ApertureCore Point
      */
     aperture::Point WorldToAperturePoint(const CPoint2d& worldPt) const {
         return aperture::Point{worldPt.x, worldPt.y};
@@ -246,6 +252,8 @@ public:
     
     /**
      * Convert screen directly to ApertureCore Point
+     * @param screenPt Point in screen coordinates
+     * @return ApertureCore Point in world space
      */
     aperture::Point ScreenToAperturePoint(const CPoint& screenPt) const {
         CPoint2d world = ScreenToWorldDouble(screenPt);

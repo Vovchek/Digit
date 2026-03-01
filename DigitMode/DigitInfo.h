@@ -871,7 +871,7 @@ class CDigitInfo
 	   * 
 	   * @todo Remove UI dependency (uses CDC)
 	   */
-	  void Draw(CDC* pDC, int DotSide, CPoint activeDot, CPoint cursorPos, bool rubberBand = false);
+	  void Draw(CDC* pDC, int DotSide, CDPoint activeDot, CDPoint cursorPos, bool rubberBand = false);
 
       // ========================================================================
       // FRINGE SPACING ANALYSIS

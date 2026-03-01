@@ -7,6 +7,7 @@
 class CFringeSegment;
 // Forward declare CDigitInfo to avoid header dependency
 class CDigitInfo;
+#include "MGTools/Include/Utils/BaseDataType.h" // CDPoint, CDRect
 
 namespace DigitMode {
 
@@ -125,7 +126,7 @@ public:
      * - Fringe mode: All segments with same Number if any segment intersects
      * - AddMode: Add to existing selection instead of replacing
      */
-    size_t SelectBox(const CRect& box, const std::vector<::CFringeSegment>& segments,
+    size_t SelectBox(const CDRect& box, const std::vector<::CFringeSegment>& segments,
                      BoxSelectionMode mode = BoxSelectionMode::Default);
 
     // ===== Multi-Selection =====

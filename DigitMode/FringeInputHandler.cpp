@@ -74,20 +74,22 @@ bool FringeInputHandler::OnMouseDown(UINT flags, CPoint pt)
         return false;  // Don't consume, let navigation handle pan
     }
     
-    CPoint worldPt = pt;
+    // Convert screen coordinates to world coordinates
+    CDPoint worldPt(pt.x, pt.y);
     if (m_pTransform) {
-        worldPt = m_pTransform->ScreenToWorld(pt);
+        CPoint2d worldPtScreen = m_pTransform->ScreenToWorld(pt);
+        worldPt = CDPoint(worldPtScreen.x, worldPtScreen.y);
     }
 
     // Left button
     if (flags & MK_LBUTTON) {
-        m_inputHandler.OnLButtonDown(flags, worldPt, m_pDigit, m_pDispatcher);
+        m_inputHandler.OnLButtonDown(flags, worldPt, m_pDigit, m_pDispatcher, m_pTransform);
         return true;  // Consumed
     }
     
     // Right button
     if (flags & MK_RBUTTON) {
-        m_inputHandler.OnRButtonDown(flags, worldPt, m_pDigit, m_pDispatcher);
+        m_inputHandler.OnRButtonDown(flags, worldPt, m_pDigit, m_pDispatcher, m_pTransform);
         return true;  // Consumed
     }
     
@@ -112,13 +114,15 @@ bool FringeInputHandler::OnMouseMove(UINT flags, CPoint pt)
     mods.shift = (flags & MK_SHIFT) != 0;
     mods.alt = (GetKeyState(VK_MENU) & 0x8000) != 0;
 
-    CPoint worldPt = pt;
+    // Convert screen coordinates to world coordinates
+    CDPoint worldPt(pt.x, pt.y);
     if (m_pTransform) {
-        worldPt = m_pTransform->ScreenToWorld(pt);
+        CPoint2d worldPtScreen = m_pTransform->ScreenToWorld(pt);
+        worldPt = CDPoint(worldPtScreen.x, worldPtScreen.y);
     }
     
     // Delegate to InputHandler
-    m_inputHandler.OnMouseMove(worldPt, mods, m_pDigit, m_pDispatcher);
+    m_inputHandler.OnMouseMove(worldPt, mods, m_pDigit, m_pDispatcher, m_pTransform);
     
     return true;  // Consumed
 }
@@ -129,13 +133,15 @@ bool FringeInputHandler::OnMouseUp(UINT flags, CPoint pt)
         return false;
     }
 
-    CPoint worldPt = pt;
+    // Convert screen coordinates to world coordinates
+    CDPoint worldPt(pt.x, pt.y);
     if (m_pTransform) {
-        worldPt = m_pTransform->ScreenToWorld(pt);
+        CPoint2d worldPtScreen = m_pTransform->ScreenToWorld(pt);
+        worldPt = CDPoint(worldPtScreen.x, worldPtScreen.y);
     }
     
     // Left button up
-    m_inputHandler.OnLButtonUp(worldPt, m_pDigit, m_pDispatcher);
+    m_inputHandler.OnLButtonUp(worldPt, m_pDigit, m_pDispatcher, m_pTransform);
     return true;  // Consumed
 }
 

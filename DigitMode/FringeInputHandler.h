@@ -119,10 +119,10 @@ public:
     // IInputHandler Implementation
     // ========================================================================
     
-    bool OnMouseDown(UINT flags, CPoint pt) override;
-    bool OnMouseMove(UINT flags, CPoint pt) override;
-    bool OnMouseUp(UINT flags, CPoint pt) override;
-    bool OnMouseWheel(UINT flags, short delta, CPoint pt) override;
+    bool OnMouseDown(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseMove(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseUp(UINT flags, CPoint pt /* Screen */) override;
+    bool OnMouseWheel(UINT flags, short delta, CPoint pt /* Screen */) override;
     bool OnKeyDown(UINT nChar) override;
     bool OnKeyUp(UINT nChar) override;
     bool Cancel() override;
