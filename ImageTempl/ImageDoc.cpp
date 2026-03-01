@@ -245,16 +245,13 @@ void CImageDoc::CalcAproximation()
     );
 	
 	WavefrontFromContours wf(input);
+	WavefrontFromContoursSolver_Bilinear solver;
+	auto topogram = wf.run(solver);
 
-	//wf.setStrategy(std::make_unique<GradientPoissonStrategy>());
-	// auto bilinearSolver
-	//WavefrontFromIsolines::Params p;
-	//auto topogram = wf.solve();
-	//
-	//std::string filename = GetRealPath();
-	//filename += _T("topogram.txt");
-	//std::ofstream out(filename);
-	//out << topogram;
+	std::string filename = GetRealPath();
+	filename += _T("topogram.txt");
+	std::ofstream out(filename);
+	out << topogram;
 
 	//CControls* pCtrls = GetControls();
 	//CApproxSetDlg D(GetMainFrame());

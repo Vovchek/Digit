@@ -714,3 +714,84 @@
 Размер изображения: 701 X 697
 Ввод файла: c:\users\chekalvn\source\repos\vovchek\digit\interferogramm\morozoff-1.jpg
 Размер изображения: 1280 X 960
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+ Имя  =
+ Дата 28.02.2026 Время 21:02:44
+ Kратность интерферометра:       1.000
+ Угол разворота системы координат:      0.000
+ Cинус апертурного угла:      0.000
+ Число полос: 15
+ Максимальное число точек на полосе: 46
+     Данные о границах зрачка
+  Границы по X          1.000            510.000
+  Границы по Y          2.000            511.000
+ Диаметр:    509.00000
+ Координаты центра: : X0=    255.500     Y0=    256.500
+ Коэффициент нормировки зрачка :     1.0000
+ Число экранов на зрачке:   1
+  N      XC         YC         AE        BE        FIE       TE
+  1     0.000      0.000      1.000     1.000      0.000   Внешний
+   Число точек на интерферограмме:        534
+ Средняя квадратическая ошибка интерполяции :     0.0005
+                Анализ волнового фронта
+          Дата: 28.02.2026     Время: 21:02:44
+  Файл: zeromkc_1.frn
+  Имя: =
+  Единицы измерения деформаций: микрометры  Длина волны:     0.6328 
+  Опорная поверхность: плоскость
+  Выделенные аберрации: 
+  Форма представления зональной ошибки - Цернике
+  Тип анализа: оптимальный
+--------------------Параметры регулярных ошибок-----------------------------
+   D=   0.000 Lx=   4.413 Ly=   0.001 C=   4.419    RMS(W)= 0.034
+   A=   0.005   FIA=  -2.231   PV=   0.010        RMS(W-A)= 0.034   FA=0.003
+  B0=   0.000                  PV=   0.054        RMS(W-Z)= 0.032   FZ=0.084
+  B2=  -0.007
+  B4=   0.009
+  B6=   0.334
+  B8=   1.540
+   C=   0.009   FIC= -71.115   PV=   0.006        RMS(W-C)= 0.034   FC=0.001
+-----------------------------------------------------------------------------
+ Местные ошибки: PV=   0.148                        RMS(M)= 0.032
+              Характеристики волнового фронта
+    RMS       MIN       MAX       PV       STRL      STRH
+    0.034   -0.063     0.097     0.160     0.894     0.964
+         X :-0.048     0.984
+         Y : 0.496     0.096
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\zeromkc.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512
+Ввод файла: c:\users\vovch\source\repos\vovchek\digit\interferogramm\ZeroMKC.jpg
+Размер изображения: 512 X 512

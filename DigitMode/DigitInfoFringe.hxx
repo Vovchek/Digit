@@ -210,6 +210,7 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
 	
 	// Convert MFC arrays to aperture shapes
+	pA->GetShapes().clear();
 	DigitMode::CopyEllipsesToAperture(IntInfo.ArrEll, pA->GetShapes());
 	DigitMode::CopyRectsToAperture(IntInfo.ArrRect, pA->GetShapes());
 	DigitMode::CopyPolygonsToAperture(IntInfo.ArrPlg, pA->GetShapes());
@@ -284,7 +285,7 @@ BOOL CDigitInfo::CollectNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 	DigitMode::CopyApertureToEllipses(pA->GetShapes(), IntInfo.ArrEll);
 	DigitMode::CopyApertureToRects(pA->GetShapes(), IntInfo.ArrRect);
 	DigitMode::CopyApertureToPolygons(pA->GetShapes(), IntInfo.ArrPlg);
-	auto bounds = pA->GetShapes().getCombinedBounds();
+	auto bounds = pA->GetShapes().getVisibleRegion();
 	IntInfo.EBnd = XYBounds(bounds.left, bounds.top, bounds.right, bounds.bottom);
 
 	IntInfo.ImageSize[0] = pIm->ImageSize.cx;

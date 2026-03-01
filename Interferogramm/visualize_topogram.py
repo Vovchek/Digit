@@ -59,7 +59,7 @@ surf = ax.plot_surface(X, Y, Z, cmap='viridis', alpha=0.8, edgecolor='none')
 
 # Enlarge Z-axis visual scale by constraining Z-axis limits
 # This makes the surface details appear exaggerated
-Z_min, Z_max = np.nanmin(data), np.nanmax(data)
+Z_min, Z_max = np.nanmin(data_detrended), np.nanmax(data_detrended)
 Z_range = Z_max - Z_min
 print(f"Original Z range: {Z_min:.2f} to {Z_max:.2f} (range: {Z_range:.2f})")
 
@@ -69,7 +69,7 @@ Z_AXIS_MAX = Z_max      # Set custom max (e.g., 2.0)
 ax.set_zlim([Z_AXIS_MIN, Z_AXIS_MAX])
 
 # Also set box aspect for additional visual enhancement
-Z_SCALE = 1.0  # Increase this to enlarge Z-axis visually (e.g., 2.0, 3.0, 5.0)
+Z_SCALE = 0.2  # Increase this to enlarge Z-axis visually (e.g., 2.0, 3.0, 5.0)
 ax.set_box_aspect([1, 1, Z_SCALE])
 
 # Add labels and title

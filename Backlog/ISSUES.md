@@ -1,4 +1,10 @@
 ﻿# Urgent needs (000+)
+### 001 WinFringe .frn format compatibility issues
+* END after [BOUNDS], [ELLISPSES], [FRINGES] sections
+* [IMAGE_FILE]
+* Name=
+* BOUNDS: x0 xk y0 yk 0 1
+* ignore bounds on loading (TODO:decide bounds meaning later)
 
 ---
 # Bugs (100+)

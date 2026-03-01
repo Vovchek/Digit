@@ -14,9 +14,6 @@
 #undef max
 #undef min
 
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-
 // Restore original macro state
 #pragma pop_macro("max")
 #pragma pop_macro("min")
@@ -130,6 +127,41 @@ public:
 		return inputSys.convertY(y, outputSys);
 	}
 
+	// Helper method to convert bounds to output coordinate system
+	aperture::Bounds convertBounds(const aperture::Bounds& bounds) const
+	{
+		// If coordinate systems match, no conversion needed
+		if (input_.inputCoordType_ == input_.outputCoordType_) {
+			return bounds;
+		}
+
+		// Need to flip Y bounds when converting between coordinate systems
+		double minY = bounds.minY();
+		double maxY = bounds.maxY();
+		double height = bounds.height();
+
+		// Create coordinate systems for conversion
+		aperture::CoordinateSystem inputSys = (input_.inputCoordType_ == aperture::CoordinateSystemType::SCREEN)
+			? aperture::CoordinateSystem::screen(height)
+			: aperture::CoordinateSystem::math(height);
+		
+		aperture::CoordinateSystem outputSys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN)
+			? aperture::CoordinateSystem::screen(height)
+			: aperture::CoordinateSystem::math(height);
+
+		// Convert Y coordinates (note: max becomes min after flip)
+		double convertedMinY = inputSys.convertY(maxY, outputSys);
+		double convertedMaxY = inputSys.convertY(minY, outputSys);
+
+		// Create new bounds with converted Y
+		return aperture::Bounds(
+			bounds.minX(),
+			convertedMinY,
+			bounds.width(),
+			bounds.height()
+		);
+	}
+
 	const WavefrontFromContoursInput input_;
 };
 
@@ -140,52 +172,33 @@ public:
 	bool saveAsMTR(const std::string& filename) const {return false;};
 
 	// ============================================================================
+	// Getters
+	// ============================================================================
+
+	const std::vector<double>& getData() const { return data_; }
+	int getRows() const { return rows_; }
+	int getCols() const { return cols_; }
+	const aperture::Bounds& getBounds() const { return bounds_; }
+	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
+
+	// ============================================================================
+	// Setters
+	// ============================================================================
+
+	void setMatrixData(const double* data, int rows, int cols);
+	void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
+	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
+
+	// ============================================================================
 	// Stream Serialization
 	// ============================================================================
 
-	std::ostream& operator<<(std::ostream& os)
-	{
-		os << "MatrixXd(" << matrix_.rows() << " x " << matrix_.cols() << ")\n";
-
-		// Set formatting for floating point
-		std::streamsize prevPrecision = os.precision();
-		os.precision(6);
-		os << std::fixed;
-
-		for (int y = 0; y < matrix_.rows(); ++y)
-		{
-			for (int x = 0; x < matrix_.cols(); ++x)
-			{
-				double val = matrix_(y, x);
-
-				if (std::isnan(val))
-				{
-					os << std::setw(12) << "NaN";
-				}
-				else if (std::isinf(val))
-				{
-					os << std::setw(12) << (val > 0 ? "Inf" : "-Inf");
-				}
-				else
-				{
-					os << std::setw(12) << val;
-				}
-
-				if (x < matrix_.cols() - 1)
-					os << " ";
-			}
-			os << "\n";
-		}
-
-		// Restore formatting
-		os.precision(prevPrecision);
-		os.unsetf(std::ios_base::fixed);
-
-		return os;
-	}
+	friend std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& result);
 
 private:
-    Eigen::MatrixXd matrix_;
+    std::vector<double> data_;
+    int rows_ = 0;
+    int cols_ = 0;
     aperture::Bounds bounds_;
     aperture::CoordinateSystemType coordType_;
 
@@ -225,19 +238,96 @@ inline void getContextDimensions(const WavefrontFromContoursContext& ctx, int& o
 class WavefrontFromContoursSolver_Bilinear : public IWavefrontFromContoursSolver
 {
 public:
-	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override
+	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
+
+private:
+	// Bilinear interpolation to fill unknown values using known neighbors
+	// Only interpolates pixels where knownZ[idx]==0 && mask[idx]!=0
+	// Updates knownZ as values are interpolated
+// Bilinear interpolation to fill unknown values using known neighbors
+	static void performBilinearInterpolation(
+		std::vector<double>& zk,
+		std::vector<char>& knownZ,
+		const std::vector<char>& mask,
+		int rows, int cols)
 	{
-		// Placeholder implementation - replace with actual bilinear solver logic
-		WavefrontFromContoursResult result;
+		const int maxPasses = 20;
 
-		auto mask = ctx.buildMask();
-		auto rasterized = ctx.rasterize(mask);
+		auto idx = [&](int x, int y) { return y * cols + x; };
 
-		int outWidth = 0, outHeight = 0;
-		getContextDimensions(ctx, outWidth, outHeight);
-		Eigen::Map<const Eigen::MatrixXd> eigenRasterized(rasterized.data(), outHeight, outWidth);
+		for (int pass = 0; pass < maxPasses; ++pass)
+		{
+			bool changed = false;
 
-		// ... perform bilinear interpolation based on ctx.input_ ...
-		return result;
+			std::vector<double> newZ = zk;
+			std::vector<char>   newKnown = knownZ;
+
+			for (int y = 0; y < rows; ++y)
+			{
+				for (int x = 0; x < cols; ++x)
+				{
+					int i = idx(x, y);
+
+					if (knownZ[i] || !mask[i])
+						continue;
+
+					// --- Find horizontal bracket
+					int xl = x - 1;
+					while (xl >= 0 && (!knownZ[idx(xl, y)] || !mask[idx(xl, y)]))
+						--xl;
+
+					int xr = x + 1;
+					while (xr < cols && (!knownZ[idx(xr, y)] || !mask[idx(xr, y)]))
+						++xr;
+
+					bool hasX = (xl >= 0 && xr < cols);
+
+					// --- Find vertical bracket
+					int yt = y - 1;
+					while (yt >= 0 && (!knownZ[idx(x, yt)] || !mask[idx(x, yt)]))
+						--yt;
+
+					int yb = y + 1;
+					while (yb < rows && (!knownZ[idx(x, yb)] || !mask[idx(x, yb)]))
+						++yb;
+
+					bool hasY = (yt >= 0 && yb < rows);
+
+					if (!hasX && !hasY)
+						continue;
+
+					double val = 0.0;
+					int    used = 0;
+
+					if (hasX)
+					{
+						double zl = zk[idx(xl, y)];
+						double zr = zk[idx(xr, y)];
+						double t = double(x - xl) / double(xr - xl);
+						val += zl * (1.0 - t) + zr * t;
+						used++;
+					}
+
+					if (hasY)
+					{
+						double zt = zk[idx(x, yt)];
+						double zb = zk[idx(x, yb)];
+						double t = double(y - yt) / double(yb - yt);
+						val += zt * (1.0 - t) + zb * t;
+						used++;
+					}
+
+					newZ[i] = val / used;
+					newKnown[i] = 1;
+					changed = true;
+				}
+			}
+
+			zk.swap(newZ);
+			knownZ.swap(newKnown);
+
+			if (!changed)
+				break;
+		}
 	}
 };

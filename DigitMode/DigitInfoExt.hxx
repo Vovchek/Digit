@@ -216,7 +216,7 @@ void CDigitInfo::CreateZAPSections()
 	int begY = 0;
 	// switched to apertures
 	auto pA = GetApertureCtrls();
-	auto BoundR = pA->GetShapes().getCombinedBounds();
+	auto BoundR = pA->GetShapes().getVisibleRegion();
 	int bH = static_cast<int>(BoundR.height());
 	// ----------------------
 	double SecGap;
@@ -267,7 +267,7 @@ void CDigitInfo::CreateZAPSectionsOnLoadZAPFile()
 			YLines.AddTail(y);
 	}
 	// Switched to aperture
-	auto BoundR = GetApertureCtrls()->GetShapes().getCombinedBounds();
+	auto BoundR = GetApertureCtrls()->GetShapes().getVisibleRegion();
 	// --------------------
 	int ext_t_y = static_cast<int>(BoundR.top);
 	int iy;
@@ -965,7 +965,7 @@ bool CDigitInfo::GetNearestXInSection(CPoint P, double& x)
 	//if (!pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE))
 	//	return false;
 	// switched to apertures
-	auto BoundR = pA->GetShapes().getCombinedBounds();
+	auto BoundR = pA->GetShapes().getVisibleRegion();
 	// ---------------------
 	int begY = static_cast<int>(BoundR.top);
 	int i = P.y - begY;

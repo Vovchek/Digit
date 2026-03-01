@@ -29,7 +29,7 @@ BOOL ReadZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		AfxMessageBox(LPCTSTR(Mes), MB_OK | MB_ICONEXCLAMATION);
 		return FALSE;
 	}
-	
+
 	auto KeyDos = HasValidFIDS(Fl);
 
 	Fl.Close(); // though RAII, close to avoid shared access
@@ -293,25 +293,33 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		IntInfo.FiScan = atof(Str);
 
 
+	bool apertureDefined{ false };
+
 	if (Fl.SeekToSection("[ELLIPSES]"))
 	{
 		XYEllipse Ell0;
-		while (Fl.ReadStringWithEnd("E", Str))
+		while (Fl.ReadString(Str) && Str != "END" && !Str.IsEmpty())
 		{
 			FormArrFromString(Str, Buf);
-			Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
-			IntInfo.ArrEll.Add(Ell0);
+			if (Buf.GetSize() >= 7) {
+				Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				IntInfo.ArrEll.Add(Ell0);
+				if (static_cast<int>(Buf[5]) == 1) apertureDefined = true;
+			}
 		}
 	}
 
 	if (Fl.SeekToSection("[RECTANGLES]"))
 	{
 		XYRect Rect0;
-		while (Fl.ReadStringWithEnd("E", Str))
+		while (Fl.ReadString(Str) && Str != "END" && !Str.IsEmpty())
 		{
 			FormArrFromString(Str, Buf);
-			Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
-			IntInfo.ArrRect.Add(Rect0);
+			if (Buf.GetSize() >= 7) {
+				Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				IntInfo.ArrRect.Add(Rect0);
+				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
+			}
 		}
 	}
 
@@ -326,6 +334,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			Buf.RemoveAt(0, 2);
 			Plg0 = XYPolygon(Buf, TypLim, TypeSystCoor);
 			IntInfo.ArrPlg.Add(Plg0);
+			if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
 		}
 	}
 
@@ -344,10 +353,10 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 	// to flip the bounds correctly
 	if (Fl.SeekToSection("[BOUNDS]"))
 	{
-		while (Fl.ReadStringWithEnd("E", Str))
+		while (Fl.ReadString(Str) && Str != "END" && !Str.IsEmpty())
 		{
 			FormArrFromString(Str, Buf);
-			if(Buf.GetSize() == 4) // Digit format: Xl, Yt, Xr, Yb 
+			if (Buf.GetSize() == 4) // Digit format: Xl, Yt, Xr, Yb 
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
 			else if (Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, feature ?
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[2], Buf[1], Buf[3]);
@@ -355,19 +364,22 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				auto by = (Buf[3] - Buf[2]) / 2.0;
 				auto xc = (Buf[1] + Buf[0]) / 2.0;
 				auto yc = (Buf[3] + Buf[2]) / 2.0;
-				if (int(Buf[4]) == 0) { // circular or elliptic
-					auto Ell0 = XYEllipse(ax, by, xc, yc);
-					IntInfo.ArrEll.Add(Ell0);
-				}
-				else if (int(Buf[4]) == 1) { // ???
-				}
-				else if (int(Buf[4]) == 2) { // rectangular
-					auto Rect0 = XYRect(ax, by, xc, yc);
-					IntInfo.ArrRect.Add(Rect0);
+				if (!apertureDefined) {
+					if (int(Buf[4]) == 0) { // circular or elliptic
+						auto Ell0 = XYEllipse(ax, by, xc, yc);
+						IntInfo.ArrEll.Add(Ell0);
+					}
+					else if (int(Buf[4]) == 1) { // ???
+					}
+					else if (int(Buf[4]) == 2) { // rectangular
+						auto Rect0 = XYRect(ax, by, xc, yc);
+						IntInfo.ArrRect.Add(Rect0);
+					}
 				}
 			}
 			if (IntInfo.EBnd.isEmpty())
-				CalcBounds(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, IntInfo.EBnd);
+				; // does not work anyway
+				//CalcBounds(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, IntInfo.EBnd);
 		}
 	}
 
@@ -386,7 +398,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		}
 		Str = GetStringFragment(Str, 2, '=');
 		double FringeNumber = atof(Str);
-		if (!Fl.ReadStringWithEnd("E", Str)) 
+		if (!Fl.ReadStringWithEnd("E", Str))
 		{
 			// no more fringes, stop reading
 			break;
@@ -395,7 +407,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		NBuf = Buf.GetSize();
 		NSampl = NBuf / 2;
 		Sampl.Clear();
-		if(fabs(FringeNumber - CurFringeNumber) < PRECISION) {
+		if (fabs(FringeNumber - CurFringeNumber) < PRECISION) {
 			// start a new segment of the same fringe
 			segmentIndex++;
 		}
@@ -727,9 +739,9 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 				IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc,
 				IntInfo.ArrEll[i].Fi, IntInfo.ArrEll[i].TypeLimits,
 				IntInfo.ArrEll[i].TypeSystCoor);
-			Fl.WriteStringWithEnd(Str, "E\n");
+			Fl.WriteStringWithEnd(Str, "\n");
 		}
-		Fl.WriteStringWithEnd("");
+		Fl.WriteStringWithEnd("END\n");
 	}
 
 	int NRect = IntInfo.ArrRect.GetSize();
@@ -743,9 +755,9 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 				IntInfo.ArrRect[i].Xc, IntInfo.ArrRect[i].Yc,
 				IntInfo.ArrRect[i].Fi, IntInfo.ArrRect[i].TypeLimits,
 				IntInfo.ArrRect[i].TypeSystCoor);
-			Fl.WriteStringWithEnd(Str, "E\n");
+			Fl.WriteStringWithEnd(Str, "\n");
 		}
-		Fl.WriteStringWithEnd("");
+		Fl.WriteStringWithEnd("END\n");
 	}
 
 	int NPlg = IntInfo.ArrPlg.GetSize();
@@ -756,14 +768,23 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		{
 			WritePolygon(Fl, IntInfo.ArrPlg[i]);
 		}
-		Fl.WriteStringWithEnd("");
+		Fl.WriteStringWithEnd("END\n");
 	}
-
+	
+	// Use WinFringe format
 	Fl.WriteStringWithEnd("[BOUNDS]");
-	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf", IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop,
-		IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
-	Fl.WriteStringWithEnd(Str, " E\n");
-	Fl.WriteStringWithEnd("");
+	int shape = 0; // TODO: consider shape using aperture
+	int feature = 1; // TODO: investigate the meaning
+	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ", 
+		IntInfo.EBnd.XLeft, 
+		IntInfo.EBnd.XRight,
+		IntInfo.EBnd.YTop,
+		IntInfo.EBnd.YBottom,
+		shape,
+		feature
+		);
+	Fl.WriteStringWithEnd(Str, "\n");
+	Fl.WriteStringWithEnd("END\n");
 
 	Fl.WriteStringWithEnd("[FRINGES]");
 
@@ -792,7 +813,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Y = IntInfo.DigitDat[i].Y;
 		F = IntInfo.DigitDat[i].F.Number;
 		I = IntInfo.DigitDat[i].F.Index;
-		
+
 		// Check if new fringe or segment
 		if (fabs(FCur - F) > PRECISION || ICur != I)
 		{
@@ -812,13 +833,13 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		WriteFringe(Fl, Sampl);
 	}
 
-	Fl.WriteStringWithEnd("");
+	Fl.WriteStringWithEnd("END");
 
-	Fl.WriteStringWithEnd("[IMAGE]");
+	Fl.WriteStringWithEnd("[IMAGE_FILE]");
 	Str.Format("%-d %d", IntInfo.ImageSize[0], IntInfo.ImageSize[1]);
 	Fl.WriteStringAfter("Size", "=", Str);
 	Str = IntInfo.ImageFileName;
-	Fl.WriteStringAfter("FileName", "=", Str);
+	Fl.WriteStringAfter("Name", "=", Str);
 	Fl.Close();
 }
 //=========================================================================

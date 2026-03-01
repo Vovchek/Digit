@@ -202,7 +202,7 @@ LPCTSTR CBaseImageDoc::GetRealName()
 // Возвращает путь к оригиналу файла изображения
 LPCTSTR CBaseImageDoc::GetRealPath()
 {
-	return LPCTSTR(RealName);
+	return LPCTSTR(RealPath);
 }
 
 // Изменяет путь к оригиналу файла изображения
