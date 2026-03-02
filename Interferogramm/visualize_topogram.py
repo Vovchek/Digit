@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Read the topogram data
-with open('topogram.txt', 'r') as f:
+with open('topogram_spline.txt', 'r') as f:
     # Read first line with dimensions
     header = f.readline().strip()
     print(f"Header: {header}")
@@ -84,3 +84,28 @@ fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
 # Show the plot
 plt.tight_layout()
 plt.show()
+# ------------------------------------------------------------
+# CENTRAL ROW PROFILE (using detrended data)
+# ------------------------------------------------------------
+
+# Determine central row index
+central_row_index = rows // 2
+
+# Extract central row from detrended data (keep NaNs)
+central_row = data_detrended[central_row_index, :]
+
+# Create new figure for 2D plot
+plt.figure(figsize=(10, 5))
+
+# Plot only valid (non-NaN) values
+valid = ~np.isnan(central_row)
+plt.plot(x[valid], central_row[valid])
+
+plt.xlabel("Column Index")
+plt.ylabel("Detrended Elevation")
+plt.title(f"Central Row Profile (Row {central_row_index}) - Detrended")
+
+plt.grid(True)
+plt.tight_layout()
+plt.show()
+

@@ -304,3 +304,417 @@ void WavefrontFromContoursResult::setMatrixData(const double* data, int rows, in
 	cols_ = cols;
 	data_.assign(data, data + rows * cols);
 }
+
+// ============================================================================
+// WavefrontFromContoursSolver_HorizontalLinear Implementation
+// ============================================================================
+
+std::vector<WavefrontFromContoursSolver_HorizontalLinear::FringeCrossing>
+WavefrontFromContoursSolver_HorizontalLinear::findFringeCrossings(
+	const WavefrontFromContoursContext& ctx,
+	double worldY) const
+{
+	std::vector<FringeCrossing> crossings;
+	const auto& fringeSegments = ctx.input_.fringeSegments_;
+	
+	// Iterate through all fringe segments
+	for (const auto& fringe : fringeSegments)
+	{
+		double fringeValue = fringe.GetNumber();
+		int pointCount = fringe.GetPointCount();
+		
+		// Check each line segment in the fringe polyline
+		for (int i = 0; i < pointCount - 1; ++i)
+		{
+			CDPoint p0 = fringe.GetPoint(i);
+			CDPoint p1 = fringe.GetPoint(i + 1);
+			
+			double y0 = p0.y;
+			double y1 = p1.y;
+			
+			// Check if horizontal line at worldY crosses this segment
+			// Segment crosses if worldY is between y0 and y1 (exclusive endpoints to avoid duplicates)
+			if ((y0 < worldY && worldY < y1) || (y1 < worldY && worldY < y0))
+			{
+				// Linear interpolation to find X coordinate at crossing
+				double t = (worldY - y0) / (y1 - y0);
+				double crossX = p0.x + t * (p1.x - p0.x);
+				
+				crossings.push_back({crossX, fringeValue});
+			}
+			// Include endpoint if exactly on the line (but only once per point)
+			else if (i == 0 && std::abs(y0 - worldY) < 1e-10)
+			{
+				crossings.push_back({p0.x, fringeValue});
+			}
+			else if (i == pointCount - 2 && std::abs(y1 - worldY) < 1e-10)
+			{
+				crossings.push_back({p1.x, fringeValue});
+			}
+		}
+	}
+	
+	// Sort crossings by X coordinate
+	std::sort(crossings.begin(), crossings.end());
+	
+	return crossings;
+}
+
+double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
+	const std::vector<FringeCrossing>& crossings,
+	double worldX) const
+{
+	if (crossings.empty())
+		return std::numeric_limits<double>::quiet_NaN();
+	
+	// Find the two crossings that bracket worldX
+	// If worldX is before first crossing or after last, extrapolate or return NaN
+	
+	// Find first crossing at or after worldX
+	auto it = std::lower_bound(crossings.begin(), crossings.end(), 
+		FringeCrossing{worldX, 0.0});
+	
+	// If worldX is before all crossings, use first crossing value (extrapolate)
+	if (it == crossings.begin())
+	{
+		return crossings.front().fringeValue;
+	}
+	
+	// If worldX is after all crossings, use last crossing value (extrapolate)
+	if (it == crossings.end())
+	{
+		return crossings.back().fringeValue;
+	}
+	
+	// worldX is between two crossings - interpolate
+	const FringeCrossing& right = *it;
+	const FringeCrossing& left = *(it - 1);
+	
+	// Linear interpolation
+	double dx = right.x - left.x;
+	if (std::abs(dx) < 1e-10)
+	{
+		// Crossings are at same X - average the values
+		return (left.fringeValue + right.fringeValue) / 2.0;
+	}
+	
+	double t = (worldX - left.x) / dx;
+	return left.fringeValue + t * (right.fringeValue - left.fringeValue);
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	// Get output dimensions
+	int outWidth = 0, outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+	
+	// Build visibility mask
+	auto mask = ctx.buildMask();
+	
+	// Allocate output matrix
+	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
+	
+	const auto& bounds = ctx.input_.bounds_;
+	
+	// Process each row
+	for (int row = 0; row < outHeight; ++row)
+	{
+		// Calculate world Y coordinate for this row (center of pixel)
+		double v = (row + 0.5) / outHeight;
+		double worldY = bounds.minY() + v * bounds.height();
+		
+		// Find all fringe crossings at this Y
+		auto crossings = findFringeCrossings(ctx, worldY);
+		
+		if (crossings.empty())
+			continue; // No fringes at this Y, leave as NaN
+		
+		// Process each column in this row
+		for (int col = 0; col < outWidth; ++col)
+		{
+			int idx = row * outWidth + col;
+			
+			// Skip if not visible
+			if (!mask[idx])
+				continue;
+			
+			// Calculate world X coordinate for this column (center of pixel)
+			double u = (col + 0.5) / outWidth;
+			double worldX = bounds.minX() + u * bounds.width();
+			
+			// Interpolate Z value at this X
+			double z = interpolateAtX(crossings, worldX);
+			zk[idx] = z;
+		}
+	}
+	
+	// Convert bounds to output coordinate system
+	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	
+	// Populate result
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setBounds(outputBounds);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+
+	return result;
+}
+
+// ============================================================================
+// WavefrontFromContoursSolver_HorizontalSpline Implementation
+// ============================================================================
+
+std::vector<WavefrontFromContoursSolver_HorizontalSpline::FringeCrossing>
+WavefrontFromContoursSolver_HorizontalSpline::findFringeCrossings(
+	const WavefrontFromContoursContext& ctx,
+	double worldY) const
+{
+	std::vector<FringeCrossing> crossings;
+	const auto& fringeSegments = ctx.input_.fringeSegments_;
+	
+	// Iterate through all fringe segments
+	for (const auto& fringe : fringeSegments)
+	{
+		double fringeValue = fringe.GetNumber();
+		int pointCount = fringe.GetPointCount();
+		
+		// Check each line segment in the fringe polyline
+		for (int i = 0; i < pointCount - 1; ++i)
+		{
+			CDPoint p0 = fringe.GetPoint(i);
+			CDPoint p1 = fringe.GetPoint(i + 1);
+			
+			double y0 = p0.y;
+			double y1 = p1.y;
+			
+			// Check if horizontal line at worldY crosses this segment
+			if ((y0 < worldY && worldY < y1) || (y1 < worldY && worldY < y0))
+			{
+				// Linear interpolation to find X coordinate at crossing
+				double t = (worldY - y0) / (y1 - y0);
+				double crossX = p0.x + t * (p1.x - p0.x);
+				
+				crossings.push_back({crossX, fringeValue});
+			}
+			// Include endpoint if exactly on the line (but only once per point)
+			else if (i == 0 && std::abs(y0 - worldY) < 1e-10)
+			{
+				crossings.push_back({p0.x, fringeValue});
+			}
+			else if (i == pointCount - 2 && std::abs(y1 - worldY) < 1e-10)
+			{
+				crossings.push_back({p1.x, fringeValue});
+			}
+		}
+	}
+	
+	// Sort crossings by X coordinate
+	std::sort(crossings.begin(), crossings.end());
+	
+	return crossings;
+}
+
+WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients
+WavefrontFromContoursSolver_HorizontalSpline::buildSpline(
+	const std::vector<FringeCrossing>& crossings) const
+{
+	SplineCoefficients spline;
+	int n = static_cast<int>(crossings.size());
+	
+	if (n == 0)
+		return spline;
+	
+	// Extract x and y values
+	spline.x.resize(n);
+	spline.a.resize(n);
+	for (int i = 0; i < n; ++i)
+	{
+		spline.x[i] = crossings[i].x;
+		spline.a[i] = crossings[i].fringeValue;
+	}
+	
+	if (n == 1)
+	{
+		// Single point - constant interpolation
+		spline.b.resize(1, 0.0);
+		spline.c.resize(1, 0.0);
+		spline.d.resize(1, 0.0);
+		return spline;
+	}
+	
+	if (n == 2)
+	{
+		// Two points - linear interpolation
+		spline.b.resize(1);
+		spline.c.resize(1, 0.0);
+		spline.d.resize(1, 0.0);
+		double h = spline.x[1] - spline.x[0];
+		if (std::abs(h) > 1e-10)
+			spline.b[0] = (spline.a[1] - spline.a[0]) / h;
+		else
+			spline.b[0] = 0.0;
+		return spline;
+	}
+	
+	// Natural cubic spline for n >= 3
+	// Build tridiagonal system for second derivatives
+	std::vector<double> h(n - 1);  // Step sizes
+	for (int i = 0; i < n - 1; ++i)
+		h[i] = spline.x[i + 1] - spline.x[i];
+	
+	// Tridiagonal system: alpha = RHS
+	std::vector<double> alpha(n);
+	for (int i = 1; i < n - 1; ++i)
+	{
+		alpha[i] = 3.0 * ((spline.a[i + 1] - spline.a[i]) / h[i] - 
+		                   (spline.a[i] - spline.a[i - 1]) / h[i - 1]);
+	}
+	
+	// Solve tridiagonal system using Thomas algorithm
+	std::vector<double> l(n, 1.0);
+	std::vector<double> mu(n, 0.0);
+	std::vector<double> z(n, 0.0);
+	
+	for (int i = 1; i < n - 1; ++i)
+	{
+		l[i] = 2.0 * (spline.x[i + 1] - spline.x[i - 1]) - h[i - 1] * mu[i - 1];
+		if (std::abs(l[i]) < 1e-10)
+			l[i] = 1e-10; // Avoid division by zero
+		mu[i] = h[i] / l[i];
+		z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
+	}
+	
+	// Back substitution
+	spline.c.resize(n, 0.0);
+	spline.b.resize(n - 1);
+	spline.d.resize(n - 1);
+	
+	// Natural spline boundary conditions: c[0] = c[n-1] = 0
+	for (int j = n - 2; j >= 0; --j)
+	{
+		spline.c[j] = z[j] - mu[j] * spline.c[j + 1];
+		spline.b[j] = (spline.a[j + 1] - spline.a[j]) / h[j] - 
+		               h[j] * (spline.c[j + 1] + 2.0 * spline.c[j]) / 3.0;
+		spline.d[j] = (spline.c[j + 1] - spline.c[j]) / (3.0 * h[j]);
+	}
+	
+	return spline;
+}
+
+double WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients::evaluate(double xi) const
+{
+	int n = static_cast<int>(x.size());
+	
+	if (n == 0)
+		return std::numeric_limits<double>::quiet_NaN();
+	
+	if (n == 1)
+		return a[0]; // Constant
+	
+	// Find interval: x[i] <= xi < x[i+1]
+	// Handle extrapolation
+	if (xi <= x[0])
+	{
+		// Extrapolate using first segment
+		double dx = xi - x[0];
+		return a[0] + b[0] * dx + c[0] * dx * dx + d[0] * dx * dx * dx;
+	}
+	
+	if (xi >= x[n - 1])
+	{
+		// Extrapolate using last segment
+		int i = n - 2;
+		double dx = xi - x[i];
+		return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
+	}
+	
+	// Binary search for interval
+	int i = 0;
+	int j = n - 1;
+	while (j - i > 1)
+	{
+		int k = (i + j) / 2;
+		if (xi < x[k])
+			j = k;
+		else
+			i = k;
+	}
+	
+	// Evaluate cubic polynomial at xi
+	double dx = xi - x[i];
+	return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
+}
+
+double WavefrontFromContoursSolver_HorizontalSpline::interpolateAtX(
+	const std::vector<FringeCrossing>& crossings,
+	double worldX) const
+{
+	if (crossings.empty())
+		return std::numeric_limits<double>::quiet_NaN();
+	
+	// Build cubic spline
+	SplineCoefficients spline = buildSpline(crossings);
+	
+	// Evaluate at worldX
+	return spline.evaluate(worldX);
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	// Get output dimensions
+	int outWidth = 0, outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+	
+	// Build visibility mask
+	auto mask = ctx.buildMask();
+	
+	// Allocate output matrix
+	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
+	
+	const auto& bounds = ctx.input_.bounds_;
+	
+	// Process each row
+	for (int row = 0; row < outHeight; ++row)
+	{
+		// Calculate world Y coordinate for this row (center of pixel)
+		double v = (row + 0.5) / outHeight;
+		double worldY = bounds.minY() + v * bounds.height();
+		
+		// Find all fringe crossings at this Y
+		auto crossings = findFringeCrossings(ctx, worldY);
+		
+		if (crossings.size() < 2)
+			continue; // Need at least 2 points for meaningful spline
+		
+		// Process each column in this row
+		for (int col = 0; col < outWidth; ++col)
+		{
+			int idx = row * outWidth + col;
+			
+			// Skip if not visible
+			if (!mask[idx])
+				continue;
+			
+			// Calculate world X coordinate for this column (center of pixel)
+			double u = (col + 0.5) / outWidth;
+			double worldX = bounds.minX() + u * bounds.width();
+			
+			// Interpolate Z value at this X using cubic spline
+			double z = interpolateAtX(crossings, worldX);
+			zk[idx] = z;
+		}
+	}
+	
+	// Convert bounds to output coordinate system
+	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	
+	// Populate result
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setBounds(outputBounds);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	
+	return result;
+}

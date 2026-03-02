@@ -244,40 +244,38 @@ void CImageDoc::CalcAproximation()
 		Digit.Fringes
     );
 	
-	WavefrontFromContours wf(input);
-	WavefrontFromContoursSolver_Bilinear solver;
-	auto topogram = wf.run(solver);
-
 	std::string path = GetRealPath();
-	auto file= path + "topogram.txt";
-	std::ofstream out(file);
-	out << topogram;
-	file = path + "topogram.mtr";
-	std::ofstream outMtr(file);
-	topogram.saveMtrMatrix(outMtr);
+	
+	// Test different solvers
+	WavefrontFromContours wf(input);
+	
+	// 1. Linear interpolation
+	{
+		WavefrontFromContoursSolver_HorizontalLinear solver;
+		auto topogram = wf.run(solver);
+		
+		auto file = path + "topogram_linear.txt";
+		std::ofstream out(file);
+		out << topogram;
+		file = path + "topogram_linear.mtr";
+		std::ofstream outMtr(file);
+		topogram.saveMtrMatrix(outMtr);
+	}
+	
+	// 2. Cubic spline interpolation
+	{
+		WavefrontFromContoursSolver_HorizontalSpline solver;
+		auto topogram = wf.run(solver);
+		
+		auto file = path + "topogram_spline.txt";
+		std::ofstream out(file);
+		out << topogram;
+		file = path + "topogram_spline.mtr";
+		std::ofstream outMtr(file);
+		topogram.saveMtrMatrix(outMtr);
+	}
 
 	//CControls* pCtrls = GetControls();
-	//CApproxSetDlg D(GetMainFrame());
-	//D.Eps = pCtrls->Eps;
-	//D.Pow = pCtrls->MaxPow;
-	//int res = D.DoModal();
-	//if (res == IDOK) {
-	//	pCtrls->Eps = D.Eps;
-	//	pCtrls->MaxPow = D.Pow;
-	//	::SetCursor(::LoadCursor(NULL, IDC_WAIT));
-	//	NUMBERING_INTERFEROGRAM_INFO IntInfo;
-	//	if (Digit.CollectNumberingInterferogramInfo(IntInfo)) {
-	//		BOOL res = CalcPolAprImageMatr(IntInfo, pCtrls->MaxPow, pCtrls->Eps, MApr);
-	//		if (res) {
-	//			IsAproxMatrix = TRUE;
-	//			CArrayDouble ArrFNumbers;
-	//			IntInfo.GetFringeNumbers(ArrFNumbers);
-	//			CreateAproxImage(ArrFNumbers);
-	//			GetView()->Invalidate(FALSE);
-	//		}
-	//	}
-	//	::SetCursor(::LoadCursor(NULL, IDC_ARROW));
-	//}
 }
 
 void CImageDoc::CreateAproxImage(CArrayDouble& ArrFNumbers)

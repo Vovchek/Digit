@@ -331,3 +331,84 @@ private:
 		}
 	}
 };
+
+// True horizontal linear interpolation solver
+// For each row, finds fringe intersections and linearly interpolates between them
+class WavefrontFromContoursSolver_HorizontalLinear : public IWavefrontFromContoursSolver
+{
+public:
+	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
+
+private:
+	// Helper structure to store fringe crossing point
+	struct FringeCrossing
+	{
+		double x;           // X-coordinate where fringe crosses horizontal line
+		double fringeValue; // Fringe number at this crossing
+		
+		bool operator<(const FringeCrossing& other) const
+		{
+			return x < other.x;
+		}
+	};
+	
+	// Find all points where fringes cross a horizontal line at given Y
+	// Returns sorted vector of crossings
+	std::vector<FringeCrossing> findFringeCrossings(
+		const WavefrontFromContoursContext& ctx,
+		double worldY) const;
+	
+	// Linearly interpolate Z value at worldX given sorted crossings
+	// Returns NaN if outside fringe coverage or no valid interpolation
+	double interpolateAtX(
+		const std::vector<FringeCrossing>& crossings,
+		double worldX) const;
+};
+
+// Horizontal cubic spline interpolation solver
+// For each row, finds fringe intersections and uses cubic spline for smooth interpolation
+class WavefrontFromContoursSolver_HorizontalSpline : public IWavefrontFromContoursSolver
+{
+public:
+	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
+
+private:
+	// Helper structure to store fringe crossing point
+	struct FringeCrossing
+	{
+		double x;           // X-coordinate where fringe crosses horizontal line
+		double fringeValue; // Fringe number at this crossing
+		
+		bool operator<(const FringeCrossing& other) const
+		{
+			return x < other.x;
+		}
+	};
+	
+	// Find all points where fringes cross a horizontal line at given Y
+	// Returns sorted vector of crossings
+	std::vector<FringeCrossing> findFringeCrossings(
+		const WavefrontFromContoursContext& ctx,
+		double worldY) const;
+	
+	// Cubic spline interpolation
+	// Builds natural cubic spline coefficients for given crossings
+	// Returns interpolated Z value at worldX
+	double interpolateAtX(
+		const std::vector<FringeCrossing>& crossings,
+		double worldX) const;
+	
+	// Helper to compute cubic spline coefficients (natural spline)
+	// Input: n points (x[i], y[i]) sorted by x
+	// Output: coefficients for cubic polynomials between points
+	struct SplineCoefficients
+	{
+		std::vector<double> a, b, c, d; // Coefficients for each segment
+		std::vector<double> x;          // X coordinates of knots
+		
+		// Evaluate spline at given x
+		double evaluate(double xi) const;
+	};
+	
+	SplineCoefficients buildSpline(const std::vector<FringeCrossing>& crossings) const;
+};
