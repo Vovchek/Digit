@@ -211,9 +211,9 @@ void InputHandler::ContinueSegment(int iSegment, int iDot, CDigitInfo* pDigit, C
 }
 
 void InputHandler::StartNewSegment(CDPoint P, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
-    // Use command to create the new segment (no points yet)
+    // Use command to create the new segment, add initial dot
     double newNumber = pDigit->CurrentNumber + pDigit->numStep;
-    auto createCmd = std::make_unique<CreateSegmentCommand>(*pDigit, std::vector<CDPoint>{}, newNumber);
+    auto createCmd = std::make_unique<CreateSegmentCommand>(*pDigit, std::vector<CDPoint>{P}, newNumber);
     pCmdDisp->Execute(std::move(createCmd));
 
     // Update CurrentNumber
@@ -222,11 +222,6 @@ void InputHandler::StartNewSegment(CDPoint P, CDigitInfo* pDigit, CommandDispatc
     // Set active segment to newly created one
     iActiveSegment = static_cast<int>(pDigit->Fringes.size()) - 1;
 	activeEnd = ActiveEnd::Tail; // Default to tail
-
-    // Add initial dot via command
-    CDPoint dp; dp.x = P.x; dp.y = P.y;
-    auto addDot = std::make_unique<AddDotCommand>(pDigit, iActiveSegment, 0, dp);
-    pCmdDisp->Execute(std::move(addDot));
 }
 
 void InputHandler::ConnectSegments(int iSegment, int iDot, CDigitInfo* pDigit, CommandDispatcher* pCmdDisp) {
