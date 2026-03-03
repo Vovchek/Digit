@@ -197,13 +197,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	os << "[MATRIX]\n";
 
 	// Calculate normalization parameters
-	double centerX = (bounds_.minX() + bounds_.maxX()) / 2.0;
-	double centerY = (bounds_.minY() + bounds_.maxY()) / 2.0;
-	double halfWidth = bounds_.width() / 2.0;
-	double halfHeight = bounds_.height() / 2.0;
-	double maxScale = (std::max)(halfWidth, halfHeight);
-
-	if (maxScale == 0.0) maxScale = 1.0;
+	double ratio = 2.0 / ((std::max)(rows_, cols_) - 1);  // Scale factor to fit largest dimension into [-1, 1]
 
 	// Format settings
 	const int pairsPerLine = 6;
@@ -217,8 +211,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	for (int row = 0; row < rows_; ++row)
 	{
 		// Calculate Y coordinate at the center of this row
-		double y_phys = bounds_.minY() + (row + 0.5) * bounds_.height() / rows_;
-		double y_norm = (y_phys - centerY) / maxScale;
+		double y_norm = row  * ratio - 1.0;  // Normalize to [-1, 1]
 
 		bool firstLineOfRow = true;
 		int pairCount = 0;
@@ -232,8 +225,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 				continue;  // Skip NaN/Inf values entirely for MTR output
 
 			// Calculate X coordinate at the center of this column
-			double x_phys = bounds_.minX() + (col + 0.5) * bounds_.width() / cols_;
-			double x_norm = (x_phys - centerX) / maxScale;
+			double x_norm = col * ratio - 1.0;  // Normalize to [-1, 1]
 
 			// Start new output line if needed
 			if (pairCount == 0)

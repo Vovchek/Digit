@@ -31,9 +31,9 @@ struct WavefrontFromContoursInput
         : bounds_(bounds)
         , visibilityMask_(visibilityMask)
         , fringeSegments_(fringeSegments)
-        , outWidth_(outWidth > 0 ? outWidth : visibilityMask.width)
+        , outWidth_(outWidth > 0 ? outWidth : static_cast<int>(bounds.width()))
         , outHeight_(outHeight > 0 ? outHeight : 
-            static_cast<int>(visibilityMask.height * outWidth_ / static_cast<double>(visibilityMask.width)))
+            static_cast<int>(bounds.height() * outWidth_ / static_cast<double>(bounds.width())))
         , inputCoordType_(inputCoordType)
 		, outputCoordType_(outputCoordType) {
 	}
