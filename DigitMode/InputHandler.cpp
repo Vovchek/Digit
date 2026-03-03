@@ -113,7 +113,7 @@ void InputHandler::OnLButtonDown(UINT flags, CDPoint pt, CDigitInfo* pDigit, Com
             return;
         }
         // No active segment -> behave as start/continue as before
-        if (level == SelectionLevel::None) {
+        if (level == SelectionLevel::None && mods.None()) {
             StartNewSegment(pt, pDigit, pCmdDisp);
             return;
         }

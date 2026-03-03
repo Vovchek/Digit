@@ -118,21 +118,20 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 			CDPoint p0 = fringe.GetPoint(i);
 			CDPoint p1 = fringe.GetPoint(i + 1);
 
-			// Map world coordinates to output pixel coordinates
-			double u0 = (p0.x - input_.bounds_.minX()) / input_.bounds_.width();
-			double v0 = (p0.y - input_.bounds_.minY()) / input_.bounds_.height();
-			double u1 = (p1.x - input_.bounds_.minX()) / input_.bounds_.width();
-			double v1 = (p1.y - input_.bounds_.minY()) / input_.bounds_.height();
+			// Handle coordinate system conversion
+			p0.y = convertY(p0.y);
+			p1.y = convertY(p1.y);
 
 			// Convert to output pixel coordinates
-			int px0 = static_cast<int>(u0 * outWidth);
-			int py0 = static_cast<int>(v0 * outHeight);
-			int px1 = static_cast<int>(u1 * outWidth);
-			int py1 = static_cast<int>(v1 * outHeight);
+			double u0 = xToOutput(p0.x);
+			double v0 = yToOutput(p0.y);
+			double u1 = xToOutput(p1.x);
+			double v1 = yToOutput(p1.y);
 
-			// Handle coordinate system conversion
-			py0 = static_cast<int>(convertY(v0 * outHeight));
-			py1 = static_cast<int>(convertY(v1 * outHeight));
+			int px0 = static_cast<int>(u0);
+			int py0 = static_cast<int>(v0);
+			int px1 = static_cast<int>(u1);
+			int py1 = static_cast<int>(v1);
 
 			// Draw the line segment
 			drawLine(px0, py0, px1, py1, fringeValue);
@@ -413,8 +412,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	for (int row = 0; row < outHeight; ++row)
 	{
 		// Calculate world Y coordinate for this row (center of pixel)
-		double v = (row + 0.5) / outHeight;
-		double worldY = bounds.minY() + v * bounds.height();
+		double worldY = ctx.yToInput(static_cast<double>(row));
 		
 		// Find all fringe crossings at this Y
 		auto crossings = findFringeCrossings(ctx, worldY);
@@ -432,8 +430,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 				continue;
 			
 			// Calculate world X coordinate for this column (center of pixel)
-			double u = (col + 0.5) / outWidth;
-			double worldX = bounds.minX() + u * bounds.width();
+			double worldX = ctx.xToInput(static_cast<double>(col));
 			
 			// Interpolate Z value at this X
 			double z = interpolateAtX(crossings, worldX);
@@ -671,8 +668,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	for (int row = 0; row < outHeight; ++row)
 	{
 		// Calculate world Y coordinate for this row (center of pixel)
-		double v = (row + 0.5) / outHeight;
-		double worldY = bounds.minY() + v * bounds.height();
+		double worldY = ctx.yToInput(static_cast<double>(row));
 		
 		// Find all fringe crossings at this Y
 		auto crossings = findFringeCrossings(ctx, worldY);
@@ -690,8 +686,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 				continue;
 			
 			// Calculate world X coordinate for this column (center of pixel)
-			double u = (col + 0.5) / outWidth;
-			double worldX = bounds.minX() + u * bounds.width();
+			double worldX = ctx.xToInput(static_cast<double>(col));
 			
 			// Interpolate Z value at this X using cubic spline
 			double z = interpolateAtX(crossings, worldX);

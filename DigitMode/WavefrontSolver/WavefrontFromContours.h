@@ -54,10 +54,42 @@ struct WavefrontFromContoursInput
 
 class WavefrontFromContoursContext
 {
+	double xShift_ = 0.0;
+	double yShift_ = 0.0;
+	double xScale_ = 1.0;
+	double yScale_ = 1.0;
+
 public:
     explicit WavefrontFromContoursContext(const WavefrontFromContoursInput& input) :
-        input_(input) {}
+        input_(input)
+	{
+		xShift_ = input_.bounds_.minX();
+		yShift_ = (input_.inputCoordType_ == input_.outputCoordType_) ?
+			input_.bounds_.minY() : input_.bounds_.maxY();
+		xScale_ = input_.bounds_.width() / static_cast<double>(input_.outWidth_);
+		yScale_ = (input_.inputCoordType_ == input_.outputCoordType_) ?
+			input_.bounds_.height() / static_cast<double>(input_.outHeight_) :
+			-input_.bounds_.height() / static_cast<double>(input_.outHeight_);
+	}
+	
 	// solver helpers
+	double xToOutput(double x) const
+	{
+		return (x - xShift_) / xScale_;
+	}
+	double yToOutput(double y) const
+	{
+		return (y - yShift_) / yScale_;
+	}
+	double xToInput(double x) const
+	{
+		return x * xScale_ + xShift_;
+	}
+	double yToInput(double y) const
+	{
+		return y * yScale_ + yShift_;
+	}
+
 	// rasterize to output resolution, considering visibility mask, bounds, input & output coordinate systems
 	std::vector<char> buildMask() const
 	{
@@ -71,27 +103,15 @@ public:
 		const int N = outHeight * outWidth;
 		std::vector<char> visible(N, 0);
 
-		// Create coordinate systems for conversion
-		aperture::CoordinateSystem inputSys = (input_.inputCoordType_ == aperture::CoordinateSystemType::SCREEN) 
-			? aperture::CoordinateSystem::screen(visibilityMask.height)
-			: aperture::CoordinateSystem::math(visibilityMask.height);
-		
-		aperture::CoordinateSystem outputSys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN)
-			? aperture::CoordinateSystem::screen(outHeight)
-			: aperture::CoordinateSystem::math(outHeight);
-
 		for (int outY = 0; outY < outHeight; ++outY) {
+			double maskY = yToInput(outY);
 			for (int outX = 0; outX < outWidth; ++outX) {
 				// Map output pixel to visibility mask coordinate space
-				double maskX = outX * visibilityMask.width / static_cast<double>(outWidth);
-				double maskY = outY * visibilityMask.height / static_cast<double>(outHeight);
-
-				// Handle coordinate system conversion
-				double finalY = convertY(maskY);
+				double maskX = xToInput(outX);
 
 				// Clamp to visibility mask bounds
 				int x = static_cast<int>(maskX);
-				int y = static_cast<int>(finalY);
+				int y = static_cast<int>(maskY);
 				
 				if (x >= 0 && x < visibilityMask.width && y >= 0 && y < visibilityMask.height) {
 					int outIndex = outY * outWidth + outX;
@@ -110,21 +130,10 @@ public:
 	double convertY(double y) const
 	{
 		// If coordinate systems match, no conversion needed
-		if (input_.inputCoordType_ == input_.outputCoordType_) {
-			return y;
+		if (input_.inputCoordType_ != input_.outputCoordType_) {
+			y = input_.visibilityMask_.height - y;  // Flip Y coordinate
 		}
-
-		// Create coordinate systems for conversion
-		aperture::CoordinateSystem inputSys = (input_.inputCoordType_ == aperture::CoordinateSystemType::SCREEN)
-			? aperture::CoordinateSystem::screen(input_.visibilityMask_.height)
-			: aperture::CoordinateSystem::math(input_.visibilityMask_.height);
-		
-		aperture::CoordinateSystem outputSys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN)
-			? aperture::CoordinateSystem::screen(input_.outHeight_)
-			: aperture::CoordinateSystem::math(input_.outHeight_);
-
-		// Convert Y coordinate between coordinate systems
-		return inputSys.convertY(y, outputSys);
+		return y;
 	}
 
 	// Helper method to convert bounds to output coordinate system
@@ -136,30 +145,12 @@ public:
 		}
 
 		// Need to flip Y bounds when converting between coordinate systems
-		double minY = bounds.minY();
-		double maxY = bounds.maxY();
-		double height = bounds.height();
-
-		// Create coordinate systems for conversion
-		aperture::CoordinateSystem inputSys = (input_.inputCoordType_ == aperture::CoordinateSystemType::SCREEN)
-			? aperture::CoordinateSystem::screen(height)
-			: aperture::CoordinateSystem::math(height);
-		
-		aperture::CoordinateSystem outputSys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN)
-			? aperture::CoordinateSystem::screen(height)
-			: aperture::CoordinateSystem::math(height);
-
-		// Convert Y coordinates (note: max becomes min after flip)
-		double convertedMinY = inputSys.convertY(maxY, outputSys);
-		double convertedMaxY = inputSys.convertY(minY, outputSys);
+		double height = input_.visibilityMask_.height;
+		double minY = height - bounds.maxY();
+		double maxY = height - bounds.minY();
 
 		// Create new bounds with converted Y
-		return aperture::Bounds(
-			bounds.minX(),
-			convertedMinY,
-			bounds.width(),
-			bounds.height()
-		);
+		return aperture::Bounds(bounds.minX(), minY, bounds.maxX(), maxY);
 	}
 
 	const WavefrontFromContoursInput input_;

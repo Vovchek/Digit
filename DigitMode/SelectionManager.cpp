@@ -128,8 +128,9 @@ size_t SelectionManager::SelectBox(const CDRect& box, const std::vector<::CFring
     std::vector<SelectedObject> newSelection;
     
     // Helper: Check if edge intersects box
+	// NB: CDRect::NormalizeRect() sets top > bottom (math right-handed system)
     auto PtInRect = [](const auto& p, const auto& r) -> bool {
-        return (p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom);
+        return (p.x >= r.left && p.x <= r.right && p.y <= r.top && p.y >= r.bottom);
 		};
     auto EdgeIntersectsBox = [PtInRect](const CDPoint& p1, const CDPoint& p2, const CDRect& rect) -> bool {
         CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
