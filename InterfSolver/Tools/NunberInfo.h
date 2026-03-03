@@ -14,7 +14,7 @@ struct NUMBERING_INTERFEROGRAM_INFO
 	// The type of a file from which the interferogram was loaded
 	// Primarily used to handle missing image size in dos zap files
 	// needed to transform Y-coordinate direction on file load
-	enum { TYP_IMAGE = 0, TYP_ZAP_DOS, TYP_ZAP_WIN, TYP_FRN } LoadedFileType{ TYP_IMAGE };
+	enum { TYP_IMAGE = 0, TYP_ZAP_DOS, TYP_ZAP_WIN, TYP_FRN, TYP_WINFRINGE_FRN } LoadedFileType{ TYP_IMAGE };
 	//
 	CString Title;
 	CString Date;

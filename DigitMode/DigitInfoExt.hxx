@@ -367,10 +367,12 @@ bool CDigitInfo::IsSections()
 
 bool CDigitInfo::IsZapSections()
 {
-	if (ZapLines.GetSize())
-		return true;
-	else
-		return false;
+	return false;
+	// deprecated/eliminated - no zap sections anymore
+	//if (ZapLines.GetSize())
+	//	return true;
+	//else
+	//	return false;
 }
 
 bool CDigitInfo::IsLockedZapSection()
@@ -1064,11 +1066,14 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 	CString path = fname;
 	CString ext = path.Right(3);
 	ext.MakeLower();
-	if (ext == "zap")
-		return SaveZAP(fname, extIdx);
-	else if (ext == "frn")
-		return SaveFRN(fname);
-	else
+	if (extIdx == FilterIndex::Filter_WinFringe_FRN ||
+		FilterIndex::Filter_WinFringe_FRN) {
+		bool saveAsWinFringe = (extIdx == FilterIndex::Filter_WinFringe_FRN);
+		return SaveFRN(fname, saveAsWinFringe);
+	}
+	else if (extIdx == FilterIndex::Filter_MTR) {
+
+	} else
 		return FALSE;
 }
 

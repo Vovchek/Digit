@@ -4,7 +4,7 @@
 #include "DigitInfo.h"
 #include "Controls/CApertureCtrls.h"
 #include "InterfSolver/INCLUDE/Int_Cons.h"
-#include "Utils\\mutils.h"
+#include "Utils\mutils.h"
 #include "Utils\middle.h"
 #include "MGTools\Include\Utils\Utils.h"
 #include <math.h>
@@ -379,11 +379,15 @@ BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)
 	return false;
 }
 
-BOOL CDigitInfo::SaveFRN(LPCTSTR fname)
+BOOL CDigitInfo::SaveFRN(LPCTSTR fname, bool saveAsWinFringe)
 {
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!CollectNumberingInterferogramInfo(IntInfo))
 		return false;
+    if(saveAsWinFringe)
+		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_WINFRINGE_FRN;
+    else
+		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_FRN;
 	WriteFRNData(fname, IntInfo);
 	return true;
 }

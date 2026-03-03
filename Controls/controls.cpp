@@ -206,9 +206,17 @@ bool CControls::GetCorrectFilterForSave(CString& str, int& nFilters)
 	nFilters = 0;
 	
 	if(pDI->IsDots()){
-     lan = "Files (FRN)";
+     lan = "Digit Interferogram Files (FRN)";
      str += lan; str += (TCHAR)NULL;
      str += "*.frn"; str += (TCHAR)NULL;
+	 nFilters += 1;
+	 lan = "FinFringe Interferogram Files (FRN)";
+	 str += lan; str += (TCHAR)NULL;
+	 str += "*.frn"; str += (TCHAR)NULL;
+	 nFilters += 1;
+	 lan = "Phase Map (MTR)";
+	 str += lan; str += (TCHAR)NULL;
+	 str += "*.mtr"; str += (TCHAR)NULL;
 	 nFilters += 1;
 	}
     if(pDI->IsZapSections()){

@@ -445,6 +445,16 @@ bool InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                       trustedIndices.size());
             }
         }
+        else if (nChar == VK_DELETE && !pDigit->selectionManager.IsEmpty()) {
+            // Del key: Delete selected items
+            if (pCmdDisp) {
+                auto cmd = std::make_unique<DeleteSelectionCommand>(*pDigit, pDigit->selectionManager);
+                pCmdDisp->Execute(std::move(cmd));
+                consumed = true;
+                
+                TRACE("InputHandler::OnKeyDown: Delete selection executed\n");
+            }
+        }
     }
 	return consumed;
 }

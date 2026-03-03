@@ -292,6 +292,19 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 	if (Fl.GetStringAfter("[GENERAL]", "FiScan", Str))
 		IntInfo.FiScan = atof(Str);
 
+	bool isWinFringeFormat = Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str);
+	IntInfo.LoadedFileType = isWinFringeFormat ? NUMBERING_INTERFEROGRAM_INFO::TYP_WINFRINGE_FRN : NUMBERING_INTERFEROGRAM_INFO::TYP_FRN;
+
+	if (Fl.GetStringAfter("[IMAGE]", "Size", Str) ||	// Digit format
+		Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str)) // WinFringe format)
+	{
+		FormArrFromString(Str, Buf);
+		if (Buf.GetSize()) IntInfo.ImageSize[0] = int(Buf[0]);
+		if (Buf.GetSize() > 1) IntInfo.ImageSize[1] = int(Buf[1]);
+	}
+	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str) || // Digit format
+		Fl.GetStringAfter("[IMAGE_FILE]", "Name", Str))  // WinFringe format
+		IntInfo.ImageFileName = Str;
 
 	bool apertureDefined{ false };
 
@@ -302,7 +315,13 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		{
 			FormArrFromString(Str, Buf);
 			if (Buf.GetSize() >= 7) {
-				Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				if (isWinFringeFormat) {
+					Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
+					Ell0.InverseY(IntInfo.ImageSize[1]);
+				}
+				else {
+					Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				}
 				IntInfo.ArrEll.Add(Ell0);
 				if (static_cast<int>(Buf[5]) == 1) apertureDefined = true;
 			}
@@ -316,7 +335,13 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		{
 			FormArrFromString(Str, Buf);
 			if (Buf.GetSize() >= 7) {
-				Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				if (isWinFringeFormat) {
+					Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
+					Rect0.InverseY(IntInfo.ImageSize[1]);
+				}
+				else {
+					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
+				}
 				IntInfo.ArrRect.Add(Rect0);
 				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
 			}
@@ -334,22 +359,14 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				int TypeSystCoor = int(Buf[1]);
 				Buf.RemoveAt(0, 2);
 				Plg0 = XYPolygon(Buf, TypLim, TypeSystCoor);
+				if (isWinFringeFormat) {
+					Plg0.InverseY(IntInfo.ImageSize[1]);
+				}
 				IntInfo.ArrPlg.Add(Plg0);
 				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
 			}
 		}
 	}
-
-	if (Fl.GetStringAfter("[IMAGE]", "Size", Str) ||	// Digit format
-		Fl.GetStringAfter("[IMAGE_FILE]", "Size", Str)) // WinFringe format)
-	{
-		FormArrFromString(Str, Buf);
-		if(Buf.GetSize()) IntInfo.ImageSize[0] = int(Buf[0]);
-		if (Buf.GetSize() > 1) IntInfo.ImageSize[1] = int(Buf[1]);
-	}
-	if (Fl.GetStringAfter("[IMAGE]", "FileName", Str) || // Digit format
-		Fl.GetStringAfter("[IMAGE_FILE]", "Name", Str))  // WinFringe format
-		IntInfo.ImageFileName = Str;
 
 	// !!! Place this after [IMAGE] - for WinFringe format we need to know image size 
 	// to flip the bounds correctly
@@ -360,14 +377,18 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			FormArrFromString(Str, Buf);
 			if (Buf.GetSize() == 4) // Digit format: Xl, Yt, Xr, Yb 
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
-			else if (Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, feature ?
-				IntInfo.EBnd = XYBounds(Buf[0], Buf[2], Buf[1], Buf[3]);
+			else if (isWinFringeFormat && Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, feature ?
+				auto xl = Buf[0];
+				auto xr = Buf[1];
+				auto yt = IntInfo.ImageSize[1] - Buf[3];
+				auto yb = IntInfo.ImageSize[1] - Buf[2];
+				IntInfo.EBnd = XYBounds(xl, yt, xr,	yb);
 				// bounds may dup aperture definitions, so ignore redundant
 				if (!apertureDefined) {
-					auto ax = (Buf[1] - Buf[0]) / 2.0;
-					auto by = (Buf[3] - Buf[2]) / 2.0;
-					auto xc = (Buf[1] + Buf[0]) / 2.0;
-					auto yc = (Buf[3] + Buf[2]) / 2.0;
+					auto ax = (xr - xl) / 2.0;
+					auto by = (yb - yt) / 2.0;
+					auto xc = (xl + xr) / 2.0;
+					auto yc = (yt + yb) / 2.0;
 					if (int(Buf[4]) == 0) { // circular or elliptic
 						auto Ell0 = XYEllipse(ax, by, xc, yc);
 						IntInfo.ArrEll.Add(Ell0);
@@ -422,6 +443,9 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		for (int i = 0; i < NSampl; i++)
 		{
 			Sampl.Add(Buf[2 * i], Buf[2 * i + 1], FringeNumber, 0.0, segmentIndex);
+		}
+		if (isWinFringeFormat) {
+			Sampl.InverseY(IntInfo.ImageSize[1]);
 		}
 		IntInfo.DigitDat.Append(Sampl);
 	}
@@ -714,6 +738,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	XYPoint P;
 
 	CTextIOFile Fl;
+	bool isWinFringeFormat = (IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_WINFRINGE_FRN);
 
 	Fl.Open(FileName, CFile::modeCreate | CFile::modeWrite);
 	Fl.WriteStringWithEnd("[GENERAL]");
@@ -737,11 +762,23 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Fl.WriteStringWithEnd("[ELLIPSES]");
 		for (i = 0; i < NEll; i++)
 		{
-			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-				IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By,
-				IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc,
-				IntInfo.ArrEll[i].Fi, IntInfo.ArrEll[i].TypeLimits,
-				IntInfo.ArrEll[i].TypeSystCoor);
+			auto& shape = IntInfo.ArrEll[i];
+			
+			if (isWinFringeFormat) {
+				shape.InverseY(IntInfo.ImageSize[1]);
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+					shape.Xc, shape.Yc,
+					shape.Ax, shape.By,
+					shape.Fi, shape.TypeLimits,
+					shape.TypeSystCoor);
+			}
+			else {
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+					shape.Ax, shape.By,
+					shape.Xc, shape.Yc,
+					shape.Fi, shape.TypeLimits,
+					shape.TypeSystCoor);
+			}
 			Fl.WriteStringWithEnd(Str, "\n");
 		}
 		Fl.WriteStringWithEnd("END\n");
@@ -753,11 +790,23 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Fl.WriteStringWithEnd("[RECTANGLES]");
 		for (i = 0; i < NRect; i++)
 		{
-			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-				IntInfo.ArrRect[i].Ax, IntInfo.ArrRect[i].By,
-				IntInfo.ArrRect[i].Xc, IntInfo.ArrRect[i].Yc,
-				IntInfo.ArrRect[i].Fi, IntInfo.ArrRect[i].TypeLimits,
-				IntInfo.ArrRect[i].TypeSystCoor);
+			auto shape = IntInfo.ArrRect[i];
+
+			if (isWinFringeFormat) {
+				shape.InverseY(IntInfo.ImageSize[1]);
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+					shape.Xc, shape.Yc,
+					shape.Ax, shape.By,
+					shape.Fi, shape.TypeLimits,
+					shape.TypeSystCoor);
+			}
+			else {
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+					shape.Ax, shape.By,
+					shape.Xc, shape.Yc,
+					shape.Fi, shape.TypeLimits,
+					shape.TypeSystCoor);
+			}
 			Fl.WriteStringWithEnd(Str, "\n");
 		}
 		Fl.WriteStringWithEnd("END\n");
@@ -769,32 +818,40 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Fl.WriteStringWithEnd("[POLYGONS]");
 		for (i = 0; i < NPlg; i++)
 		{
-			WritePolygon(Fl, IntInfo.ArrPlg[i]);
+			auto shape = IntInfo.ArrPlg[i];
+
+			if (isWinFringeFormat)
+				shape.InverseY(IntInfo.ImageSize[1]);
+
+			WritePolygon(Fl, shape);
 		}
 		Fl.WriteStringWithEnd("END\n");
 	}
 	
-	// Use WinFringe format
 	Fl.WriteStringWithEnd("[BOUNDS]");
-	int shape = 0; // TODO: consider shape using aperture
-	int feature = 1; // TODO: investigate the meaning
-	Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ", 
-		IntInfo.EBnd.XLeft, 
-		IntInfo.EBnd.XRight,
-		IntInfo.EBnd.YTop,
-		IntInfo.EBnd.YBottom,
-		shape,
-		feature
+	if (isWinFringeFormat) {
+		// Use WinFringe format
+		int shape = 0; // TODO: consider shape using aperture
+		int feature = 1; // TODO: investigate the meaning
+		Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ",
+			IntInfo.EBnd.XLeft,
+			IntInfo.EBnd.XRight,
+			IntInfo.ImageSize[1] - IntInfo.EBnd.YBottom,
+			IntInfo.ImageSize[1] - IntInfo.EBnd.YTop,
+			shape,
+			feature
 		);
-	Fl.WriteStringWithEnd(Str, "\n");
-	Fl.WriteStringWithEnd("END\n");
+		Fl.WriteStringWithEnd(Str, "\n");
+		Fl.WriteStringWithEnd("END\n");
+	}
+	else {
+		Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf ", IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop, IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
+		Fl.WriteStringWithEnd(Str, "E\n\n");
+	}
 
 	Fl.WriteStringWithEnd("[FRINGES]");
 
 	NPnt = IntInfo.DigitDat.GetSize();
-
-	// TODO: provide needed sorting in CollectionSampleData()
-	// IntInfo.DigitDat.SortIncreaseF();
 
 	SAMPLE_DATA Sampl;
 	Sampl.Clear();
@@ -822,6 +879,8 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		{
 			if (Sampl.GetSize() > 0)
 			{
+				if(isWinFringeFormat)
+					Sampl.InverseY(IntInfo.ImageSize[1]);
 				WriteFringe(Fl, Sampl);
 			}
 			FCur = F;
@@ -833,16 +892,26 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	// Flush last fringe
 	if (Sampl.GetSize() > 0)
 	{
+		if (isWinFringeFormat)
+			Sampl.InverseY(IntInfo.ImageSize[1]);
 		WriteFringe(Fl, Sampl);
 	}
 
 	Fl.WriteStringWithEnd("END");
 
-	Fl.WriteStringWithEnd("[IMAGE_FILE]");
 	Str.Format("%-d %d", IntInfo.ImageSize[0], IntInfo.ImageSize[1]);
-	Fl.WriteStringAfter("Size", "=", Str);
-	Str = IntInfo.ImageFileName;
-	Fl.WriteStringAfter("Name", "=", Str);
+	if (isWinFringeFormat) {
+		Fl.WriteStringWithEnd("[IMAGE_FILE]");
+		Fl.WriteStringAfter("Size", "=", Str);
+		Str = IntInfo.ImageFileName;
+		Fl.WriteStringAfter("Name", "=", Str);
+	}
+	else {
+		Fl.WriteStringWithEnd("[IMAGE]");
+		Fl.WriteStringAfter("Size", "=", Str);
+		Str = IntInfo.ImageFileName;
+		Fl.WriteStringAfter("FileName", "=", Str);
+	}
 	Fl.Close();
 }
 //=========================================================================

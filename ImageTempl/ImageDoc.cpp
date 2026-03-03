@@ -1103,15 +1103,13 @@ void CImageDoc::OnFileSaveAs()
 		fileDlg.m_ofn.nFilterIndex = atoi(Str);
 	}
 	else
-		fileDlg.m_ofn.nFilterIndex = 1;
+		fileDlg.m_ofn.nFilterIndex = FilterIndex::Filter_FRN;
 
 	if (fileDlg.m_ofn.nFilterIndex > static_cast<unsigned>(nFilters))
-		fileDlg.m_ofn.nFilterIndex = 1;
+		fileDlg.m_ofn.nFilterIndex = FilterIndex::Filter_FRN;
 
-	if (fileDlg.m_ofn.nFilterIndex)
+	if (fileDlg.m_ofn.nFilterIndex < 3)
 		fileDlg.m_ofn.lpstrDefExt = "frn";
-	else if (fileDlg.m_ofn.nFilterIndex)
-		fileDlg.m_ofn.lpstrDefExt = "zap";
 
 	fileDlg.m_ofn.Flags |= (OFN_EXTENSIONDIFFERENT | OFN_OVERWRITEPROMPT);
 
@@ -1122,6 +1120,7 @@ void CImageDoc::OnFileSaveAs()
 		fileDlg.m_ofn.lpstrInitialDir = s.GetBuffer(s.GetLength());
 		s.ReleaseBuffer();
 	}
+
 	else if (ReadPath("LOAD_FILE", Str, GetIniFile()))
 		fileDlg.m_ofn.lpstrInitialDir = Str;
 	else
@@ -1136,12 +1135,11 @@ void CImageDoc::OnFileSaveAs()
 		SavePath("SAVE_INDEX_FILE", sav, GetIniFile());
 		CString Ext = fileDlg.GetFileExt();
 		if (Ext.IsEmpty()) {
-			if (fileDlg.m_ofn.nFilterIndex == 1)
+			if (fileDlg.m_ofn.nFilterIndex == FilterIndex::Filter_FRN ||
+				fileDlg.m_ofn.nFilterIndex == FilterIndex::Filter_WinFringe_FRN)
 				FileName += ".frn";
-			else if (fileDlg.m_ofn.nFilterIndex == 2)
-				FileName += ".zap";
-			else if (fileDlg.m_ofn.nFilterIndex == 3)
-				FileName += ".zap";
+			else if (fileDlg.m_ofn.nFilterIndex == FilterIndex::Filter_MTR)
+				FileName += ".mtr";
 		}
 
 		pMFr->GetImageInfo(Digit.Comments, Digit.ScaleFactor, Digit.Rotation);

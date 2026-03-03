@@ -14,6 +14,12 @@
 
 #include "InterfSolver\Tools\ReadWriteData.h"
 
+enum FilterIndex {
+    Filter_FRN = 1,
+    Filter_WinFringe_FRN = 2,
+    Filter_MTR = 3
+};
+
 class CImageCtrls;  // Forward declaration
 
 /**
@@ -1471,7 +1477,7 @@ class CDigitInfo
 	   * @see LoadFRN()
 	   * @todo Remove file dependency
 	   */
-	  BOOL SaveFRN(LPCTSTR fname);
+	  BOOL SaveFRN(LPCTSTR fname, bool saveAsWinFringe);
 
   // ===== NEW: Fringe-based interface =====
   public:

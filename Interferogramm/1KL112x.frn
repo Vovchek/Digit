@@ -686,6 +686,6 @@ NFringe=7.0
  173.971 497.960
 E
 END
-[IMAGE_FILE]
+[IMAGE]
 Size=566 544
-Name=1KL112.pcx
+FileName=1KL112.pcx

@@ -192,4 +192,45 @@ private:
     std::vector<CFringeSegment> m_originalFringes;
 };
 
+// DeleteSelectionCommand - Delete all selected items from selection manager
+class DeleteSelectionCommand : public Command {
+public:
+    /**
+     * @brief Delete all items in current selection
+     * 
+     * @param doc Reference to CDigitInfo document
+     * @param selectionManager Reference to SelectionManager with selected items
+     * 
+     * Supports deletion of:
+     * - Dots: Removes individual control points
+     * - Edges: Splits segments at edge location
+     * - Segments: Removes entire segments
+     * - Fringes: Removes all segments with same Number
+     */
+    DeleteSelectionCommand(CDigitInfo& doc, const class SelectionManager& selectionManager);
+    
+    void Execute() override;
+    void Undo() override;
+    std::string GetName() const override { return "Delete Selection"; }
+    
+private:
+    CDigitInfo& m_doc;
+    std::vector<CFringeSegment> m_originalFringes;
+    std::vector<size_t> m_deletedSegmentIndices;
+    std::vector<size_t> m_deletedSegmentPositions;
+    
+    struct DeletedDot {
+        size_t segmentIndex;
+        size_t dotIndex;
+        CDPoint point;
+    };
+    std::vector<DeletedDot> m_deletedDots;
+    
+    struct DeletedEdge {
+        size_t segmentIndex;
+        size_t edgeStartIndex;
+    };
+    std::vector<DeletedEdge> m_deletedEdges;
+};
+
 } // namespace DigitMode

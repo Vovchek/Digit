@@ -38,7 +38,6 @@ void RemoveLastDotCommand::Undo() {
 }
 
 // Minimal stubs for other commands (implementations later)
-
 CreateSegmentCommand::CreateSegmentCommand(CDigitInfo& doc, const std::vector<CPoint2d>& points, double number)
     : m_doc(doc), m_points(points), m_number(number), m_createdIndex(static_cast<size_t>(-1)) {}
 
@@ -211,6 +210,130 @@ void AutoNumberingCommand::Undo() {
     m_doc.Fringes = m_originalFringes;
     
     TRACE("AutoNumberingCommand::Undo: Restored original fringe numbers\n");
+}
+
+// ---- DeleteSelectionCommand definitions ----
+DeleteSelectionCommand::DeleteSelectionCommand(CDigitInfo& doc, const SelectionManager& selectionManager)
+    : m_doc(doc) {
+    // Save original fringes for undo
+    m_originalFringes = m_doc.Fringes;
+}
+
+void DeleteSelectionCommand::Execute() {
+    if (m_doc.selectionManager.IsEmpty()) {
+        return; // Nothing to delete
+    }
+
+    SelectionLevel level = m_doc.selectionManager.GetLevel();
+    
+    if (level == SelectionLevel::Segment || level == SelectionLevel::Fringe) {
+        // Collect all segment indices to delete
+        std::vector<size_t> indicesToDelete;
+        
+        for (size_t i = 0; i < m_doc.selectionManager.GetCount(); ++i) {
+            const auto& obj = m_doc.selectionManager.GetAt(i);
+            if (obj.iSegment >= 0 && static_cast<size_t>(obj.iSegment) < m_doc.Fringes.size()) {
+                indicesToDelete.push_back(static_cast<size_t>(obj.iSegment));
+            }
+        }
+        
+        // Sort in descending order and remove duplicates
+        std::sort(indicesToDelete.rbegin(), indicesToDelete.rend());
+        indicesToDelete.erase(std::unique(indicesToDelete.begin(), indicesToDelete.end()), 
+                             indicesToDelete.end());
+        
+        // Delete segments in descending order
+        for (size_t idx : indicesToDelete) {
+            m_deletedSegmentIndices.push_back(idx);
+            m_deletedSegmentPositions.push_back(m_doc.Fringes.size() - 1);
+            m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(idx));
+        }
+    }
+    else if (level == SelectionLevel::Dot) {
+        // Delete individual dots
+        std::vector<DeletedDot> dotsToDelete;
+        
+        for (size_t i = 0; i < m_doc.selectionManager.GetCount(); ++i) {
+            const auto& obj = m_doc.selectionManager.GetAt(i);
+            if (obj.iSegment >= 0 && obj.iDot >= 0) {
+                auto& seg = m_doc.Fringes[static_cast<size_t>(obj.iSegment)];
+                if (obj.iDot < seg.GetPointCount()) {
+                    DeletedDot dd;
+                    dd.segmentIndex = static_cast<size_t>(obj.iSegment);
+                    dd.dotIndex = static_cast<size_t>(obj.iDot);
+                    dd.point = seg.GetPoint(obj.iDot);
+                    dotsToDelete.push_back(dd);
+                }
+            }
+        }
+        
+        // Sort by segment and dot index in descending order
+        std::sort(dotsToDelete.begin(), dotsToDelete.end(), 
+                 [](const DeletedDot& a, const DeletedDot& b) {
+                     if (a.segmentIndex != b.segmentIndex)
+                         return a.segmentIndex > b.segmentIndex;
+                     return a.dotIndex > b.dotIndex;
+                 });
+        
+        // Delete dots and remove segments if they become empty
+        for (const auto& dd : dotsToDelete) {
+            auto& seg = m_doc.Fringes[dd.segmentIndex];
+            seg.RemovePoint(static_cast<int>(dd.dotIndex));
+            m_deletedDots.push_back(dd);
+            
+            // If segment is now empty, delete it
+            if (seg.GetPointCount() == 0) {
+                m_deletedSegmentIndices.push_back(dd.segmentIndex);
+                m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(dd.segmentIndex));
+            }
+        }
+    }
+    else if (level == SelectionLevel::Edge) {
+        // Delete edges (split segments)
+        std::vector<DeletedEdge> edgesToDelete;
+        
+        for (size_t i = 0; i < m_doc.selectionManager.GetCount(); ++i) {
+            const auto& obj = m_doc.selectionManager.GetAt(i);
+            if (obj.iSegment >= 0 && obj.iEdge >= 0) {
+                auto& seg = m_doc.Fringes[static_cast<size_t>(obj.iSegment)];
+                if (obj.iEdge < seg.GetPointCount() - 1) {
+                    DeletedEdge de;
+                    de.segmentIndex = static_cast<size_t>(obj.iSegment);
+                    de.edgeStartIndex = static_cast<size_t>(obj.iEdge);
+                    edgesToDelete.push_back(de);
+                }
+            }
+        }
+        
+        // Sort in descending order to avoid index invalidation
+        std::sort(edgesToDelete.begin(), edgesToDelete.end(),
+                 [](const DeletedEdge& a, const DeletedEdge& b) {
+                     if (a.segmentIndex != b.segmentIndex)
+                         return a.segmentIndex > b.segmentIndex;
+                     return a.edgeStartIndex > b.edgeStartIndex;
+                 });
+        
+        // Delete edges by splitting segments
+        for (const auto& de : edgesToDelete) {
+            auto& seg = m_doc.Fringes[de.segmentIndex];
+            m_deletedEdges.push_back(de);
+            // Split segment at edge (removes the edge and creates two segments)
+            m_doc.Fringes.push_back(seg.Split(de.edgeStartIndex + 1));
+        }
+    }
+    
+    // Clear the selection after deletion
+    m_doc.selectionManager.Clear();
+    
+    TRACE("DeleteSelectionCommand::Execute: Deleted %zu dots, %zu edges, %zu segments\n",
+          m_deletedDots.size(), m_deletedEdges.size(), m_deletedSegmentIndices.size());
+}
+
+void DeleteSelectionCommand::Undo() {
+    // Restore original fringes
+    m_doc.Fringes = m_originalFringes;
+    
+    TRACE("DeleteSelectionCommand::Undo: Restored original state\n");
 }
 
 } // namespace DigitMode
