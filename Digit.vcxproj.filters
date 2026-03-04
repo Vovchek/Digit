@@ -265,18 +265,6 @@
     <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="DigitMode\InteractionManager.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\InputHandlerAdapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\BoundsToolAdapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="DigitMode\FringeToolAdapter.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="DigitMode\BoundsHandler.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
@@ -285,6 +273,18 @@
     </ClCompile>
     <ClCompile Include="DigitMode\WavefrontSolver\WavefrontFromContours.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\BoundsToolAdapter.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\FringeToolAdapter.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InputHandlerAdapter.cpp">
+      <Filter>Source Files\DigitMode</Filter>
+    </ClCompile>
+    <ClCompile Include="DigitMode\InteractionManager.cpp">
+      <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -533,14 +533,17 @@
     <ClInclude Include="DigitMode\InputHandlerAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="DigitMode\BoundsToolAdapter.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="DigitMode\FringeToolAdapter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="DigitMode\WavefrontSolver\IsoLinesToTopogram.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\BoundsToolAdapter.h">
+      <Filter>Header Files\DigitMode_H</Filter>
+    </ClInclude>
+    <ClInclude Include="DigitMode\WavefrontSolver\WavefrontFromContours.h">
+      <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

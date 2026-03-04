@@ -261,6 +261,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\ShapeConversionHelpers.h" />
     <ClInclude Include="DigitMode\ToolCapabilities.h" />
     <ClInclude Include="DigitMode\ToolContext.h" />
+    <ClInclude Include="DigitMode\WavefrontSolver\WavefrontFromContours.h" />
     <ClInclude Include="DigitMode\\DigitizationParams.h" />
     <ClInclude Include="DigitMode\DraftShape.h" />
     <ClInclude Include="DigitMode\EditMode.h" />

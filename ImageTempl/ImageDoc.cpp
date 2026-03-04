@@ -228,7 +228,6 @@ void CImageDoc::ActivateAproximation()
 }
 
 // temporary check algorithms for restoring topography from isolines
-#include <fstream>
 #include <memory>
 #include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
 void CImageDoc::CalcAproximation()

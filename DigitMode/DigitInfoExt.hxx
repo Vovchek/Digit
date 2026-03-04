@@ -1061,20 +1061,39 @@ BOOL CDigitInfo::Load(LPCTSTR fname)
 		return FALSE;
 }
 
+#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
+
 BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 {
 	CString path = fname;
 	CString ext = path.Right(3);
 	ext.MakeLower();
 	if (extIdx == FilterIndex::Filter_WinFringe_FRN ||
-		FilterIndex::Filter_WinFringe_FRN) {
+		extIdx == FilterIndex::Filter_WinFringe_FRN) {
 		bool saveAsWinFringe = (extIdx == FilterIndex::Filter_WinFringe_FRN);
 		return SaveFRN(fname, saveAsWinFringe);
 	}
 	else if (extIdx == FilterIndex::Filter_MTR) {
+		DigitMode::CApertureCtrls* pA = GetApertureCtrls();
+		auto& aperture = pA->GetShapes().getVisibleRegion();
+		auto mask = pA->GetMaskProvider().getMask();
 
-	} else
-		return FALSE;
+		WavefrontFromContoursInput input(
+			aperture,
+			mask,
+			Fringes
+		);
+		WavefrontFromContours wf(input);
+		WavefrontFromContoursSolver_HorizontalSpline solver;
+
+		auto topogram = wf.run(solver);
+		topogram.setScaleFactor(GetScaleFactor());
+
+		std::ofstream outMtr(fname);
+		return topogram.saveMtrMatrix(outMtr);
+	}
+	
+	return FALSE;
 }
 
 /// <summary>

@@ -1367,16 +1367,19 @@ class CDigitInfo
       void SetScaleFactor(double _ScaleFactor){ScaleFactor = _ScaleFactor;}
       
       /** @brief Set rotation angle (degrees) */
-      void SetRotation(double _Rotation){Rotation = _Rotation;}
+      void SetRotation(double _Rotation) {Rotation = _Rotation;}
       
       /** @brief Get user comments */
-	  void GetComments(CString& _Comments){_Comments = Comments;}
+	  void GetComments(CString& _Comments) const {_Comments = Comments;}
+	  CString GetComments() const { return Comments; }
 	  
 	  /** @brief Get scale factor */
-      void GetScaleFactor(double& _ScaleFactor){_ScaleFactor = ScaleFactor;}
+      void GetScaleFactor(double& _ScaleFactor) const {_ScaleFactor = ScaleFactor;}
+	  double GetScaleFactor() const { return ScaleFactor; }
       
       /** @brief Get rotation angle */
-      void GetRotation(double& _Rotation){_Rotation = Rotation;}
+      void GetRotation(double& _Rotation) const {_Rotation = Rotation;}
+	  double GetRotation() const { return Rotation; }
 
       // ========================================================================
       // FILE I/O

@@ -169,6 +169,7 @@ public:
 	int getCols() const { return cols_; }
 	const aperture::Bounds& getBounds() const { return bounds_; }
 	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
+	double getScaleFactor() const { return scaleFactor_; }
 
 	// ============================================================================
 	// Setters
@@ -177,6 +178,7 @@ public:
 	void setMatrixData(const double* data, int rows, int cols);
 	void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
 	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
+	void setScaleFactor(double scale) { scaleFactor_ = scale; }
 
 	// ============================================================================
 	// Stream Serialization
@@ -192,6 +194,7 @@ private:
     int cols_ = 0;
     aperture::Bounds bounds_;
     aperture::CoordinateSystemType coordType_;
+	double scaleFactor_ = 1.0;
 
 };
 

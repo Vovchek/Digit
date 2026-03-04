@@ -312,7 +312,12 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CDPoint activeDot, CDPoint cursorPo
             if (worldDotSide < 2) worldDotSide = 2;
             int half = worldDotSide / 2;
             CBrush brush(RGB(255,64,64)); CBrush* oldBr = pDC->SelectObject(&brush);
-            pDC->Ellipse(activeDot.x-half, activeDot.y-half, activeDot.x+half, activeDot.y+half);
+            pDC->Ellipse(
+                static_cast<int>(activeDot.x-half), 
+                static_cast<int>(activeDot.y-half), 
+                static_cast<int>(activeDot.x+half), 
+                static_cast<int>(activeDot.y+half)
+            );
             pDC->SelectObject(oldBr);
 
             if (cursorPos != CPoint(-1, -1) && rubberBand) {

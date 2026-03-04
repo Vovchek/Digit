@@ -1,4 +1,5 @@
 ﻿#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
+#include <ctime>
 
 // Save current macro state and undefine conflicting MFC macros for Eigen
 #pragma push_macro("max")
@@ -192,6 +193,22 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 		return false;
 
 	// Write header
+	std::streamsize oldPrec = os.precision();
+	os << std::fixed << std::setprecision(4);
+	
+	os << "Title=\n";
+	std::time_t t = std::time(nullptr);  // Get current time
+	std::tm* local = std::localtime(&t);  // Convert to local time
+
+	// Format time
+	char buffer[80];
+	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", local);
+	os << "Date=" << buffer << "\n";
+	std::strftime(buffer, sizeof(buffer), "%H:%M:%S", local);
+	os << "Time=" << buffer << "\n";
+
+	os << "ScaleFactor=" << getScaleFactor() << "\n";
+	os << "Units=WAV\n";
 	os << "Size=" << rows_ << "\n";
 	os << "[MATRIX]\n";
 
@@ -203,8 +220,6 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	const std::string indent(7, ' ');  // 7 spaces to align with first Z value
 
 	std::ios_base::fmtflags oldFlags = os.flags();
-	std::streamsize oldPrec = os.precision();
-	os << std::fixed << std::setprecision(4);
 
 	// Iterate through rows
 	for (int row = 0; row < rows_; ++row)
