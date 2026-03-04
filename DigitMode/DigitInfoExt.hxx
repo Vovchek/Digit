@@ -1068,7 +1068,7 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 	CString path = fname;
 	CString ext = path.Right(3);
 	ext.MakeLower();
-	if (extIdx == FilterIndex::Filter_WinFringe_FRN ||
+	if (extIdx == FilterIndex::Filter_FRN ||
 		extIdx == FilterIndex::Filter_WinFringe_FRN) {
 		bool saveAsWinFringe = (extIdx == FilterIndex::Filter_WinFringe_FRN);
 		return SaveFRN(fname, saveAsWinFringe);

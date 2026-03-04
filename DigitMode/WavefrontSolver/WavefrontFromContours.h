@@ -103,6 +103,9 @@ public:
 		const int N = outHeight * outWidth;
 		std::vector<char> visible(N, 0);
 
+		size_t sumVisible = 0;
+		size_t sumVisibleLine = 0;
+
 		for (int outY = 0; outY < outHeight; ++outY) {
 			double maskY = yToInput(outY);
 			for (int outX = 0; outX < outWidth; ++outX) {
@@ -116,8 +119,14 @@ public:
 				if (x >= 0 && x < visibilityMask.width && y >= 0 && y < visibilityMask.height) {
 					int outIndex = outY * outWidth + outX;
 					visible[outIndex] = visibilityMask.IsVisible(x, y) ? 1 : 0;
+					sumVisibleLine += visible[outIndex];
 				}
 			}
+			if (sumVisible && sumVisibleLine == 0) {
+				TRACE("Warning: No visible pixels found in line %d\n", outY);
+			}
+			sumVisible += sumVisibleLine;
+			sumVisibleLine = 0;
 		}
 
 		return visible;
