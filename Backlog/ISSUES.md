@@ -7,9 +7,12 @@
 # Bugs (100+)
 ### 101 <del>Rectangular bound refuses to be stretched with handles</del>
 ### 102 drag-created rectangular bound is 90-degrees rotated
-### 103 Dragging poins and segments aims at the wrong position
+### 103 <del>Dragging poins and segments aims at the wrong position</del>
+### 104 previousHoveredTool points to deleted memory after lose/regain focus
+### 105 <del>Some elipsed sizes entail corruption of WavefrontFromContours solvers</del>
+    Fixed invalid crossings search methods in WavefrontFromContours that were missing crossings with segments whick verteces are located exactly on scanned line.
 
----
+
 # Incomplete (200+)
 ### 201 Fringes numbers auto-assignment
 * test circles

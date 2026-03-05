@@ -142,6 +142,61 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 	return {knownZ, zk};
 }
 
+std::vector<WavefrontFromContoursContext::FringeCrossing>
+WavefrontFromContoursContext::findFringeCrossings(double worldY) const
+{
+	std::vector<FringeCrossing> crossings;
+	const auto& fringeSegments = input_.fringeSegments_;
+
+	constexpr double eps = 1e-12;
+
+	for (const auto& fringe : fringeSegments)
+	{
+		double fringeValue = fringe.GetNumber();
+		int pointCount = fringe.GetPointCount();
+
+		for (int i = 0; i < pointCount - 1; ++i)
+		{
+			CDPoint p0 = fringe.GetPoint(i);
+			CDPoint p1 = fringe.GetPoint(i + 1);
+
+			double y0 = p0.y;
+			double y1 = p1.y;
+
+			// ------------------------------------------------------------
+			// Case 1: Horizontal segment
+			// ------------------------------------------------------------
+			if (std::abs(y1 - y0) < eps)
+			{
+				if (std::abs(worldY - y0) < eps)
+				{
+					double centerX = 0.5 * (p0.x + p1.x);
+					crossings.push_back({ centerX, fringeValue });
+				}
+				continue;
+			}
+
+			// ------------------------------------------------------------
+			// Case 2: Non-horizontal segment
+			// Use half-open rule: [ymin, ymax)
+			// ------------------------------------------------------------
+			double ymin = (std::min)(y0, y1);
+			double ymax = (std::max)(y0, y1);
+
+			if (worldY >= ymin - eps && worldY < ymax - eps)
+			{
+				double t = (worldY - y0) / (y1 - y0);
+				double crossX = p0.x + t * (p1.x - p0.x);
+
+				crossings.push_back({ crossX, fringeValue });
+			}
+		}
+	}
+
+	std::sort(crossings.begin(), crossings.end());
+	return crossings;
+}
+
 std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& result)
 {
 	os << "MatrixXd(" << result.rows_ << " x " << result.cols_ << ")\n";
@@ -315,59 +370,8 @@ void WavefrontFromContoursResult::setMatrixData(const double* data, int rows, in
 // WavefrontFromContoursSolver_HorizontalLinear Implementation
 // ============================================================================
 
-std::vector<WavefrontFromContoursSolver_HorizontalLinear::FringeCrossing>
-WavefrontFromContoursSolver_HorizontalLinear::findFringeCrossings(
-	const WavefrontFromContoursContext& ctx,
-	double worldY) const
-{
-	std::vector<FringeCrossing> crossings;
-	const auto& fringeSegments = ctx.input_.fringeSegments_;
-	
-	// Iterate through all fringe segments
-	for (const auto& fringe : fringeSegments)
-	{
-		double fringeValue = fringe.GetNumber();
-		int pointCount = fringe.GetPointCount();
-		
-		// Check each line segment in the fringe polyline
-		for (int i = 0; i < pointCount - 1; ++i)
-		{
-			CDPoint p0 = fringe.GetPoint(i);
-			CDPoint p1 = fringe.GetPoint(i + 1);
-			
-			double y0 = p0.y;
-			double y1 = p1.y;
-			
-			// Check if horizontal line at worldY crosses this segment
-			// Segment crosses if worldY is between y0 and y1 (exclusive endpoints to avoid duplicates)
-			if ((y0 < worldY && worldY < y1) || (y1 < worldY && worldY < y0))
-			{
-				// Linear interpolation to find X coordinate at crossing
-				double t = (worldY - y0) / (y1 - y0);
-				double crossX = p0.x + t * (p1.x - p0.x);
-				
-				crossings.push_back({crossX, fringeValue});
-			}
-			// Include endpoint if exactly on the line (but only once per point)
-			else if (i == 0 && std::abs(y0 - worldY) < 1e-10)
-			{
-				crossings.push_back({p0.x, fringeValue});
-			}
-			else if (i == pointCount - 2 && std::abs(y1 - worldY) < 1e-10)
-			{
-				crossings.push_back({p1.x, fringeValue});
-			}
-		}
-	}
-	
-	// Sort crossings by X coordinate
-	std::sort(crossings.begin(), crossings.end());
-	
-	return crossings;
-}
-
 double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
-	const std::vector<FringeCrossing>& crossings,
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
 	double worldX) const
 {
 	if (crossings.empty())
@@ -378,7 +382,7 @@ double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
 	
 	// Find first crossing at or after worldX
 	auto it = std::lower_bound(crossings.begin(), crossings.end(), 
-		FringeCrossing{worldX, 0.0});
+		WavefrontFromContoursContext::FringeCrossing{worldX, 0.0});
 	
 	// If worldX is before all crossings, use first crossing value (extrapolate)
 	if (it == crossings.begin())
@@ -393,8 +397,8 @@ double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
 	}
 	
 	// worldX is between two crossings - interpolate
-	const FringeCrossing& right = *it;
-	const FringeCrossing& left = *(it - 1);
+	const WavefrontFromContoursContext::FringeCrossing& right = *it;
+	const WavefrontFromContoursContext::FringeCrossing& left = *(it - 1);
 	
 	// Linear interpolation
 	double dx = right.x - left.x;
@@ -430,7 +434,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 		double worldY = ctx.yToInput(static_cast<double>(row));
 		
 		// Find all fringe crossings at this Y
-		auto crossings = findFringeCrossings(ctx, worldY);
+		auto crossings = ctx.findFringeCrossings(worldY);
 		
 		if (crossings.empty())
 			continue; // No fringes at this Y, leave as NaN
@@ -469,59 +473,9 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 // WavefrontFromContoursSolver_HorizontalSpline Implementation
 // ============================================================================
 
-std::vector<WavefrontFromContoursSolver_HorizontalSpline::FringeCrossing>
-WavefrontFromContoursSolver_HorizontalSpline::findFringeCrossings(
-	const WavefrontFromContoursContext& ctx,
-	double worldY) const
-{
-	std::vector<FringeCrossing> crossings;
-	const auto& fringeSegments = ctx.input_.fringeSegments_;
-	
-	// Iterate through all fringe segments
-	for (const auto& fringe : fringeSegments)
-	{
-		double fringeValue = fringe.GetNumber();
-		int pointCount = fringe.GetPointCount();
-		
-		// Check each line segment in the fringe polyline
-		for (int i = 0; i < pointCount - 1; ++i)
-		{
-			CDPoint p0 = fringe.GetPoint(i);
-			CDPoint p1 = fringe.GetPoint(i + 1);
-			
-			double y0 = p0.y;
-			double y1 = p1.y;
-			
-			// Check if horizontal line at worldY crosses this segment
-			if ((y0 < worldY && worldY < y1) || (y1 < worldY && worldY < y0))
-			{
-				// Linear interpolation to find X coordinate at crossing
-				double t = (worldY - y0) / (y1 - y0);
-				double crossX = p0.x + t * (p1.x - p0.x);
-				
-				crossings.push_back({crossX, fringeValue});
-			}
-			// Include endpoint if exactly on the line (but only once per point)
-			else if (i == 0 && std::abs(y0 - worldY) < 1e-10)
-			{
-				crossings.push_back({p0.x, fringeValue});
-			}
-			else if (i == pointCount - 2 && std::abs(y1 - worldY) < 1e-10)
-			{
-				crossings.push_back({p1.x, fringeValue});
-			}
-		}
-	}
-	
-	// Sort crossings by X coordinate
-	std::sort(crossings.begin(), crossings.end());
-	
-	return crossings;
-}
-
 WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients
 WavefrontFromContoursSolver_HorizontalSpline::buildSpline(
-	const std::vector<FringeCrossing>& crossings) const
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings) const
 {
 	SplineCoefficients spline;
 	int n = static_cast<int>(crossings.size());
@@ -651,7 +605,7 @@ double WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients::evaluat
 }
 
 double WavefrontFromContoursSolver_HorizontalSpline::interpolateAtX(
-	const std::vector<FringeCrossing>& crossings,
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
 	double worldX) const
 {
 	if (crossings.empty())
@@ -686,7 +640,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 		double worldY = ctx.yToInput(static_cast<double>(row));
 		
 		// Find all fringe crossings at this Y
-		auto crossings = findFringeCrossings(ctx, worldY);
+		auto crossings = ctx.findFringeCrossings(worldY);
 		
 		if (crossings.size() < 2)
 			continue; // Need at least 2 points for meaningful spline

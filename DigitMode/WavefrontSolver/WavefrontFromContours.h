@@ -60,6 +60,18 @@ class WavefrontFromContoursContext
 	double yScale_ = 1.0;
 
 public:
+	// Helper structure to store fringe crossing point
+	struct FringeCrossing
+	{
+		double x;           // X-coordinate where fringe crosses horizontal line
+		double fringeValue; // Fringe number at this crossing
+		
+		bool operator<(const FringeCrossing& other) const
+		{
+			return x < other.x;
+		}
+	};
+
     explicit WavefrontFromContoursContext(const WavefrontFromContoursInput& input) :
         input_(input)
 	{
@@ -135,12 +147,19 @@ public:
 	std::pair<std::vector<char>, std::vector<double>> 
 		rasterize(const std::vector<char>& mask) const;
 
+	// Find all points where fringes cross a horizontal line at given Y
+	// Returns sorted vector of crossings
+	std::vector<FringeCrossing> findFringeCrossings(double worldY) const;
+
 	// Helper method to convert Y coordinate between reference systems
 	double convertY(double y) const
 	{
 		// If coordinate systems match, no conversion needed
 		if (input_.inputCoordType_ != input_.outputCoordType_) {
 			y = input_.visibilityMask_.height - y;  // Flip Y coordinate
+			if (y < 0 || y >= input_.visibilityMask_.height) {
+				TRACE("Warning: Converted Y coordinate %.2f is out of bounds after flipping\n", y);
+			}
 		}
 		return y;
 	}
@@ -343,28 +362,10 @@ public:
 	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
 
 private:
-	// Helper structure to store fringe crossing point
-	struct FringeCrossing
-	{
-		double x;           // X-coordinate where fringe crosses horizontal line
-		double fringeValue; // Fringe number at this crossing
-		
-		bool operator<(const FringeCrossing& other) const
-		{
-			return x < other.x;
-		}
-	};
-	
-	// Find all points where fringes cross a horizontal line at given Y
-	// Returns sorted vector of crossings
-	std::vector<FringeCrossing> findFringeCrossings(
-		const WavefrontFromContoursContext& ctx,
-		double worldY) const;
-	
 	// Linearly interpolate Z value at worldX given sorted crossings
 	// Returns NaN if outside fringe coverage or no valid interpolation
 	double interpolateAtX(
-		const std::vector<FringeCrossing>& crossings,
+		const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
 		double worldX) const;
 };
 
@@ -376,29 +377,11 @@ public:
 	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
 
 private:
-	// Helper structure to store fringe crossing point
-	struct FringeCrossing
-	{
-		double x;           // X-coordinate where fringe crosses horizontal line
-		double fringeValue; // Fringe number at this crossing
-		
-		bool operator<(const FringeCrossing& other) const
-		{
-			return x < other.x;
-		}
-	};
-	
-	// Find all points where fringes cross a horizontal line at given Y
-	// Returns sorted vector of crossings
-	std::vector<FringeCrossing> findFringeCrossings(
-		const WavefrontFromContoursContext& ctx,
-		double worldY) const;
-	
 	// Cubic spline interpolation
 	// Builds natural cubic spline coefficients for given crossings
 	// Returns interpolated Z value at worldX
 	double interpolateAtX(
-		const std::vector<FringeCrossing>& crossings,
+		const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
 		double worldX) const;
 	
 	// Helper to compute cubic spline coefficients (natural spline)
@@ -413,5 +396,5 @@ private:
 		double evaluate(double xi) const;
 	};
 	
-	SplineCoefficients buildSpline(const std::vector<FringeCrossing>& crossings) const;
+	SplineCoefficients buildSpline(const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings) const;
 };
