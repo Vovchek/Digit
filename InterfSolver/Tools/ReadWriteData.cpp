@@ -835,6 +835,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 			auto shape = IntInfo.ArrRect[i];
 
 			if (isWinFringeFormat) {
+				shape.Normalize(normXc, normYc, normRad);
 				shape.InverseY(IntInfo.ImageSize[1]);
 				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
 					shape.Xc, shape.Yc,
