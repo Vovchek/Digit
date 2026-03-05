@@ -1,4 +1,4 @@
-#ifndef _XYELLIPSE_H_
+﻿#ifndef _XYELLIPSE_H_
 #define _XYELLIPSE_H_
 
 #include "XYShape.h"      // NEW: Include base class
@@ -35,6 +35,7 @@ class XYEllipse : public XYShape  // NEW: Inherit from XYShape
     virtual ~XYEllipse();  // NEW: virtual destructor
     XYEllipse& operator= (const XYEllipse &A);
     
+	bool operator== (const XYEllipse& A) const;
     // REMOVED: SetTypeLimits, GetTypeLimits, SetTypeSystCoor, GetTypeSystCoor
     // (inherited from XYShape base class)
     

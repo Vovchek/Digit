@@ -1,4 +1,4 @@
-#ifndef _XYRECT_H_
+﻿#ifndef _XYRECT_H_
 #define _XYRECT_H_
 
 #include "XYShape.h"      // NEW: Include base class
@@ -33,6 +33,8 @@ class XYRect : public XYShape  // NEW: Inherit from XYShape
     virtual ~XYRect();  // NEW: virtual destructor
     XYRect& operator= (const XYRect &A);
     
+	bool operator== (const XYRect& A) const;
+
     // REMOVED: SetTypeLimits, GetTypeLimits, SetTypeSystCoor, GetTypeSystCoor
     // (inherited from XYShape base class)
     

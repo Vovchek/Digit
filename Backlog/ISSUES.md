@@ -1,5 +1,7 @@
 ﻿# Urgent needs (000+)
 ### 001 WinFringe .frn format compatibility issues
+* fix ellipses format - they must be normalized. But where to get center and radius for normalization?
+* fix bounds format (yet not clear)
 ### 002 smooth and robust interpolation
 ### 003 adjust sections spacing to fringes spacing
 
@@ -11,6 +13,7 @@
 ### 104 previousHoveredTool points to deleted memory after lose/regain focus
 ### 105 <del>Some elipsed sizes entail corruption of WavefrontFromContours solvers</del>
     Fixed invalid crossings search methods in WavefrontFromContours that were missing crossings with segments whick verteces are located exactly on scanned line.
+### 106 Automatic digitization does not propagate to the bottom if case of rectangular aperture (maybe in some other cases)
 
 
 # Incomplete (200+)

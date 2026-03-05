@@ -1,21 +1,21 @@
-#include "Matin1.h"
+п»ї#include "Matin1.h"
 #include "CalcLimits.h"
 //=========================================================================
 /***********************************************************************************
- ФУНКЦИЯ:    CalcCircleLimits
+ Р¤РЈРќРљР¦РРЇ:    CalcCircleLimits
 
- НАЗНАЧЕНИЕ:
-             Расчет параметров круга и границ области по заданным
-             точкам на границе области
+ РќРђР—РќРђР§Р•РќРР•:
+             Р Р°СЃС‡РµС‚ РїР°СЂР°РјРµС‚СЂРѕРІ РєСЂСѓРіР° Рё РіСЂР°РЅРёС† РѕР±Р»Р°СЃС‚Рё РїРѕ Р·Р°РґР°РЅРЅС‹Рј
+             С‚РѕС‡РєР°Рј РЅР° РіСЂР°РЅРёС†Рµ РѕР±Р»Р°СЃС‚Рё
 
- АРГУМЕНТЫ: 
-          На входе: 
+ РђР Р“РЈРњР•РќРўР«: 
+          РќР° РІС…РѕРґРµ: 
 
-          На выходе:
+          РќР° РІС‹С…РѕРґРµ:
 
- ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ: 
-              true -  если NPnt >= 3
-              false - если NPnt < 3
+ Р’РћР—Р’Р РђР©РђР•РњРћР• Р—РќРђР§Р•РќРР•: 
+              true -  РµСЃР»Рё NPnt >= 3
+              false - РµСЃР»Рё NPnt < 3
 ************************************************************************************/
 bool CalcCircleLimits(const XYBrokenLine &BLine, int TypeLimits, XYEllipse &Ell,
                                                                                 XYBounds &Bnd)
@@ -68,17 +68,17 @@ bool CalcCircleLimits(const XYBrokenLine &BLine, int TypeLimits, XYEllipse &Ell,
   }
 //=========================================================================
 /***********************************************************************************
- ФУНКЦИЯ:    CalcCircleLimits
+ Р¤РЈРќРљР¦РРЇ:    CalcCircleLimits
 
- НАЗНАЧЕНИЕ:
-             Расчет параметров круга по заданным  границам области
+ РќРђР—РќРђР§Р•РќРР•:
+             Р Р°СЃС‡РµС‚ РїР°СЂР°РјРµС‚СЂРѕРІ РєСЂСѓРіР° РїРѕ Р·Р°РґР°РЅРЅС‹Рј  РіСЂР°РЅРёС†Р°Рј РѕР±Р»Р°СЃС‚Рё
 
- АРГУМЕНТЫ: 
-          На входе: 
+ РђР Р“РЈРњР•РќРўР«: 
+          РќР° РІС…РѕРґРµ: 
 
-          На выходе:
+          РќР° РІС‹С…РѕРґРµ:
 
- ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ: true
+ Р’РћР—Р’Р РђР©РђР•РњРћР• Р—РќРђР§Р•РќРР•: true
 ************************************************************************************/
 bool CalcCircleLimits(const XYBounds &SBnd, int TypeLimits, XYEllipse &Ell, XYBounds &Bnd)
   {
@@ -100,21 +100,21 @@ bool CalcCircleLimits(const XYBounds &SBnd, int TypeLimits, XYEllipse &Ell, XYBo
   }
 //=========================================================================
 /***********************************************************************************
- ФУНКЦИЯ:    CalcEllipseLimits
+ Р¤РЈРќРљР¦РРЇ:    CalcEllipseLimits
 
- НАЗНАЧЕНИЕ:
-             Расчет параметров эллипса и границ области по заданным
-             точкам на границе области
+ РќРђР—РќРђР§Р•РќРР•:
+             Р Р°СЃС‡РµС‚ РїР°СЂР°РјРµС‚СЂРѕРІ СЌР»Р»РёРїСЃР° Рё РіСЂР°РЅРёС† РѕР±Р»Р°СЃС‚Рё РїРѕ Р·Р°РґР°РЅРЅС‹Рј
+             С‚РѕС‡РєР°Рј РЅР° РіСЂР°РЅРёС†Рµ РѕР±Р»Р°СЃС‚Рё
 
- АРГУМЕНТЫ: 
-          На входе: 
+ РђР Р“РЈРњР•РќРўР«: 
+          РќР° РІС…РѕРґРµ: 
 
-          На выходе:
-           ELL_LIMITS Ell -  параметры эллипса
+          РќР° РІС‹С…РѕРґРµ:
+           ELL_LIMITS Ell -  РїР°СЂР°РјРµС‚СЂС‹ СЌР»Р»РёРїСЃР°
 
- ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ: 
-              true -  если NPnt >= 4
-              false - если NPnt < 4
+ Р’РћР—Р’Р РђР©РђР•РњРћР• Р—РќРђР§Р•РќРР•: 
+              true -  РµСЃР»Рё NPnt >= 4
+              false - РµСЃР»Рё NPnt < 4
 ************************************************************************************/
 bool CalcEllipseLimits(const XYBrokenLine &BLine, int TypeLimits, XYEllipse &Ell, 
                                                                                 XYBounds &Bnd)
@@ -171,18 +171,18 @@ bool CalcEllipseLimits(const XYBrokenLine &BLine, int TypeLimits, XYEllipse &Ell
   }
 //=========================================================================
 /***********************************************************************************
- ФУНКЦИЯ:    CalcEllipseLimits
+ Р¤РЈРќРљР¦РРЇ:    CalcEllipseLimits
 
- НАЗНАЧЕНИЕ:
-             Расчет параметров эллпмса по заданным  границам области
+ РќРђР—РќРђР§Р•РќРР•:
+             Р Р°СЃС‡РµС‚ РїР°СЂР°РјРµС‚СЂРѕРІ СЌР»Р»РїРјСЃР° РїРѕ Р·Р°РґР°РЅРЅС‹Рј  РіСЂР°РЅРёС†Р°Рј РѕР±Р»Р°СЃС‚Рё
 
- АРГУМЕНТЫ: 
-          На входе: 
+ РђР Р“РЈРњР•РќРўР«: 
+          РќР° РІС…РѕРґРµ: 
 
-          На выходе:
-           ELL_LIMITS Ell -  параметры эллипса
+          РќР° РІС‹С…РѕРґРµ:
+           ELL_LIMITS Ell -  РїР°СЂР°РјРµС‚СЂС‹ СЌР»Р»РёРїСЃР°
 
- ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ: true
+ Р’РћР—Р’Р РђР©РђР•РњРћР• Р—РќРђР§Р•РќРР•: true
 ************************************************************************************/
 bool CalcEllipseLimits(const XYBounds &Bnd, int TypeLimits, XYEllipse &Ell)
   {
@@ -191,21 +191,21 @@ bool CalcEllipseLimits(const XYBounds &Bnd, int TypeLimits, XYEllipse &Ell)
   }
 //=========================================================================
 /***********************************************************************************
- ФУНКЦИЯ:    CalcRectangleLimits
+ Р¤РЈРќРљР¦РРЇ:    CalcRectangleLimits
 
- НАЗНАЧЕНИЕ:
-             Расчет параметров эллипсов, описывающих прямоугольник, и границ 
-             области по заданным  точкам на границе области
+ РќРђР—РќРђР§Р•РќРР•:
+             Р Р°СЃС‡РµС‚ РїР°СЂР°РјРµС‚СЂРѕРІ СЌР»Р»РёРїСЃРѕРІ, РѕРїРёСЃС‹РІР°СЋС‰РёС… РїСЂСЏРјРѕСѓРіРѕР»СЊРЅРёРє, Рё РіСЂР°РЅРёС† 
+             РѕР±Р»Р°СЃС‚Рё РїРѕ Р·Р°РґР°РЅРЅС‹Рј  С‚РѕС‡РєР°Рј РЅР° РіСЂР°РЅРёС†Рµ РѕР±Р»Р°СЃС‚Рё
 
- АРГУМЕНТЫ: 
-          На входе: 
+ РђР Р“РЈРњР•РќРўР«: 
+          РќР° РІС…РѕРґРµ: 
 
-          На выходе:
-           EMem<ELL_LIMITS> Ell -  массив параметров эллипсов
+          РќР° РІС‹С…РѕРґРµ:
+           EMem<ELL_LIMITS> Ell -  РјР°СЃСЃРёРІ РїР°СЂР°РјРµС‚СЂРѕРІ СЌР»Р»РёРїСЃРѕРІ
 
- ВОЗВРАЩАЕМОЕ ЗНАЧЕНИЕ: 
-              true -  если NPnt >= 4
-              false - если NPnt < 4
+ Р’РћР—Р’Р РђР©РђР•РњРћР• Р—РќРђР§Р•РќРР•: 
+              true -  РµСЃР»Рё NPnt >= 4
+              false - РµСЃР»Рё NPnt < 4
 ************************************************************************************/
 bool CalcRectangleLimits(const XYBrokenLine &BLine, int TypeLimits, XYRect &Rect,
                                                                             XYBounds &Bnd)
@@ -355,18 +355,23 @@ bool CalcBounds(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
 //=========================================================================
 bool CalcBoundCircle(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
                      const CArrayXYPolygon &ArrPlg, double &Xc,  double &Yc, double &Rad)
-  {
-  CArrayXYPolygon ArrCont;
-  int i, iCont, NCont, iExtCont;
-  XYPoint Pc;
+{
+  // resulting circle parameters
   Xc = 0.;
   Yc = 0.;
   Rad = 0.;
 
-  CalcContour(ArrEll, ArrRect, ArrPlg, ArrCont);
+  CArrayXYPolygon ArrCont;
 
-  NCont = ArrCont.GetSize();
-  for (iCont = 0; iCont < NCont; iCont++)
+  CalcContour(ArrEll, ArrRect, ArrPlg, ArrCont, 51);
+
+  int NCont = ArrCont.GetSize();
+  
+  if (!NCont)
+      return false;
+
+  int iExtCont = 0;
+  for (int iCont = 0; iCont < NCont; iCont++)
     {
     if (ArrCont[iCont].GetTypeLimits() == EXTERNAL)
       {
@@ -375,10 +380,10 @@ bool CalcBoundCircle(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
       }
     }
 
-  Pc = ArrCont[iExtCont].GetCentroid();
+  auto Pc = ArrCont[iExtCont].GetCentroid();
   int NPnt = ArrCont[iExtCont].GetSize();
   double Dist, MaxDist = 0.;
-  for (i = 0; i < NPnt; i++)
+  for (int i = 0; i < NPnt; i++)
     {
     Dist = Distance(Pc, ArrCont[iExtCont][i]);
     if (Dist > MaxDist)
@@ -388,7 +393,7 @@ bool CalcBoundCircle(const CArrayXYEllipse &ArrEll, const CArrayXYRect &ArrRect,
   Yc = Pc.Y;
   Rad = MaxDist;
   return true;
-  }
+}
 //=========================================================================
 bool CalcBoundCircle(const XYBounds &Bnd, double &Xc,  double &Yc, double &Rad)
   {

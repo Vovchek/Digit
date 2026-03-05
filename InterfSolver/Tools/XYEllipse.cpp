@@ -1,4 +1,4 @@
-#include "XYEllipse.h"
+﻿#include "XYEllipse.h"
 #include "XYPolygon.h"
 #include "XYBrokenLine.h"
 #include "Matrix.h"
@@ -81,6 +81,20 @@ XYEllipse& XYEllipse ::operator= (const XYEllipse &A)
   }
   return *this;
   }
+// =========================================================================
+// Comparison operator
+// =========================================================================
+bool XYEllipse :: operator== (const XYEllipse& A) const
+  {
+  return (fabs(Ax - A.Ax) < PRECISION &&
+          fabs(By - A.By) < PRECISION &&
+          fabs(Xc - A.Xc) < PRECISION &&
+          fabs(Yc - A.Yc) < PRECISION &&
+          fabs(Fi - A.Fi) < PRECISION &&
+          TypeLimits == A.TypeLimits &&
+          TypeSystCoor == A.TypeSystCoor);
+}
+
 //=========================================================================
 double XYEllipse :: Perimeter() const
   {

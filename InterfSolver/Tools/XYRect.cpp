@@ -1,4 +1,4 @@
-#include "XYRect.h"
+﻿#include "XYRect.h"
 #include "XYPolygon.h"
 #include "XYBrokenLine.h"
 
@@ -71,6 +71,19 @@ XYRect& XYRect ::operator= (const XYRect& A)
 		Co = A.Co;
 	}
 	return *this;
+}
+//=========================================================================
+// Equality operator - compare all members including base class
+//=========================================================================
+bool XYRect::operator== (const XYRect& A) const
+{
+	return (TypeLimits == A.TypeLimits) &&
+		   (TypeSystCoor == A.TypeSystCoor) &&
+		   (Ax == A.Ax) &&
+		   (By == A.By) &&
+		   (Xc == A.Xc) &&
+		   (Yc == A.Yc) &&
+		   (Fi == A.Fi);
 }
 //=========================================================================
 double XYRect::Perimeter() const
