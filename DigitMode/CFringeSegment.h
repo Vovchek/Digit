@@ -107,7 +107,7 @@ public:
     
     // ===== Drawing (UI dependency - to be removed later) =====
     void DrawDots(CDC* pDC, int dotSize, COLORREF color);
-    void DrawPolyline(CDC* pDC, COLORREF color);
+    void DrawPolyline(CDC* pDC, int lineWidth, COLORREF color);
     void DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotColor);
     
     // ===== Advanced Operations (Phase 5+) =====

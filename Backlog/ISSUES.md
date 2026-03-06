@@ -14,7 +14,8 @@
 ### 105 <del>Some elipsed sizes entail corruption of WavefrontFromContours solvers</del>
     Fixed invalid crossings search methods in WavefrontFromContours that were missing crossings with segments whick verteces are located exactly on scanned line.
 ### 106 Automatic digitization does not propagate to the bottom if case of rectangular aperture (maybe in some other cases)
-
+### 107 Not reproduced, needs clarification ?Undo do not work on point dragging?
+### 108 Segment dragging Execute/Undo is not atomic
 
 # Incomplete (200+)
 ### 201 Fringes numbers auto-assignment

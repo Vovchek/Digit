@@ -167,13 +167,13 @@ void CFringeSegment::DrawDots(CDC* pDC, int dotSize, COLORREF color)
     pDC->SelectObject(oldBrush);
 }
 
-void CFringeSegment::DrawPolyline(CDC* pDC, COLORREF color)
+void CFringeSegment::DrawPolyline(CDC* pDC, int width, COLORREF color)
 {
     if (m_Points.size() < 2) return;
     
-    CPen pen(PS_SOLID, 1, color);
-    CPen* oldPen = pDC->SelectObject(&pen);
-    
+	CPen linePen(PS_COSMETIC, width, color);
+    CPen* pOldPen = pDC->SelectObject(&linePen);
+
     CPoint p0(static_cast<int>(m_Points[0].x), static_cast<int>(m_Points[0].y));
     pDC->MoveTo(p0);
     
@@ -185,13 +185,13 @@ void CFringeSegment::DrawPolyline(CDC* pDC, COLORREF color)
     if (m_bClosed && m_Points.size() > 2) {
         pDC->LineTo(p0);
     }
-    
-    pDC->SelectObject(oldPen);
+
+	pDC->SelectObject(pOldPen);
 }
 
 void CFringeSegment::DrawFull(CDC* pDC, int dotSize, COLORREF lineColor, COLORREF dotColor)
 {
-    DrawPolyline(pDC, lineColor);
+    DrawPolyline(pDC, 1, lineColor);
     DrawDots(pDC, dotSize, dotColor);
 }
 

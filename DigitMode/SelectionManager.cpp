@@ -395,12 +395,12 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
                     CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
                     CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
                     
-                    CPen glowPen(PS_SOLID, 5, glowColor);
+                    CPen glowPen(PS_SOLID, 3, glowColor);
                     CPen* oldPen = pDC->SelectObject(&glowPen);
                     pDC->MoveTo(pt1);
                     pDC->LineTo(pt2);
                     
-                    CPen highlightPen(PS_SOLID, 2, highlightColor);
+                    CPen highlightPen(PS_SOLID, 1, highlightColor);
                     pDC->SelectObject(&highlightPen);
                     pDC->MoveTo(pt1);
                     pDC->LineTo(pt2);
@@ -414,12 +414,12 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
                     CPoint pt1(static_cast<int>(p1.x), static_cast<int>(p1.y));
                     CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
                     
-                    CPen glowPen(PS_SOLID, 5, glowColor);
+                    CPen glowPen(PS_SOLID, 3, glowColor);
                     CPen* oldPen = pDC->SelectObject(&glowPen);
                     pDC->MoveTo(pt1);
                     pDC->LineTo(pt2);
                     
-                    CPen highlightPen(PS_SOLID, 2, highlightColor);
+                    CPen highlightPen(PS_SOLID, 1, highlightColor);
                     pDC->SelectObject(&highlightPen);
                     pDC->MoveTo(pt1);
                     pDC->LineTo(pt2);
@@ -442,13 +442,13 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
             CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
             
             // Draw thicker glowing line
-            CPen glowPen(PS_SOLID, 5, glowColor);
+            CPen glowPen(PS_SOLID, 3, glowColor);
             CPen* oldPen = pDC->SelectObject(&glowPen);
             pDC->MoveTo(pt1);
             pDC->LineTo(pt2);
             
             // Draw bright center line
-            CPen highlightPen(PS_SOLID, 2, highlightColor);
+            CPen highlightPen(PS_SOLID, 1, highlightColor);
             pDC->SelectObject(&highlightPen);
             pDC->MoveTo(pt1);
             pDC->LineTo(pt2);
@@ -467,13 +467,13 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
                 CPoint pt2(static_cast<int>(p2.x), static_cast<int>(p2.y));
                 
                 // Outer glow
-                CPen glowPen(PS_SOLID, 4, glowColor);
+                CPen glowPen(PS_SOLID, 3, glowColor);
                 CPen* oldPen = pDC->SelectObject(&glowPen);
                 pDC->MoveTo(pt1);
                 pDC->LineTo(pt2);
                 
                 // Inner highlight
-                CPen highlightPen(PS_SOLID, 2, highlightColor);
+                CPen highlightPen(PS_SOLID, 1, highlightColor);
                 pDC->SelectObject(&highlightPen);
                 pDC->MoveTo(pt1);
                 pDC->LineTo(pt2);
@@ -491,8 +491,8 @@ void SelectionManager::DrawSelection(CDC* pDC, const std::vector<::CFringeSegmen
                 CPen highlightPen(PS_SOLID, 1, highlightColor);
                 CPen* oldPen = pDC->SelectObject(&highlightPen);
                 
-                pDC->Ellipse(screenPoint.x - 4, screenPoint.y - 4,
-                             screenPoint.x + 4, screenPoint.y + 4);
+                pDC->Ellipse(screenPoint.x - 2, screenPoint.y - 2,
+                             screenPoint.x + 2, screenPoint.y + 2);
                 
                 pDC->SelectObject(oldBrush);
                 pDC->SelectObject(oldPen);

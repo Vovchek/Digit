@@ -280,11 +280,11 @@ void CDigitInfo::Draw(CDC* pDC, int DotSide, CDPoint activeDot, CDPoint cursorPo
             for (size_t iF = 0; iF < Fringes.size(); ++iF) {
                 double num = Fringes[iF].GetNumber();
                 COLORREF Color; pCtrls->GetIndexColor(num, Color);
-                int w = (int)(1.0 / scale + 0.5); if (w < 1) w = 1;
-                CPen pen(PS_GEOMETRIC, w, Color);
-                CPen* oldP = pDC->SelectObject(&pen);
-                Fringes[iF].DrawPolyline(pDC, Color);
-                pDC->SelectObject(oldP);
+                int w = (int)(1.0 / scale + 0.5); 
+                if (w < 1) w = 1;
+                
+                Fringes[iF].DrawPolyline(pDC, w, Color);
+                
             }
         }
     

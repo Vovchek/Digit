@@ -318,7 +318,6 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				if (isWinFringeFormat) {
 					//Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
 					Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), NORMALISED);
-					Ell0.InverseY(IntInfo.ImageSize[1]);
 				}
 				else {
 					//Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
@@ -340,7 +339,6 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				if (isWinFringeFormat) {
 					//Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
 					Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), NORMALISED);
-					Rect0.InverseY(IntInfo.ImageSize[1]);
 				}
 				else {
 					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), MEASURING);
@@ -379,7 +377,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		while (Fl.ReadString(Str) && Str != "END" && !Str.IsEmpty())
 		{
 			FormArrFromString(Str, Buf);
-			if (Buf.GetSize() == 4) {// Digit format: Xl, Yt, Xr, Yb 
+			if (!isWinFringeFormat && Buf.GetSize() == 4) {// Digit format: Xl, Yt, Xr, Yb 
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
 				break; // only 1 bound is in digit format
 			}
@@ -415,17 +413,30 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 					//}
 				//}
 			}
+			else {
+				TRACE("Unknown BOUNDS:\"%s\"\n", Str);
+			}
 		}
 	}
 
-	// Denormalize shapes if WinFringe format
+	// Denormalize and invert shapes comming from [ELLIPSES] and [RECTANGLES] 
+	// sections in WinFringe format. Shapes from [BOUNDS] are already inverted
 	if (isWinFringeFormat) {
-		if (normRad == 0.)
+		if (normRad == 0.) {
+			// TODO: better select BOUNDS only shapes
 			CalcBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, normXc, normYc, normRad);
+			normYc = IntInfo.ImageSize[1] - normYc;
+		}
 		for (int i = 0; i < IntInfo.ArrEll.GetSize(); i++)
-			if(IntInfo.ArrEll[i].GetTypeSystCoor() == NORMALISED) IntInfo.ArrEll[i].DeNormalize(normXc, normYc, normRad);
+			if (IntInfo.ArrEll[i].GetTypeSystCoor() == NORMALISED) {
+				IntInfo.ArrEll[i].DeNormalize(normXc, normYc, normRad);
+				IntInfo.ArrEll[i].InverseY(IntInfo.ImageSize[1]);
+			}
 		for (int i = 0; i < IntInfo.ArrRect.GetSize(); i++)
-			if (IntInfo.ArrRect[i].GetTypeSystCoor() == NORMALISED) IntInfo.ArrRect[i].DeNormalize(normXc, normYc, normRad);
+			if (IntInfo.ArrRect[i].GetTypeSystCoor() == NORMALISED) {
+				IntInfo.ArrRect[i].DeNormalize(normXc, normYc, normRad);
+				IntInfo.ArrEll[i].InverseY(IntInfo.ImageSize[1]);
+			}
 		// we do not normilize polygons, as they are not supported in WinFringe
 	}
 
@@ -770,6 +781,36 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 	Fl.WriteStringWithEnd("END\n");
 	Fl.Close();
 }
+
+bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRect>& ArrRect, double& Xc, double& Yc, double& Rad)
+{
+	std::vector<XYPoint> Pnts;
+	// collect extreme pionts of all non-rotated shapes
+	for (int i = 0; i < ArrEll.GetSize(); i++) {
+		if (ArrEll[i].Fi == 0.) {
+			Pnts.push_back(XYPoint(ArrEll[i].Xc - ArrEll[i].Ax, ArrEll[i].Yc));
+			Pnts.push_back(XYPoint(ArrEll[i].Xc + ArrEll[i].Ax, ArrEll[i].Yc));
+			Pnts.push_back(XYPoint(ArrEll[i].Xc, ArrEll[i].Yc - ArrEll[i].By));
+			Pnts.push_back(XYPoint(ArrEll[i].Xc, ArrEll[i].Yc + ArrEll[i].By));
+		}
+	}
+	for (int i = 0; i < ArrRect.GetSize(); i++) {
+		if (ArrRect[i].Fi == 0.) {
+			Pnts.push_back(XYPoint(ArrRect[i].Xc - ArrRect[i].Ax, ArrRect[i].Yc - ArrRect[i].By));
+			Pnts.push_back(XYPoint(ArrRect[i].Xc + ArrRect[i].Ax, ArrRect[i].Yc - ArrRect[i].By));
+			Pnts.push_back(XYPoint(ArrRect[i].Xc - ArrRect[i].Ax, ArrRect[i].Yc + ArrRect[i].By));
+			Pnts.push_back(XYPoint(ArrRect[i].Xc + ArrRect[i].Ax, ArrRect[i].Yc + ArrRect[i].By));
+		}
+	}
+	if (Pnts.empty()) {
+		Xc = Yc = Rad = 0.;
+		return false;
+	}
+	// calculate bound circle encompasing all extreme points
+
+
+	return true;
+}
 //=========================================================================
 void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
@@ -806,7 +847,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Fl.WriteStringWithEnd("[ELLIPSES]");
 		for (i = 0; i < NEll; i++)
 		{
-			auto& shape = IntInfo.ArrEll[i];
+			auto shape = IntInfo.ArrEll[i];
 			
 			if (isWinFringeFormat) {
 				shape.InverseY(IntInfo.ImageSize[1]);
