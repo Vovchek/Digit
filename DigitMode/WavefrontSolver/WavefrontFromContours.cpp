@@ -1,5 +1,103 @@
 ﻿#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
+#include <algorithm>
 #include <ctime>
+#include <random>
+
+namespace
+{
+	constexpr double kCircleEps = 1e-9;
+
+	double sqr(double v)
+	{
+		return v * v;
+	}
+
+	double distanceSquared(const WavefrontPrimitivePoint& a, const WavefrontPrimitivePoint& b)
+	{
+		return sqr(a.x - b.x) + sqr(a.y - b.y);
+	}
+
+	bool containsPoint(const WavefrontBoundingCircle& circle, const WavefrontPrimitivePoint& p)
+	{
+		if (!circle.valid)
+			return false;
+		return distanceSquared(circle.center, p) <= sqr(circle.radius + kCircleEps);
+	}
+
+	WavefrontBoundingCircle circleFromOnePoint(const WavefrontPrimitivePoint& p)
+	{
+		WavefrontBoundingCircle c;
+		c.center = p;
+		c.radius = 0.0;
+		c.valid = true;
+		return c;
+	}
+
+	WavefrontBoundingCircle circleFromTwoPoints(const WavefrontPrimitivePoint& a, const WavefrontPrimitivePoint& b)
+	{
+		WavefrontBoundingCircle c;
+		c.center = { (a.x + b.x) * 0.5, (a.y + b.y) * 0.5 };
+		c.radius = std::sqrt(distanceSquared(a, b)) * 0.5;
+		c.valid = true;
+		return c;
+	}
+
+	WavefrontBoundingCircle circleFromThreePoints(
+		const WavefrontPrimitivePoint& a,
+		const WavefrontPrimitivePoint& b,
+		const WavefrontPrimitivePoint& c)
+	{
+		double d = 2.0 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
+		if (std::abs(d) < kCircleEps)
+		{
+			WavefrontBoundingCircle ab = circleFromTwoPoints(a, b);
+			WavefrontBoundingCircle ac = circleFromTwoPoints(a, c);
+			WavefrontBoundingCircle bc = circleFromTwoPoints(b, c);
+			WavefrontBoundingCircle best = ab;
+			if (ac.radius > best.radius) best = ac;
+			if (bc.radius > best.radius) best = bc;
+			return best;
+		}
+
+		double ax2ay2 = sqr(a.x) + sqr(a.y);
+		double bx2by2 = sqr(b.x) + sqr(b.y);
+		double cx2cy2 = sqr(c.x) + sqr(c.y);
+
+		WavefrontBoundingCircle circle;
+		circle.center.x = (ax2ay2 * (b.y - c.y) + bx2by2 * (c.y - a.y) + cx2cy2 * (a.y - b.y)) / d;
+		circle.center.y = (ax2ay2 * (c.x - b.x) + bx2by2 * (a.x - c.x) + cx2cy2 * (b.x - a.x)) / d;
+		circle.radius = std::sqrt(distanceSquared(circle.center, a));
+		circle.valid = true;
+		return circle;
+	}
+
+	WavefrontBoundingCircle welzl(
+		std::vector<WavefrontPrimitivePoint>& points,
+		std::vector<WavefrontPrimitivePoint>& boundary,
+		int n)
+	{
+		if (n == 0 || boundary.size() == 3)
+		{
+			if (boundary.empty())
+				return {};
+			if (boundary.size() == 1)
+				return circleFromOnePoint(boundary[0]);
+			if (boundary.size() == 2)
+				return circleFromTwoPoints(boundary[0], boundary[1]);
+			return circleFromThreePoints(boundary[0], boundary[1], boundary[2]);
+		}
+
+		const WavefrontPrimitivePoint p = points[static_cast<size_t>(n - 1)];
+		WavefrontBoundingCircle d = welzl(points, boundary, n - 1);
+		if (containsPoint(d, p))
+			return d;
+
+		boundary.push_back(p);
+		WavefrontBoundingCircle result = welzl(points, boundary, n - 1);
+		boundary.pop_back();
+		return result;
+	}
+}
 
 // Save current macro state and undefine conflicting MFC macros for Eigen
 #pragma push_macro("max")
@@ -248,10 +346,12 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 		return false;
 
 	// Calculate matrix size and normalization parameters
-	size_t sizeMatrix = ((std::max)(rows_, cols_));
+	auto boundingCircle = getBoundingCircle();
+	if (!boundingCircle.valid) return false;
+	size_t sizeMatrix = static_cast<size_t>(boundingCircle.radius * 2); // Use bounding circle diameter
 	double ratio = 2.0 / (sizeMatrix - 1);  // Scale factor to fit largest dimension into [-1, 1]
-	int xc = (cols_ - 1) / 2;  // Center column index
-	int yc = (rows_ - 1) / 2;  // Center row index
+	int xc = static_cast<int>(boundingCircle.center.x);  // Center column index
+	int yc = static_cast<int>(boundingCircle.center.y);  // Center row index
 
 	// Write header
 	std::streamsize oldPrec = os.precision();
@@ -361,6 +461,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const Wa
 	result.setMatrixData(zk.data(), outHeight, outWidth);
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
 
 	return result;
 }
@@ -472,6 +573,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	result.setMatrixData(zk.data(), outHeight, outWidth);
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
 
 	return result;
 }
@@ -678,6 +780,53 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	result.setMatrixData(zk.data(), outHeight, outWidth);
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
 	
 	return result;
+}
+
+WavefrontBoundingCircle WavefrontFromContoursContext::computeMaskBoundingCircle(const std::vector<char>& mask) const
+{
+	const int outWidth = input_.outWidth_;
+	const int outHeight = input_.outHeight_;
+	if (mask.empty() || outWidth <= 0 || outHeight <= 0)
+		return {};
+
+	std::vector<WavefrontPrimitivePoint> points;
+	points.reserve(static_cast<size_t>(outHeight) * 2u);
+
+	for (int row = 0; row < outHeight; ++row)
+	{
+		const int rowOffset = row * outWidth;
+		int firstVisible = -1;
+		int lastVisible = -1;
+
+		for (int col = 0; col < outWidth; ++col)
+		{
+			if (mask[rowOffset + col] == 0)
+				continue;
+			if (firstVisible < 0)
+				firstVisible = col;
+			lastVisible = col;
+		}
+
+		if (firstVisible < 0)
+			continue;
+
+		points.push_back({ static_cast<double>(firstVisible), static_cast<double>(row) });
+		if (lastVisible != firstVisible)
+		{
+			points.push_back({ static_cast<double>(lastVisible), static_cast<double>(row) });
+		}
+	}
+
+	if (points.empty())
+		return {};
+
+	std::mt19937 rng(0xD16D1234u);
+	std::shuffle(points.begin(), points.end(), rng);
+
+	std::vector<WavefrontPrimitivePoint> boundary;
+	boundary.reserve(3u);
+	return welzl(points, boundary, static_cast<int>(points.size()));
 }
