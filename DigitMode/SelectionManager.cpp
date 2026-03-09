@@ -143,7 +143,7 @@ size_t SelectionManager::SelectBox(const CDRect& box, const std::vector<::CFring
         // Simplified: check if line crosses any box edge
         int x1 = pt1.x, y1 = pt1.y, x2 = pt2.x, y2 = pt2.y;
         int xmin = static_cast<int>(rect.left), xmax = static_cast<int>(rect.right), 
-            ymin = static_cast<int>(rect.top), ymax = static_cast<int>(rect.bottom);
+            ymin = static_cast<int>(rect.bottom), ymax = static_cast<int>(rect.top);
         
         // Line bounding box doesn't overlap rect bounding box
         int maxX1X2 = (x1 > x2) ? x1 : x2;

@@ -100,6 +100,7 @@
       <Filter>ApertureTests</Filter>
     </ClCompile>
     <ClCompile Include="DigitModeTests\MiddleRefactoringTest.cpp" />
+    <ClCompile Include="InterfSolver\Tools\CalcWinFringeBoundCircleTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
@@ -154,6 +155,7 @@
     <None Include="InterfSolver\Tools\ISPUPIL_TEST_FIXES.md">
       <Filter>Docs</Filter>
     </None>
+    <None Include="InterfSolver\Tools\CALCWINFRINGEBOUNDCIRCLE_TESTS.md" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Docs">

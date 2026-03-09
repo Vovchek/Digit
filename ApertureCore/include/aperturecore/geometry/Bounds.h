@@ -263,7 +263,7 @@ public:
      * Bounds mathBox{0, 0, 100, 50, CoordinateSystem::math()};
      * @endcode
      */
-    Bounds(double l, double t, double r, double b, CoordinateSystem sys)
+    Bounds(double l, double t, double r, double b, const CoordinateSystem sys)
         : left(l), top(t), right(r), bottom(b), spatialSystem(sys) {}
     
     /**

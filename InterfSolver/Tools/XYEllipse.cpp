@@ -118,7 +118,7 @@ bool XYEllipse :: isInside(const XYPoint &P) const
   return true;
   }
 //=========================================================================
-bool XYEllipse :: isInside(double X, double Y)
+bool XYEllipse :: isInside(double X, double Y) const
   {
   XYPoint P(X, Y);
   return isInside(P);
@@ -355,9 +355,25 @@ XYEllipse::XYEllipse(const std::vector<XYPoint>& points, int _TypeLimits, int _T
 
         if (fabs(A) < PRECISION)
         {
-            // Points are collinear, create degenerate ellipse
-            Xc = (x1 + x2 + x3) / 3.;
-            Yc = (y1 + y2 + y3) / 3.;
+            // Points are nearly collinear, create largest diameter circle
+            auto R12 = Distance(points[0], points[1]) / 2.;
+            auto R13 = Distance(points[0], points[2]) / 2.;
+            auto R23 = Distance(points[1], points[2]) / 2.;
+            if (R12 >= R13 && R12 >= R23) { // 1-2 is best
+                Ax = By = R12;
+                Xc = (x1 + x2) / 2.;
+                Yc = (y1 + y2) / 2.;
+            }
+            else if (R13 >= R12 && R13 >= R23) { // 1-3 is best
+                Ax = By = R13;
+                Xc = (x1 + x3) / 2.;
+                Yc = (y1 + y3) / 2.;
+            }
+            else { // 2-3 is best
+                Ax = By = R23;
+                Xc = (x3 + x2) / 2.;
+                Yc = (y3 + y2) / 2.;
+            }
         }
         else
         {

@@ -1,4 +1,6 @@
 ﻿#include <math.h>
+#include <random>
+
 #include "Include\Int_Cons.h"
 #include "GetTimeDate.h"
 #include "CalcLimits.h"
@@ -263,6 +265,81 @@ BOOL ReadDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntIn
 	return TRUE;
 
 }
+
+XYEllipse welzl(std::vector<XYPoint>& P, std::vector<XYPoint> R, int n)
+{
+	if (n == 0 || R.size() == 3)
+		return XYEllipse(R);
+
+	auto p = P[n - 1];
+	auto D = welzl(P, R, n - 1);
+
+	if (D.isInside(p))
+		return D;
+	R.push_back(p);
+	return welzl(P, R, n - 1);
+}
+bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRect>& ArrRect, double& Xc, double& Yc, double& Rad)
+{
+	std::vector<XYPoint> Pnts;
+	XYBrokenLine contour;
+	// collect contour points of all non-rotated shapes
+	for (int i = 0; i < ArrEll.GetSize(); i++) {
+		auto shape = ArrEll[i];
+		if (shape.GetTypeLimits() == EXTERNAL && shape.Fi == 0.) {
+			shape.GetContour(contour, 1.0);
+			for (int j = 0; j < contour.GetSize(); j++) {
+				Pnts.push_back(XYPoint(contour[j].X, contour[j].Y));
+			}
+		}
+	}
+	for (int i = 0; i < ArrRect.GetSize(); i++) {
+		auto shape = ArrRect[i];
+		if (shape.GetTypeLimits() == EXTERNAL && shape.Fi == 0.) {
+			shape.GetContour(contour, 1.0);
+			for (int j = 0; j < contour.GetSize(); j++) {
+				Pnts.push_back(XYPoint(contour[j].X, contour[j].Y));
+			}
+		}
+	}
+	// select only visible points
+	std::vector<XYPoint> VisiblePnts;
+	for (const auto& p : Pnts) {
+		bool isVisible = true;
+		for (int i = 0; i < ArrEll.GetSize(); i++) {
+			if (!ArrEll[i].isVisible(p)) {
+				isVisible = false;
+				break;
+			}
+		}
+		if (isVisible) {
+			for (int i = 0; i < ArrRect.GetSize(); i++) {
+				if (!ArrRect[i].isVisible(p)) {
+					isVisible = false;
+					break;
+				}
+			}
+		}
+		if (isVisible) {
+			VisiblePnts.push_back(p);
+		}
+	}
+	if (VisiblePnts.empty()) {
+		Xc = Yc = Rad = 0.;
+		return false;
+	}
+	// calculate bound circle encompassing all visible points
+	std::mt19937 rng(42); // fixed seed for reproducibility
+	std::shuffle(VisiblePnts.begin(), VisiblePnts.end(), rng);
+
+	auto minCirc = welzl(VisiblePnts, {}, static_cast<int>(VisiblePnts.size()));
+	Xc = minCirc.Xc;
+	Yc = minCirc.Yc;
+	Rad = minCirc.Ax;
+
+	return true;
+}
+
 //=========================================================================
 BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
@@ -317,7 +394,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			if (Buf.GetSize() >= 7) {
 				if (isWinFringeFormat) {
 					//Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
-					Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), NORMALISED);
+					Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), NORMALISED);
 				}
 				else {
 					//Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
@@ -338,7 +415,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			if (Buf.GetSize() >= 7) {
 				if (isWinFringeFormat) {
 					//Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
-					Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), NORMALISED);
+					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), NORMALISED);
 				}
 				else {
 					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), MEASURING);
@@ -372,6 +449,8 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 	// !!! Place this after [IMAGE] - for WinFringe format we need to know image size 
 	// to flip the bounds correctly
 	double normXc = 0., normYc = 0., normRad = 0.;
+	CArray<XYEllipse> boundEllArr;
+	CArray<XYRect> boundRectArr;
 	if (Fl.SeekToSection("[BOUNDS]"))
 	{
 		while (Fl.ReadString(Str) && Str != "END" && !Str.IsEmpty())
@@ -381,11 +460,14 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 				IntInfo.EBnd = XYBounds(Buf[0], Buf[1], Buf[2], Buf[3]);
 				break; // only 1 bound is in digit format
 			}
-			else if (isWinFringeFormat && Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yt, Yb, shape{0|1|2}, EXTERNAL
+			else if (isWinFringeFormat && Buf.GetSize() == 6) { // WinFringe format: Xl, Xr, Yb, Yt, shape{0|1|2}, EXTERNAL
 				auto xl = Buf[0];
 				auto xr = Buf[1];
 				auto yt = IntInfo.ImageSize[1] - Buf[3];
 				auto yb = IntInfo.ImageSize[1] - Buf[2];
+				if(yt > yb) {
+					std::swap(yt, yb);
+				}
 				IntInfo.EBnd = XYBounds(xl, yt, xr,	yb);
 				// bounds may dup aperture definitions
 				// prune them later
@@ -398,10 +480,12 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 					if (int(Buf[4]) == 0 || int(Buf[4]) == 1) { // elliptic anyway
 						auto Ell0 = XYEllipse(ax, by, xc, yc, 0.0, typLim, MEASURING);
 						IntInfo.ArrEll.Add(Ell0);
+						boundEllArr.Add(Ell0);
 					}
 					else if (int(Buf[4]) == 2) { // rectangular
 						auto Rect0 = XYRect(ax, by, xc, yc, 0.0, typLim, MEASURING);
 						IntInfo.ArrRect.Add(Rect0);
+						boundRectArr.Add(Rect0);
 					}
 					//if(normRad == 0. && typLim == EXTERNAL) {
 					//	normXc = xc;
@@ -422,11 +506,9 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 	// Denormalize and invert shapes comming from [ELLIPSES] and [RECTANGLES] 
 	// sections in WinFringe format. Shapes from [BOUNDS] are already inverted
 	if (isWinFringeFormat) {
-		if (normRad == 0.) {
-			// TODO: better select BOUNDS only shapes
-			CalcBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, normXc, normYc, normRad);
-			normYc = IntInfo.ImageSize[1] - normYc;
-		}
+		CalcWinFringeBoundCircle(boundEllArr, boundRectArr, normXc, normYc, normRad);
+		normYc = IntInfo.ImageSize[1] - normYc;
+		
 		for (int i = 0; i < IntInfo.ArrEll.GetSize(); i++)
 			if (IntInfo.ArrEll[i].GetTypeSystCoor() == NORMALISED) {
 				IntInfo.ArrEll[i].DeNormalize(normXc, normYc, normRad);
@@ -782,35 +864,6 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 	Fl.Close();
 }
 
-bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRect>& ArrRect, double& Xc, double& Yc, double& Rad)
-{
-	std::vector<XYPoint> Pnts;
-	// collect extreme pionts of all non-rotated shapes
-	for (int i = 0; i < ArrEll.GetSize(); i++) {
-		if (ArrEll[i].Fi == 0.) {
-			Pnts.push_back(XYPoint(ArrEll[i].Xc - ArrEll[i].Ax, ArrEll[i].Yc));
-			Pnts.push_back(XYPoint(ArrEll[i].Xc + ArrEll[i].Ax, ArrEll[i].Yc));
-			Pnts.push_back(XYPoint(ArrEll[i].Xc, ArrEll[i].Yc - ArrEll[i].By));
-			Pnts.push_back(XYPoint(ArrEll[i].Xc, ArrEll[i].Yc + ArrEll[i].By));
-		}
-	}
-	for (int i = 0; i < ArrRect.GetSize(); i++) {
-		if (ArrRect[i].Fi == 0.) {
-			Pnts.push_back(XYPoint(ArrRect[i].Xc - ArrRect[i].Ax, ArrRect[i].Yc - ArrRect[i].By));
-			Pnts.push_back(XYPoint(ArrRect[i].Xc + ArrRect[i].Ax, ArrRect[i].Yc - ArrRect[i].By));
-			Pnts.push_back(XYPoint(ArrRect[i].Xc - ArrRect[i].Ax, ArrRect[i].Yc + ArrRect[i].By));
-			Pnts.push_back(XYPoint(ArrRect[i].Xc + ArrRect[i].Ax, ArrRect[i].Yc + ArrRect[i].By));
-		}
-	}
-	if (Pnts.empty()) {
-		Xc = Yc = Rad = 0.;
-		return false;
-	}
-	// calculate bound circle encompasing all extreme points
-
-
-	return true;
-}
 //=========================================================================
 void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
@@ -838,7 +891,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	Fl.WriteStringWithEnd("");
 
 	double normXc, normYc, normRad;
-	CalcBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, IntInfo.ArrPlg, normXc, normYc, normRad);
+	CalcWinFringeBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, normXc, normYc, normRad);
 	normYc = static_cast<double>(IntInfo.ImageSize[1]) - normYc;
 
 	int NEll = IntInfo.ArrEll.GetSize();
@@ -853,8 +906,8 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 				shape.InverseY(IntInfo.ImageSize[1]);
 				shape.Normalize(normXc, normYc, normRad);
 				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-					shape.Xc, shape.Yc,
 					shape.Ax, shape.By,
+					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
 					shape.TypeSystCoor);
 			}
@@ -882,8 +935,8 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 				shape.InverseY(IntInfo.ImageSize[1]);
 				shape.Normalize(normXc, normYc, normRad);
 				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
-					shape.Xc, shape.Yc,
 					shape.Ax, shape.By,
+					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
 					shape.TypeSystCoor);
 			}
@@ -937,24 +990,24 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ",
 					bnd.XLeft,
 					bnd.XRight,
+					bnd.YTop,    // anyway WinFringe expects YTop > YBottom, so we do not swap them here
 					bnd.YBottom,
-					bnd.YTop,
 					1, // shape: 0, 1 - ellipse, 2 - rectangle
 					shape.GetTypeLimits()  // obscuration: 0 - internal, 1 - external
 				);
 			Fl.WriteStringWithEnd(Str, "\n");
 		}
 		for (int i = 0; i < IntInfo.ArrRect.GetSize(); i++) {
-			auto shape = IntInfo.ArrEll[i];
-			if (shape.Fi != 0.) // skip rotated ellipses as WinFringe does not support them in bounds
+			auto shape = IntInfo.ArrRect[i];
+			if (shape.Fi != 0.) // skip rotated rectangles as WinFringe does not support them in bounds
 				continue;
 			shape.InverseY(IntInfo.ImageSize[1]);
 			auto bnd = shape.GetBounds();
 			Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ",
 				bnd.XLeft,
 				bnd.XRight,
-				bnd.YBottom,
 				bnd.YTop,
+				bnd.YBottom,
 				2, // shape: 0, 1 - ellipse, 2 - rectangle
 				shape.GetTypeLimits()  // obscuration: 0 - internal, 1 - external
 			);

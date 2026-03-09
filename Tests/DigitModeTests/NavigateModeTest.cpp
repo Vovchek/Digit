@@ -49,7 +49,8 @@ protected:
 TEST_F(NavigateModeTest, BoxSelect_Default_SelectsDotsInside) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(50, 50), CDPoint(100, 100)});
     
-    CRect box(5, 5, 55, 55);
+    CDRect box(5, 5, 55, 55);
+    box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
     EXPECT_EQ(2u, count);  // Dots at (10,10) and (50,50)
@@ -59,7 +60,8 @@ TEST_F(NavigateModeTest, BoxSelect_Default_SelectsDotsInside) {
 TEST_F(NavigateModeTest, BoxSelect_Default_SelectsEdgesIntersecting) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(100, 10)});
     
-    CRect box(30, 5, 70, 15);  // Crosses edge but doesn't contain dots
+    CDRect box(30, 5, 70, 15);  // Crosses edge but doesn't contain dots
+    box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
     EXPECT_GT(count, 0u);  // Should select edge
@@ -69,7 +71,8 @@ TEST_F(NavigateModeTest, BoxSelect_Default_SelectsEdgesIntersecting) {
 TEST_F(NavigateModeTest, BoxSelect_Default_SelectsSegmentWhenAllEdgesIncluded) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(50, 50), CDPoint(90, 90)});
     
-    CRect box(5, 5, 95, 95);  // Includes entire segment
+    CDRect box(5, 5, 95, 95);  // Includes entire segment
+    box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes);
     
     EXPECT_EQ(1u, count);  // Should promote to segment
@@ -82,7 +85,8 @@ TEST_F(NavigateModeTest, BoxSelect_SegmentMode_SelectsIfAnyPartIntersects) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(100, 100)});
     CreateSegment(2.0, {CDPoint(200, 200), CDPoint(300, 300)});
     
-    CRect box(5, 5, 30, 30);  // Only intersects first segment's start
+    CDRect box(5, 5, 30, 30);  // Only intersects first segment's start
+    box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes, 
                                                          BoxSelectionMode::Segment);
     
@@ -95,7 +99,8 @@ TEST_F(NavigateModeTest, BoxSelect_SegmentMode_MultipleSegments) {
     CreateSegment(1.0, {CDPoint(10, 10), CDPoint(50, 50)});
     CreateSegment(2.0, {CDPoint(30, 30), CDPoint(70, 70)});
     
-    CRect box(0, 0, 60, 60);
+    CDRect box(0, 0, 60, 60);
+    box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Segment);
     
@@ -110,7 +115,8 @@ TEST_F(NavigateModeTest, BoxSelect_FringeMode_SelectsAllSegmentsWithSameNumber) 
     CreateSegment(1.0, {CDPoint(200, 200), CDPoint(250, 250)});  // Same number
     CreateSegment(2.0, {CDPoint(300, 300), CDPoint(350, 350)});  // Different number
     
-    CRect box(5, 5, 55, 55);  // Only intersects first segment
+    CDRect box(5, 5, 55, 55);  // Only intersects first segment
+	box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Fringe);
     
@@ -126,7 +132,8 @@ TEST_F(NavigateModeTest, BoxSelect_FringeMode_MultipleFringes) {
     CreateSegment(2.0, {CDPoint(30, 30), CDPoint(70, 70)});
     CreateSegment(2.0, {CDPoint(200, 200), CDPoint(250, 250)});
     
-    CRect box(0, 0, 80, 80);  // Intersects segments from both fringes
+    CDRect box(0, 0, 80, 80);  // Intersects segments from both fringes
+	box.NormalizeRect();
     size_t count = digitInfo.selectionManager.SelectBox(box, digitInfo.Fringes,
                                                          BoxSelectionMode::Fringe);
     
@@ -140,12 +147,14 @@ TEST_F(NavigateModeTest, BoxSelect_AddMode_AddsToExisting) {
     CreateSegment(2.0, {CDPoint(100, 100), CDPoint(150, 150)});
     
     // First selection
-    CRect box1(5, 5, 55, 55);
+    CDRect box1(5, 5, 55, 55);
+	box1.NormalizeRect();
     digitInfo.selectionManager.SelectBox(box1, digitInfo.Fringes);
     size_t count1 = digitInfo.selectionManager.GetCount();
     
     // Add to selection
-    CRect box2(95, 95, 155, 155);
+    CDRect box2(95, 95, 155, 155);
+	box2.NormalizeRect();
     size_t count2 = digitInfo.selectionManager.SelectBox(box2, digitInfo.Fringes,
                                                           BoxSelectionMode::AddMode);
     

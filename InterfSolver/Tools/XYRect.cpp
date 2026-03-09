@@ -10,6 +10,14 @@ XYRect::XYRect(double _Ax, double _By, double _Xc, double _Yc, double _Fi,
 	: XYShape(_TypeLimits, _TypeSystCoor),  // NEW: Initialize base class
 	  Ax(_Ax), By(_By), Xc(_Xc), Yc(_Yc), Fi(_Fi)
 {
+	while (Fi >= 90.) {
+		Fi -= 90.;
+		std::swap(Ax, By);
+	}
+	while (Fi <= -90.) {
+		Fi += 90.;
+		std::swap(Ax, By);
+	}
 	Si = sin(GRD_RD * Fi);
 	Co = cos(GRD_RD * Fi);
 }
@@ -102,7 +110,7 @@ bool XYRect::isInside(const XYPoint& P) const
 		return false;
 }
 //=========================================================================
-bool XYRect::isInside(double X, double Y)
+bool XYRect::isInside(double X, double Y) const
 {
 	XYPoint P(X, Y);
 	return isInside(P);

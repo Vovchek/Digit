@@ -1,4 +1,4 @@
-#ifndef _READWRITEDATA_H_
+﻿#ifndef _READWRITEDATA_H_
 #define _READWRITEDATA_H_
 
 #include "NunberInfo.h"
@@ -16,4 +16,5 @@ INTERF_API void WriteFRNData(const CString &FileName, NUMBERING_INTERFEROGRAM_IN
 INTERF_API void WritePolygon(CTextIOFile &Fl, XYPolygon &Plg, int NPntInStr = 4);
 INTERF_API void WriteSection(CTextIOFile &Fl, SAMPLE_DATA &Sampl, int NPntInStr = 6);
 INTERF_API void WriteFringe(CTextIOFile &Fl, SAMPLE_DATA &Sampl);
+INTERF_API bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRect>& ArrRect, double& Xc, double& Yc, double& Rad);
 #endif

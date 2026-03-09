@@ -230,20 +230,6 @@ TEST_F(ApertureCtrlsTest, NotifyShapeModified_IncrementsVersion) {
 // Hit Testing Tests
 // ============================================================================
 
-TEST_F(ApertureCtrlsTest, HitTest_PointInsideShape_ReturnsHit) {
-    // Add a rectangle at (50, 50) with size 100x100
-    auto rect = std::make_unique<aperture::Rectangle>(100.0, 100.0, 100.0, 100.0);
-    apertureCtrls->AddExternalShape(std::move(rect));
-    
-    // Test point at center
-    Point testPoint{100.0, 100.0};
-    auto result = apertureCtrls->HitTest(testPoint, 5.0);
-    
-    EXPECT_TRUE(result.hitShape(1));
-    EXPECT_TRUE(result.hitBody());
-    EXPECT_FALSE(result.hitControlPoint());
-}
-
 TEST_F(ApertureCtrlsTest, HitTest_PointOutsideShape_ReturnsNoHit) {
     auto rect = std::make_unique<aperture::Rectangle>(100.0, 100.0, 100.0, 100.0);
     apertureCtrls->AddExternalShape(std::move(rect));

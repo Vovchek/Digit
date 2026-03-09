@@ -342,10 +342,7 @@ TEST_F(DraftShapeTest, GetPreview_Ellipse_ThreePoints_ShowsFit) {
     draft.AddPoint({-10, 0});
     
     auto preview = draft.GetPreview();
-    ASSERT_NE(preview, nullptr);
-    
-    aperture::Ellipse* ellipse = dynamic_cast<aperture::Ellipse*>(preview.get());
-    ASSERT_NE(ellipse, nullptr);
+	ASSERT_EQ(preview, nullptr); // ellipse needs 4 or more points, not fallback to circle
 }
 
 TEST_F(DraftShapeTest, GetPreview_Circle_ThreePoints_ShowsCircleFit) {

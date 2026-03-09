@@ -1,4 +1,4 @@
-#ifndef _XYSHAPE_H_
+﻿#ifndef _XYSHAPE_H_
 #define _XYSHAPE_H_
 
 #include "XYPoint.h"
@@ -89,14 +89,14 @@ public:
      * @return true if point is inside, false otherwise
      */
     virtual bool isInside(const XYPoint &P) const = 0;
-    
+
     /**
      * @brief Test if a point at coordinates (X,Y) is inside the shape
      * @param X X-coordinate
      * @param Y Y-coordinate
      * @return true if point is inside, false otherwise
      */
-    virtual bool isInside(double X, double Y) = 0;
+    virtual bool isInside(double X, double Y) const = 0;
     
     /**
      * @brief Generate contour as broken line with specified number of points
@@ -170,7 +170,7 @@ public:
      * @param Y Y-coordinate
      * @return true if point is visible, false if blocked
      */
-    virtual bool isVisible(double X, double Y);
+    virtual bool isVisible(double X, double Y) const;
 
     // ========================================================================
     // Optional Virtual Methods 

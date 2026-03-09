@@ -76,7 +76,7 @@ bool XYShape::isVisible(const XYPoint &P) const
     return true;  // All other cases → visible
 }
 
-bool XYShape::isVisible(double X, double Y)
+bool XYShape::isVisible(double X, double Y) const
 {
     XYPoint P(X, Y);
     return isVisible(P);

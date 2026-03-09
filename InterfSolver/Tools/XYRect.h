@@ -41,7 +41,7 @@ class XYRect : public XYShape  // NEW: Inherit from XYShape
     // Pure virtual implementations from XYShape (override keyword added)
     virtual double Perimeter() const override;
     virtual bool isInside(const XYPoint &P) const override;
-    virtual bool isInside(double X, double Y) override;
+    virtual bool isInside(double X, double Y) const override;
     virtual bool GetContour(XYBrokenLine &BLine, int NFi) const override;
     virtual bool GetContour(XYBrokenLine &BLine, double Step) const override;
     virtual bool GetContour(XYPolygon &Plg, int NFi) override;      // NOW override - base is non-const

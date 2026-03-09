@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -260,6 +260,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="InterfSolver\Tools\CalcWinFringeBoundCircleTest.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
@@ -267,6 +268,10 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="UtilsTests\middle_integrated_test.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="..\DigitMode\WavefrontSolver\WavefrontFromContours.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">NotUsing</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">NotUsing</PrecompiledHeader>
     </ClCompile>
@@ -283,6 +288,7 @@
     <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_ANALYSIS.md" />
     <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_COMPLETE_SUMMARY.md" />
     <None Include="InterfSolver\Tools\CALCCONTOUR_TEST_FIXES.md" />
+    <None Include="InterfSolver\Tools\CALCWINFRINGEBOUNDCIRCLE_TESTS.md" />
     <None Include="InterfSolver\Tools\CONNECTSEGMENTS_TEST_UPDATES.md" />
     <None Include="InterfSolver\Tools\CONNECTSEGMENTS_TEST_UPDATES_COMPLETE.md" />
     <None Include="InterfSolver\Tools\ELLIPSE_TEST_ANALYSIS.md" />

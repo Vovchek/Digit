@@ -315,7 +315,8 @@ TEST_F(SelectionManagerTest, BoxSelectionSelectsDots) {
     
     // Define selection box that contains points (10,10) and (20,20)
     // but NOT (30,30), (40,40), etc.
-    CRect box(5, 5, 25, 25);  // (left=5, top=5, right=25, bottom=25)
+    CDRect box(5, 5, 25, 25);  // (left=5, top=5, right=25, bottom=25)
+    box.NormalizeRect(); // CDRect use math system top > bottom
 
     // Perform box selection
     size_t count = selectionMgr.SelectBox(box, testSegments);  // ← Use testSegments (member), not local

@@ -17,7 +17,7 @@ EXPORTS
 ?SetTypeSystCoor@XYShape@@UAEXH@Z                       ; XYShape::SetTypeSystCoor(int)
 ?GetTypeSystCoor@XYShape@@UBEHXZ                        ; XYShape::GetTypeSystCoor() const
 ?isVisible@XYShape@@UBE_NABUXYPoint@@@Z                 ; XYShape::isVisible(XYPoint const &) const
-?isVisible@XYShape@@UAE_NNN@Z                           ; XYShape::isVisible(double,double)
+?isVisible@XYShape@@UBE_NNN@Z                           ; XYShape::isVisible(double,double) const
 ?GetBounds@XYShape@@UBEXAAUXYBounds@@@Z                 ; XYShape::GetBounds(XYBounds &) const
 
 ; XYEllipse exports

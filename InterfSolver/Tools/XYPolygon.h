@@ -1,4 +1,4 @@
-#ifndef _POLYGON_H_
+﻿#ifndef _POLYGON_H_
 #define _POLYGON_H_
 
 #include "XYBrokenLine.h"
@@ -28,7 +28,7 @@ class XYPolygon : public XYBrokenLine, public XYShape  // NEW: Multiple inherita
     // Pure virtual implementations from XYShape (override keyword added)
     virtual double Perimeter() const override;
     virtual bool isInside(const XYPoint &P) const override;
-    virtual bool isInside(double X, double Y) override;
+    virtual bool isInside(double X, double Y) const override;
     virtual void Normalize(double Xo, double Yo, double Ro) override;
     virtual void DeNormalize(double Xo, double Yo, double Ro) override;
     virtual XYBounds GetBounds() const override;

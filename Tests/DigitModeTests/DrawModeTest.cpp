@@ -406,17 +406,12 @@ TEST_F(DrawModeTest, StartNewSegmentIsUndoable) {
     
     // Undo should remove both the segment creation and initial dot
     cmdDispatcher.Undo();  // Undo AddDotCommand (initial dot)
-    EXPECT_EQ(1, digitInfo.Fringes.size());
-    EXPECT_EQ(0, digitInfo.Fringes[iSeg].GetPointCount());
-    
-    cmdDispatcher.Undo();  // Undo CreateSegmentCommand
     EXPECT_EQ(0, digitInfo.Fringes.size());
     
-    // Redo both
+    // Redo
     cmdDispatcher.Redo();  // Redo CreateSegmentCommand
     EXPECT_EQ(1, digitInfo.Fringes.size());
-    
-    cmdDispatcher.Redo();  // Redo AddDotCommand
     EXPECT_EQ(1, digitInfo.Fringes[0].GetPointCount());
+
     EXPECT_DOUBLE_EQ(100.0, digitInfo.Fringes[0].GetPoint(0).x);
 }

@@ -184,7 +184,7 @@ bool XYPolygon :: isInside(const XYPoint &P) const
   return true;
   }
 //=========================================================================
-bool XYPolygon :: isInside(double X, double Y)
+bool XYPolygon :: isInside(double X, double Y) const
   {
   XYPoint P(X, Y);
   return isInside(P);

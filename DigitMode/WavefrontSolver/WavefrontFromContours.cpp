@@ -247,6 +247,12 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	if (data_.empty() || rows_ == 0 || cols_ == 0)
 		return false;
 
+	// Calculate matrix size and normalization parameters
+	size_t sizeMatrix = ((std::max)(rows_, cols_));
+	double ratio = 2.0 / (sizeMatrix - 1);  // Scale factor to fit largest dimension into [-1, 1]
+	int xc = (cols_ - 1) / 2;  // Center column index
+	int yc = (rows_ - 1) / 2;  // Center row index
+
 	// Write header
 	std::streamsize oldPrec = os.precision();
 	os << std::fixed << std::setprecision(4);
@@ -263,12 +269,11 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	os << "Time=" << buffer << "\n";
 
 	os << "ScaleFactor=" << getScaleFactor() << "\n";
-	os << "Units=WAV\n";
-	os << "Size=" << rows_ << "\n";
+	os << "Units=WAV\n\n";
+	// NB:essentially Size = 1./delta - not nesserery eq to rows_ or cols_.
+	// Setting a wrong Size value breaks WinFringe calculations
+	os << "Size=" << sizeMatrix << "\n"; 
 	os << "[MATRIX]\n";
-
-	// Calculate normalization parameters
-	double ratio = 2.0 / ((std::max)(rows_, cols_) - 1);  // Scale factor to fit largest dimension into [-1, 1]
 
 	// Format settings
 	const int pairsPerLine = 6;
@@ -280,10 +285,11 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	for (int row = 0; row < rows_; ++row)
 	{
 		// Calculate Y coordinate at the center of this row
-		double y_norm = row  * ratio - 1.0;  // Normalize to [-1, 1]
+		double y_norm = (row - yc) * ratio;  // Normalize to [-1, 1]
 
 		bool firstLineOfRow = true;
 		int pairCount = 0;
+		size_t rowCount = 0;
 
 		// Write all columns for this row
 		for (int col = 0; col < cols_; ++col)
@@ -294,7 +300,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 				continue;  // Skip NaN/Inf values entirely for MTR output
 
 			// Calculate X coordinate at the center of this column
-			double x_norm = col * ratio - 1.0;  // Normalize to [-1, 1]
+			double x_norm = (col - xc) * ratio;  // Normalize to [-1, 1]
 
 			// Start new output line if needed
 			if (pairCount == 0)
@@ -313,6 +319,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 			// Write (Z, X) pair
 			os << " " << z << " " << x_norm;
 			pairCount++;
+			rowCount++;
 
 			// Move to next text line after 6 pairs (if more columns remain)
 			if (pairCount == pairsPerLine && col < cols_ - 1)
@@ -322,7 +329,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 		}
 
 		// End of matrix row with E tag
-		os << " E\n";
+		if(rowCount != 0) os << " E\n";
 	}
 
 	os << "END\n";

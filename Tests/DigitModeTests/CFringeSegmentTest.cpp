@@ -1,8 +1,10 @@
 ﻿#include "stdafx.h"
 #include "gtest/gtest.h"
 #include "../DigitMode/CFringeSegment.h"
+#include "../DigitMode/WavefrontSolver/WavefrontFromContours.h"
 #include "../MGTools/Include/Utils/BaseDataType.h"
 #include <cmath>
+#include <algorithm>
 
 // ===== Construction Tests =====
 
@@ -582,4 +584,99 @@ TEST(CFringeTest, NegativeFringeNumber) {
 TEST(CFringeTest, ZeroFringeNumber) {
     CFringeSegment fringe(0.0);
     EXPECT_EQ(0.0, fringe.GetNumber());
+}
+
+TEST(WavefrontBoundingCircleTest, EmptyMaskReturnsInvalidCircle)
+{
+    aperture::visibility::VisibilityMask visibilityMask(10, 6);
+    std::fill(visibilityMask.data.begin(), visibilityMask.data.end(), static_cast<uint8_t>(1));
+
+    std::vector<CFringeSegment> fringeSegments;
+    aperture::Bounds bounds = aperture::Bounds::fromMinMax(0.0, 0.0, 10.0, 6.0);
+
+    WavefrontFromContoursInput input(
+        bounds,
+        visibilityMask,
+        fringeSegments,
+        10,
+        6,
+        aperture::CoordinateSystemType::SCREEN,
+        aperture::CoordinateSystemType::SCREEN);
+
+    WavefrontFromContoursContext ctx(input);
+    std::vector<char> mask(60, 0);
+
+    WavefrontBoundingCircle circle = ctx.computeMaskBoundingCircle(mask);
+
+    EXPECT_FALSE(circle.valid);
+}
+
+TEST(WavefrontBoundingCircleTest, SingleRowVisibleSpanComputesExpectedCircle)
+{
+    aperture::visibility::VisibilityMask visibilityMask(10, 6);
+    std::fill(visibilityMask.data.begin(), visibilityMask.data.end(), static_cast<uint8_t>(1));
+
+    std::vector<CFringeSegment> fringeSegments;
+    aperture::Bounds bounds = aperture::Bounds::fromMinMax(0.0, 0.0, 10.0, 6.0);
+
+    WavefrontFromContoursInput input(
+        bounds,
+        visibilityMask,
+        fringeSegments,
+        10,
+        6,
+        aperture::CoordinateSystemType::SCREEN,
+        aperture::CoordinateSystemType::SCREEN);
+
+    WavefrontFromContoursContext ctx(input);
+    std::vector<char> mask(60, 0);
+
+    const int row = 2;
+    for (int col = 2; col <= 7; ++col)
+    {
+        mask[row * 10 + col] = 1;
+    }
+
+    WavefrontBoundingCircle circle = ctx.computeMaskBoundingCircle(mask);
+
+    ASSERT_TRUE(circle.valid);
+    EXPECT_NEAR(4.5, circle.center.x, 1e-9);
+    EXPECT_NEAR(2.0, circle.center.y, 1e-9);
+    EXPECT_NEAR(2.5, circle.radius, 1e-9);
+}
+
+TEST(WavefrontBoundingCircleTest, MultiRowVisibleBlockComputesExpectedCircle)
+{
+    aperture::visibility::VisibilityMask visibilityMask(10, 6);
+    std::fill(visibilityMask.data.begin(), visibilityMask.data.end(), static_cast<uint8_t>(1));
+
+    std::vector<CFringeSegment> fringeSegments;
+    aperture::Bounds bounds = aperture::Bounds::fromMinMax(0.0, 0.0, 10.0, 6.0);
+
+    WavefrontFromContoursInput input(
+        bounds,
+        visibilityMask,
+        fringeSegments,
+        10,
+        6,
+        aperture::CoordinateSystemType::SCREEN,
+        aperture::CoordinateSystemType::SCREEN);
+
+    WavefrontFromContoursContext ctx(input);
+    std::vector<char> mask(60, 0);
+
+    for (int row = 1; row <= 4; ++row)
+    {
+        for (int col = 3; col <= 8; ++col)
+        {
+            mask[row * 10 + col] = 1;
+        }
+    }
+
+    WavefrontBoundingCircle circle = ctx.computeMaskBoundingCircle(mask);
+
+    ASSERT_TRUE(circle.valid);
+    EXPECT_NEAR(5.5, circle.center.x, 1e-9);
+    EXPECT_NEAR(2.5, circle.center.y, 1e-9);
+    EXPECT_NEAR(std::sqrt(8.5), circle.radius, 1e-9);
 }

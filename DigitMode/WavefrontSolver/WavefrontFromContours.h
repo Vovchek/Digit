@@ -18,6 +18,19 @@
 #pragma pop_macro("max")
 #pragma pop_macro("min")
 
+struct WavefrontPrimitivePoint
+{
+	double x = 0.0;
+	double y = 0.0;
+};
+
+struct WavefrontBoundingCircle
+{
+	WavefrontPrimitivePoint center{};
+	double radius = 0.0;
+	bool valid = false;
+};
+
 struct WavefrontFromContoursInput
 {
     explicit WavefrontFromContoursInput(
@@ -147,6 +160,8 @@ public:
 	std::pair<std::vector<char>, std::vector<double>> 
 		rasterize(const std::vector<char>& mask) const;
 
+	WavefrontBoundingCircle computeMaskBoundingCircle(const std::vector<char>& mask) const;
+
 	// Find all points where fringes cross a horizontal line at given Y
 	// Returns sorted vector of crossings
 	std::vector<FringeCrossing> findFringeCrossings(double worldY) const;
@@ -176,9 +191,12 @@ public:
 		double height = input_.visibilityMask_.height;
 		double minY = height - bounds.maxY();
 		double maxY = height - bounds.minY();
+		aperture::CoordinateSystem outSys = input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN ?
+			aperture::CoordinateSystem::screen(height) :
+			aperture::CoordinateSystem::math(height);
 
 		// Create new bounds with converted Y
-		return aperture::Bounds(bounds.minX(), minY, bounds.maxX(), maxY);
+		return aperture::Bounds::fromMinMax(bounds.minX(), minY, bounds.maxX(), maxY, outSys);
 	}
 
 	const WavefrontFromContoursInput input_;
@@ -198,6 +216,7 @@ public:
 	const aperture::Bounds& getBounds() const { return bounds_; }
 	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
 	double getScaleFactor() const { return scaleFactor_; }
+	const WavefrontBoundingCircle& getBoundingCircle() const { return boundingCircle_; }
 
 	// ============================================================================
 	// Setters
@@ -207,6 +226,7 @@ public:
 	void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
 	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
 	void setScaleFactor(double scale) { scaleFactor_ = scale; }
+	void setBoundingCircle(const WavefrontBoundingCircle& circle) { boundingCircle_ = circle; }
 
 	// ============================================================================
 	// Stream Serialization
@@ -223,6 +243,7 @@ private:
     aperture::Bounds bounds_;
     aperture::CoordinateSystemType coordType_;
 	double scaleFactor_ = 1.0;
+	WavefrontBoundingCircle boundingCircle_{};
 
 };
 

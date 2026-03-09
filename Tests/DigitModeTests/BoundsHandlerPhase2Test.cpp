@@ -138,7 +138,7 @@ TEST_F(BoundsHandlerPhase2Test, AddRectangle_ThreePoints_Commits) {
     m_handler.AddDraftPoint({100, 50});
     
     // Count shapes before
-    size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countBefore = m_apertureCtrls->GetShapes().getApertures().size();
     
     // Commit draft
     bool committed = m_handler.CommitDraft();
@@ -147,7 +147,7 @@ TEST_F(BoundsHandlerPhase2Test, AddRectangle_ThreePoints_Commits) {
     EXPECT_FALSE(m_handler.IsDrafting());  // Draft cleared after commit
     
     // Verify shape was added
-    size_t countAfter = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countAfter = m_apertureCtrls->GetShapes().getApertures().size();
     EXPECT_EQ(countAfter, countBefore + 1);
 }
 
@@ -164,7 +164,7 @@ TEST_F(BoundsHandlerPhase2Test, AddEllipse_FourPoints_UpdatesPreview) {
     
     // Third point - preview appears
     m_handler.AddDraftPoint({-10, 0});
-    EXPECT_NE(m_handler.GetDraftPreview(), nullptr);
+    EXPECT_EQ(m_handler.GetDraftPreview(), nullptr);
     
     // Fourth point - preview updates
     m_handler.AddDraftPoint({0, -10});
@@ -184,7 +184,8 @@ TEST_F(BoundsHandlerPhase2Test, CancelDraft_ClearsDraft) {
     m_handler.AddDraftPoint({10, 0});
     m_handler.AddDraftPoint({0, 10});
     m_handler.AddDraftPoint({-10, 0});
-    
+    m_handler.AddDraftPoint({0, -10});
+
     EXPECT_TRUE(m_handler.IsDrafting());
     EXPECT_NE(m_handler.GetDraftPreview(), nullptr);
     
@@ -198,7 +199,7 @@ TEST_F(BoundsHandlerPhase2Test, CancelDraft_ClearsDraft) {
 TEST_F(BoundsHandlerPhase2Test, CommitDraft_DispatchesAddCommand) {
     m_handler.SetEditMode(ShapeEditMode::AddPolygon);
     
-    size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countBefore = m_apertureCtrls->GetShapes().getApertures().size();
     
     // Add polygon vertices
     m_handler.AddDraftPoint({0, 0});
@@ -207,7 +208,7 @@ TEST_F(BoundsHandlerPhase2Test, CommitDraft_DispatchesAddCommand) {
     
     m_handler.CommitDraft();
     
-    size_t countAfter = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countAfter = m_apertureCtrls->GetShapes().getApertures().size();
     EXPECT_EQ(countAfter, countBefore + 1);
 }
 
@@ -233,7 +234,7 @@ TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Escape_CancelsDraft) {
 TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_CommitsPolygon) {
     m_handler.SetEditMode(ShapeEditMode::AddPolygon);
     
-    size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countBefore = m_apertureCtrls->GetShapes().getApertures().size();
     
     // Add polygon vertices
     m_handler.AddDraftPoint({0, 0});
@@ -246,7 +247,7 @@ TEST_F(BoundsHandlerPhase2Test, OnKeyDown_Enter_CommitsPolygon) {
     EXPECT_TRUE(handled);
     EXPECT_FALSE(m_handler.IsDrafting());
     
-    size_t countAfter = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countAfter = m_apertureCtrls->GetShapes().getApertures().size();
     EXPECT_EQ(countAfter, countBefore + 1);
 }
 
@@ -267,7 +268,7 @@ TEST_F(BoundsHandlerPhase2Test, Workflow_CreateRectangle_Complete) {
     m_handler.SetEditMode(ShapeEditMode::AddRectangle);
     EXPECT_EQ(m_handler.GetEditMode(), ShapeEditMode::AddRectangle);
     
-    size_t countBefore = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countBefore = m_apertureCtrls->GetShapes().getApertures().size();
     
     m_handler.AddDraftPoint({10, 20});
     m_handler.AddDraftPoint({110, 20});
@@ -283,7 +284,7 @@ TEST_F(BoundsHandlerPhase2Test, Workflow_CreateRectangle_Complete) {
     
     EXPECT_FALSE(m_handler.IsDrafting());
     
-    size_t countAfter = m_apertureCtrls->GetShapes().getExternal().size();
+    size_t countAfter = m_apertureCtrls->GetShapes().getApertures().size();
     EXPECT_EQ(countAfter, countBefore + 1);
 }
 
