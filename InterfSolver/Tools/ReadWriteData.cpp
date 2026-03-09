@@ -511,13 +511,25 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 		
 		for (int i = 0; i < IntInfo.ArrEll.GetSize(); i++)
 			if (IntInfo.ArrEll[i].GetTypeSystCoor() == NORMALISED) {
-				IntInfo.ArrEll[i].DeNormalize(normXc, normYc, normRad);
-				IntInfo.ArrEll[i].InverseY(IntInfo.ImageSize[1]);
+				if (normRad != 0.) {
+					IntInfo.ArrEll[i].DeNormalize(normXc, normYc, normRad);
+					IntInfo.ArrEll[i].InverseY(IntInfo.ImageSize[1]);
+				}
+				else {
+					IntInfo.ArrEll.RemoveAt(i);
+					TRACE("Warning: zero normalization radius, skipping denormalization for ellipse %d\n", i);
+				}
 			}
 		for (int i = 0; i < IntInfo.ArrRect.GetSize(); i++)
 			if (IntInfo.ArrRect[i].GetTypeSystCoor() == NORMALISED) {
-				IntInfo.ArrRect[i].DeNormalize(normXc, normYc, normRad);
-				IntInfo.ArrEll[i].InverseY(IntInfo.ImageSize[1]);
+				if (normRad != 0.) {
+					IntInfo.ArrRect[i].DeNormalize(normXc, normYc, normRad);
+					IntInfo.ArrRect[i].InverseY(IntInfo.ImageSize[1]);
+				}
+				else {
+					IntInfo.ArrRect.RemoveAt(i);
+					TRACE("Warning: zero normalization radius, skipping denormalization for rectangle %d\n", i);
+				}
 			}
 		// we do not normilize polygons, as they are not supported in WinFringe
 	}
