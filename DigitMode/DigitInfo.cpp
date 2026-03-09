@@ -393,8 +393,7 @@ BOOL CDigitInfo::SaveFRN(LPCTSTR fname, bool saveAsWinFringe)
 		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_WINFRINGE_FRN;
     else
 		IntInfo.LoadedFileType = NUMBERING_INTERFEROGRAM_INFO::TYP_FRN;
-	WriteFRNData(fname, IntInfo);
-	return true;
+	return WriteFRNData(fname, IntInfo);
 }
 
 #include "digitInfoFringe.hxx" // extracted for testing purposes

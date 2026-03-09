@@ -877,11 +877,11 @@ void WriteDosZAPData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntI
 }
 
 //=========================================================================
-void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
+bool WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 {
 	CString Str;
 	int i, NPnt;
-	XYPoint P;
+	//XYPoint P;
 
 	CTextIOFile Fl;
 	bool isWinFringeFormat = (IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_WINFRINGE_FRN);
@@ -902,10 +902,15 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 	Fl.WriteStringAfter("FiScan", "=", Str);
 	Fl.WriteStringWithEnd("");
 
-	double normXc, normYc, normRad;
-	CalcWinFringeBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, normXc, normYc, normRad);
-	normYc = static_cast<double>(IntInfo.ImageSize[1]) - normYc;
-
+	double normXc = 0., normYc = 0., normRad = 0.;
+	if (isWinFringeFormat) {
+		if (!CalcWinFringeBoundCircle(IntInfo.ArrEll, IntInfo.ArrRect, normXc, normYc, normRad))
+		{
+			TRACE("Warning: failed to calculate normalization parameters for WinFringe format\n");
+			return false;
+		}
+		normYc = static_cast<double>(IntInfo.ImageSize[1]) - normYc;
+	}
 	int NEll = IntInfo.ArrEll.GetSize();
 	if (NEll > 0)
 	{
@@ -995,7 +1000,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		//);
 		for (int i = 0; i < IntInfo.ArrEll.GetSize(); i++) {
 			auto shape = IntInfo.ArrEll[i];
-			if (shape.Fi != 0.) // skip rotated ellipses as WinFringe does not support them in bounds
+			if (fabs(shape.Fi) > PRECISION) // skip rotated ellipses as WinFringe does not support them in bounds
 				continue;
 			shape.InverseY(IntInfo.ImageSize[1]);
 			auto bnd = shape.GetBounds();
@@ -1011,7 +1016,7 @@ void WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		}
 		for (int i = 0; i < IntInfo.ArrRect.GetSize(); i++) {
 			auto shape = IntInfo.ArrRect[i];
-			if (shape.Fi != 0.) // skip rotated rectangles as WinFringe does not support them in bounds
+			if (fabs(shape.Fi) > PRECISION) // skip rotated rectangles as WinFringe does not support them in bounds
 				continue;
 			shape.InverseY(IntInfo.ImageSize[1]);
 			auto bnd = shape.GetBounds();

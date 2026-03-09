@@ -1142,8 +1142,13 @@ void CImageDoc::OnFileSaveAs()
 		}
 
 		pMFr->GetImageInfo(Digit.Comments, Digit.ScaleFactor, Digit.Rotation);
-		if (Digit.Save(LPCTSTR(FileName), int(fileDlg.m_ofn.nFilterIndex)))
-			SetModifiedFlag(FALSE);
+		if (Digit.Save(LPCTSTR(FileName), int(fileDlg.m_ofn.nFilterIndex))) {
+			if(fileDlg.m_ofn.nFilterIndex == FilterIndex::Filter_FRN ||
+				fileDlg.m_ofn.nFilterIndex == FilterIndex::Filter_WinFringe_FRN)
+				SetModifiedFlag(FALSE);
+		}
+		else 
+			GetView()->MessageBox(CRS("Ошибка сохранения", "Save error"), CRS("Ошибка", "Error"), MB_ICONERROR);
 
 	}
 }
