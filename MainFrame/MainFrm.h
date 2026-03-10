@@ -24,6 +24,7 @@ class CMainFrame : public CMDIFrameWnd
 public:
 	CMainFrame();
     void SetCurrentNumber(double CurrentNumber);
+	void SetScaleFactor(double scaleFactor) { m_wndInfoDlgBar.ScaleFactor = scaleFactor; };
 	void SetImageInfo(LPCTSTR Title, double ScaleFactor, double Rotation);
 	void GetImageInfo(CString& Title, double& ScaleFactor, double& Rotation);
 	// Helper to set main status bar text from views/tools

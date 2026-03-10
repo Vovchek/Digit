@@ -349,6 +349,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	auto boundingCircle = getBoundingCircle();
 	if (!boundingCircle.valid) return false;
 	size_t sizeMatrix = static_cast<size_t>(boundingCircle.radius * 2); // Use bounding circle diameter
+	sizeMatrix |= 1;  // Ensure odd size for symmetry
 	double ratio = 2.0 / (sizeMatrix - 1);  // Scale factor to fit largest dimension into [-1, 1]
 	int xc = static_cast<int>(boundingCircle.center.x);  // Center column index
 	int yc = static_cast<int>(boundingCircle.center.y);  // Center row index

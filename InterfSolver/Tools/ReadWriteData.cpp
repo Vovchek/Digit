@@ -286,8 +286,8 @@ bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRe
 	// collect contour points of all non-rotated shapes
 	for (int i = 0; i < ArrEll.GetSize(); i++) {
 		auto shape = ArrEll[i];
-		if (shape.GetTypeLimits() == EXTERNAL && shape.Fi == 0.) {
-			shape.GetContour(contour, 1.0);
+		if (shape.GetTypeLimits() == EXTERNAL && fabs(shape.Fi) <= PRECISION) {
+			shape.GetContour(contour, 501);
 			for (int j = 0; j < contour.GetSize(); j++) {
 				Pnts.push_back(XYPoint(contour[j].X, contour[j].Y));
 			}
@@ -295,8 +295,8 @@ bool CalcWinFringeBoundCircle(const CArray<XYEllipse>& ArrEll, const CArray<XYRe
 	}
 	for (int i = 0; i < ArrRect.GetSize(); i++) {
 		auto shape = ArrRect[i];
-		if (shape.GetTypeLimits() == EXTERNAL && shape.Fi == 0.) {
-			shape.GetContour(contour, 1.0);
+		if (shape.GetTypeLimits() == EXTERNAL && fabs(shape.Fi) <= PRECISION) {
+			shape.GetContour(contour, 501);
 			for (int j = 0; j < contour.GetSize(); j++) {
 				Pnts.push_back(XYPoint(contour[j].X, contour[j].Y));
 			}
@@ -1102,6 +1102,8 @@ bool WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		Fl.WriteStringAfter("FileName", "=", Str);
 	}
 	Fl.Close();
+	
+	return true;
 }
 //=========================================================================
 void WritePolygon(CTextIOFile& Fl, XYPolygon& Plg, int NPntInStr)

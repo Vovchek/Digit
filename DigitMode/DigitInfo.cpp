@@ -129,7 +129,9 @@ void CDigitInfo::Auto()
 	::SetCursor(::LoadCursor(NULL, IDC_WAIT));
 	Clear(FALSE);
 	CreateRedCenters();
-
+    if (GetControls() != nullptr) {
+        numStep = GetControls()->FringeCenterAs == FC_MINMAX ? .5: 1.;
+    }
     m_bUseFringeModel = false;  // TODO: update after transition
 
     if (!m_bUseFringeModel) {
@@ -187,7 +189,7 @@ void CDigitInfo::CreateRedCenters()
     input.fringeCenterAs = pCtrls->FringeCenterAs;
     input.contrastThreshold = pCtrls->Eps;
 
-    // TODO: redesine DetectExtrema so it will return vector of Sections -
+    // TODO: redesign DetectExtrema so it will return vector of Sections -
     // same (or etended) content but MFC-free. Everything can be done in DetectExtrema.
     // Red/Black indicator should persist.
     auto sections = DigitMode::digitization::RedCenterDetector::DetectExtrema(input);
@@ -196,7 +198,7 @@ void CDigitInfo::CreateRedCenters()
         return;
 
     // =========================================================
-    // TODO: eliminate this part after redesining DetectExtrema.
+    // TODO: eliminate this part after DetectExtrema redesign.
     Sections.SetSize(input.imageHeight);
     std::vector<std::vector<double>> rowCenters(static_cast<size_t>(input.imageHeight));
     rowCenters.reserve(static_cast<size_t>(input.imageHeight));
