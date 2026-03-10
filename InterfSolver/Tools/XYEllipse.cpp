@@ -86,11 +86,14 @@ XYEllipse& XYEllipse ::operator= (const XYEllipse &A)
 // =========================================================================
 bool XYEllipse :: operator== (const XYEllipse& A) const
   {
-  return (fabs(Ax - A.Ax) < PRECISION &&
-          fabs(By - A.By) < PRECISION &&
-          fabs(Xc - A.Xc) < PRECISION &&
-          fabs(Yc - A.Yc) < PRECISION &&
-          fabs(Fi - A.Fi) < PRECISION &&
+  constexpr double PREC = 1e-3; // Define a precision threshold for comparison
+                                // that matches %.3lf formatting for non-normalized
+								// and %.6lf for normalized coordinates (considering typical scale factors)
+  return (fabs(Ax - A.Ax) < PREC &&
+          fabs(By - A.By) < PREC &&
+          fabs(Xc - A.Xc) < PREC &&
+          fabs(Yc - A.Yc) < PREC &&
+          fabs(Fi - A.Fi) < PREC &&
           TypeLimits == A.TypeLimits &&
           TypeSystCoor == A.TypeSystCoor);
 }

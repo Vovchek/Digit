@@ -922,14 +922,14 @@ bool WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 			if (isWinFringeFormat) {
 				shape.InverseY(IntInfo.ImageSize[1]);
 				shape.Normalize(normXc, normYc, normRad);
-				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+				Str.Format(" %1.6lf %1.6lf %1.6lf %1.6lf %1.3lf %1d %1d ",
 					shape.Ax, shape.By,
 					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
 					shape.TypeSystCoor);
 			}
 			else {
-				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ",
 					shape.Ax, shape.By,
 					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
@@ -951,14 +951,14 @@ bool WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 			if (isWinFringeFormat) {
 				shape.InverseY(IntInfo.ImageSize[1]);
 				shape.Normalize(normXc, normYc, normRad);
-				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+				Str.Format(" %1.6lf %1.6lf %1.6lf %1.6lf %1.3lf %1d %1d ",
 					shape.Ax, shape.By,
 					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
 					shape.TypeSystCoor);
 			}
 			else {
-				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.2lf %1d %1d ",
+				Str.Format(" %1.3lf %1.3lf %1.3lf %1.3lf %1.3lf %1d %1d ",
 					shape.Ax, shape.By,
 					shape.Xc, shape.Yc,
 					shape.Fi, shape.TypeLimits,
