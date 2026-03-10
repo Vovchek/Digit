@@ -1,9 +1,11 @@
 ﻿# Urgent needs (000+)
 ### 001 WinFringe .frn format compatibility issues
-* fix ellipses format - they must be normalized. But where to get center and radius for normalization?
-* fix bounds format (yet not clear)
+<del>* fix ellipses format - they must be normalized. But where to get center and radius for normalization?</del>
+<del>* fix bounds format (yet not clear)</del>
 ### 002 smooth and robust interpolation
-### 003 adjust sections spacing to fringes spacing
+### 003 <del>adjust sections spacing to fringes spacing</del>
+### 004 <del>use external screens in place of apertures in WinFringe compatibility mode</del>
+### 005 set scaleFactor to 0.5 when both dark and bright extremums are detected
 
 ---
 # Bugs (100+)
@@ -16,6 +18,7 @@
 ### 106 Automatic digitization does not propagate to the bottom if case of rectangular aperture (maybe in some other cases)
 ### 107 Not reproduced, needs clarification ?Undo do not work on point dragging?
 ### 108 Segment dragging Execute/Undo is not atomic
+### 109 elipses and bounds duplicate (not pruned properly on read?)
 
 # Incomplete (200+)
 ### 201 Fringes numbers auto-assignment
@@ -48,7 +51,6 @@
 ---
 # Epic feats (500+)
 
-## Fringes Navigation mode toolbar (bumeration, etc)
-## Add phase calculation
-## Add save to mtr
+## 501 Fringes Navigation mode toolbar (bumeration, etc)
+## 502 Add phase calculation
 ## 

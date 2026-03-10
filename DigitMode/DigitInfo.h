@@ -892,11 +892,11 @@ class CDigitInfo
 	  void CalcSectionAveSteps();
 	  
 	  /**
-	   * @brief Determine optimal fringe numbering step (numStep).
+	   * @brief Determine median fringe spacing.
 	   * 
 	   * **Algorithm**:
-	   * 1. Analyze average fringe spacing across sections
-	   * 2. Choose step that best matches spacing (1.0, 0.5, 0.1, etc.)
+	   * 1. Determine average fringe spacing in each section
+	   * 2. Choose median step value in a sample of sections' average steps
 	   * 
 	   * **Output**: Sets numStep
 	   * 

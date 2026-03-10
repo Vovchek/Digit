@@ -1016,7 +1016,8 @@ bool WriteFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo
 		}
 		for (int i = 0; i < IntInfo.ArrRect.GetSize(); i++) {
 			auto shape = IntInfo.ArrRect[i];
-			if (fabs(shape.Fi) > PRECISION) // skip rotated rectangles as WinFringe does not support them in bounds
+			if (fabs(shape.Fi) > PRECISION ||
+				shape.GetTypeLimits() == INTERNAL) // skip rotated and internal rectangles as WinFringe does not support them in bounds
 				continue;
 			shape.InverseY(IntInfo.ImageSize[1]);
 			auto bnd = shape.GetBounds();

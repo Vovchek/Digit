@@ -130,16 +130,17 @@ void CDigitInfo::Auto()
 	Clear(FALSE);
 	CreateRedCenters();
 
-    m_bUseFringeModel = false; // TODO: update after transition
+    m_bUseFringeModel = false;  // TODO: update after transition
 
     if (!m_bUseFringeModel) {
-        SelectFringeStep();
-        SelectMainSection();
+        SelectFringeStep();     // determines median-average spacing
+        SelectMainSection();    // determines section crossing maximum fringes with constrained spacing
 
-        CreateNumLines();
+		CreateNumLines();       // Assigns fringe number (aka isoline height) to each detected fringe in each section, 
+                                // based on proximity to main section and step size
         if (!isInsideScreen) {
-            SelectMainFringe();
-            CorrectNumbers();
+			SelectMainFringe(); // find fringe with most matches across sections and set as main fringe (number reference)
+			CorrectNumbers();   // Adjust fringe numbers across all sections to be consistent with main fringe and step size
         }
 
         CreateZAPSections();

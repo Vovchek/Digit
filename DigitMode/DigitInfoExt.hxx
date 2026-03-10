@@ -220,9 +220,10 @@ void CDigitInfo::CreateZAPSections()
 	int bH = static_cast<int>(BoundR.height());
 	// ----------------------
 	double SecGap;
-	int i;
 	if (ZapLines.GetSize() < 2) {
-		SecGap = .5*(double)(bH) / (nFringes - 1);
+		int nSections = static_cast<int>(2. * nFringes * BoundR.height() / BoundR.width());
+		SecGap = std::ceil(BoundR.height() / (nSections - 1));
+		begY = static_cast<int>(BoundR.top);
 	}
 	else {
 		SortZapLines();
@@ -232,18 +233,21 @@ void CDigitInfo::CreateZAPSections()
 		nFringes = static_cast<int>(((double)(bH - begY)) / SecGap + 1);
 	}
 
-	int nLines = static_cast<int>(bH / SecGap) + 1;
-	for (i = 1; i < nLines - 1; i++) {
+	int nLines = static_cast<int>(bH / SecGap) + 2;
+	for (int i = 0; i < nLines; i++) {
 		int iy = static_cast<int>(begY + SecGap * i);
 		if (iy < 0 || iy >= Sections.GetSize())
 			continue;
+		if (iy >= begY + static_cast<int>(BoundR.height())) {
+			iy = begY + static_cast<int>(BoundR.height());
+		}
 		CZapLineInfo zL;
 		zL.L = Sections[iy].L;
 		zL.iSec = iy;
 		ZapLines.Add(zL);
 	}
 
-	for (i = 0; i < ZapLines.GetSize(); i++) {
+	for (int i = 0; i < ZapLines.GetSize(); i++) {
 		PutDotsOnZAPSections(i);
 	}
 	HandSetZapLines = FALSE;
