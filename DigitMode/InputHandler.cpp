@@ -61,7 +61,34 @@ void InputHandler::OnLButtonDown(UINT flags, CDPoint pt, CDigitInfo* pDigit, Com
             return;
         }
     }
+    if (currentMode == FringeEditMode::DotEdit) {
+        if (level != SelectionLevel::None && hitSeg >= 0) {
+            iActiveSegment = hitSeg;
+            activeEnd = ActiveEnd::Head;
 
+            pDigit->CurrentNumber = pDigit->Fringes[iActiveSegment].GetNumber();
+        }
+        // -> Dragging dots and edges while editing
+        if (level == SelectionLevel::Dot) {
+            BeginDotDrag(hitSeg, hitDot, pt, nullptr); // nullptr to use pt for undo
+            return;
+        }
+        // Edge drag or insert dot with Ctrl+Edge click
+        if (level == SelectionLevel::Edge) {
+            if (mods.ctrl) {
+                // Insert dot at clicked edge position
+                if (pCmdDisp && pDigit) {
+                    CDPoint dp; dp.x = pt.x; dp.y = pt.y;
+                    auto insertCmd = std::make_unique<AddDotCommand>(pDigit, hitSeg, hitDot + 1, dp);
+                    pCmdDisp->Execute(std::move(insertCmd));
+                }
+                return; // TODO: try dragging newly inserted dot?
+            }
+            BeginEdgeDrag(hitSeg, hitDot, pt, pDigit);
+            return;
+        }
+
+    }
     if (currentMode == FringeEditMode::Draw) {
         // If we already have an active segment, empty clicks should add a dot to its active end
         if (IsActiveSegmentValid(pDigit)) {
@@ -454,6 +481,50 @@ bool InputHandler::OnKeyDown(UINT nChar, CDigitInfo* pDigit, CommandDispatcher* 
                 
                 TRACE("InputHandler::OnKeyDown: Delete selection executed\n");
             }
+        }
+    }
+    else if (IsInEditMode()) {
+        if ((nChar == VK_ADD || nChar == VK_OEM_PLUS) && mods.None()) {
+            // Increase current number
+            if (pDigit) {
+                pDigit->CurrentNumber += pDigit->numStep;
+                if (IsActiveSegmentValid(pDigit)) {
+                    std::vector<size_t> segv = { static_cast<size_t>(iActiveSegment) };
+                    auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
+                consumed = true;
+            }
+        }
+        else if ((nChar == VK_SUBTRACT || nChar == VK_OEM_MINUS) && mods.None()) {
+            // Decrease current number
+            if (pDigit) {
+                pDigit->CurrentNumber -= pDigit->numStep;
+                if (IsActiveSegmentValid(pDigit)) {
+                    std::vector<size_t> segv = { static_cast<size_t>(iActiveSegment) };
+                    auto cmd = std::make_unique<RenumberSegmentsCommand>(*pDigit, segv, pDigit->CurrentNumber);
+                    pCmdDisp->Execute(std::move(cmd));
+                }
+                consumed = true;
+            }
+        }
+        else if (nChar == VK_TAB && IsActiveSegmentValid(pDigit)) {
+            if (mods.shift) {
+                // switch to the previous segment if any
+                if (iActiveSegment > 0) {
+                    iActiveSegment--;
+                    consumed = true;
+                }
+            }
+            else {
+                // progress to the next segment if any
+                int num_fringes = static_cast<int>(pDigit->Fringes.size());
+                if (num_fringes > 1 && iActiveSegment < num_fringes - 1) {
+                    iActiveSegment++;
+                    consumed = true;
+                }
+            }
+            pDigit->CurrentNumber = pDigit->Fringes[iActiveSegment].GetNumber();
         }
     }
 	return consumed;

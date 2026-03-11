@@ -156,6 +156,7 @@ public:
      * @brief Check if currently in Draw mode
      */
     bool IsInDrawMode() const { return currentMode == FringeEditMode::Draw; }
+    bool IsInEditMode() const { return currentMode == FringeEditMode::DotEdit || currentMode == FringeEditMode::Draw; }
 
     /**
      * @brief Check if currently in Navigate mode
