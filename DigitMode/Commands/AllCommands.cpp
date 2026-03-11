@@ -38,7 +38,7 @@ void RemoveLastDotCommand::Undo() {
 }
 
 // Minimal stubs for other commands (implementations later)
-CreateSegmentCommand::CreateSegmentCommand(CDigitInfo& doc, const std::vector<CPoint2d>& points, double number)
+CreateSegmentCommand::CreateSegmentCommand(CDigitInfo& doc, const std::vector<CDPoint>& points, double number)
     : m_doc(doc), m_points(points), m_number(number), m_createdIndex(static_cast<size_t>(-1)) {}
 
 void CreateSegmentCommand::Execute() {
@@ -53,7 +53,7 @@ void CreateSegmentCommand::Undo() {
         m_doc.Fringes.erase(m_doc.Fringes.begin() + static_cast<int>(m_createdIndex));
 }
 
-ExtendSegmentCommand::ExtendSegmentCommand(CDigitInfo& doc, size_t segmentIndex, bool atHead, const CPoint2d& point)
+ExtendSegmentCommand::ExtendSegmentCommand(CDigitInfo& doc, size_t segmentIndex, bool atHead, const CDPoint& point)
     : m_doc(doc), m_segmentIndex(segmentIndex), m_atHead(atHead), m_point(point) {}
 
 void ExtendSegmentCommand::Execute() {
@@ -68,7 +68,7 @@ void ExtendSegmentCommand::Undo() {
     else seg.RemovePoint(seg.GetPointCount() - 1);
 }
 
-MoveDotCommand::MoveDotCommand(CDigitInfo& doc, size_t segmentIndex, size_t dotIndex, const CPoint2d& oldPos, const CPoint2d& newPos)
+MoveDotCommand::MoveDotCommand(CDigitInfo& doc, size_t segmentIndex, size_t dotIndex, const CDPoint& oldPos, const CDPoint& newPos)
     : m_doc(doc), m_segmentIndex(segmentIndex), m_dotIndex(dotIndex), m_oldPos(oldPos), m_newPos(newPos) {}
 
 void MoveDotCommand::Execute() { m_doc.Fringes[static_cast<int>(m_segmentIndex)].SetPoint(static_cast<int>(m_dotIndex), m_newPos); }

@@ -223,6 +223,14 @@ protected:
     // Fringes edit (temporary)
     afx_msg void OnFringesEdit();
     afx_msg void OnUpdateFringesEdit(CCmdUI* pCmdUI);
+    afx_msg void OnDotEdit();
+    afx_msg void OnUpdateDotEdit(CCmdUI* pCmdUI);
+    afx_msg void OnFringesSelect();
+    afx_msg void OnUpdateFringesSelect(CCmdUI* pCmdUI);
+    afx_msg void OnNumberFringesForward();
+    afx_msg void OnUpdateNumberFringesForward(CCmdUI* pCmdUI);
+    afx_msg void OnNumberFringesBackward();
+    afx_msg void OnUpdateNumberFringesBackward(CCmdUI* pCmdUI);
     //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:

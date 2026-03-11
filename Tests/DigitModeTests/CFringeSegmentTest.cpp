@@ -598,6 +598,8 @@ TEST(WavefrontBoundingCircleTest, EmptyMaskReturnsInvalidCircle)
         bounds,
         visibilityMask,
         fringeSegments,
+        1.,
+        0.,
         10,
         6,
         aperture::CoordinateSystemType::SCREEN,
@@ -625,6 +627,8 @@ TEST(WavefrontBoundingCircleTest, SingleRowVisibleSpanComputesExpectedCircle)
         fringeSegments,
         10,
         6,
+        1.,
+        0.,
         aperture::CoordinateSystemType::SCREEN,
         aperture::CoordinateSystemType::SCREEN);
 
@@ -659,6 +663,8 @@ TEST(WavefrontBoundingCircleTest, MultiRowVisibleBlockComputesExpectedCircle)
         fringeSegments,
         10,
         6,
+        1.,
+        0.,
         aperture::CoordinateSystemType::SCREEN,
         aperture::CoordinateSystemType::SCREEN);
 

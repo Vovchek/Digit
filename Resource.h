@@ -1,6 +1,6 @@
 ﻿//{{NO_DEPENDENCIES}}
 // Microsoft Visual C++ generated include file.
-// Used by Digit.rc
+// Used by EngLangD.rc
 //
 #define IDD_apply_angle                 3
 #define IDD_apply_gauss                 3
@@ -162,12 +162,12 @@
 #define IDD_HELP                        32815
 #define IDD_E_SEC_D                     32817
 #define IDD_E_FR_D                      32818
-#define IDD_ADD_DOT_D                   32819
-#define IDD_DEL_DOT_D                   32820
-#define IDD_RENUM_DOT_D                 32821
-#define IDD_RENUM_FR_D                  32822
+#define IDD_FRINGE_EDIT                 32819
+#define IDD_DOT_EDIT                    32820
+#define IDD_NUMBER_FRINGES_FORWARD      32821
+#define IDD_NUMBER_FRINGES_BACKWARD     32822
 #define IDD_NUMBER_D                    32823
-#define IDD_DEL_FR_D                    32824
+#define IDD_FRINGE_NAVIGATE             32824
 #define IDD_ADD_SEC_D                   32825
 #define IDD_DEL_SEC_D                   32826
 #define IDD_SEC_LEFT_D                  32827

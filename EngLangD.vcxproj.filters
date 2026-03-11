@@ -97,4 +97,9 @@
   <ItemGroup>
     <None Include="Docs\EVENT_FLOW_ARCHITECTURE_ANALYSIS.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\toolbar_digit.bmp" />
+    <Image Include="res\toolbar_aperture8bit_.bmp" />
+    <Image Include="res\toolbar_aperture8bit_pushed_.bmp" />
+  </ItemGroup>
 </Project>

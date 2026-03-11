@@ -196,6 +196,11 @@
   <ItemGroup>
     <None Include="Docs\EVENT_FLOW_ARCHITECTURE_ANALYSIS.md" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\toolbar_aperture8bit_.bmp" />
+    <Image Include="res\toolbar_aperture8bit_pushed_.bmp" />
+    <Image Include="res\toolbar_digit.bmp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

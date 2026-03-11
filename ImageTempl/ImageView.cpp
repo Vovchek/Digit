@@ -10,6 +10,7 @@
 #include "ImageView.h"
 #include "ImageFeatures\SectionFrame.h"
 #include "DigitMode\Rendering\ShapeDrawStyle.h"
+#include "DigitMode\Commands\AllCommands.h"
 
 #include "MGTools\Include\Utils\Utils.h"
 
@@ -248,8 +249,16 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_COMMAND(ID_BOUND_MODE_DELETE, OnBoundModeDelete)
 	ON_UPDATE_COMMAND_UI(ID_BOUND_MODE_DELETE, OnUpdateBoundModeDelete)	
 	// fringes editing - temporary on IDD_ADD_DOT_D
-	ON_COMMAND(IDD_ADD_DOT_D, OnFringesEdit)
-	ON_UPDATE_COMMAND_UI(IDD_ADD_DOT_D, OnUpdateFringesEdit)
+	ON_COMMAND(IDD_FRINGE_EDIT, OnFringesEdit)
+	ON_UPDATE_COMMAND_UI(IDD_FRINGE_EDIT, OnUpdateFringesEdit)
+	ON_COMMAND(IDD_DOT_EDIT, OnDotEdit)
+	ON_UPDATE_COMMAND_UI(IDD_DOT_EDIT, OnUpdateDotEdit)
+	ON_COMMAND(IDD_FRINGE_NAVIGATE, OnFringesSelect)
+	ON_UPDATE_COMMAND_UI(IDD_FRINGE_NAVIGATE, OnUpdateFringesSelect)
+	ON_COMMAND(IDD_NUMBER_FRINGES_FORWARD, OnNumberFringesForward)
+	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_FORWARD, OnUpdateNumberFringesForward)
+	ON_COMMAND(IDD_NUMBER_FRINGES_BACKWARD, OnNumberFringesBackward)
+	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_BACKWARD, OnUpdateNumberFringesBackward)
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -1526,6 +1535,153 @@ void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
 		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Draw ? TRUE : FALSE
 	);
 }
+
+void CImageView::OnDotEdit()
+{
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	bool fringeToolActive = (activeTool == m_fringeToolAdapter);
+
+	if (fringeToolActive && m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::DotEdit) {
+		// toggle to default mode
+		ActivateDefaultTool();
+	}
+	else { // toggle to dot edit mode
+		ActivateFringeTool();
+		m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::DotEdit);
+		GetMainFrame()->SetStatusText(_T("Fringes: Dot edit mode - drag dots and segments"));
+	}
+	Invalidate(FALSE);
+}
+void CImageView::OnUpdateDotEdit(CCmdUI* pCmdUI)
+{
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	bool hasFringes = (pDoc->Digit.Fringes.size() != 0);
+
+	pCmdUI->Enable(hasFringes ? TRUE : FALSE);
+	if (!hasFringes) { pCmdUI->SetRadio(FALSE); return; }
+	bool fringesToolActive = (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter);
+	if (!fringesToolActive) { pCmdUI->SetRadio(FALSE); return; }
+
+	pCmdUI->SetRadio(
+		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::DotEdit ? TRUE : FALSE
+	);
+}
+void CImageView::OnFringesSelect()
+{
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	bool fringeToolActive = (activeTool == m_fringeToolAdapter);
+
+	if (fringeToolActive && m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Navigate) {
+		// toggle to default mode
+		ActivateDefaultTool();
+	}
+	else { // toggle to dot edit mode
+		ActivateFringeTool();
+		m_fringeInputHandler.SetMode(DigitMode::FringeEditMode::Navigate);
+		GetMainFrame()->SetStatusText(_T("Fringes: Dot edit mode - drag dots and segments"));
+	}
+	Invalidate(FALSE);
+}
+void CImageView::OnUpdateFringesSelect(CCmdUI* pCmdUI)
+{
+	CImageDoc* pDoc = (CImageDoc*)GetDocument();
+	bool hasFringes = (pDoc->Digit.Fringes.size() != 0);
+
+	pCmdUI->Enable(hasFringes ? TRUE : FALSE);
+	if (!hasFringes) { pCmdUI->SetRadio(FALSE); return; }
+	bool fringesToolActive = (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter);
+	if (!fringesToolActive) { pCmdUI->SetRadio(FALSE); return; }
+
+	pCmdUI->SetRadio(
+		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Navigate ? TRUE : FALSE
+	);
+}
+void CImageView::OnNumberFringesForward()
+{
+	auto& digit = static_cast<CImageDoc *>(GetDocument())->Digit;
+	if (digit.Fringes.empty()) return;
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
+
+	std::vector<size_t> trustedIndices;
+	
+	// Collect segment indices from current selection
+	for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
+		const auto& obj = digit.selectionManager.GetAt(i);
+		// Accept Segment and Fringe-level selections
+		if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
+			&& obj.iSegment >= 0) {
+			trustedIndices.push_back(static_cast<size_t>(obj.iSegment));
+		}
+	}
+
+	// If no selection, use 2 first segments as default
+	if (trustedIndices.empty()) {
+		trustedIndices = { 0 };
+	}
+
+	// Execute auto-numbering command
+	auto cmd = std::make_unique<DigitMode::AutoNumberingCommand>(
+		digit,
+		trustedIndices,
+		digit.numStep,    // default step
+		0.7               // default confidence threshold
+	);
+	dispatcher.Execute(std::move(cmd));
+
+	TRACE("InputHandler::OnKeyDown: Forward auto-number triggered with %zu trusted segments\n",
+		trustedIndices.size());
+}
+void CImageView::OnUpdateNumberFringesForward(CCmdUI* pCmdUI)
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	pCmdUI->Enable(digit.Fringes.size() > 1);
+}
+void CImageView::OnNumberFringesBackward()
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	if (digit.Fringes.size() < 2) return;
+	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
+
+	std::vector<size_t> trustedIndices;
+
+	// Collect segment indices from current selection
+	for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
+		const auto& obj = digit.selectionManager.GetAt(i);
+		// Accept Segment and Fringe-level selections
+		if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
+			&& obj.iSegment >= 0) {
+			trustedIndices.push_back(static_cast<size_t>(obj.iSegment));
+		}
+	}
+
+	// If no selection, use last segment as default
+	if (trustedIndices.empty()) {
+		trustedIndices = { digit.Fringes.size() - 1 };
+	}
+
+	// Execute auto-numbering command
+	auto cmd = std::make_unique<DigitMode::AutoNumberingCommand>(
+		digit,
+		trustedIndices,
+		-digit.numStep,    // default step
+		0.7               // default confidence threshold
+	);
+	dispatcher.Execute(std::move(cmd));
+
+	TRACE("InputHandler::OnKeyDown: Backward auto-number triggered with %zu trusted segments\n",
+		trustedIndices.size());
+}
+void CImageView::OnUpdateNumberFringesBackward(CCmdUI* pCmdUI)
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	pCmdUI->Enable(digit.Fringes.size() > 1);
+}
+
+
 
 // ========================================================================
 // Undo/Redo Command Handlers

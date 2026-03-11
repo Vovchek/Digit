@@ -140,16 +140,16 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Расчет аппроксимации",        IDD_CALC_APROX
         MENUITEM SEPARATOR
-        MENUITEM "Добавить точку",              IDD_ADD_DOT_D
-        MENUITEM "Удалить точку",               IDD_DEL_DOT_D
+        MENUITEM "Добавить точку",              IDD_FRINGE_EDIT
+        MENUITEM "Удалить точку",               IDD_DOT_EDIT
         MENUITEM SEPARATOR
-        MENUITEM "Изменить номер точки",        IDD_RENUM_DOT_D
-        MENUITEM "Изменить номер полосы",       IDD_RENUM_FR_D
+        MENUITEM "Изменить номер точки",        IDD_NUMBER_FRINGES_FORWARD
+        MENUITEM "Изменить номер полосы",       IDD_NUMBER_FRINGES_BACKWARD
         MENUITEM SEPARATOR
         MENUITEM "Уменьшить  номер полосы",     IDD_NUM_OFF_MINUS
         MENUITEM "Увеличить номер полосы",      IDD_NUM_OFF_PLUS
         MENUITEM SEPARATOR
-        MENUITEM "Удалить полосу",              IDD_DEL_FR_D
+        MENUITEM "Удалить полосу",              IDD_FRINGE_NAVIGATE
         MENUITEM SEPARATOR
         MENUITEM "Добавить сечение",            IDD_ADD_SEC_D
         MENUITEM "Удалить сечение",             IDD_DEL_SEC_D
@@ -532,18 +532,18 @@ END
 
 IDR_EDITTOOLS TOOLBAR DISCARDABLE  22, 21
 BEGIN
-    BUTTON      IDD_ADD_DOT_D
-    BUTTON      IDD_DEL_DOT_D
+    BUTTON      IDD_FRINGE_EDIT
+    BUTTON      IDD_DOT_EDIT
     SEPARATOR
-    BUTTON      IDD_DEL_FR_D
+    BUTTON      IDD_FRINGE_NAVIGATE
     SEPARATOR
     BUTTON      IDD_ADD_SEC_D
     BUTTON      IDD_DEL_SEC_D
     BUTTON      IDD_SEC_LEFT_D
     BUTTON      IDD_SEC_RIGHT_D
     SEPARATOR
-    BUTTON      IDD_RENUM_DOT_D
-    BUTTON      IDD_RENUM_FR_D
+    BUTTON      IDD_NUMBER_FRINGES_FORWARD
+    BUTTON      IDD_NUMBER_FRINGES_BACKWARD
     BUTTON      IDD_NUM_OFF_MINUS
     BUTTON      IDD_NUM_OFF_PLUS
 END
@@ -707,12 +707,12 @@ STRINGTABLE DISCARDABLE
 BEGIN
     IDD_E_SEC_D             "Редактировать вдоль сечений\nРедактировать вдоль сечений"
     IDD_E_FR_D              "Редактировать вдоль полос\nРедактировать вдоль полос"
-    IDD_ADD_DOT_D           "Добавить точку\nДобавить точку"
-    IDD_DEL_DOT_D           "Удалить точку\nУдалить точку"
-    IDD_RENUM_DOT_D         "Изменить номер точки\nИзменить номер точки"
-    IDD_RENUM_FR_D          "Изменить номер полосы\nИзменить номер полосы"
+    IDD_FRINGE_EDIT         "Рисовать полосы\nРисовать полосы"
+    IDD_DOT_EDIT            "Редактировать сегменты\nРедактировать сегменты"
+    IDD_NUMBER_FRINGES_FORWARD  "Нумеровать слева-направо\nНумеровать слева-направо"
+    IDD_NUMBER_FRINGES_BACKWARD "Изменить номер полосы\nИзменить номер полосы"
     IDD_NUMBER_D            "Задать текущий номер\nЗадать текущий номер"
-    IDD_DEL_FR_D            "Удалить полосу\nУдалить полосу"
+    IDD_FRINGE_NAVIGATE     "Выделить полосы\nВыделить полосы"
     IDD_ADD_SEC_D           "Добавить сечение\nДобавить сечение"
     IDD_DEL_SEC_D           "Удалить сечение\nУдалить сечение"
     IDD_SEC_LEFT_D          "Сдвиг вдоль сечения влево\nСдвиг вдоль сечения влево"

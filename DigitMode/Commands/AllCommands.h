@@ -12,18 +12,16 @@
 
 namespace DigitMode {
 
-using CPoint2d = CDPoint;
-
 // CreateSegmentCommand
 class CreateSegmentCommand : public Command {
 public:
-    CreateSegmentCommand(CDigitInfo& doc, const std::vector<CPoint2d>& points, double number);
+    CreateSegmentCommand(CDigitInfo& doc, const std::vector<CDPoint>& points, double number);
     void Execute() override;
     void Undo() override;
     std::string GetName() const override { return "Create Segment"; }
 private:
     CDigitInfo& m_doc;
-    std::vector<CPoint2d> m_points;
+    std::vector<CDPoint> m_points;
     double m_number;
     size_t m_createdIndex;
 };
@@ -31,7 +29,7 @@ private:
 // ExtendSegmentCommand
 class ExtendSegmentCommand : public Command {
 public:
-    ExtendSegmentCommand(CDigitInfo& doc, size_t segmentIndex, bool atHead, const CPoint2d& point);
+    ExtendSegmentCommand(CDigitInfo& doc, size_t segmentIndex, bool atHead, const CDPoint& point);
     void Execute() override;
     void Undo() override;
     std::string GetName() const override { return "Extend Segment"; }
@@ -39,13 +37,13 @@ private:
     CDigitInfo& m_doc;
     size_t m_segmentIndex;
     bool m_atHead;
-    CPoint2d m_point;
+    CDPoint m_point;
 };
 
 // MoveDotCommand
 class MoveDotCommand : public Command {
 public:
-    MoveDotCommand(CDigitInfo& doc, size_t segmentIndex, size_t dotIndex, const CPoint2d& oldPos, const CPoint2d& newPos);
+    MoveDotCommand(CDigitInfo& doc, size_t segmentIndex, size_t dotIndex, const CDPoint& oldPos, const CDPoint& newPos);
     void Execute() override;
     void Undo() override;
     std::string GetName() const override { return "Move Dot"; }
@@ -53,8 +51,8 @@ private:
     CDigitInfo& m_doc;
     size_t m_segmentIndex;
     size_t m_dotIndex;
-    CPoint2d m_oldPos;
-    CPoint2d m_newPos;
+    CDPoint m_oldPos;
+    CDPoint m_newPos;
 };
 
 // DeleteDotCommand
@@ -68,7 +66,7 @@ private:
     CDigitInfo& m_doc;
     size_t m_segmentIndex;
     size_t m_dotIndex;
-    CPoint2d m_removedPoint;
+    CDPoint m_removedPoint;
 };
 
 // SplitSegmentCommand

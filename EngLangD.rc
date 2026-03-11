@@ -1,5 +1,7 @@
-﻿//Microsoft Developer Studio generated resource script.
+﻿// Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -13,13 +15,10 @@
 #undef APSTUDIO_READONLY_SYMBOLS
 
 /////////////////////////////////////////////////////////////////////////////
-// Russian resources
+// Russian (Russia) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_RUS)
-#ifdef _WIN32
 LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
-#pragma code_page(1251)
-#endif //_WIN32
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -27,18 +26,18 @@ LANGUAGE LANG_RUSSIAN, SUBLANG_DEFAULT
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE DISCARDABLE 
+1 TEXTINCLUDE 
 BEGIN
     "resource.h\0"
 END
 
-2 TEXTINCLUDE DISCARDABLE 
+2 TEXTINCLUDE 
 BEGIN
     "#include ""afxres.h""\r\n"
     "\0"
 END
 
-3 TEXTINCLUDE DISCARDABLE 
+3 TEXTINCLUDE 
 BEGIN
     "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
     "#define _AFX_NO_OLE_RESOURCES\r\n"
@@ -59,7 +58,6 @@ END
 #endif    // APSTUDIO_INVOKED
 
 
-#ifndef _MAC
 /////////////////////////////////////////////////////////////////////////////
 //
 // Version
@@ -82,18 +80,13 @@ BEGIN
     BEGIN
         BLOCK "040904b0"
         BEGIN
-            VALUE "Comments", "\0"
-            VALUE "CompanyName", "\0"
-            VALUE "FileDescription", "Digit MFC Application\0"
-            VALUE "FileVersion", "2, 0, 0, 1\0"
-            VALUE "InternalName", "Digit\0"
-            VALUE "LegalCopyright", "Copyright (C) 2001\0"
-            VALUE "LegalTrademarks", "\0"
-            VALUE "OriginalFilename", "Digit.EXE\0"
-            VALUE "PrivateBuild", "\0"
-            VALUE "ProductName", "Digit Application\0"
-            VALUE "ProductVersion", "2, 0, 0, 1\0"
-            VALUE "SpecialBuild", "\0"
+            VALUE "FileDescription", "Digit MFC Application"
+            VALUE "FileVersion", "2, 0, 0, 1"
+            VALUE "InternalName", "Digit"
+            VALUE "LegalCopyright", "Copyright (C) 2001"
+            VALUE "OriginalFilename", "Digit.EXE"
+            VALUE "ProductName", "Digit Application"
+            VALUE "ProductVersion", "2, 0, 0, 1"
         END
     END
     BLOCK "VarFileInfo"
@@ -102,24 +95,20 @@ BEGIN
     END
 END
 
-#endif    // !_MAC
-
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_TOOLBARS_DLG DIALOG DISCARDABLE  0, 0, 256, 98
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_TOOLBARS_DLG DIALOG 0, 0, 256, 98
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ToolBars"
 FONT 8, "MS Sans Serif"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,201,53,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,201,74,50,12
-    LISTBOX         IDCB_Toolbar_list,8,7,177,80,NOT LBS_NOTIFY | 
-                    LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | 
-                    LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDCB_Toolbar_list,8,7,177,80,NOT LBS_NOTIFY | LBS_OWNERDRAWFIXED | LBS_NOINTEGRALHEIGHT | LBS_DISABLENOSCROLL | WS_VSCROLL | WS_TABSTOP
 END
 
 
@@ -129,7 +118,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_TOOLBARS_DLG, DIALOG
     BEGIN
@@ -147,27 +136,25 @@ END
 // Bitmap
 //
 
-IDB_BITMAP17            BITMAP  DISCARDABLE     "res\\bitmap17.bmp"
-#endif    // Russian resources
+IDB_BITMAP17            BITMAP                  "res\\bitmap17.bmp"
+
+#endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////
-// English (U.S.) resources
+// English (United States) resources
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
-#ifdef _WIN32
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
-#endif //_WIN32
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Dialog
 //
 
-IDD_ABOUTBOX DIALOG DISCARDABLE  0, 0, 235, 55
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_ABOUTBOX DIALOG 0, 0, 235, 55
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "About Digit"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -177,33 +164,30 @@ BEGIN
     DEFPUSHBUTTON   "OK",IDOK,178,7,50,14,WS_GROUP
 END
 
-IDD_FILESPECIAL DIALOG DISCARDABLE  0, 0, 275, 213
-STYLE WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS
+IDD_FILESPECIAL DIALOG 0, 0, 275, 213
+STYLE DS_SETFONT | WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS
 FONT 8, "MS Sans Serif"
 BEGIN
-    PUSHBUTTON      "Delete All Matching Files",IDC_DELETE,205,191,63,14,NOT 
-                    WS_VISIBLE
+    PUSHBUTTON      "Delete All Matching Files",IDC_DELETE,205,191,63,14,NOT WS_VISIBLE
     GROUPBOX        "",stc32,7,7,261,115,NOT WS_VISIBLE
     LTEXT           "",IDBM_PREOPEN_PICTURE,85,126,104,83
 END
 
 IDD_ZOOM_DLG DIALOGEX 0, 0, 187, 61
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Zoom Correction"
 FONT 8, "MS Sans Serif", 0, 0, 0x1
 BEGIN
     PUSHBUTTON      "OK",IDOK,133,28,50,12
     PUSHBUTTON      "Cancel",IDCANCEL,133,10,50,12
-    CONTROL         "Slider1",IDS_zoom_scale,"msctls_trackbar32",TBS_TOP | 
-                    TBS_NOTICKS | WS_TABSTOP,7,28,109,13,WS_EX_DLGMODALFRAME
+    CONTROL         "Slider1",IDS_zoom_scale,"msctls_trackbar32",TBS_TOP | TBS_NOTICKS | WS_TABSTOP,7,28,109,13,WS_EX_DLGMODALFRAME
     LTEXT           "Zoom  ",IDC_STATIC,9,11,22,8
-    COMBOBOX        IDCB_zoom_scale,60,10,48,126,CBS_DROPDOWNLIST | 
-                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDCB_zoom_scale,60,10,48,126,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "% ",IDC_STATIC,111,12,9,8
 END
 
-IDR_RULER DIALOG DISCARDABLE  0, 0, 426, 16
-STYLE WS_CHILD
+IDR_RULER DIALOG 0, 0, 426, 16
+STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     PUSHBUTTON      "????????",IDB_clear_measure,354,3,50,11,NOT WS_VISIBLE
@@ -221,8 +205,8 @@ BEGIN
     RTEXT           "      0.00 ",IDT_D_measure,314,4,24,8
 END
 
-IDR_IMAGEINFO DIALOG DISCARDABLE  0, 0, 574, 18
-STYLE WS_CHILD
+IDR_IMAGEINFO DIALOG 0, 0, 574, 18
+STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     LTEXT           "Title ",IDC_STATIC,3,4,16,8
@@ -233,19 +217,17 @@ BEGIN
     LTEXT           "Rotation",IDC_STATIC,504,5,28,8
 END
 
-IDR_DIGITTOOLS DIALOG DISCARDABLE  0, 0, 122, 16
-STYLE WS_CHILD
+IDR_DIGITTOOLS DIALOG 0, 0, 122, 16
+STYLE DS_SETFONT | WS_CHILD
 FONT 8, "MS Sans Serif"
 BEGIN
     EDITTEXT        IDE_FringeNum,9,2,35,12,ES_AUTOHSCROLL
-    CONTROL         "Spin1",IDE_FringeNumCtrl,"msctls_updown32",
-                    UDS_ARROWKEYS,44,1,10,14
-    COMBOBOX        IDCB_FringeAs,65,2,48,59,CBS_DROPDOWNLIST | WS_VSCROLL | 
-                    WS_TABSTOP
+    CONTROL         "Spin1",IDE_FringeNumCtrl,"msctls_updown32",UDS_ARROWKEYS,44,1,10,14
+    COMBOBOX        IDCB_FringeAs,65,2,48,59,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
 END
 
-IDD_APPROXSET_DLG DIALOG DISCARDABLE  0, 0, 186, 84
-STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+IDD_APPROXSET_DLG DIALOG 0, 0, 186, 84
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "Approximation Parameters"
 FONT 8, "MS Sans Serif"
 BEGIN
@@ -264,7 +246,7 @@ END
 //
 
 #ifdef APSTUDIO_INVOKED
-GUIDELINES DESIGNINFO DISCARDABLE 
+GUIDELINES DESIGNINFO
 BEGIN
     IDD_ABOUTBOX, DIALOG
     BEGIN
@@ -272,14 +254,6 @@ BEGIN
         RIGHTMARGIN, 228
         TOPMARGIN, 7
         BOTTOMMARGIN, 48
-    END
-
-    IDD_FILESPECIAL, DIALOGEX
-    BEGIN
-        LEFTMARGIN, 7
-        RIGHTMARGIN, 268
-        TOPMARGIN, 7
-        BOTTOMMARGIN, 209
     END
 
     IDD_ZOOM_DLG, DIALOG
@@ -322,26 +296,33 @@ END
 // Bitmap
 //
 
-IDR_KITTOOL             BITMAP  DISCARDABLE     "res\\bmp00002.bmp"
-IDR_VIEWTOOLS           BITMAP  DISCARDABLE     "res\\viewtool.bmp"
-IDR_EDITTOOLS           BITMAP  DISCARDABLE     "res\\toolbar1.bmp"
-IDR_DIGITTOOLS          BITMAP  DISCARDABLE     "res\\toolbar_digit.bmp" // "res\\digittoo.bmp"
-IDR_MAINFRAME           BITMAP  DISCARDABLE     "res\\bmp00001.bmp"
-IDR_TOOLBAR_APERTURE    BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit_.bmp"
-IDR_TOOLBAR_APERTURE_P  BITMAP  DISCARDABLE     "res\\toolbar_aperture8bit_pushed_.bmp"
+IDR_KITTOOL             BITMAP                  "res\\bmp00002.bmp"
+
+IDR_VIEWTOOLS           BITMAP                  "res\\viewtool.bmp"
+
+IDR_EDITTOOLS           BITMAP                  "res\\toolbar1.bmp"
+
+IDR_DIGITTOOLS          BITMAP                  "res\\toolbar_digit.bmp"
+
+IDR_MAINFRAME           BITMAP                  "res\\bmp00001.bmp"
+
+IDR_TOOLBAR_APERTURE    BITMAP                  "res\\toolbar_aperture8bit_.bmp"
+
+IDR_TOOLBAR_APERTURE_P  BITMAP                  "res\\toolbar_aperture8bit_pushed_.bmp"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Toolbar
 //
 
-IDR_KITTOOL TOOLBAR DISCARDABLE  22, 21
+IDR_KITTOOL TOOLBAR 22, 21
 BEGIN
     BUTTON      IDD_FOTO_SECTIONS
     BUTTON      IDD_MEASURE
 END
 
-IDR_VIEWTOOLS TOOLBAR DISCARDABLE  22, 21
+IDR_VIEWTOOLS TOOLBAR 22, 21
 BEGIN
     BUTTON      IDD_INTERFEROGRAM_VIEW
     BUTTON      IDD_EXTRFRINGE_VIEW
@@ -351,29 +332,26 @@ BEGIN
     BUTTON      IDD_APPROX_VIEW
 END
 
-IDR_EDITTOOLS TOOLBAR DISCARDABLE  22, 21
+IDR_EDITTOOLS TOOLBAR 22, 21
 BEGIN
-    BUTTON      IDD_ADD_DOT_D
-    BUTTON      IDD_DEL_DOT_D
+    BUTTON      IDD_FRINGE_EDIT
+    BUTTON      IDD_DOT_EDIT
     SEPARATOR
-    BUTTON      IDD_DEL_FR_D
+    BUTTON      IDD_FRINGE_NAVIGATE
     SEPARATOR
     BUTTON      IDD_ADD_SEC_D
     BUTTON      IDD_DEL_SEC_D
     BUTTON      IDD_SEC_LEFT_D
     BUTTON      IDD_SEC_RIGHT_D
     SEPARATOR
-    BUTTON      IDD_RENUM_DOT_D
-    BUTTON      IDD_RENUM_FR_D
+    BUTTON      IDD_NUMBER_FRINGES_FORWARD
+    BUTTON      IDD_NUMBER_FRINGES_BACKWARD
     BUTTON      IDD_NUM_OFF_MINUS
     BUTTON      IDD_NUM_OFF_PLUS
 END
 
-IDR_DIGITTOOLS TOOLBAR DISCARDABLE  22, 21
+IDR_DIGITTOOLS TOOLBAR 22, 21
 BEGIN
-    //BUTTON      IDD_BOUNDS_EXT
-    //BUTTON      IDD_BOUNDS_INS
-    //SEPARATOR
     BUTTON      IDD_AUTO_D
     BUTTON      IDD_FC_MAX
     BUTTON      IDD_FC_MIN
@@ -383,7 +361,7 @@ BEGIN
     BUTTON      IDD_CALC_APROX
 END
 
-IDR_MAINFRAME TOOLBAR DISCARDABLE  22, 21
+IDR_MAINFRAME TOOLBAR 22, 21
 BEGIN
     BUTTON      ID_FILE_OPEN
     BUTTON      ID_FILE_SAVE
@@ -400,7 +378,7 @@ END
 // Menu
 //
 
-IDR_IMAGETYPE MENU DISCARDABLE 
+IDR_IMAGETYPE MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -439,16 +417,16 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "Calc aproximation",           IDD_CALC_APROX
         MENUITEM SEPARATOR
-        MENUITEM "Add dot",                     IDD_ADD_DOT_D
-        MENUITEM "Delete dot",                  IDD_DEL_DOT_D
+        MENUITEM "Draw fringes",                IDD_FRINGE_EDIT
+        MENUITEM "Edit segments",               IDD_DOT_EDIT
         MENUITEM SEPARATOR
-        MENUITEM "Renumber dot",                IDD_RENUM_DOT_D
-        MENUITEM "Renumber fringe",             IDD_RENUM_FR_D
+        MENUITEM "Number forward",              IDD_NUMBER_FRINGES_FORWARD
+        MENUITEM "Renumber fringe",             IDD_NUMBER_FRINGES_BACKWARD
         MENUITEM SEPARATOR
         MENUITEM "Decrease fringe's number",    IDD_NUM_OFF_MINUS
         MENUITEM "Increase fringe's number",    IDD_NUM_OFF_PLUS
         MENUITEM SEPARATOR
-        MENUITEM "Delete fringe",               IDD_DEL_FR_D
+        MENUITEM "Delete fringe",               IDD_FRINGE_NAVIGATE
         MENUITEM SEPARATOR
         MENUITEM "Add section",                 IDD_ADD_SEC_D
         MENUITEM "Delete section",              IDD_DEL_SEC_D
@@ -476,7 +454,7 @@ BEGIN
     END
 END
 
-IDR_MAINFRAME MENU PRELOAD DISCARDABLE 
+IDR_MAINFRAME MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -503,7 +481,7 @@ BEGIN
     END
 END
 
-IDR_TEXT_WINDOW MENU PRELOAD DISCARDABLE 
+IDR_TEXT_WINDOW MENU
 BEGIN
     POPUP "&File"
     BEGIN
@@ -531,15 +509,17 @@ END
 
 // Icon with lowest ID value placed first to ensure application icon
 // remains consistent on all systems.
-IDR_MAINFRAME           ICON    DISCARDABLE     "res\\Digit.ico"
-IDR_WININTTYPE          ICON    DISCARDABLE     "res\\DigitDoc.ico"
+IDR_MAINFRAME           ICON                    "res\\Digit.ico"
+
+IDR_WININTTYPE          ICON                    "res\\DigitDoc.ico"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // Accelerator
 //
 
-IDR_MAINFRAME ACCELERATORS PRELOAD MOVEABLE PURE 
+IDR_MAINFRAME ACCELERATORS
 BEGIN
     "C",            IDD_COPY,               VIRTKEY, CONTROL, NOINVERT
     "L",            IDD_CLONE,              VIRTKEY, CONTROL, NOINVERT
@@ -627,37 +607,48 @@ END
 // Cursor
 //
 
-IDC_MARK_BOUND_CUR      CURSOR  DISCARDABLE     "Res\\markpt.cur"
-IDC_MEASURE_CUR         CURSOR  DISCARDABLE     "Res\\measure.CUR"
-IDC_SEL_PT_CURSOR       CURSOR  DISCARDABLE     "Res\\harrow.cur"
-IDC_SEL_SEC_CURSOR      CURSOR  DISCARDABLE     "Res\\hnwse.cur"
-IDC_RECT_BOUND_CUR      CURSOR  DISCARDABLE     "res\\rect_bou.cur"
-IDC_ZOOMIN              CURSOR  DISCARDABLE     "RES\\ZOOMIN.CUR"
-IDC_ZOOMOUT             CURSOR  DISCARDABLE     "RES\\ZOOMOUT.CUR"
-IDC_ZOOMRECT            CURSOR  DISCARDABLE     "res\\cursor1.cur"
-IDC_ZOOMRECTDRAG        CURSOR  DISCARDABLE     "res\\ZOOMRECT.CUR"
-IDC_SEL_SEC             CURSOR  DISCARDABLE     "res\\sel_zap_.cur"
-IDC_SEL_DOT             CURSOR  DISCARDABLE     "res\\sel_dot.cur"
+IDC_MARK_BOUND_CUR      CURSOR                  "Res\\markpt.cur"
+
+IDC_MEASURE_CUR         CURSOR                  "Res\\measure.CUR"
+
+IDC_SEL_PT_CURSOR       CURSOR                  "Res\\harrow.cur"
+
+IDC_SEL_SEC_CURSOR      CURSOR                  "Res\\hnwse.cur"
+
+IDC_RECT_BOUND_CUR      CURSOR                  "res\\rect_bou.cur"
+
+IDC_ZOOMIN              CURSOR                  "RES\\ZOOMIN.CUR"
+
+IDC_ZOOMOUT             CURSOR                  "RES\\ZOOMOUT.CUR"
+
+IDC_ZOOMRECT            CURSOR                  "res\\cursor1.cur"
+
+IDC_ZOOMRECTDRAG        CURSOR                  "res\\ZOOMRECT.CUR"
+
+IDC_SEL_SEC             CURSOR                  "res\\sel_zap_.cur"
+
+IDC_SEL_DOT             CURSOR                  "res\\sel_dot.cur"
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
 // String Table
 //
 
-STRINGTABLE PRELOAD DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDR_MAINFRAME           "Digit\n\nDigit\n\n\nDigit.Document\nDigit Document"
     IDR_IMAGETYPE           "\nImage\nImage\nImage Files (*.bmp;*.jpg;*.pcx;*.tif;*.tga) \n.BMP;JPG;PCX;TGA;TIF\nDigitImage.Document\nDigitImage Document"
     IDR_TEXT_WINDOW         "\nText\nText\nText Files (*.txt)\n.TXT\nText.Document\nText Document"
 END
 
-STRINGTABLE PRELOAD DISCARDABLE 
+STRINGTABLE
 BEGIN
     AFX_IDS_APP_TITLE       "Digit"
     AFX_IDS_IDLEMESSAGE     " "
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     ID_INDICATOR_EXT        "EXT"
     ID_INDICATOR_CAPS       "CAP"
@@ -667,14 +658,14 @@ BEGIN
     ID_INDICATOR_REC        "REC"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     ID_APP_ABOUT            "About\nAbout"
     ID_APP_EXIT             "Exit\nExit"
     ID_HELP                 "Help\nHelp"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     ID_FILE_MRU_FILE1       "Open this document"
     ID_FILE_MRU_FILE2       "Open this document"
@@ -694,7 +685,7 @@ BEGIN
     ID_FILE_MRU_FILE16      "Open this document"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     ID_VIEW_TOOLBAR         "Show or hide the toolbar\nToggle ToolBar"
     ID_VIEW_STATUS_BAR      "Status bar\nStatus bar"
@@ -703,11 +694,11 @@ BEGIN
     IDW_EDIT                "Fringe Number"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_FILE_OPEN           "Open\nOpen"
     IDD_FILE_SAVE_AS        "Save As\nSave As"
-    IDD_EDIT_UNDO            "Undo\nUndo"
+    IDD_EDIT_UNDO           "Undo\nUndo"
     IDD_ZOOM_IMAGE          "Zoom\nZoom"
     IDD_CONTRAST_BRIGHTNESS "Brightness/contrast\nBrightness/contrast"
     IDD_ROTATION_IMAGE      "Rotation Image\nRotation Image"
@@ -721,25 +712,25 @@ BEGIN
     IDD_ROTATION_CUSTOM     "Rotation by custom angle\nRotation by custom angle"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_ROTATION_HORZ       "Flip horizontal\nFlip horizontal"
     IDD_ROTATION_VERT       "Flip vertical\nFlip vertical"
     IDD_MEASURE             "Ruler\nRuler"
     IDD_FOTO_SECTIONS       "Photometric cross sections\nPhotometric cross sections"
     IDD_SH_SECTIONS         "Show/hide Cross sections\nShow/hide Cross sections"
-    ID_MENUITEM32790        "Показать/Скрыть точки\nПоказать/Скрыть точки"
+    ID_MENUITEM32790        "ÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ/Ð¡ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ‚Ð¾Ñ‡ÐºÐ¸\nÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ/Ð¡ÐºÑ€Ñ‹Ñ‚ÑŒ Ñ‚Ð¾Ñ‡ÐºÐ¸"
     IDD_SH_DOTS             "Show/hide dots\nShow/hide dots"
     IDD_SH_IMAGE            "Show/hide Interferogram\nShow/hide Interferogram"
-    IDD_SH_DRAFT            "Показать/Скрыть скелет\nПоказать/Скрыть скелет"
+    IDD_SH_DRAFT            "ÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ/Ð¡ÐºÑ€Ñ‹Ñ‚ÑŒ ÑÐºÐµÐ»ÐµÑ‚\nÐŸÐ¾ÐºÐ°Ð·Ð°Ñ‚ÑŒ/Ð¡ÐºÑ€Ñ‹Ñ‚ÑŒ ÑÐºÐµÐ»ÐµÑ‚"
     IDD_INTR_ANALYSIS       "Analysis of interferogram\nAnalysis of interferogram"
     IDD_DIFRA_ANALYSIS      "Diffractional analysis\nDiffractional analysis"
     IDD_CALCULATOR          "Operations with polynoms\nOperations with polynoms"
-    IDD_INTERF_PROP         "Анализ интерферограмм\nАнализ интерферограмм"
-    IDD_DIFRA_PROP          "Дифракционный анализ\nДифракционный анализ"
+    IDD_INTERF_PROP         "ÐÐ½Ð°Ð»Ð¸Ð· Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÑ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼\nÐÐ½Ð°Ð»Ð¸Ð· Ð¸Ð½Ñ‚ÐµÑ€Ñ„ÐµÑ€Ð¾Ð³Ñ€Ð°Ð¼Ð¼"
+    IDD_DIFRA_PROP          "Ð”Ð¸Ñ„Ñ€Ð°ÐºÑ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¹ Ð°Ð½Ð°Ð»Ð¸Ð·\nÐ”Ð¸Ñ„Ñ€Ð°ÐºÑ†Ð¸Ð¾Ð½Ð½Ñ‹Ð¹ Ð°Ð½Ð°Ð»Ð¸Ð·"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_VIEW_IMAGETOOLS     "Toolbars\nToolbars"
     IDD_INCLINE_IMAGE       "Adjust background\nAdjust background"
@@ -747,12 +738,12 @@ BEGIN
     IDD_AUTO_D              "Autonumbering\nAutonumbering"
     IDD_CLEAR_D             "Clear numbering\nClear numbering"
     IDD_CROP_IMAGE          "Crop\nCrop"
-    IDD_EXPAND_IMAGE        "Расширение по шкале\nРасширение по шкале"
+    IDD_EXPAND_IMAGE        "Ð Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð¸Ðµ Ð¿Ð¾ ÑˆÐºÐ°Ð»Ðµ\nÐ Ð°ÑÑˆÐ¸Ñ€ÐµÐ½Ð¸Ðµ Ð¿Ð¾ ÑˆÐºÐ°Ð»Ðµ"
     IDD_AUTOCONTRAST_IMAGE  "Optimize contrast\nOptimize contrast"
     IDD_CHANGE_LANG         "Russian interface\nRussian interface"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_EXTRFRINGE_VIEW     "View fringe extremum\nView fringe extremum"
     IDD_DOTS_VIEW           "View dots\nView dots"
@@ -766,23 +757,23 @@ BEGIN
     IDD_CALC_APROX          "Calc aproximation\nCalc aproximation"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     ID_FILE_OPEN            "Open file\nOpen file"
     ID_FILE_SAVE            "Save the active document\nSave"
     ID_FILE_SAVE_AS         "Save as\nSave as"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_E_SEC_D             "Edit on sections\nEdit on sections"
     IDD_E_FR_D              "Edit on fringes\nEdit on fringes"
-    IDD_ADD_DOT_D           "Add dot\nAdd dot"
-    IDD_DEL_DOT_D           "Delete dot\nDelete dot"
-    IDD_RENUM_DOT_D         "Renumber dot\nRenumber dot"
-    IDD_RENUM_FR_D          "Renumber fringe\nRenumber fringe"
+    IDD_FRINGE_EDIT         "Draw fringes\nDraw fringes"
+    IDD_DOT_EDIT            "Edit segments\nEdit segments"
+    IDD_NUMBER_FRINGES_FORWARD  "Number fringes forward\nNumber fringes forward"
+    IDD_NUMBER_FRINGES_BACKWARD "Renumber fringe\nRenumber fringe"
     IDD_NUMBER_D            "Set current number\nSet current number"
-    IDD_DEL_FR_D            "Delete fringe\nDelete fringe"
+    IDD_FRINGE_NAVIGATE     "Select fringes\nSelect fringes"
     IDD_ADD_SEC_D           "Add section\nAdd section"
     IDD_DEL_SEC_D           "Delete section\nDelete section"
     IDD_SEC_LEFT_D          "Shift on section to left\nShift on section to left"
@@ -792,7 +783,7 @@ BEGIN
                             "Options of diffractional analysis\nOptions of diffractional analysis"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_INTR_ANALYSIS_CONTROL "Options of analysis of interferogram"
     IDD_IMAGE_GENERATION    "Generation of interferogram\nGeneration of interferogram"
@@ -803,7 +794,7 @@ BEGIN
     IDD_PAST_SCENARIO       "Past processing scenario\nPast processing scenario"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_OPEN_SCENARIO       "Load scenario\nLoad scenario"
     IDD_SAVE_SCENARIO       "Save scenario\nSave scenario"
@@ -818,12 +809,12 @@ BEGIN
     IDD_INTERFEROGRAM_VIEW  "View Interferogram\nView Interferogram"
 END
 
-STRINGTABLE DISCARDABLE 
+STRINGTABLE
 BEGIN
     IDD_DOTLINES_VIEW       "View fringes's centers\nView fringes's centers"
 END
 
-#endif    // English (U.S.) resources
+#endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////
 
 
