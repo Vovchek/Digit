@@ -227,9 +227,11 @@ protected:
     afx_msg void OnUpdateDotEdit(CCmdUI* pCmdUI);
     afx_msg void OnFringesSelect();
     afx_msg void OnUpdateFringesSelect(CCmdUI* pCmdUI);
+	void NumberFringes(bool forward);
     afx_msg void OnNumberFringesForward();
     afx_msg void OnUpdateNumberFringes(CCmdUI* pCmdUI);
     afx_msg void OnNumberFringesBackward();
+	void DeltaFringes(bool increase);
     afx_msg void OnFringeIncreaseNumber();
     afx_msg void OnUpdateDeltaFringeNumber(CCmdUI* pCmdUI);
     afx_msg void OnFringeDecreaseNumber();

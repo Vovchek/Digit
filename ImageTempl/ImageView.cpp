@@ -1601,16 +1601,16 @@ void CImageView::OnUpdateFringesSelect(CCmdUI* pCmdUI)
 		m_fringeInputHandler.GetEditMode() == DigitMode::FringeEditMode::Navigate ? TRUE : FALSE
 	);
 }
-void CImageView::OnNumberFringesForward()
+void CImageView::NumberFringes(bool forward)
 {
-	auto& digit = static_cast<CImageDoc *>(GetDocument())->Digit;
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
 	if (digit.Fringes.empty()) return;
 	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
 	if (!pApertureCtrls) return;
 	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
 
 	std::vector<size_t> trustedIndices;
-	
+
 	// Collect segment indices from current selection
 	for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
 		const auto& obj = digit.selectionManager.GetAt(i);
@@ -1623,114 +1623,37 @@ void CImageView::OnNumberFringesForward()
 
 	// If no selection, use 2 first segments as default
 	if (trustedIndices.empty()) {
-		trustedIndices = { 0 };
+		if (forward) trustedIndices = { 0 };
+		else trustedIndices = { digit.Fringes.size() - 1 };
 	}
 
 	// Execute auto-numbering command
 	auto cmd = std::make_unique<DigitMode::AutoNumberingCommand>(
 		digit,
 		trustedIndices,
-		digit.numStep,    // default step
-		0.7               // default confidence threshold
+		forward ? digit.numStep : -digit.numStep,    // default step
+		0.7											 // default confidence threshold
 	);
 	dispatcher.Execute(std::move(cmd));
 
-	TRACE("InputHandler::OnKeyDown: Forward auto-number triggered with %zu trusted segments\n",
-		trustedIndices.size());
+	TRACE("InputHandler::OnKeyDown: %s auto-number triggered with %zu trusted segments\n",
+		forward?"Forward":"Backwards", trustedIndices.size());
+}
+
+void CImageView::OnNumberFringesForward()
+{
+	NumberFringes(true);
+}
+void CImageView::OnNumberFringesBackward()
+{
+	NumberFringes(false);
 }
 void CImageView::OnUpdateNumberFringes(CCmdUI* pCmdUI)
 {
 	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
 	pCmdUI->Enable(digit.Fringes.size() > 1);
 }
-void CImageView::OnNumberFringesBackward()
-{
-	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
-	if (digit.Fringes.size() < 2) return;
-	DigitMode::CApertureCtrls* pApertureCtrls = GetApertureCtrls(this);
-	if (!pApertureCtrls) return;
-	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
-
-	std::vector<size_t> trustedIndices;
-
-	// Collect segment indices from current selection
-	for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
-		const auto& obj = digit.selectionManager.GetAt(i);
-		// Accept Segment and Fringe-level selections
-		if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
-			&& obj.iSegment >= 0) {
-			trustedIndices.push_back(static_cast<size_t>(obj.iSegment));
-		}
-	}
-
-	// If no selection, use last segment as default
-	if (trustedIndices.empty()) {
-		trustedIndices = { digit.Fringes.size() - 1 };
-	}
-
-	// Execute auto-numbering command
-	auto cmd = std::make_unique<DigitMode::AutoNumberingCommand>(
-		digit,
-		trustedIndices,
-		-digit.numStep,    // default step
-		0.7               // default confidence threshold
-	);
-	dispatcher.Execute(std::move(cmd));
-
-	TRACE("InputHandler::OnKeyDown: Backward auto-number triggered with %zu trusted segments\n",
-		trustedIndices.size());
-}
-void CImageView::OnFringeIncreaseNumber()
-{
-	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
-	if (digit.Fringes.empty()) return;
-	// ensure active tool is fringe tool
-	auto* activeTool = GetInteractionManager().GetActiveTool();
-	if(activeTool != m_fringeToolAdapter) return;
-	// get commands dispatcher
-	auto* pApertureCtrls = GetApertureCtrls(this);
-	if (!pApertureCtrls) return;
-	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
-
-	// in navigate mode process the whole selection 
-	// in Draw or DotEdit mode retreave active segment
-	switch (m_fringeInputHandler.GetEditMode()) {
-	case DigitMode::FringeEditMode::Navigate:
-	{
-		std::vector<size_t> selection;
-		for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
-			const auto& obj = digit.selectionManager.GetAt(i);
-			if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
-				&& obj.iSegment >= 0) {
-				selection.push_back(static_cast<size_t>(obj.iSegment));
-			}
-		}
-		if (!selection.empty()) {
-			auto cmd = std::make_unique<DigitMode::DeltaSegmentsCommand>(
-				digit,
-				selection,
-				digit.numStep // step
-			);
-			dispatcher.Execute(std::move(cmd));
-		}
-		break;
-	}
-	case DigitMode::FringeEditMode::Draw:
-	{
-		CBaseImageView::OnKeyDown(VK_ADD, 0, 0);
-		break;
-	}
-	}
-}
-void CImageView::OnUpdateDeltaFringeNumber(CCmdUI* pCmdUI)
-{
-	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
-	const auto& input = m_fringeInputHandler.GetInputHandler();
-	const bool hasActive = input.HasActiveSegment();     // iActiveSegment >= 0
-	const bool hasSelection = digit.selectionManager.GetCount() > 0; // at least one selected segment or fringe
-	pCmdUI->Enable(GetInteractionManager().GetActiveTool() == m_fringeToolAdapter && (hasSelection || hasActive));
-}
-void CImageView::OnFringeDecreaseNumber()
+void CImageView::DeltaFringes(bool increase)
 {
 	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
 	if (digit.Fringes.empty()) return;
@@ -1741,7 +1664,6 @@ void CImageView::OnFringeDecreaseNumber()
 	auto* pApertureCtrls = GetApertureCtrls(this);
 	if (!pApertureCtrls) return;
 	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
-
 	// in navigate mode process the whole selection 
 	// in Draw or DotEdit mode retreave active segment
 	switch (m_fringeInputHandler.GetEditMode()) {
@@ -1759,18 +1681,38 @@ void CImageView::OnFringeDecreaseNumber()
 			auto cmd = std::make_unique<DigitMode::DeltaSegmentsCommand>(
 				digit,
 				selection,
-				-digit.numStep // step
+				increase ? digit.numStep : -digit.numStep // step
 			);
 			dispatcher.Execute(std::move(cmd));
 		}
 		break;
 	}
 	case DigitMode::FringeEditMode::Draw:
+	case DigitMode::FringeEditMode::DotEdit:
 	{
-		CBaseImageView::OnKeyDown(VK_SUBTRACT, 0, 0);
+		int vk = increase ? VK_ADD : VK_SUBTRACT;
+		CBaseImageView::OnKeyDown(vk, 0, 0);
 		break;
 	}
+	default:
+		break;
 	}
+}
+void CImageView::OnFringeIncreaseNumber()
+{
+	DeltaFringes(true);
+}
+void CImageView::OnFringeDecreaseNumber()
+{
+	DeltaFringes(false);
+}
+void CImageView::OnUpdateDeltaFringeNumber(CCmdUI* pCmdUI)
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	const auto& input = m_fringeInputHandler.GetInputHandler();
+	const bool hasActive = input.HasActiveSegment();     // iActiveSegment >= 0
+	const bool hasSelection = digit.selectionManager.GetCount() > 0; // at least one selected segment or fringe
+	pCmdUI->Enable(GetInteractionManager().GetActiveTool() == m_fringeToolAdapter && (hasSelection || hasActive));
 }
 
 // ========================================================================
