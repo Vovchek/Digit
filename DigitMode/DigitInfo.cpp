@@ -149,7 +149,6 @@ void CDigitInfo::Auto()
         // sort dots by increasing fringe,then by Y downwards
         SortDotsFY();
         SelectMainDot();
-        ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
         
         SyncFringesToDots(); // bylateral sync fringes <-> dots
         m_bUseFringeModel = true;
@@ -159,6 +158,7 @@ void CDigitInfo::Auto()
         m_bUseFringeModel = true;
 
     }
+    ::SetCursor(::LoadCursor(NULL, IDC_ARROW));
 }
 
 void CDigitInfo::CreateRedCenters()

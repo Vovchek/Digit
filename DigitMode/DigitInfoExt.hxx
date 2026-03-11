@@ -1085,13 +1085,14 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 		WavefrontFromContoursInput input(
 			aperture,
 			mask,
-			Fringes
+			Fringes,
+			GetScaleFactor(),
+			GetRotation()
 		);
 		WavefrontFromContours wf(input);
 		WavefrontFromContoursSolver_HorizontalSpline solver;
 
 		auto topogram = wf.run(solver);
-		topogram.setScaleFactor(GetScaleFactor());
 
 		std::ofstream outMtr(fname);
 		return topogram.saveMtrMatrix(outMtr);

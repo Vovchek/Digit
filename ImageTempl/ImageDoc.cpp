@@ -240,7 +240,9 @@ void CImageDoc::CalcAproximation()
 	WavefrontFromContoursInput input(
         aperture, 
 		mask, 
-		Digit.Fringes
+		Digit.Fringes,
+		Digit.GetScaleFactor(),
+		Digit.GetRotation()
     );
 	
 	std::string path = GetRealPath();

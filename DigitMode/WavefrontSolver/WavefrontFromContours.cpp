@@ -370,6 +370,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	os << "Time=" << buffer << "\n";
 
 	os << "ScaleFactor=" << getScaleFactor() << "\n";
+	os << "FiScan=" << getFiScan() << "\n";
 	os << "Units=WAV\n\n";
 	// NB:essentially Size = 1./delta - not nesserery eq to rows_ or cols_.
 	// Setting a wrong Size value breaks WinFringe calculations
@@ -463,6 +464,8 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const Wa
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;
 }
@@ -575,6 +578,8 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;
 }
@@ -782,7 +787,9 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
-	
+	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setFiScan(ctx.input_.fiScan_);
+
 	return result;
 }
 

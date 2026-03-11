@@ -37,6 +37,8 @@ struct WavefrontFromContoursInput
         const aperture::Bounds& bounds,
         const aperture::visibility::VisibilityMask& visibilityMask,
         const std::vector<CFringeSegment>& fringeSegments,
+		double scaleFactor = 1.,
+		double fiScan = 0.,
         int outWidth = 0,
         int outHeight = 0,
         aperture::CoordinateSystemType inputCoordType = aperture::CoordinateSystemType::SCREEN,
@@ -44,6 +46,8 @@ struct WavefrontFromContoursInput
         : bounds_(bounds)
         , visibilityMask_(visibilityMask)
         , fringeSegments_(fringeSegments)
+		, scaleFactor_(scaleFactor)
+		, fiScan_(fiScan)
         , outWidth_(outWidth > 0 ? outWidth : static_cast<int>(bounds.width()))
         , outHeight_(outHeight > 0 ? outHeight : 
             static_cast<int>(bounds.height() * outWidth_ / static_cast<double>(bounds.width())))
@@ -54,6 +58,8 @@ struct WavefrontFromContoursInput
     const aperture::Bounds bounds_;
     const aperture::visibility::VisibilityMask& visibilityMask_;
     const std::vector<CFringeSegment>& fringeSegments_;
+	double scaleFactor_;
+	double fiScan_;
     // Resolution parameters
     // outWidth: desired output matrix width (columns along x-axis)
     // outWidth = 0 means use aperture bounding box width (resolved in constructor)
@@ -216,6 +222,7 @@ public:
 	const aperture::Bounds& getBounds() const { return bounds_; }
 	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
 	double getScaleFactor() const { return scaleFactor_; }
+	double getFiScan() const { return fiScan_; }
 	const WavefrontBoundingCircle& getBoundingCircle() const { return boundingCircle_; }
 
 	// ============================================================================
@@ -226,6 +233,7 @@ public:
 	void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
 	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
 	void setScaleFactor(double scale) { scaleFactor_ = scale; }
+	void setFiScan(double fi) { fiScan_ = fi; }
 	void setBoundingCircle(const WavefrontBoundingCircle& circle) { boundingCircle_ = circle; }
 
 	// ============================================================================
@@ -243,6 +251,7 @@ private:
     aperture::Bounds bounds_;
     aperture::CoordinateSystemType coordType_;
 	double scaleFactor_ = 1.0;
+	double fiScan_ = 0.0;
 	WavefrontBoundingCircle boundingCircle_{};
 
 };
