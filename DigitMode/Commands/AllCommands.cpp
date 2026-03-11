@@ -157,6 +157,25 @@ void RenumberSegmentsCommand::Undo() {
     }
 }
 
+DeltaSegmentsCommand::DeltaSegmentsCommand(CDigitInfo& doc, const std::vector<size_t>& segmentIndices, double deltaNumber)
+    : m_doc(doc), m_indices(segmentIndices), m_deltaNumber(deltaNumber) {
+}
+
+void DeltaSegmentsCommand::Execute() {
+    m_oldNumbers.clear();
+    for (size_t idx : m_indices) {
+        auto num = m_doc.Fringes[static_cast<int>(idx)].GetNumber();
+        m_oldNumbers.push_back(num);
+        m_doc.Fringes[static_cast<int>(idx)].SetNumber(num + m_deltaNumber);
+    }
+}
+
+void DeltaSegmentsCommand::Undo() {
+    for (size_t i = 0; i < m_indices.size(); ++i) {
+        m_doc.Fringes[static_cast<int>(m_indices[i])].SetNumber(m_oldNumbers[i]);
+    }
+}
+
 DeleteSegmentsCommand::DeleteSegmentsCommand(CDigitInfo& doc, const std::vector<size_t>& segmentIndices)
     : m_doc(doc), m_indices(segmentIndices) {}
 

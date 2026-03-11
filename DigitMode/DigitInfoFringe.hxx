@@ -228,11 +228,14 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 		// Build grouping: (Number, Index) -> points
 		// Using simple linear search approach (MFC-compatible)
+		// also estimate average step based on Number range an q-ty of unique values
+		std::set<double> fringeNumbers;
 		for (int i = 0; i < nD; i++) {
 			double num = IntInfo.DigitDat[i].F.Number;
 			int id = IntInfo.DigitDat[i].F.Index;
 			double y = IntInfo.DigitDat[i].Y;
 			double x = IntInfo.DigitDat[i].X;
+			fringeNumbers.insert(num);
 
 			// Find or create fringe for this (Number, id) combination
 			int targetFringe = -1;
@@ -254,6 +257,9 @@ BOOL CDigitInfo::ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO&
 
 		// Maintain Dots for compatibility during transition
 		ConvertFringesToDots();
+		// Evaluate average step rounded to 0.5
+		double pv = *fringeNumbers.rbegin() - *fringeNumbers.begin();
+		numStep = fringeNumbers.size() > 1 ? (std::round(2* pv / (fringeNumbers.size() - 1)) / 2) : 1.0;
 	}
 	else {
 		// OLD: Flat loading into Dots array

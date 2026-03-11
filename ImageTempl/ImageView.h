@@ -228,9 +228,11 @@ protected:
     afx_msg void OnFringesSelect();
     afx_msg void OnUpdateFringesSelect(CCmdUI* pCmdUI);
     afx_msg void OnNumberFringesForward();
-    afx_msg void OnUpdateNumberFringesForward(CCmdUI* pCmdUI);
+    afx_msg void OnUpdateNumberFringes(CCmdUI* pCmdUI);
     afx_msg void OnNumberFringesBackward();
-    afx_msg void OnUpdateNumberFringesBackward(CCmdUI* pCmdUI);
+    afx_msg void OnFringeIncreaseNumber();
+    afx_msg void OnUpdateDeltaFringeNumber(CCmdUI* pCmdUI);
+    afx_msg void OnFringeDecreaseNumber();
     //}}AFX_MSG
 	DECLARE_MESSAGE_MAP()
 public:

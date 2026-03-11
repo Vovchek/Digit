@@ -774,7 +774,7 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
 	result.trustedFringes.clear(); // trustedFringeIndices may be reviewed
     result.weakFringes.clear();
 
-    if (fringes.empty() || step < 1e-6) {
+    if (fringes.empty() || fabs(step) < 1e-6) {
         return result;
     }
 

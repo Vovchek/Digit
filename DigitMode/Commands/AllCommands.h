@@ -115,6 +115,20 @@ private:
     double m_newNumber;
 };
 
+// DeltaSegmentsNumberCommand
+class DeltaSegmentsCommand : public Command {
+public:
+    DeltaSegmentsCommand(CDigitInfo& doc, const std::vector<size_t>& segmentIndices, double deltaNumber);
+    void Execute() override;
+    void Undo() override;
+    std::string GetName() const override { return "Delta Segments"; }
+private:
+    CDigitInfo& m_doc;
+    std::vector<size_t> m_indices;
+    std::vector<double> m_oldNumbers;
+    double m_deltaNumber;
+};
+
 // DeleteSegmentsCommand
 class DeleteSegmentsCommand : public Command {
 public:

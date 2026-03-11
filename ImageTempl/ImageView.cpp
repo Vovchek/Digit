@@ -256,9 +256,14 @@ BEGIN_MESSAGE_MAP(CImageView, CBaseImageView)
 	ON_COMMAND(IDD_FRINGE_NAVIGATE, OnFringesSelect)
 	ON_UPDATE_COMMAND_UI(IDD_FRINGE_NAVIGATE, OnUpdateFringesSelect)
 	ON_COMMAND(IDD_NUMBER_FRINGES_FORWARD, OnNumberFringesForward)
-	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_FORWARD, OnUpdateNumberFringesForward)
+	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_FORWARD, OnUpdateNumberFringes)
 	ON_COMMAND(IDD_NUMBER_FRINGES_BACKWARD, OnNumberFringesBackward)
-	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_BACKWARD, OnUpdateNumberFringesBackward)
+	ON_UPDATE_COMMAND_UI(IDD_NUMBER_FRINGES_BACKWARD, OnUpdateNumberFringes)
+	ON_COMMAND(IDD_NUM_OFF_PLUS, OnFringeIncreaseNumber)
+	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_PLUS, OnUpdateDeltaFringeNumber)
+	ON_COMMAND(IDD_NUM_OFF_MINUS, OnFringeDecreaseNumber)
+	ON_UPDATE_COMMAND_UI(IDD_NUM_OFF_MINUS, OnUpdateDeltaFringeNumber)
+
 	//}}AFX_MSG_MAP
 END_MESSAGE_MAP()
 
@@ -1633,7 +1638,7 @@ void CImageView::OnNumberFringesForward()
 	TRACE("InputHandler::OnKeyDown: Forward auto-number triggered with %zu trusted segments\n",
 		trustedIndices.size());
 }
-void CImageView::OnUpdateNumberFringesForward(CCmdUI* pCmdUI)
+void CImageView::OnUpdateNumberFringes(CCmdUI* pCmdUI)
 {
 	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
 	pCmdUI->Enable(digit.Fringes.size() > 1);
@@ -1675,13 +1680,98 @@ void CImageView::OnNumberFringesBackward()
 	TRACE("InputHandler::OnKeyDown: Backward auto-number triggered with %zu trusted segments\n",
 		trustedIndices.size());
 }
-void CImageView::OnUpdateNumberFringesBackward(CCmdUI* pCmdUI)
+void CImageView::OnFringeIncreaseNumber()
 {
 	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
-	pCmdUI->Enable(digit.Fringes.size() > 1);
+	if (digit.Fringes.empty()) return;
+	// ensure active tool is fringe tool
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	if(activeTool != m_fringeToolAdapter) return;
+	// get commands dispatcher
+	auto* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
+
+	// in navigate mode process the whole selection 
+	// in Draw or DotEdit mode retreave active segment
+	switch (m_fringeInputHandler.GetEditMode()) {
+	case DigitMode::FringeEditMode::Navigate:
+	{
+		std::vector<size_t> selection;
+		for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
+			const auto& obj = digit.selectionManager.GetAt(i);
+			if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
+				&& obj.iSegment >= 0) {
+				selection.push_back(static_cast<size_t>(obj.iSegment));
+			}
+		}
+		if (!selection.empty()) {
+			auto cmd = std::make_unique<DigitMode::DeltaSegmentsCommand>(
+				digit,
+				selection,
+				digit.numStep // step
+			);
+			dispatcher.Execute(std::move(cmd));
+		}
+		break;
+	}
+	case DigitMode::FringeEditMode::Draw:
+	{
+		CBaseImageView::OnKeyDown(VK_ADD, 0, 0);
+		break;
+	}
+	}
 }
+void CImageView::OnUpdateDeltaFringeNumber(CCmdUI* pCmdUI)
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	const auto& input = m_fringeInputHandler.GetInputHandler();
+	const bool hasActive = input.HasActiveSegment();     // iActiveSegment >= 0
+	const bool hasSelection = digit.selectionManager.GetCount() > 0; // at least one selected segment or fringe
+	pCmdUI->Enable(GetInteractionManager().GetActiveTool() == m_fringeToolAdapter && (hasSelection || hasActive));
+}
+void CImageView::OnFringeDecreaseNumber()
+{
+	auto& digit = static_cast<CImageDoc*>(GetDocument())->Digit;
+	if (digit.Fringes.empty()) return;
+	// ensure active tool is fringe tool
+	auto* activeTool = GetInteractionManager().GetActiveTool();
+	if (activeTool != m_fringeToolAdapter) return;
+	// get commands dispatcher
+	auto* pApertureCtrls = GetApertureCtrls(this);
+	if (!pApertureCtrls) return;
+	auto& dispatcher = pApertureCtrls->GetCommandDispatcher();
 
-
+	// in navigate mode process the whole selection 
+	// in Draw or DotEdit mode retreave active segment
+	switch (m_fringeInputHandler.GetEditMode()) {
+	case DigitMode::FringeEditMode::Navigate:
+	{
+		std::vector<size_t> selection;
+		for (size_t i = 0; i < digit.selectionManager.GetCount(); ++i) {
+			const auto& obj = digit.selectionManager.GetAt(i);
+			if ((obj.level == DigitMode::SelectionLevel::Segment || obj.level == DigitMode::SelectionLevel::Fringe)
+				&& obj.iSegment >= 0) {
+				selection.push_back(static_cast<size_t>(obj.iSegment));
+			}
+		}
+		if (!selection.empty()) {
+			auto cmd = std::make_unique<DigitMode::DeltaSegmentsCommand>(
+				digit,
+				selection,
+				-digit.numStep // step
+			);
+			dispatcher.Execute(std::move(cmd));
+		}
+		break;
+	}
+	case DigitMode::FringeEditMode::Draw:
+	{
+		CBaseImageView::OnKeyDown(VK_SUBTRACT, 0, 0);
+		break;
+	}
+	}
+}
 
 // ========================================================================
 // Undo/Redo Command Handlers
