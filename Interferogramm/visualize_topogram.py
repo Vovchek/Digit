@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Read the topogram data
-with open('topogram_spline.txt', 'r') as f:
+with open('topogram_linear.txt', 'r') as f:
     # Read first line with dimensions
     header = f.readline().strip()
     print(f"Header: {header}")

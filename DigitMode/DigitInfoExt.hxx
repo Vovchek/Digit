@@ -634,7 +634,7 @@ void CDigitInfo::RemoveFringe(CPoint P, int dotSide)
 
 bool CDigitInfo::IsDots()
 {
-	if (Dots.size())
+	if (Dots.size() + Fringes.size())
 		return true;
 	else
 		return false;

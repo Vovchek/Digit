@@ -208,7 +208,7 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 	// Draw lines for each fringe segment
 	for (const auto& fringe : fringeSegments)
 	{
-		double fringeValue = fringe.GetNumber();
+		double fringeValue = fringe.GetNumber() / input_.scaleFactor_;
 		int pointCount = fringe.GetPointCount();
 
 		// Draw lines connecting consecutive points in the fringe
@@ -369,8 +369,9 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	std::strftime(buffer, sizeof(buffer), "%H:%M:%S", local);
 	os << "Time=" << buffer << "\n";
 
-	os << "ScaleFactor=" << getScaleFactor() << "\n";
-	os << "FiScan=" << getFiScan() << "\n";
+	if(getScaleFactor() != 1.0) os << "ScaleFactor=" << getScaleFactor() << "\n";
+	if(getFiScan() != 0.0) os << "FiScan=" << getFiScan() << "\n";
+	
 	os << "Units=WAV\n\n";
 	// NB:essentially Size = 1./delta - not nesserery eq to rows_ or cols_.
 	// Setting a wrong Size value breaks WinFringe calculations
@@ -388,6 +389,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	{
 		// Calculate Y coordinate at the center of this row
 		double y_norm = (row - yc) * ratio;  // Normalize to [-1, 1]
+		if (y_norm > 1.0 || y_norm < -1.0) continue; // going out of -1..1 range kills WinFringe - skip such rows entirely
 
 		bool firstLineOfRow = true;
 		int pairCount = 0;
@@ -403,6 +405,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 
 			// Calculate X coordinate at the center of this column
 			double x_norm = (col - xc) * ratio;  // Normalize to [-1, 1]
+			if (x_norm > 1.0 || x_norm < -1.0) continue; // going out of -1..1 range kills WinFringe
 
 			// Start new output line if needed
 			if (pairCount == 0)
@@ -464,7 +467,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const Wa
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
-	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setScaleFactor(1.0); // reterize() scales due to it
 	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;
@@ -538,6 +541,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
 	
 	const auto& bounds = ctx.input_.bounds_;
+	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
 	
 	// Process each row
 	for (int row = 0; row < outHeight; ++row)
@@ -565,7 +569,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 			
 			// Interpolate Z value at this X
 			double z = interpolateAtX(crossings, worldX);
-			zk[idx] = z;
+			zk[idx] = z * reverseScale;
 		}
 	}
 	
@@ -578,7 +582,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
-	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setScaleFactor(1.0); // already scaled
 	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;
@@ -747,7 +751,8 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
 	
 	const auto& bounds = ctx.input_.bounds_;
-	
+	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
+
 	// Process each row
 	for (int row = 0; row < outHeight; ++row)
 	{
@@ -774,7 +779,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 			
 			// Interpolate Z value at this X using cubic spline
 			double z = interpolateAtX(crossings, worldX);
-			zk[idx] = z;
+			zk[idx] = z * reverseScale;
 		}
 	}
 	
@@ -787,7 +792,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
-	result.setScaleFactor(ctx.input_.scaleFactor_);
+	result.setScaleFactor(1.0); // already scaled here
 	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;
