@@ -9,6 +9,8 @@
 #include <set>
 #include <limits>
 #include <queue>
+#include <unordered_map>
+#include <unordered_set>
 
 // Define M_PI if not available
 #ifndef M_PI
@@ -231,6 +233,36 @@ namespace impl_saddles {
         return false;
     }
 
+    inline std::vector<size_t> SortRingsByNestingOut(
+        std::vector<FringeNode>& nodes,
+		std::vector<size_t>& ringNodes
+        )
+    {
+        std::vector<size_t> result;
+        std::unordered_map<size_t, bool> visited;
+
+        // track junior kids
+        std::unordered_set<size_t> withChildren;
+		for (auto idx : ringNodes) {
+            if(nodes[idx].outerNodeIdx != SIZE_MAX) {
+                withChildren.insert(nodes[idx].outerNodeIdx);
+            }
+        }
+
+        // Find most nested rings
+		for (auto idx : ringNodes) {
+            if(withChildren.find(idx) == withChildren.end() && !visited[idx]) {
+				auto current = idx;
+				while (current != SIZE_MAX && !visited[current]) {
+                    result.push_back(current);
+                    visited[current] = true;
+                    current = nodes[current].outerNodeIdx;
+                }
+            }
+        }
+		return result;
+    }
+
     /**
      * @brief Topology classification result
      */
@@ -305,6 +337,8 @@ namespace impl_saddles {
             }
         }
         
+		result.ringNodeIndices = SortRingsByNestingOut(nodes, result.ringNodeIndices);
+
         return result;
     }
 

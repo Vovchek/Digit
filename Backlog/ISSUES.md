@@ -2,6 +2,8 @@
 ### 001 WinFringe .frn format compatibility issues
 <del>* fix ellipses format - they must be normalized. But where to get center and radius for normalization?</del>
 <del>* fix bounds format (yet not clear)</del>
+     * rotate y FisCan before saving to .mtr (find circumcircle, get center, expand bounds to radius, 
+       rotate by -FiScan update bounds, shrink to bounds)
 ### 002 smooth and robust interpolation
 ### 003 <del>adjust sections spacing to fringes spacing</del>
 ### 004 <del>use external screens in place of apertures in WinFringe compatibility mode</del>
@@ -60,6 +62,6 @@
 ---
 # Epic feats (500+)
 
-## 501 Fringes Navigation mode toolbar (bumeration, etc)
+## 501 Fringes Navigation mode toolbar (numeration, etc)
 ## 502 Add phase calculation
-## 
+## 503 Implement fiducials for ref.sys transformation and distortion correction
