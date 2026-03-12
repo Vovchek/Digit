@@ -1434,7 +1434,7 @@ void CImageView::OnAddBoundPolygon()
 void CImageView::OnBoundVisisbility()
 {
     // Toggle between APERTURE and INTERNAL bounds type for subsequent Add commands
-	ActivateBoundsTool();
+	//ActivateBoundsTool();
 	DigitMode::BoundsHandler& handler = m_boundsInputHandler.GetBoundsHandler();
 	aperture::TypeLimits currentType = handler.GetShapeType();
 	aperture::TypeLimits nextType =
@@ -1808,11 +1808,11 @@ BOOL CImageView::PreTranslateMessage(MSG* pMsg)
 
 	// Handle Ctrl+'+'/'-'/'0' for zoom
 	if (pMsg && pMsg->message == WM_KEYDOWN && (GetKeyState(VK_CONTROL) & 0x8000)) {
-		if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS || pMsg->wParam == 0xBB) {
+		if (pMsg->wParam == VK_ADD || pMsg->wParam == VK_OEM_PLUS) {
 			OnZoomIn();
 			return TRUE;
 		}
-		else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS || pMsg->wParam == 0xBD) {
+		else if (pMsg->wParam == VK_SUBTRACT || pMsg->wParam == VK_OEM_MINUS) {
 			OnZoomOut();
 			return TRUE;
 		}

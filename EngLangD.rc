@@ -421,7 +421,7 @@ BEGIN
         MENUITEM "Edit segments",               IDD_DOT_EDIT
         MENUITEM SEPARATOR
         MENUITEM "Number forward",              IDD_NUMBER_FRINGES_FORWARD
-        MENUITEM "Renumber fringe",             IDD_NUMBER_FRINGES_BACKWARD
+        MENUITEM "Number backwards",             IDD_NUMBER_FRINGES_BACKWARD
         MENUITEM SEPARATOR
         MENUITEM "Decrease fringe's number",    IDD_NUM_OFF_MINUS
         MENUITEM "Increase fringe's number",    IDD_NUM_OFF_PLUS
@@ -771,7 +771,7 @@ BEGIN
     IDD_FRINGE_EDIT         "Draw fringes\nDraw fringes"
     IDD_DOT_EDIT            "Edit segments\nEdit segments"
     IDD_NUMBER_FRINGES_FORWARD  "Number fringes forward\nNumber fringes forward"
-    IDD_NUMBER_FRINGES_BACKWARD "Renumber fringe\nRenumber fringe"
+    IDD_NUMBER_FRINGES_BACKWARD "Number fringes backwards\nNumber fringes backwards"
     IDD_NUMBER_D            "Set current number\nSet current number"
     IDD_FRINGE_NAVIGATE     "Select fringes\nSelect fringes"
     IDD_ADD_SEC_D           "Add section\nAdd section"
