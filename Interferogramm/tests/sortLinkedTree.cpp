@@ -95,7 +95,7 @@ std::vector<ObjectWithBiggerRef<T>*> sortAndAssignTrueValues(
 int main() {
     // Create objects
     auto* root1 = new ObjectWithBiggerRef<int>(5);      // Original value 5
-    auto* child1a = new ObjectWithBiggerRef<int>(3);    // Original value 3
+    auto* child1a = new ObjectWithBiggerRef<int>(7);    // Original value 3
     auto* child1b = new ObjectWithBiggerRef<int>(3);    // Original value 3
     auto* grandchild1 = new ObjectWithBiggerRef<int>(1); // Original value 1
     
@@ -104,9 +104,9 @@ int main() {
     auto* grandchild2 = new ObjectWithBiggerRef<int>(4); // Original value 4
     
     // Establish relationships
-    child1a->bigger = root1;        // 3 -> 5
+    child1a->bigger = root1;        // 7 -> 5
     child1b->bigger = root1;        // 3 -> 5
-    grandchild1->bigger = child1a;   // 1 -> 3
+    grandchild1->bigger = child1a;   // 1 -> 7
     
     child2->bigger = root2;          // 6 -> 8
     grandchild2->bigger = child2;    // 4 -> 6

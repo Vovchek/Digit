@@ -110,7 +110,7 @@ namespace impl_saddles {
     /**
      * @brief Result of band resolution
      */
-    struct BandResolutionResult {
+    struct ResolutionResult {
         std::vector<size_t> trustedFringes;
         std::vector<size_t> weakFringes;
     };
@@ -263,6 +263,93 @@ namespace impl_saddles {
 		return result;
     }
 
+	// Extract roots and children mapping for hierarchy traversal
+	inline std::pair<std::vector<size_t>, std::unordered_map<size_t, std::vector<size_t>>>
+        BuildHierarchy(
+            std::vector<FringeNode>& nodes,
+            std::vector<size_t>& ringNodes
+        ) {
+        
+        std::unordered_map<size_t, std::vector<size_t>> children;
+        std::unordered_set<size_t> nonRoots;
+        
+        for (auto idx : ringNodes) {
+            if(nodes[idx].outerNodeIdx != SIZE_MAX) {
+                children[nodes[idx].outerNodeIdx].push_back(idx);
+                nonRoots.insert(idx);
+            }
+        }
+        std::vector<size_t> roots;
+        for (auto idx : ringNodes) {
+            if(nonRoots.find(idx) == nonRoots.end()) {
+                roots.push_back(idx);
+            }
+        }
+        return {roots, children};
+	}
+
+    // Assign consequtive values to ring nests starting from roots (nodes with no outerNodeIdx) 
+    // and propagating by +step down the hierarchy
+    inline ResolutionResult ResolveRingsTopology(
+        std::vector<FringeNode>& nodes,
+        std::vector<size_t>& ringNodes,
+        const std::unordered_map<size_t, int>& rootValues,
+        double step) {
+        
+        ResolutionResult result;
+
+        // Build children mapping
+        auto [roots, children] = BuildHierarchy(nodes, ringNodes);
+
+        // Assign values to roots
+        for (auto root : roots) {
+            auto it = rootValues.find(nodes[root].primaryIndex);
+            if(it != rootValues.end()) {
+                nodes[root].assignedK = it->second;
+                nodes[root].isTrusted = true;
+				nodes[root].isAssigned = true;
+            } else {
+                nodes[root].assignedK = 0; // or use some default
+                nodes[root].isTrusted = false;
+            }
+        }
+        
+        // BFS to propagate values down the hierarchy
+        std::queue<size_t> q;
+        std::unordered_map<size_t, bool> visited;
+
+        for (auto root : roots) {
+            q.push(root);
+            visited[root] = true;
+        }
+
+        while (!q.empty()) {
+            auto current = q.front();
+            q.pop();
+            for (auto child : children[current]) {
+                if (!visited[child]) {
+                    // Assign value based on parent (increment by step)
+                    //nodes[child].knownValue = nodes[current].knownValue + step;
+					nodes[child].assignedK = nodes[current].assignedK + 1; // or compute based on actual value
+					nodes[child].isAssigned = true;
+                    nodes[child].isTrusted = nodes[current].isTrusted; // or some logic to determine trust
+                    visited[child] = true;
+                    q.push(child);
+                }
+            }
+        }
+
+		// Collect results
+		for (auto idx : ringNodes) {
+            if(nodes[idx].isTrusted) {
+                result.trustedFringes.push_back(nodes[idx].primaryIndex);
+            } else {
+                result.weakFringes.push_back(nodes[idx].primaryIndex);
+            }
+        }
+		return result;
+    }
+
     /**
      * @brief Topology classification result
      */
@@ -337,7 +424,7 @@ namespace impl_saddles {
             }
         }
         
-		result.ringNodeIndices = SortRingsByNestingOut(nodes, result.ringNodeIndices);
+        //result.ringNodeIndices = SortRingsByNestingOut(nodes, result.ringNodeIndices);
 
         return result;
     }
@@ -663,13 +750,14 @@ namespace impl_saddles {
      * @param step [i] Step value for numbering
      * @return BandResolutionResult with trusted and weak fringe lists
      */
-    inline BandResolutionResult ResolveBandTopology(
+    inline ResolutionResult ResolveBandTopology(
         std::vector<FringeNode>& nodes,
+        const std::vector<size_t> bandNodes,
         const std::vector<CFringeSegment>& fringes,
         const std::vector<size_t>& trustedFringeIndices,
         double step)
     {
-        BandResolutionResult result;
+        ResolutionResult result;
         
         // Estimate alignment direction from trusted anchors
         CDPoint alignmentDir = { 1.0, 1.0 };
@@ -689,18 +777,18 @@ namespace impl_saddles {
 
         // Compute dominant direction via PCA-like heuristic on centroids
         double meanX = 0.0, meanY = 0.0;
-        for (const auto& node : nodes) {
-            meanX += node.centroid_x;
-            meanY += node.centroid_y;
+        for (const auto node : bandNodes) {
+            meanX += nodes[node].centroid_x;
+            meanY += nodes[node].centroid_y;
         }
         meanX /= nodes.size();
         meanY /= nodes.size();
 
         // Covariance approximation
         double covXX = 0.0, covXY = 0.0, covYY = 0.0;
-        for (const auto& node : nodes) {
-            double dx = node.centroid_x - meanX;
-            double dy = node.centroid_y - meanY;
+        for (const auto node : bandNodes) {
+            double dx = nodes[node].centroid_x - meanX;
+            double dy = nodes[node].centroid_y - meanY;
             covXX += dx * dx;
             covXY += dx * dy;
             covYY += dy * dy;
@@ -735,10 +823,10 @@ namespace impl_saddles {
         // Sort nodes along normal direction
         struct NodeProj { size_t idx; double proj; };
         std::vector<NodeProj> sorted;
-        for (size_t n = 0; n < nodes.size(); ++n) {
+        for (auto node : bandNodes) {
             NodeProj np;
-            np.idx = n;
-            np.proj = nodes[n].centroid_x * dirX + nodes[n].centroid_y * dirY;
+            np.idx = node;
+            np.proj = nodes[node].centroid_x * dirX + nodes[node].centroid_y * dirY;
             sorted.push_back(np);
         }
         std::sort(sorted.begin(), sorted.end(),
@@ -775,6 +863,7 @@ namespace impl_saddles {
                 ++currentK;  // Next fringe is +1
                 nodes[idx].assignedK = currentK;
                 nodes[idx].isAssigned = true;
+                nodes[idx].isTrusted = true;
                 nodes[idx].isWeak = false;
                 result.trustedFringes.push_back(nodes[idx].primaryIndex);
             }
@@ -854,181 +943,33 @@ inline AutoNumberingResult AutoNumberFringesSaddles(
     
     TopologyClassification topology = ClassifyTopology(nodes, fringes);
     
-    // Determine dominant topology based on classification
-    bool isRingDominated = (!topology.ringNodeIndices.empty());
+	auto [roots, children] = BuildHierarchy(nodes, topology.ringNodeIndices);
 
-    if (isRingDominated) {
-        // ===== PHASE 2: Ring Structure Arrangement =====
-        // Rings ordered by inclusion hierarchy using outerNodeIdx
-        // Numbering radiates from trusted anchors
-        
-        const size_t NO_PARENT = SIZE_MAX;
-		int parentToChildDelta = 1; // Children are one step inward
-        
-        // Step 2.1: Mark all trusted anchors first
-        std::vector<size_t> trustedAnchors;
-        for (size_t nodeIdx : topology.ringNodeIndices) {
-            if (!nodes[nodeIdx].isClosed) continue;
-            if (!nodes[nodeIdx].isTrusted) continue;
-            trustedAnchors.push_back(nodeIdx);
-            result.trustedFringes.push_back(nodes[nodeIdx].primaryIndex);
-        }
-		// check progression direction on rings through trusted anchors, if any
-        auto IsParent = [&nodes](size_t parentNodeIdx, size_t childNodeIdx) -> bool {
-            size_t current = childNodeIdx;
-            const size_t NO_PARENT = SIZE_MAX;
+	topology.bandNodeIndices.insert(topology.bandNodeIndices.end(), roots.begin(), roots.end());
 
-            while (current != NO_PARENT) {
-                if (current == parentNodeIdx) return true;
-                current = nodes[current].outerNodeIdx;
-            }
-            return false;
-            };
+    ResolutionResult bandResult = ResolveBandTopology(nodes, topology.bandNodeIndices, fringes, trustedFringeIndices, step);
 
-		if (!trustedAnchors.empty()) {
-            // Find direction inwards/outwards of rings.
-            // If 2 trusted anchors are of the same family
-			// then parentToChildDelta is 1 if child achor has
-			// bigger number, -1 if smaller number. 
-            // If only 1 anchor, default is +1 (children rise).
-			size_t anchor1 = trustedAnchors[0];
-            for (size_t anchorIdx : trustedAnchors) {
-                if (anchorIdx == anchor1) continue;
-				if (IsParent(anchor1, anchorIdx)) { // anchor1 is parent, anchorIdx is child
-                    // dK = sign(K_child-K_parent)
-                    parentToChildDelta = (nodes[anchorIdx].assignedK - nodes[anchor1].assignedK) > 0 ? 1 : -1;
-                    break;
-                }
-				else if (IsParent(anchorIdx, anchor1)) { // anchorIdx is parent, anchor1 is child
-                    // dK = sign(K_child - K_parent)
-                    parentToChildDelta = (nodes[anchor1].assignedK - nodes[anchorIdx].assignedK) > 0 ? 1 : -1;
-                    break; // Only need to compare one pair of anchors
-                }
-            }
-        }
-        // Step 2.2: Helper lambda for recursive hierarchy propagation
-        auto propagateHierarchy = [&](auto& self, size_t curIdx, int curK) -> void {
-            // Find and assign immediate children (rings enclosed by this one)
-            for (size_t childIdx : topology.ringNodeIndices) {
-                if (!nodes[childIdx].isClosed) continue;
-                if (nodes[childIdx].outerNodeIdx == curIdx && !nodes[childIdx].isAssigned) {
-                    nodes[childIdx].assignedK = curK + parentToChildDelta;  // Children go south
-                    nodes[childIdx].isAssigned = true;
-                    nodes[childIdx].isWeak = true;
-                    result.weakFringes.push_back(nodes[childIdx].primaryIndex);
-                    self(self, childIdx, curK - 1);
-                }
-            }
-            
-            // Find and assign parent (ring that encloses this one)
-            if (nodes[curIdx].outerNodeIdx != NO_PARENT) {
-                size_t parentIdx = nodes[curIdx].outerNodeIdx;
-                if (!nodes[parentIdx].isAssigned) {
-                    nodes[parentIdx].assignedK = curK - parentToChildDelta;  // Parent goes north
-                    nodes[parentIdx].isAssigned = true;
-                    nodes[parentIdx].isWeak = true;
-                    result.weakFringes.push_back(nodes[parentIdx].primaryIndex);
-                    self(self, parentIdx, curK + 1);
-                }
-            }
-        };
-        
-        // Step 2.3: Propagate from each trusted anchor
-        for (size_t anchorIdx : trustedAnchors) {
-            propagateHierarchy(propagateHierarchy, anchorIdx, nodes[anchorIdx].assignedK);
-        }
-        
-        // Step 2.4: Process any remaining unassigned rings (not connected to anchors)
-        for (size_t nodeIdx : topology.ringNodeIndices) {
-            if (nodes[nodeIdx].isClosed && !nodes[nodeIdx].isAssigned) {
-                // Find root of this ring's hierarchy (topmost parent)
-                size_t rootIdx = nodeIdx;
-                while (nodes[rootIdx].outerNodeIdx != NO_PARENT) {
-                    rootIdx = nodes[rootIdx].outerNodeIdx;
-                }
-                
-                // Assign starting number from root using hierarchy
-                int startK = 0;  // Default starting point
-                nodes[rootIdx].assignedK = startK;
-                nodes[rootIdx].isAssigned = true;
-                nodes[rootIdx].isWeak = true;
-                result.weakFringes.push_back(nodes[rootIdx].primaryIndex);
-                
-                propagateHierarchy(propagateHierarchy, rootIdx, startK);
-            }
-        }
-        
-        // Step 2.5: Number bands inside rings (K_band = K_ring + 1)
-        if (!topology.bandNodeIndices.empty()) {
-            std::vector<FringeNode> bandNodes;
-            std::vector<size_t> bandNodeOriginalIdx;
-            
-            // Collect band nodes and their parent rings
-            for (size_t bandIdx : topology.bandNodeIndices) {
-                bandNodeOriginalIdx.push_back(bandIdx);
-                bandNodes.push_back(nodes[bandIdx]);
-            }
-            
-            // Use ResolveBandTopology to assign band numbers
-            BandResolutionResult bandResult = ResolveBandTopology(bandNodes, fringes, trustedFringeIndices, step);
-            
-            // Map results back to original nodes
-            for (size_t i = 0; i < bandNodes.size(); ++i) {
-                size_t origIdx = bandNodeOriginalIdx[i];
-                nodes[origIdx] = bandNodes[i];
-            }
-            
-            result.trustedFringes.insert(result.trustedFringes.end(), 
-                bandResult.trustedFringes.begin(), bandResult.trustedFringes.end());
-            result.weakFringes.insert(result.weakFringes.end(), 
-                bandResult.weakFringes.begin(), bandResult.weakFringes.end());
+	// retreave root values for ring numbering from band results
+	std::unordered_map<size_t, int> rootValues;
+	for (auto root : roots) {
+        if(nodes[root].isAssigned) {
+            rootValues[nodes[root].primaryIndex] = nodes[root].assignedK;
         }
     }
-    else {
-        // ===== PHASE 3a: Band Resolution =====
-        
-        BandResolutionResult bandResult = ResolveBandTopology(nodes, fringes, trustedFringeIndices, step);
-        
-        // Merge results into main result
-        result.trustedFringes.insert(result.trustedFringes.end(), 
-            bandResult.trustedFringes.begin(), bandResult.trustedFringes.end());
-        result.weakFringes.insert(result.weakFringes.end(), 
-            bandResult.weakFringes.begin(), bandResult.weakFringes.end());
-    }
-    
-    // ===== PHASE 8: Iterative Propagation (simplified) =====
 
-    // Propagate trusted numbers to connected unassigned nodes
-    bool changed = true;
-    int iterCount = 0;
-    const int maxIter = static_cast<int>(nodes.size()) + 10;
+    // resolve rings
+	auto ringResult = ResolveRingsTopology(nodes, topology.ringNodeIndices, rootValues, step);
+          
+	// store week/trusted fringes from both phases, may duplicate
+    result.trustedFringes.insert(result.trustedFringes.end(),
+        bandResult.trustedFringes.begin(), bandResult.trustedFringes.end());
+    result.weakFringes.insert(result.weakFringes.end(),
+        bandResult.weakFringes.begin(), bandResult.weakFringes.end());
+    result.trustedFringes.insert(result.trustedFringes.end(),
+        ringResult.trustedFringes.begin(), ringResult.trustedFringes.end());
+    result.weakFringes.insert(result.weakFringes.end(),
+        ringResult.weakFringes.begin(), ringResult.weakFringes.end());
 
-    while (changed && iterCount < maxIter) {
-        changed = false;
-        iterCount++;
-
-        for (size_t n = 0; n < nodes.size(); ++n) {
-            if (!nodes[n].isAssigned) continue;
-
-            // Find unassigned neighbors and assign
-            for (size_t m = 0; m < nodes.size(); ++m) {
-                if (m == n || nodes[m].isAssigned) continue;
-
-                // Check if m is adjacent to n (simple proximity check)
-                double dist = std::sqrt(
-                    (nodes[n].centroid_x - nodes[m].centroid_x) * (nodes[n].centroid_x - nodes[m].centroid_x) +
-                    (nodes[n].centroid_y - nodes[m].centroid_y) * (nodes[n].centroid_y - nodes[m].centroid_y)
-                );
-
-                if (dist < 100.0)  // Reasonable threshold for adjacency
-                    nodes[m].assignedK = nodes[n].assignedK + 1;
-                    nodes[m].isAssigned = true;
-                    nodes[m].isWeak = true;
-                    result.weakFringes.push_back(nodes[m].primaryIndex);
-                    changed = true;
-            }
-        }
-    }
 
     // ===== PHASE 9: Validation & Output =====
     
