@@ -762,16 +762,17 @@ namespace impl_saddles {
         // Estimate alignment direction from trusted anchors
         CDPoint alignmentDir = { 1.0, 1.0 };
         if (trustedFringeIndices.size() >= 2) {
-            CDPoint p1 = fringes[trustedFringeIndices[0]].GetPoint(0);
-            CDPoint p2 = fringes[trustedFringeIndices[1]].GetPoint(0);
+			double cx1, cx2, cy1, cy2;
+            ComputeCentroid(fringes[trustedFringeIndices[0]], cx1, cy1);
+            ComputeCentroid(fringes[trustedFringeIndices[1]], cx2, cy2);
             if (fringes[trustedFringeIndices[1]].GetNumber() >
                 fringes[trustedFringeIndices[0]].GetNumber()) {
-                alignmentDir.x = p2.x - p1.x;
-                alignmentDir.y = p2.y - p1.y;
+                alignmentDir.x = cx2 - cx1;
+                alignmentDir.y = cy2 - cy1;
             }
             else {
-                alignmentDir.x = p1.x - p2.x;
-                alignmentDir.y = p1.y - p2.y;
+                alignmentDir.x = cx1 - cx2;
+                alignmentDir.y = cy1 - cy2;
             }
         }
 
@@ -813,8 +814,8 @@ namespace impl_saddles {
             dirY = std::sin(angle);
         }
 
-        // Choose direction that matches alignmentDir
-        double dot = dirX * alignmentDir.x + dirY * alignmentDir.y;
+        // Choose direction that matches alignmentDir and step sign
+        double dot = (dirX * alignmentDir.x + dirY * alignmentDir.y) * step;
         if (dot < 0) {
             dirX = -dirX;
             dirY = -dirY;

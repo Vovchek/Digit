@@ -1063,7 +1063,7 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationMixedBandsAndRings) {
     fringes.push_back(CreateCircle(50.0, 50.0, 10.0, 3));
     fringes.push_back(CreateCircle(50.0, 50.0, 5.0, 3));
 
-    double step = 1.0;
+    double step = -1.0;
     fringes[0].SetNumber(0.0);
     fringes[1].SetNumber(step);
     std::vector<size_t> trustedIndices = { 0, 1 };
