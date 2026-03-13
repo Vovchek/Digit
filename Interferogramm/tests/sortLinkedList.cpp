@@ -56,18 +56,25 @@ std::vector<ObjectWithBiggerRef<T>*> sortObjectsByChain(
 
 int main() {
     // Create objects
-    auto* obj1 = new ObjectWithBiggerRef<int>(1);
-    auto* obj2 = new ObjectWithBiggerRef<int>(2);
-    auto* obj3 = new ObjectWithBiggerRef<int>(3);
-    auto* obj5 = new ObjectWithBiggerRef<int>(5);
-    auto* obj6 = new ObjectWithBiggerRef<int>(6);
+    auto* obj10 = new ObjectWithBiggerRef<int>(10);
+    auto* obj20 = new ObjectWithBiggerRef<int>(20);
+    auto* obj21 = new ObjectWithBiggerRef<int>(21);
+    auto* obj30 = new ObjectWithBiggerRef<int>(30);
+    auto* obj40 = new ObjectWithBiggerRef<int>(40);
+    auto* obj41 = new ObjectWithBiggerRef<int>(41);
+    auto* obj50 = new ObjectWithBiggerRef<int>(50);
+    auto* obj60 = new ObjectWithBiggerRef<int>(60);
     
     // Establish "bigger by one" relationships
-    obj1->bigger = obj2;  // 1 -> 2
-    obj2->bigger = obj3;  // 2 -> 3 (chain: 1,2,3)
-    obj5->bigger = obj6;  // 5 -> 6 (chain: 5,6)
-    
-    std::vector<ObjectWithBiggerRef<int>*> objects = {obj2, obj5, obj1, obj3, obj6};
+    obj10->bigger = obj20;  // 10 -> 20 (chain: 10,20,30,40,50,60)
+    obj20->bigger = obj30;  // 20 -> 30
+    obj30->bigger = obj40;  // 30 -> 40
+    obj40->bigger = obj50;  // 40 -> 50
+    obj50->bigger = obj60;  // 50 -> 60
+    obj21->bigger = obj30;  // 21 -> 30 (chain: 21,30,40,50,60)
+    obj41->bigger = obj50;  // 41 -> 50 (chain: 41,50,60)
+    std::vector<ObjectWithBiggerRef<int>*> objects = 
+        {obj10, obj20, obj21, obj41, obj50, obj10, obj30, obj60};
     
     auto sorted = sortObjectsByChain(objects);
     

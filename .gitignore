@@ -361,3 +361,6 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+/Interferogramm/.vscode/c_cpp_properties.json
+/Interferogramm/.vscode/tasks.json
+/Interferogramm/tests/sortLinkedTree.exe
