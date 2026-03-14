@@ -938,12 +938,13 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPeak) {
     fringes.push_back(CreateCircle(0.0, 0.0, 25.0));
 
     fringes[0].SetNumber(0.0);
-    std::vector<size_t> trustedIndices = {0};
+    std::vector<size_t> trustedIndices = {2};
 
     auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
 
+    EXPECT_NEAR(fringes[0].GetNumber(), 2.0, 0.5);
     EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
-    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), 0.0, 0.5);
 }
 
 TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesReversed) {
@@ -958,8 +959,8 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesReversed) {
 
     auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
 
-    EXPECT_NEAR(fringes[1].GetNumber(), -1.0, 0.5);
-    EXPECT_NEAR(fringes[2].GetNumber(), -2.0, 0.5);
+    EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
+    EXPECT_NEAR(fringes[2].GetNumber(), 2.0, 0.5);
 }
 
 TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPit) {
@@ -973,7 +974,7 @@ TEST_F(AutoNumberingAlgorithmTest, IntegrationCircularFringesPit) {
     fringes[2].SetNumber(0.0);
     std::vector<size_t> trustedIndices = { 0, 2 };
 
-    auto result = AutoNumberFringesSaddles(fringes, trustedIndices, step);
+    auto result = AutoNumberFringesSaddles(fringes, trustedIndices, -step);
 
     EXPECT_NEAR(fringes[1].GetNumber(), 1.0, 0.5);
     EXPECT_NEAR(fringes[2].GetNumber(), 0.0, 0.5);

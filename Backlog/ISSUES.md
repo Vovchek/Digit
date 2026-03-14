@@ -2,7 +2,7 @@
 ### 001 WinFringe .frn format compatibility issues
 <del>* fix ellipses format - they must be normalized. But where to get center and radius for normalization?</del>
 <del>* fix bounds format (yet not clear)</del>
-     * rotate y FisCan before saving to .mtr (find circumcircle, get center, expand bounds to radius, 
+     * rotate y FisCan before saving to .mtr (find circumcircle: get center, expand bounds to radius, 
        rotate by -FiScan update bounds, shrink to bounds)
 ### 002 smooth and robust interpolation
 ### 003 <del>adjust sections spacing to fringes spacing</del>
@@ -22,7 +22,7 @@
 ### 104 previousHoveredTool points to deleted memory after lose/regain focus
 ### 105 <del>Some ellipses sizes entail corruption of WavefrontFromContours solvers</del>   
 ### 106 After connecting segments active segment switches to other segment
-### 107 Auto numbering of rings is incorrect
+### 107 <del>Auto numbering of rings is incorrect</del>
 
    Done: Fixed invalid crossings search methods in WavefrontFromContours that were missing crossings with segments whick verteces are located exactly on scanned line.
 
@@ -33,8 +33,10 @@
 
 # Incomplete (200+)
 ### 201 Fringes numbers auto-assignment
-* test circles
-* implement mixed circles/fringes
+* <del>test circles</del>
+* <del>implement mixed circles/fringes</del>
+* redesign UX for fringes numbering in select mode: if selection exists, renumber fringes only within selection,
+  first fringe is anchor, direction is defined by step sign
 * implement saddles
 
 ### 202 Fringes auto-tracing   
