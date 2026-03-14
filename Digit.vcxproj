@@ -324,6 +324,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <None Include="ApertureCore\.gitignore" />
     <None Include="AUTONUMBERING_COMMAND_COMPLETE.md" />
     <None Include="AUTONUMBERING_FINAL_STATUS.md" />
+    <None Include="Backlog\ANALYSIS_MultipleReloads.md" />
     <None Include="DIGITINFO_DEPENDENCY_ANALYSIS.md" />
     <None Include="DIGITINFO_EXTRACTION_CHECKLIST.md" />
     <None Include="DIGITINFO_EXTRACTION_SUMMARY.md" />

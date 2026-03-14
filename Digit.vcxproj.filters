@@ -848,6 +848,7 @@
     <None Include="Docs\DAY_3_COMPLETE.md" />
     <None Include="Docs\PHASE_1_COMPLETE.md" />
     <None Include="Docs\CoordinateSystemMarking_Summary.md" />
+    <None Include="Backlog\ANALYSIS_MultipleReloads.md" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="DIGITINFO_DEPENDENCY_GRAPH.txt">
