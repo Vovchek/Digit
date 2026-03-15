@@ -1261,130 +1261,125 @@ BOOL CDigitInfo::CreateFakeGrayImage(CImageCtrls* pImageCtrls, int width, int he
 	return TRUE;
 }
 
-BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
+BOOL CDigitInfo::LoadFromInterferogramInfo(LPCTSTR sourcePath, NUMBERING_INTERFEROGRAM_INFO& IntInfo, int loadedFileType)
 {
-	// TODO: switch to CFringeSegment array latter
 	m_bUseFringeModel = true;
 
+	CString FileName = sourcePath;
+
+	if (!IntInfo.ImageFileName.IsEmpty()) {
+		std::string srcFile = CT2A(FileName);
+		std::string imgFile = CT2A(IntInfo.ImageFileName);
+		std::string resolved = ResolveImagePath(srcFile, imgFile);
+		IntInfo.ImageFileName = CString(resolved.c_str());
+		TRACE("LoadFromInterferogramInfo: Image path resolved to: %s\n", resolved.c_str());
+	}
+
+	if (loadedFileType == T_ZAP)
+	{
+		CImageCtrls* pI = GetImageCtrls();
+		BOOL imageLoaded = (pI->m_pDIB != nullptr);
+
+		if (!imageLoaded && !IntInfo.ImageFileName.IsEmpty()) {
+			imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
+			if (!imageLoaded) {
+				TRACE("LoadFromInterferogramInfo: Failed to load image %s\n", CT2A(IntInfo.ImageFileName));
+			}
+		}
+
+		if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
+			TRACE("LoadFromInterferogramInfo: Creating fake gray image as fallback\n");
+			if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
+				imageLoaded = TRUE;
+				AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
+				TRACE("LoadFromInterferogramInfo: Fake image created successfully\n");
+			}
+			else {
+				AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
+				TRACE("LoadFromInterferogramInfo: Failed to create fake image\n");
+			}
+		}
+
+		TRACE("LoadFromInterferogramInfo: Image loaded=%d, m_pDIB=%p\n", imageLoaded, pI->m_pDIB);
+
+		if (IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
+		{
+			int actualHeight = imageLoaded ? pI->ImageSize.cy : IntInfo.ImageSize[1];
+			double dY = (actualHeight - IntInfo.ImageSize[1]);
+			TRACE("LoadFromInterferogramInfo: DOS ZAP detected, actualHeight=%d, fakeHeight=%d, dY=%f\n",
+				actualHeight, IntInfo.ImageSize[1], dY);
+
+			IntInfo.DigitDat.ShiftY(dY);
+			IntInfo.EBnd.ShiftY(dY);
+			TRACE("LoadFromInterferogramInfo: After EBnd shift: XLeft=%f, YTop=%f, XRight=%f, YBottom=%f\n",
+				IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop, IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
+
+			for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++) {
+				TRACE("LoadFromInterferogramInfo: Before shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n",
+					i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
+				IntInfo.ArrEll[i].ShiftY(dY);
+				TRACE("LoadFromInterferogramInfo: After shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n",
+					i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
+			}
+			IntInfo.ImageSize[0] = imageLoaded ? pI->ImageSize.cx : IntInfo.ImageSize[0];
+			IntInfo.ImageSize[1] = actualHeight;
+		}
+
+		if (!ExamineNumberingInterferogramInfo(IntInfo))
+			return FALSE;
+
+		if (!imageLoaded) {
+			pI->ImageSize.cx = IntInfo.ImageSize[0];
+			pI->ImageSize.cy = IntInfo.ImageSize[1];
+		}
+
+		if (pI->m_pDIB) {
+			CreateRedCenters();
+			SelectFringeStep();
+			SelectMainSection();
+			CreateNumLines();
+		}
+		else {
+			TRACE("LoadFromInterferogramInfo: No image loaded - skipping fringe processing (CreateRedCenters/CreateNumLines)\n");
+		}
+		CreateZAPSectionsOnLoadZAPFile();
+
+		return TRUE;
+	}
+
+	if (loadedFileType == T_FRN)
+	{
+		CImageCtrls* pI = GetImageCtrls();
+		if (!ExamineNumberingInterferogramInfo(IntInfo))
+			return FALSE;
+
+		if (pI->m_pDIB) {
+			CreateRedCenters();
+		}
+		return TRUE;
+	}
+
+	return FALSE;
+}
+
+BOOL CDigitInfo::LoadZAP(LPCTSTR fname)
+{
 	CString FileName = fname;
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!ReadZAPData(FileName, IntInfo))
 		return FALSE;
 
-	// --- Resolve image filename relative to ZAP file directory ---
-	if (!IntInfo.ImageFileName.IsEmpty()) {
-		std::string zapFile = CT2A(FileName);
-		std::string imgFile = CT2A(IntInfo.ImageFileName);
-		std::string resolved = ResolveImagePath(zapFile, imgFile);
-		IntInfo.ImageFileName = CString(resolved.c_str());
-		TRACE("LoadZAP: Image path resolved to: %s\n", resolved.c_str());
-	}
-
-	//Вызов LoadImage для инициализации m_pDIB
-	CImageCtrls* pI = GetImageCtrls();
-	BOOL imageLoaded = FALSE;
-
-	if (!IntInfo.ImageFileName.IsEmpty()) {
-		imageLoaded = pI->LoadImage(IntInfo.ImageFileName);
-		if (!imageLoaded) {
-			TRACE("LoadZAP: Failed to load image %s\n", CT2A(IntInfo.ImageFileName));
-		}
-	}
-
-	// Create fake gray image if actual image failed to load
-	// TODO: investigate throw and memory leaks when image is missing
-	if (!imageLoaded && IntInfo.ImageSize[0] > 0 && IntInfo.ImageSize[1] > 0) {
-		TRACE("LoadZAP: Creating fake gray image as fallback\n");
-		if (CreateFakeGrayImage(pI, IntInfo.ImageSize[0], IntInfo.ImageSize[1])) {
-			imageLoaded = TRUE; // Treat as successful load for processing
-			AfxMessageBox(_T("Изображение отсутствует. Создан серый фон для отображения векторных данных."));
-			TRACE("LoadZAP: Fake image created successfully\n");
-		}
-		else {
-			AfxMessageBox(_T("Не удалось создать изображение для отображения векторных данных."));
-			TRACE("LoadZAP: Failed to create fake image\n");
-		}
-	}
-
-	TRACE("LoadZAP: Image loaded=%d, m_pDIB=%p\n", imageLoaded, pI->m_pDIB);
-
-	if (IntInfo.LoadedFileType == NUMBERING_INTERFEROGRAM_INFO::TYP_ZAP_DOS)
-	{
-		// Use ImageSize from IntInfo if image failed to load
-		int actualHeight = imageLoaded ? pI->ImageSize.cy : IntInfo.ImageSize[1];
-		double dY = (actualHeight - IntInfo.ImageSize[1]);
-		TRACE("LoadZAP: DOS ZAP detected, actualHeight=%d, fakeHeight=%d, dY=%f\n",
-			actualHeight, IntInfo.ImageSize[1], dY);
-
-		IntInfo.DigitDat.ShiftY(dY);
-		IntInfo.EBnd.ShiftY(dY);
-		TRACE("LoadZAP: After EBnd shift: XLeft=%f, YTop=%f, XRight=%f, YBottom=%f\n",
-			IntInfo.EBnd.XLeft, IntInfo.EBnd.YTop, IntInfo.EBnd.XRight, IntInfo.EBnd.YBottom);
-
-		for (auto i = 0; i < IntInfo.ArrEll.GetSize(); i++) {
-			TRACE("LoadZAP: Before shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n",
-				i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
-			IntInfo.ArrEll[i].ShiftY(dY);
-			TRACE("LoadZAP: After shift Ell[%d]: Xc=%f, Yc=%f, Ax=%f, By=%f\n",
-				i, IntInfo.ArrEll[i].Xc, IntInfo.ArrEll[i].Yc, IntInfo.ArrEll[i].Ax, IntInfo.ArrEll[i].By);
-		}
-		IntInfo.ImageSize[0] = imageLoaded ? pI->ImageSize.cx : IntInfo.ImageSize[0];
-		IntInfo.ImageSize[1] = actualHeight;
-	}
-
-	if (!ExamineNumberingInterferogramInfo(IntInfo))
-		return FALSE;
-
-	// Ensure ImageSize is set even without loaded image
-	if (!imageLoaded) {
-		pI->ImageSize.cx = IntInfo.ImageSize[0];
-		pI->ImageSize.cy = IntInfo.ImageSize[1];
-	}
-
-	if (pI->m_pDIB) {
-		CreateRedCenters();
-		SelectFringeStep();
-		SelectMainSection();
-		CreateNumLines();
-	}
-	else {
-		TRACE("LoadZAP: No image loaded - skipping fringe processing (CreateRedCenters/CreateNumLines)\n");
-	}
-	CreateZAPSectionsOnLoadZAPFile();
-
-	return TRUE;
+	return LoadFromInterferogramInfo(fname, IntInfo, T_ZAP);
 }
 
 BOOL CDigitInfo::LoadFRN(LPCTSTR fname)
 {
-	// Load FRN into CFringeSegment array, create legacy Dots from it
-	m_bUseFringeModel = true;
-
 	CString FileName = fname;
 	NUMBERING_INTERFEROGRAM_INFO IntInfo;
 	if (!ReadFRNData(FileName, IntInfo))
 		return FALSE;
 
-	// --- Resolve image filename relative to FRN file directory ---
-	if (!IntInfo.ImageFileName.IsEmpty()) {
-		std::string frnFile = CT2A(FileName);
-		std::string imgFile = CT2A(IntInfo.ImageFileName);
-		std::string resolved = ResolveImagePath(frnFile, imgFile);
-		IntInfo.ImageFileName = CString(resolved.c_str());
-		TRACE("LoadFRN: Image path resolved to: %s\n", resolved.c_str());
-	}
-
-	
-	// Call LoadImage to initialize m_pDIB
-	CImageCtrls* pI = GetImageCtrls();
-
-	if (!ExamineNumberingInterferogramInfo(IntInfo))
-		return FALSE;
-
-	if (pI->m_pDIB) {
-		CreateRedCenters();
-	}
-	return TRUE;
+	return LoadFromInterferogramInfo(fname, IntInfo, T_FRN);
 }
 /*
 BOOL CDigitInfo::SaveZAP(LPCTSTR fname, int extIdx)

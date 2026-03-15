@@ -701,7 +701,7 @@ BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 			cs.cy = cachedInfo->ImageSize[1];
 			imageCtrls.ImageSize = cs;
 		}
-		else {
+		else if (!hasCachedInfo) {
 			GetImageFileName(ImageFileName, cs);
 			imageCtrls.ImageSize = cs;
 		}
@@ -709,6 +709,10 @@ BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 
 	if (ImageFileName.IsEmpty())
 	{ // no or broken Image ref in zap or frn
+		if (hasCachedInfo) {
+			TRACE("CImageDoc::OnOpenDocument - returning TRUE (metadata only, cached path)\n");
+			return TRUE;
+		}
 		if (cachedInfo) {
 			cs.cx = cachedInfo->ImageSize[0];
 			cs.cy = cachedInfo->ImageSize[1];

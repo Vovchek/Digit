@@ -495,39 +495,45 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 	CString safeFileName = lpszFileName;
 	CString ext = safeFileName.Right(3);
 	ext.MakeLower();
+	NUMBERING_INTERFEROGRAM_INFO* pParsedIntInfo = nullptr;
+	int parsedLoadedType = T_PIC;
+	BOOL hasParsedIntInfo = FALSE;
 
 	if (ext == _T("zap") || ext == _T("frn"))
 	{
-		auto* pIntInfo = new NUMBERING_INTERFEROGRAM_INFO();
-		BOOL parsed = (ext == _T("zap")) ? ReadZAPData(safeFileName, *pIntInfo) : ReadFRNData(safeFileName, *pIntInfo);
-		if (parsed)
-		{
-			CString resolvedImagePath = pIntInfo->ImageFileName;
-			if (!resolvedImagePath.IsEmpty() && !IsFileExist(LPCTSTR(resolvedImagePath), FALSE)) {
-				int iSlash = safeFileName.ReverseFind('\\');
-				if (iSlash != -1) {
-					CString candidate = safeFileName.Left(iSlash + 1) + resolvedImagePath;
-					if (IsFileExist(LPCTSTR(candidate), FALSE)) {
-						resolvedImagePath = candidate;
-					}
-					else {
-						resolvedImagePath.Empty();
-					}
-				}
-				else {
-					resolvedImagePath.Empty();
-				}
-			}
+		pParsedIntInfo = new NUMBERING_INTERFEROGRAM_INFO();
+		parsedLoadedType = (ext == _T("zap")) ? T_ZAP : T_FRN;
+		BOOL parsed = (ext == _T("zap")) ? ReadZAPData(safeFileName, *pParsedIntInfo) : ReadFRNData(safeFileName, *pParsedIntInfo);
+ 		if (parsed)
+ 		{
+			hasParsedIntInfo = TRUE;
+			CString resolvedImagePath = pParsedIntInfo->ImageFileName;
+ 			if (!resolvedImagePath.IsEmpty() && !IsFileExist(LPCTSTR(resolvedImagePath), FALSE)) {
+ 				int iSlash = safeFileName.ReverseFind('\\');
+ 				if (iSlash != -1) {
+ 					CString candidate = safeFileName.Left(iSlash + 1) + resolvedImagePath;
+ 					if (IsFileExist(LPCTSTR(candidate), FALSE)) {
+ 						resolvedImagePath = candidate;
+ 					}
+ 					else {
+ 						resolvedImagePath.Empty();
+ 					}
+ 				}
+ 				else {
+ 					resolvedImagePath.Empty();
+ 				}
+ 			}
 
-			CImageDoc::CachedOpenInfo cached;
-			cached.LoadedFileType = (ext == _T("zap")) ? T_ZAP : T_FRN;
-			cached.ResolvedImagePath = resolvedImagePath;
-			cached.pIntInfo = pIntInfo;
-			CImageDoc::RegisterCachedOpenInfo(safeFileName, cached);
-		}
-		else {
-			delete pIntInfo;
-		}
+ 			CImageDoc::CachedOpenInfo cached;
+			cached.LoadedFileType = parsedLoadedType;
+ 			cached.ResolvedImagePath = resolvedImagePath;
+			cached.pIntInfo = nullptr;
+ 			CImageDoc::RegisterCachedOpenInfo(safeFileName, cached);
+ 		}
+ 		else {
+			delete pParsedIntInfo;
+			pParsedIntInfo = nullptr;
+ 		}
 	}
 
 	CDocument* pDoc = CWinApp::OpenDocumentFile(lpszFileName);
@@ -542,21 +548,32 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 		if (pDoc->IsKindOf(RUNTIME_CLASS(CImageDoc)))
 		{
 			CImageDoc* pImgDoc = static_cast<CImageDoc*>(pDoc);
-			if (pImgDoc->Digit.Load(safeFileName))
-			{
-				CMainFrame* pMFr = GetMainFrame();
-				if (pMFr)
-				{
-					pMFr->SetImageInfo(pImgDoc->Digit.Comments,
-						pImgDoc->Digit.ScaleFactor,
-						pImgDoc->Digit.Rotation);
-				}
-			}
+			BOOL loaded = FALSE;
+			if (hasParsedIntInfo && pParsedIntInfo)
+				loaded = pImgDoc->Digit.LoadFromInterferogramInfo(safeFileName, *pParsedIntInfo, parsedLoadedType);
 			else
-			{
-				TRACE("CDigitApp::OpenDocumentFile - Digit.Load failed for %s\n", (LPCTSTR)safeFileName);
-			}
-		}
+				loaded = pImgDoc->Digit.Load(safeFileName);
+
+			if (loaded)
+ 			{
+ 				CMainFrame* pMFr = GetMainFrame();
+ 				if (pMFr)
+ 				{
+ 					pMFr->SetImageInfo(pImgDoc->Digit.Comments,
+ 						pImgDoc->Digit.ScaleFactor,
+ 						pImgDoc->Digit.Rotation);
+ 				}
+ 			}
+ 			else
+ 			{
+				TRACE("CDigitApp::OpenDocumentFile - Digit load failed for %s\n", (LPCTSTR)safeFileName);
+ 			}
+ 		}
+	}
+
+	if (pParsedIntInfo) {
+		delete pParsedIntInfo;
+		pParsedIntInfo = nullptr;
 	}
 
 	TRACE("CDigitApp::OpenDocumentFile - returning %s\n", pDoc ? "valid doc" : "NULL");

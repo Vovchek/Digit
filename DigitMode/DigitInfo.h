@@ -1410,16 +1410,21 @@ class CDigitInfo
        */
       BOOL ExamineNumberingInterferogramInfo(NUMBERING_INTERFEROGRAM_INFO &IntInfo);
       
-      /**
-       * @brief Load digitization data from file (auto-detect format).
-       * 
-       * @param fname File path
-       * @return TRUE if loaded successfully
-       * 
-       * **Formats**: Auto-detects ZAP or FRN based on extension
-       * 
-       * @todo Remove file dependency (use stream or callback)
-       */
+	  /**
+	   * @brief Load model from pre-parsed FRN/ZAP info without file I/O.
+	   */
+	  BOOL LoadFromInterferogramInfo(LPCTSTR sourcePath, NUMBERING_INTERFEROGRAM_INFO& IntInfo, int loadedFileType);
+       
+       /**
+        * @brief Load digitization data from file (auto-detect format).
+        * 
+        * @param fname File path
+        * @return TRUE if loaded successfully
+        * 
+        * **Formats**: Auto-detects ZAP or FRN based on extension
+        * 
+        * @todo Remove file dependency (use stream or callback)
+        */
 	  BOOL Load(LPCTSTR fname);
 	  
 	  /**
