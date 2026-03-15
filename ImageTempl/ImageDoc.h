@@ -26,6 +26,14 @@ protected:
 
 // Attributes
 public:
+	struct CachedOpenInfo {
+		int LoadedFileType{ T_PIC };
+		CString ResolvedImagePath;
+		NUMBERING_INTERFEROGRAM_INFO* pIntInfo{ nullptr };
+	};
+	static void RegisterCachedOpenInfo(const CString& openPathKey, const CachedOpenInfo& data);
+	static BOOL ConsumeCachedOpenInfo(const CString& openPathKey, CachedOpenInfo& data);
+
     CSectionFrame* pHorz;
     CSectionFrame* pVert;
 	int LoadedFileType;
