@@ -12,6 +12,24 @@
 #include "Utils\Edit\BaseTextDoc.h"
 #include "Options\ApproxSetDlg.h"
 #include "MGTools\Include\Utils\Utils.h"
+#include <memory>
+
+namespace {
+	CMapStringToPtr g_cachedOpenInfo;
+
+	CString NormalizeOpenPathKey(const CString& path)
+	{
+		CString key(path);
+		if (!key.IsEmpty()) {
+			TCHAR fullPath[_MAX_PATH] = { 0 };
+			if (::GetFullPathName(LPCTSTR(key), _MAX_PATH, fullPath, nullptr) > 0) {
+				key = fullPath;
+			}
+			key.MakeLower();
+		}
+		return key;
+	}
+}
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -198,16 +216,16 @@ void CImageDoc::WriteMeasureCtrls()
 	}
 	s.Format("%0.2f", L.GetW());
 	pW = pDB->GetDlgItem(IDT_W_measure);
-	pW->SetWindowText(LPCTSTR(s));
-	s.Format("%0.2f", (-1) * L.GetH());
+		pW->SetWindowText(LPCTSTR(s));
+		s.Format("%0.2f", (-1) * L.GetH());
 	pW = pDB->GetDlgItem(IDT_H_measure);
-	pW->SetWindowText(LPCTSTR(s));
-	s.Format("%0.2f", L.GetA());
+		pW->SetWindowText(LPCTSTR(s));
+		s.Format("%0.2f", L.GetA());
 	pW = pDB->GetDlgItem(IDT_A_measure);
-	pW->SetWindowText(LPCTSTR(s));
-	s.Format("%0.2f", L.GetD());
+		pW->SetWindowText(LPCTSTR(s));
+		s.Format("%0.2f", L.GetD());
 	pW = pDB->GetDlgItem(IDT_D_measure);
-	pW->SetWindowText(LPCTSTR(s));
+		pW->SetWindowText(LPCTSTR(s));
 
 }
 
@@ -621,11 +639,50 @@ void CImageDoc::SetZoomToTitle()
 	CDocument::SetTitle(LPCTSTR(Title));
 }
 //
+void CImageDoc::RegisterCachedOpenInfo(const CString& openPathKey, const CachedOpenInfo& data)
+{
+	const CString normalizedKey = NormalizeOpenPathKey(openPathKey);
+	CachedOpenInfo* existing{ nullptr };
+	if (g_cachedOpenInfo.Lookup(normalizedKey, reinterpret_cast<void*&>(existing)) && existing) {
+		if (existing->pIntInfo) {
+			delete existing->pIntInfo;
+			existing->pIntInfo = nullptr;
+		}
+		delete existing;
+	}
+
+	CachedOpenInfo* stored = new CachedOpenInfo(data);
+	g_cachedOpenInfo.SetAt(normalizedKey, stored);
+}
+
+BOOL CImageDoc::ConsumeCachedOpenInfo(const CString& openPathKey, CachedOpenInfo& data)
+{
+	const CString normalizedKey = NormalizeOpenPathKey(openPathKey);
+	CachedOpenInfo* stored{ nullptr };
+	if (!g_cachedOpenInfo.Lookup(normalizedKey, reinterpret_cast<void*&>(stored)) || !stored) {
+		return FALSE;
+	}
+
+	data = *stored;
+	g_cachedOpenInfo.RemoveKey(normalizedKey);
+	stored->pIntInfo = nullptr;
+	delete stored;
+	return TRUE;
+}
+
 BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 {
 	TRACE("CImageDoc::OnOpenDocument(%s)\n", lpszPathName ? lpszPathName : "NULL");
 
-	LoadedFileType = FileType(lpszPathName);
+	const CString openPath = lpszPathName ? CString(lpszPathName) : CString();
+	CachedOpenInfo cached;
+	const BOOL hasCachedInfo = ConsumeCachedOpenInfo(openPath, cached);
+	std::unique_ptr<NUMBERING_INTERFEROGRAM_INFO> cachedInfo;
+	if (hasCachedInfo && cached.pIntInfo) {
+		cachedInfo.reset(cached.pIntInfo);
+	}
+
+	LoadedFileType = hasCachedInfo ? cached.LoadedFileType : FileType(lpszPathName);
 	if (LoadedFileType >= T_BMP && LoadedFileType <= T_TIF) {
 		LoadedFileType = T_PIC;
 	}
@@ -634,17 +691,32 @@ BOOL CImageDoc::OnOpenDocument(LPCTSTR lpszPathName)
 		return FALSE;
 	}
 
-	CString ImageFileName = lpszPathName;
+	CString ImageFileName = hasCachedInfo ? cached.ResolvedImagePath : CString(lpszPathName);
 
 	CSize cs(100, 100);
 	if (LoadedFileType != T_PIC)
 	{
-		GetImageFileName(ImageFileName, cs);
-		imageCtrls.ImageSize = cs;
+		if (cachedInfo) {
+			cs.cx = cachedInfo->ImageSize[0];
+			cs.cy = cachedInfo->ImageSize[1];
+			imageCtrls.ImageSize = cs;
+		}
+		else {
+			GetImageFileName(ImageFileName, cs);
+			imageCtrls.ImageSize = cs;
+		}
 	}
 
 	if (ImageFileName.IsEmpty())
 	{ // no or broken Image ref in zap or frn
+		if (cachedInfo) {
+			cs.cx = cachedInfo->ImageSize[0];
+			cs.cy = cachedInfo->ImageSize[1];
+			imageCtrls.ImageSize = cs;
+			TRACE("CImageDoc::OnOpenDocument - returning TRUE (metadata only, cached)\n");
+			return TRUE;
+		}
+
 		NUMBERING_INTERFEROGRAM_INFO IntInfo;
 		CString s = lpszPathName;
 		auto res{ FALSE };

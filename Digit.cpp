@@ -492,12 +492,44 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 		return pDoc;
 	}
 
-	// Save filename before calling base method (MFC modifies the buffer despite LPCTSTR!)
 	CString safeFileName = lpszFileName;
 	CString ext = safeFileName.Right(3);
 	ext.MakeLower();
 
-	// Call base method (may corrupt lpszFileName)
+	if (ext == _T("zap") || ext == _T("frn"))
+	{
+		auto* pIntInfo = new NUMBERING_INTERFEROGRAM_INFO();
+		BOOL parsed = (ext == _T("zap")) ? ReadZAPData(safeFileName, *pIntInfo) : ReadFRNData(safeFileName, *pIntInfo);
+		if (parsed)
+		{
+			CString resolvedImagePath = pIntInfo->ImageFileName;
+			if (!resolvedImagePath.IsEmpty() && !IsFileExist(LPCTSTR(resolvedImagePath), FALSE)) {
+				int iSlash = safeFileName.ReverseFind('\\');
+				if (iSlash != -1) {
+					CString candidate = safeFileName.Left(iSlash + 1) + resolvedImagePath;
+					if (IsFileExist(LPCTSTR(candidate), FALSE)) {
+						resolvedImagePath = candidate;
+					}
+					else {
+						resolvedImagePath.Empty();
+					}
+				}
+				else {
+					resolvedImagePath.Empty();
+				}
+			}
+
+			CImageDoc::CachedOpenInfo cached;
+			cached.LoadedFileType = (ext == _T("zap")) ? T_ZAP : T_FRN;
+			cached.ResolvedImagePath = resolvedImagePath;
+			cached.pIntInfo = pIntInfo;
+			CImageDoc::RegisterCachedOpenInfo(safeFileName, cached);
+		}
+		else {
+			delete pIntInfo;
+		}
+	}
+
 	CDocument* pDoc = CWinApp::OpenDocumentFile(lpszFileName);
 	if (!pDoc)
 	{
@@ -505,7 +537,6 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 		return NULL;
 	}
 
-	// Load .zap/.frn metadata if applicable
 	if (ext == _T("zap") || ext == _T("frn"))
 	{
 		if (pDoc->IsKindOf(RUNTIME_CLASS(CImageDoc)))
@@ -517,8 +548,8 @@ CDocument* CDigitApp::OpenDocumentFile(LPCTSTR lpszFileName)
 				if (pMFr)
 				{
 					pMFr->SetImageInfo(pImgDoc->Digit.Comments,
-									   pImgDoc->Digit.ScaleFactor,
-									   pImgDoc->Digit.Rotation);
+						pImgDoc->Digit.ScaleFactor,
+						pImgDoc->Digit.Rotation);
 				}
 			}
 			else
