@@ -187,8 +187,6 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClCompile Include="DigitMode\ShapeConversionHelpers.cpp" />
     <ClCompile Include="DigitMode\TooltipGenerator.cpp" />
     <ClCompile Include="DigitMode\WavefrontSolver\WavefrontFromContours.cpp" />
-    <ClCompile Include="Interferogramm\tests\OpenGLHighPerformanceProbe.cpp" />
-    <ClCompile Include="Interferogramm\tests\OpenGLVersionProbe.cpp" />
     <ClCompile Include="MainFrame\CommentsFileDlg.cpp" />
     <ClCompile Include="MainFrame\MainFrm.cpp" />
     <ClCompile Include="Controls\controls.cpp" />

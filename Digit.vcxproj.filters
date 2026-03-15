@@ -286,12 +286,6 @@
     <ClCompile Include="DigitMode\InteractionManager.cpp">
       <Filter>Source Files\DigitMode</Filter>
     </ClCompile>
-    <ClCompile Include="Interferogramm\tests\OpenGLVersionProbe.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Interferogramm\tests\OpenGLHighPerformanceProbe.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Digit.rc">
