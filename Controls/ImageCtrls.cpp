@@ -1,7 +1,4 @@
-﻿#include <malloc.h>
-#include <memory>
-
-#include "stdafx.h"
+﻿#include "stdafx.h"
 #include "AppDef.h"
 #include "Utils\FileUtils.h"
 #include "Utils\mutils.h"
@@ -12,6 +9,8 @@
 #include "MGTools\Include\Image\SecGif.h"
 #include "MGTools\Include\Image\SecTarga.h"
 #include "MGTools\Include\Image\SecTiff.h"
+#include <malloc.h>
+#include <memory>
 //====================================================================
 CImageCtrls::CImageCtrls()
 {

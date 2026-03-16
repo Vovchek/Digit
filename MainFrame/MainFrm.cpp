@@ -24,9 +24,9 @@ static char THIS_FILE[] = __FILE__;
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame
 
-IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWnd)
+IMPLEMENT_DYNAMIC(CMainFrame, CMDIFrameWndEx)
 
-BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWnd)
+BEGIN_MESSAGE_MAP(CMainFrame, CMDIFrameWndEx)
 	//{{AFX_MSG_MAP(CMainFrame)
 	ON_WM_CREATE()
 	ON_WM_CLOSE()
@@ -134,9 +134,9 @@ static UINT BASED_CODE EditButtons[] =
     IDD_NUMBER_FRINGES_FORWARD,
     IDD_NUMBER_FRINGES_BACKWARD,
     IDD_NUM_OFF_MINUS,
-     ID_SEPARATOR,
-     ID_SEPARATOR,/* combo goes here, slot 14 */
-     ID_SEPARATOR,
+    ID_SEPARATOR,
+    ID_SEPARATOR,/* combo goes here, slot 14 */
+    ID_SEPARATOR,
     IDD_NUM_OFF_PLUS,
 };
 
@@ -172,7 +172,7 @@ LONG CMainFrame::OnOpenMsg(UINT, LONG lParam)
 // Смотри Microsoft Visual C++ документацию
 int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 {
-	if (CMDIFrameWnd::OnCreate(lpCreateStruct) == -1)
+	if (CMDIFrameWndEx::OnCreate(lpCreateStruct) == -1)
 		return -1;
 
    CSize wB, wI; 
@@ -181,15 +181,29 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
    wB.cx = wI.cx+7;
    wB.cy = wI.cy+6;
 // main toolbar 
-    if (!m_wndMainBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
-            CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_MAINFRAME) ||
-        !m_wndMainBar.LoadBitmap(IDR_MAINFRAME) ||
-        !m_wndMainBar.SetButtons(MainButtons, sizeof(MainButtons)/sizeof(UINT)))
-    {
-        TRACE0("Failed to create mainbar\n");
-        return -1;      // fail to create
-    }
-	m_wndMainBar.SetSizes(wB, wI);
+   if (!m_wndMainBar.CreateEx(this, TBSTYLE_FLAT,
+       WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+       !m_wndMainBar.LoadToolBar(IDR_MAINFRAME))
+   {
+       TRACE0("Failed to create main toolbar\n");
+       return -1;
+   }
+
+   //if (!m_wndStatusBar.Create(this))
+   //{
+   //    TRACE0("Failed to create status bar\n");
+   //    return -1;
+   //}
+
+//   if (!m_wndMainBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
+ //           CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_MAINFRAME) ||
+ //       !m_wndMainBar.LoadBitmap(IDR_MAINFRAME) ||
+ //       !m_wndMainBar.SetButtons(MainButtons, sizeof(MainButtons)/sizeof(UINT)))
+ //   {
+ //       TRACE0("Failed to create mainbar\n");
+ //       return -1;      // fail to create
+ //   }
+	//m_wndMainBar.SetSizes(wB, wI);
 
 // view toolbar 
     if (!m_wndViewBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
@@ -360,29 +374,32 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	EnableDocking(CBRS_ALIGN_ANY);
 
-    m_wndMainBar.SetWindowText(_T("Main"));
     m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockControlBar(&m_wndMainBar,AFX_IDW_DOCKBAR_TOP);
+    DockPane(&m_wndMainBar);
+
+    //m_wndMainBar.SetWindowText(_T("Main"));
+    //m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
+    //DockControlBar(&m_wndMainBar,AFX_IDW_DOCKBAR_TOP);
 
     m_wndDigitBar.SetWindowText(_T("Digit"));
     m_wndDigitBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockControlBarLeftOf(&m_wndDigitBar, &m_wndMainBar);
+	//DockControlBarLeftOf(&m_wndDigitBar, &m_wndMainBar);
 
     m_wndApertureBar.SetWindowText(_T("Aperture"));
     m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockControlBarLeftOf(&m_wndApertureBar, &m_wndDigitBar);
+	//DockControlBarLeftOf(&m_wndApertureBar, &m_wndDigitBar);
 
     m_wndViewBar.SetWindowText(_T("View"));
     m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockControlBarLeftOf(&m_wndViewBar, &m_wndDigitBar);
+	//DockControlBarLeftOf(&m_wndViewBar, &m_wndDigitBar);
 
     m_wndKitBar.SetWindowText(_T("KitTools"));
     m_wndKitBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockControlBarLeftOf(&m_wndKitBar, &m_wndViewBar);
+	//DockControlBarLeftOf(&m_wndKitBar, &m_wndViewBar);
 
     m_wndEditBar.SetWindowText(_T("Edit"));
     m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockControlBar(&m_wndEditBar,AFX_IDW_DOCKBAR_BOTTOM);
+    //DockControlBar(&m_wndEditBar,AFX_IDW_DOCKBAR_BOTTOM);
 
 	
     //Create edit.
@@ -399,7 +416,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
       return FALSE;
     }
     m_wndEditBar.m_Edit.EnableWindow(FALSE);
-	LoadBarState(_T("ToolBar_State"));
+	//LoadBarState(_T("ToolBar_State"));
 
     ShowControlBar(&m_wndMeasureBar, FALSE, FALSE);
     ShowControlBar(&m_wndInfoBar, TRUE, FALSE);
@@ -443,7 +460,7 @@ void CMainFrame::ShowMeasurePane(BOOL Visual)
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
     cs.lpszClass = _T("DigitClass");
-	if( !CMDIFrameWnd::PreCreateWindow(cs) )
+	if( !CMDIFrameWndEx::PreCreateWindow(cs) )
 		return FALSE;
 	
 	return TRUE;
@@ -456,12 +473,12 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 #ifdef _DEBUG
 void CMainFrame::AssertValid() const
 {
-	CMDIFrameWnd::AssertValid();
+	CMDIFrameWndEx::AssertValid();
 }
 
 void CMainFrame::Dump(CDumpContext& dc) const
 {
-	CMDIFrameWnd::Dump(dc);
+	CMDIFrameWndEx::Dump(dc);
 }
 
 #endif //_DEBUG
@@ -543,7 +560,7 @@ void CMainFrame::OnToolBars()
 	
 	int res = D.DoModal();
     if(res){
-        ShowControlBar(&m_wndMainBar, D.listStates[0], FALSE);
+        //ShowControlBar(&m_wndMainBar, D.listStates[0], FALSE);
         ShowControlBar(&m_wndKitBar, D.listStates[1], FALSE);
         ShowControlBar(&m_wndDigitBar, D.listStates[2], FALSE);
 		ShowControlBar(&m_wndApertureBar, D.listStates[3], FALSE);
@@ -609,7 +626,7 @@ void CMainFrame::OnClose()
     ShowControlBar(&m_wndMeasureBar, FALSE, FALSE);
 
 	SaveBarState(_T("ToolBar_State"));
-	CMDIFrameWnd::OnClose();
+	CMDIFrameWndEx::OnClose();
 }
 
 // Смотри Microsoft Visual C++ документацию
@@ -814,5 +831,5 @@ BOOL CMainFrame::OnEraseBkgnd(CDC* pDC)
 {
 	// TODO: Add your message handler code here and/or call default
     return TRUE;	
-//	return CMDIFrameWnd::OnEraseBkgnd(pDC);
+//	return CMDIFrameWndEx::OnEraseBkgnd(pDC);
 }

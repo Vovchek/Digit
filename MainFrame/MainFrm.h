@@ -10,6 +10,8 @@
 #endif // _MSC_VER > 1000
 
 #include "CommentsFileDlg.h"
+#include <afxmdiframewndex.h>
+#include <afxvisualmanager.h>
 
 class CDiditBar : public CToolBar
 {
@@ -18,7 +20,7 @@ public:
     CFont m_font;
 };
 
-class CMainFrame : public CMDIFrameWnd
+class CMainFrame : public CMDIFrameWndEx
 {
 	DECLARE_DYNAMIC(CMainFrame)
 public:
@@ -54,8 +56,11 @@ public:
 #endif
 
 protected:  // control bar embedded members
+	//CMFCStatusBar m_wndStatusBar;
+	CMFCToolBar   m_wndMainBar;
+	// keep other bars legacy for now, migrate one-by-one
 	CStatusBar  m_wndStatusBar;
-	CToolBar    m_wndMainBar;
+	//CToolBar    m_wndMainBar;
     CToolBar    m_wndViewBar;
     CToolBar    m_wndKitBar;
     CToolBar    m_wndDigitBar;
