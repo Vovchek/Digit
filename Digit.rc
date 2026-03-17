@@ -62,8 +62,6 @@ END
 // Bitmap
 //
 
-IDB_BITMAP18            BITMAP                  "Res\\toolbar_aperture8bit.bmp"
-
 #endif    // Russian (Russia) resources
 /////////////////////////////////////////////////////////////////////////////
 

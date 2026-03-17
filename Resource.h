@@ -61,7 +61,8 @@
 #define IDB_BITMAP17                    200
 #define IDD_APPROXSET_DLG               201
 #define IDR_TOOLBAR_APERTURE            201
-#define IDR_TOOLBAR_APERTURE_P          202
+#define IDR_TOOLBAR_APERTURE_HOT        202
+#define IDR_TOOLBAR_APERTURE_COLD       203
 #define IDB_BITMAP18                    204
 #define IDC_SEL_PT_CURSOR               210
 #define IDC_SEL_SEC_CURSOR              221

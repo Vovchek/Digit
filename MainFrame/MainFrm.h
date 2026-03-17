@@ -58,9 +58,7 @@ public:
 protected:  // control bar embedded members
 	//CMFCStatusBar m_wndStatusBar;
 	CMFCToolBar   m_wndMainBar;
-	// keep other bars legacy for now, migrate one-by-one
 	CStatusBar  m_wndStatusBar;
-	//CToolBar    m_wndMainBar;
 	CMFCToolBar    m_wndViewBar;
 	CMFCToolBar    m_wndKitBar;
 	CMFCToolBar    m_wndDigitBar;
