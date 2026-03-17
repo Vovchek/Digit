@@ -188,28 +188,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
        TRACE0("Failed to create main toolbar\n");
        return -1;
    }
-
-   //if (!m_wndStatusBar.Create(this))
-   //{
-   //    TRACE0("Failed to create status bar\n");
-   //    return -1;
-   //}
-
-//   if (!m_wndMainBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
- //           CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_MAINFRAME) ||
- //       !m_wndMainBar.LoadBitmap(IDR_MAINFRAME) ||
- //       !m_wndMainBar.SetButtons(MainButtons, sizeof(MainButtons)/sizeof(UINT)))
- //   {
- //       TRACE0("Failed to create mainbar\n");
- //       return -1;      // fail to create
- //   }
-	//m_wndMainBar.SetSizes(wB, wI);
+   //m_wndMainBar.SetSizes(wB, wI);
 
 // view toolbar 
-    if (!m_wndViewBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
-            CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_VIEWTOOLS) ||
-        !m_wndViewBar.LoadBitmap(IDR_VIEWTOOLS) ||
-        !m_wndViewBar.SetButtons(ViewButtons, sizeof(ViewButtons)/sizeof(UINT)))
+    if (!m_wndViewBar.CreateEx(this, TBSTYLE_FLAT, 
+        WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
+            CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
+        !m_wndViewBar.LoadToolBar(IDR_VIEWTOOLS))
     {
         TRACE0("Failed to create mainbar\n");
         return -1;      // fail to create
@@ -217,10 +202,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndViewBar.SetSizes(wB, wI);
 
 // kit toolbar 
-    if (!m_wndKitBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
-            CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_KITTOOL) ||
-        !m_wndKitBar.LoadBitmap(IDR_KITTOOL) ||
-        !m_wndKitBar.SetButtons(KitButtons, sizeof(KitButtons)/sizeof(UINT)))
+    if (!m_wndKitBar.CreateEx(this, TBSTYLE_FLAT, 
+        WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
+        CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
+        !m_wndKitBar.LoadToolBar(IDR_KITTOOL))
     {
         TRACE0("Failed to create mainbar\n");
         return -1;      // fail to create
@@ -228,10 +213,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndKitBar.SetSizes(wB, wI);
 
 // digit toolbar 
-    if (!m_wndDigitBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
-            CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_DIGITTOOLS) ||
-        !m_wndDigitBar.LoadBitmap(IDR_DIGITTOOLS) ||
-        !m_wndDigitBar.SetButtons(DigitButtons, sizeof(DigitButtons)/sizeof(UINT)))
+    if (!m_wndDigitBar.CreateEx(this, TBSTYLE_FLAT, 
+        WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
+        CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
+        !m_wndDigitBar.LoadToolBar(IDR_DIGITTOOLS))
     {
         TRACE0("Failed to create mainbar\n");
         return -1;      // fail to create
@@ -239,92 +224,66 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndDigitBar.SetSizes(wB, wI);
 
 // aperture/bounds toolbar 
-	if (!m_wndApertureBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
-	        CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_TOOLBAR_APERTURE))
-	{
-		TRACE0("Failed to create aperture toolbar window\n");
-		return -1;      // fail to create
-	}
+    // Create aperture toolbar
+    if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT | TBSTYLE_TRANSPARENT,
+        WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS |
+        CBRS_FLYBY | CBRS_SIZE_DYNAMIC, CRect(1, 1, 1, 1), IDR_TOOLBAR_APERTURE))
+    {
+        TRACE0("Failed to create aperture toolbar\n");
+        return -1;
+    }
 
-	// Load high-color toolbar bitmap directly, bypassing AfxLoadSysColorBitmap's 8bpp limit
-	HBITMAP hApertureBitmap = (HBITMAP)::LoadImage(
-		AfxGetResourceHandle(),
-		MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE),
-		IMAGE_BITMAP,
-		0,
-		0,
-		LR_CREATEDIBSECTION);
-	if (!hApertureBitmap)
-	{
-		TRACE0("Failed to load aperture toolbar bitmap\n");
-		return -1;      // fail to create
-	}
+    // Load toolbar images
+    CMFCToolBarInfo apertureToolbarInfo;
+    apertureToolbarInfo.m_uiColdResID = IDR_TOOLBAR_APERTURE;
+    apertureToolbarInfo.m_uiHotResID = IDR_TOOLBAR_APERTURE_P;
 
-	// Match toolbar image/button sizes to the actual bitmap cell size
-	BITMAP bmAperture = {};
-	if (!::GetObject(hApertureBitmap, sizeof(BITMAP), &bmAperture))
-	{
-		TRACE0("Failed to query aperture toolbar bitmap info\n");
-		return -1;
-	}
-	// Number of image cells: count all non-separator entries in ApertureButtons
-	const int kApertureButtons = sizeof(ApertureButtons) / sizeof(UINT);
-	int kApertureImages = 0;
-	for (int i = 0; i < kApertureButtons; ++i)
-	{
-		if (ApertureButtons[i] != ID_SEPARATOR)
-			++kApertureImages;
-	}
-	if (kApertureImages <= 0 || bmAperture.bmWidth <= 0 || bmAperture.bmHeight <= 0)
-	{
-		TRACE0("Invalid aperture toolbar bitmap dimensions\n");
-		return -1;
-	}
-	int imgW = bmAperture.bmWidth / kApertureImages;
-	int imgH = bmAperture.bmHeight;
-	if (imgW <= 0 || imgH <= 0)
-	{
-		TRACE0("Computed invalid aperture toolbar image size\n");
-		return -1;
-	}
-	CSize apertureImg(imgW, imgH);
-	CSize apertureBtn(imgW + 7, imgH + 6);
-	m_wndApertureBar.SetSizes(apertureBtn, apertureImg);
+    // Load cold bitmap and get size
+    HBITMAP hCold = (HBITMAP)::LoadImage(
+        AfxGetResourceHandle(),
+        MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE),
+        IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+    BITMAP bmCold;
+    GetObject(hCold, sizeof(BITMAP), &bmCold);
+    TRACE3("Cold bitmap: %d x %d, %d bpp\n", bmCold.bmWidth, bmCold.bmHeight, bmCold.bmBitsPixel);
+    DeleteObject(hCold);
 
-	// Attach normal bitmap to toolbar
-	if (!m_wndApertureBar.SetBitmap(hApertureBitmap) ||
-		!m_wndApertureBar.SetButtons(ApertureButtons, sizeof(ApertureButtons) / sizeof(UINT)))
-	{
-		TRACE0("Failed to initialize aperture toolbar bitmap/buttons\n");
-		return -1;      // fail to create
-	}
+    // Load hot bitmap and get size
+    HBITMAP hHot = (HBITMAP)::LoadImage(
+        AfxGetResourceHandle(),
+        MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE_P),
+        IMAGE_BITMAP, 0, 0, LR_CREATEDIBSECTION);
+    BITMAP bmHot;
+    GetObject(hHot, sizeof(BITMAP), &bmHot);
+    TRACE3("Hot bitmap: %d x %d, %d bpp\n", bmHot.bmWidth, bmHot.bmHeight, bmHot.bmBitsPixel);
+    DeleteObject(hHot);
 
-	// Load alternate bitmap for hot/pressed state and assign as hot image list
-	HBITMAP hApertureBitmapHot = (HBITMAP)::LoadImage(
-		AfxGetResourceHandle(),
-		MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE_P),
-		IMAGE_BITMAP,
-		0,
-		0,
-		LR_CREATEDIBSECTION);
-	if (hApertureBitmapHot)
-	{
-		// Create imagelist matching the toolbar cell size
-		if (m_ilApertureHot.GetSafeHandle() != NULL)
-		{
-			m_ilApertureHot.DeleteImageList();
-		}
-		m_ilApertureHot.Create(imgW, imgH, ILC_COLOR24, kApertureImages, 0);
-		// No transparency mask assumed; if bitmap uses a mask color, replace CLR_NONE with that
-		CBitmap bmpHot;
-		bmpHot.Attach(hApertureBitmapHot);
-		m_ilApertureHot.Add(&bmpHot, CLR_NONE);
-		bmpHot.Detach();
-		// SetHotImageList takes a CImageList*, but some SDKs expose an overload
-		// taking HIMAGELIST. Use the CImageList* form here.
-		m_wndApertureBar.GetToolBarCtrl().SetHotImageList(&m_ilApertureHot);
-	}
-// edit toolbar 
+    if (!m_wndApertureBar.LoadToolBarEx(IDR_TOOLBAR_APERTURE, apertureToolbarInfo))
+    {
+        DWORD dwError = GetLastError();
+        TRACE0("Failed to load aperture toolbar\n");
+        TRACE1("GetLastError() = %d\n", dwError);
+
+        // Check if resources exist
+        HINSTANCE hInst = AfxGetResourceHandle();
+        if (FindResource(hInst, MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE), RT_TOOLBAR) == NULL)
+            TRACE0("ERROR: IDR_TOOLBAR_APERTURE toolbar resource not found!\n");
+        if (FindResource(hInst, MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE), RT_BITMAP) == NULL)
+            TRACE0("ERROR: IDR_TOOLBAR_APERTURE bitmap resource not found!\n");
+        if (FindResource(hInst, MAKEINTRESOURCE(IDR_TOOLBAR_APERTURE_P), RT_BITMAP) == NULL)
+            TRACE0("ERROR: IDR_TOOLBAR_APERTURE_P bitmap resource not found!\n");
+        
+        return -1;
+    }
+
+    // Enable docking
+    m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
+    EnableDocking(CBRS_ALIGN_ANY);
+
+    // Dock the toolbar (you can specify position)
+    DockPane(&m_wndApertureBar);
+    
+    // edit toolbar 
     if (!m_wndEditBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
             CBRS_BOTTOM | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_EDITTOOLS) ||
         !m_wndEditBar.LoadBitmap(IDR_EDITTOOLS) ||
@@ -335,7 +294,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 	m_wndEditBar.SetSizes(wB, wI);
 	
-	if (!m_wndStatusBar.Create(this) ||
+    //if (!m_wndStatusBar.Create(this))
+    //{
+    //    TRACE0("Failed to create status bar\n");
+    //    return -1;
+    //}
+
+    if (!m_wndStatusBar.Create(this) ||
 		!m_wndStatusBar.SetIndicators(indicators,
 		  sizeof(indicators)/sizeof(UINT)))
 	{
@@ -374,16 +339,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	EnableDocking(CBRS_ALIGN_ANY);
 
+    m_wndMainBar.SetWindowText(_T("Main"));
     m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
     DockPane(&m_wndMainBar);
 
-    //m_wndMainBar.SetWindowText(_T("Main"));
-    //m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
-    //DockControlBar(&m_wndMainBar,AFX_IDW_DOCKBAR_TOP);
-
     m_wndDigitBar.SetWindowText(_T("Digit"));
     m_wndDigitBar.EnableDocking(CBRS_ALIGN_ANY);
-	//DockControlBarLeftOf(&m_wndDigitBar, &m_wndMainBar);
+	DockPane(&m_wndDigitBar);
 
     m_wndApertureBar.SetWindowText(_T("Aperture"));
     m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
@@ -391,11 +353,11 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     m_wndViewBar.SetWindowText(_T("View"));
     m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
-	//DockControlBarLeftOf(&m_wndViewBar, &m_wndDigitBar);
+	DockPane(&m_wndViewBar);
 
     m_wndKitBar.SetWindowText(_T("KitTools"));
     m_wndKitBar.EnableDocking(CBRS_ALIGN_ANY);
-	//DockControlBarLeftOf(&m_wndKitBar, &m_wndViewBar);
+	DockPane(&m_wndKitBar);
 
     m_wndEditBar.SetWindowText(_T("Edit"));
     m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
@@ -560,10 +522,10 @@ void CMainFrame::OnToolBars()
 	
 	int res = D.DoModal();
     if(res){
-        //ShowControlBar(&m_wndMainBar, D.listStates[0], FALSE);
-        ShowControlBar(&m_wndKitBar, D.listStates[1], FALSE);
-        ShowControlBar(&m_wndDigitBar, D.listStates[2], FALSE);
-		ShowControlBar(&m_wndApertureBar, D.listStates[3], FALSE);
+        m_wndMainBar.ShowPane(D.listStates[0], FALSE, FALSE);
+        m_wndKitBar.ShowPane(D.listStates[1], FALSE, FALSE);
+        m_wndDigitBar.ShowPane(D.listStates[2], FALSE, FALSE);
+        m_wndApertureBar.ShowPane(D.listStates[3], FALSE, FALSE);
     }
   RecalcLayout();
 }

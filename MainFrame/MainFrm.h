@@ -61,10 +61,10 @@ protected:  // control bar embedded members
 	// keep other bars legacy for now, migrate one-by-one
 	CStatusBar  m_wndStatusBar;
 	//CToolBar    m_wndMainBar;
-    CToolBar    m_wndViewBar;
-    CToolBar    m_wndKitBar;
-    CToolBar    m_wndDigitBar;
-    CToolBar    m_wndApertureBar; // bounds/aperture editing toolbar
+	CMFCToolBar    m_wndViewBar;
+	CMFCToolBar    m_wndKitBar;
+	CMFCToolBar    m_wndDigitBar;
+    CMFCToolBar    m_wndApertureBar; // bounds/aperture editing toolbar
     CImageList  m_ilApertureHot;  // hot/pressed state images for aperture toolbar
     CDiditBar   m_wndEditBar;
 	int m_nImagePaneCol;
