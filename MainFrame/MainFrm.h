@@ -13,7 +13,7 @@
 #include <afxmdiframewndex.h>
 #include <afxvisualmanager.h>
 
-class CDiditBar : public CToolBar
+class CDiditBar : public CMFCToolBar
 {
 public:
     CEdit m_Edit;

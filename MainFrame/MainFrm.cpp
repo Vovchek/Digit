@@ -225,35 +225,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	m_wndDigitBar.SetSizes(wB, wI);
 
     // Create aperture toolbar
-    //if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT | TBSTYLE_TRANSPARENT,
-    //    WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS |
-    //    CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
-    //{
-    //    TRACE0("Failed to create aperture toolbar\n");
-    //    return -1;
-    //}
+    if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT,
+        WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS |
+        CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
+        !m_wndApertureBar.LoadToolBar(IDR_TOOLBAR_APERTURE))
+    {
+        TRACE0("Failed to create aperture toolbar\n");
+        return -1;
+    }
+    m_wndApertureBar.SetSizes(wB, wI);
 
-    //// Load toolbar images
-    //CMFCToolBarInfo apertureToolbarInfo;
-    //apertureToolbarInfo.m_uiColdResID = IDR_TOOLBAR_APERTURE_COLD;
-    ////apertureToolbarInfo.m_uiHotResID = IDR_TOOLBAR_APERTURE_HOT;
-    //m_wndApertureBar.SetSizes(CSize(20, 21), CSize(20, 21));
-
-    //if (!m_wndApertureBar.LoadToolBarEx(IDR_TOOLBAR_APERTURE, apertureToolbarInfo))
-    //{
-    //    DWORD dwError = GetLastError();
-    //    TRACE0("Failed to load aperture toolbar\n");
-    //    TRACE1("GetLastError() = %d\n", dwError);
-
-    //    return -1;
-    //}
-    //// Enable docking
-    //m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
-    //EnableDocking(CBRS_ALIGN_ANY);
-
-    //// Dock the toolbar (you can specify position)
-    //DockPane(&m_wndApertureBar);
-    
     // edit toolbar 
     if (!m_wndEditBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
             CBRS_BOTTOM | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_EDITTOOLS) ||
@@ -310,29 +291,33 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 	EnableDocking(CBRS_ALIGN_ANY);
 
-    m_wndMainBar.SetWindowText(_T("Main"));
-    m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&m_wndMainBar);
+    m_wndKitBar.SetWindowText(_T("KitTools"));
+    m_wndKitBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&m_wndKitBar);
+
+    m_wndViewBar.SetWindowText(_T("View"));
+    m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPaneLeftOf(&m_wndViewBar, &m_wndKitBar);
 
     m_wndDigitBar.SetWindowText(_T("Digit"));
     m_wndDigitBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&m_wndDigitBar);
+	DockPaneLeftOf(&m_wndDigitBar, &m_wndViewBar);
+
+    m_wndMainBar.SetWindowText(_T("Main"));
+    m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPaneLeftOf(&m_wndMainBar, &m_wndDigitBar);
+
+    m_wndApertureBar.SetWindowText(_T("Aperture"));
+    m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPaneLeftOf(&m_wndApertureBar, &m_wndMainBar);
 
     //m_wndApertureBar.SetWindowText(_T("Aperture"));
     //m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
 	//DockControlBarLeftOf(&m_wndApertureBar, &m_wndDigitBar);
 
-    m_wndViewBar.SetWindowText(_T("View"));
-    m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&m_wndViewBar);
-
-    m_wndKitBar.SetWindowText(_T("KitTools"));
-    m_wndKitBar.EnableDocking(CBRS_ALIGN_ANY);
-	DockPane(&m_wndKitBar);
-
     m_wndEditBar.SetWindowText(_T("Edit"));
     m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockControlBar(&m_wndEditBar,AFX_IDW_DOCKBAR_BOTTOM);
+    DockPane(&m_wndEditBar,AFX_IDW_DOCKBAR_BOTTOM);
 
 	
     //Create edit.
