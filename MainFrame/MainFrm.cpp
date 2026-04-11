@@ -227,13 +227,21 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     // Create aperture toolbar
     if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT,
         WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS |
-        CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
-        !m_wndApertureBar.LoadToolBar(IDR_TOOLBAR_APERTURE))
+        CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
     {
         TRACE0("Failed to create aperture toolbar\n");
         return -1;
     }
-    m_wndApertureBar.SetSizes(wB, wI);
+    {
+        CMFCToolBarInfo info;
+        info.m_uiHotResID  = IDR_TOOLBAR_APERTURE_HOT;
+        info.m_uiColdResID = IDR_TOOLBAR_APERTURE_COLD;
+        if (!m_wndApertureBar.LoadToolBarEx(IDR_TOOLBAR_APERTURE, info, TRUE)) // bLocked: per-instance images, avoids shared pool size mismatch
+        {
+            TRACE0("Failed to load aperture toolbar\n");
+            return -1;
+        }
+    }
 
     // edit toolbar 
     if (!m_wndEditBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
