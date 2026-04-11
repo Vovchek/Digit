@@ -13,11 +13,46 @@
 #include <afxmdiframewndex.h>
 #include <afxvisualmanager.h>
 
+class CMFCToolBarEditBoxButton;
+
 class CDiditBar : public CMFCToolBar
 {
 public:
     CEdit m_Edit;
     CFont m_font;
+    CMFCToolBarEditBoxButton* m_pEditButton;  // pointer to edit button in toolbar
+
+    CDiditBar() : m_pEditButton(nullptr) {}
+};
+
+// CMFCToolBar subclass that shows hot images for checked (toggled) buttons,
+// not just for hovered ones. The base class only uses hot images for TBBS_PRESSED,
+// not TBBS_CHECKED, so checked toggle buttons would otherwise show the cold image.
+class CApertureBar : public CMFCToolBar
+{
+public:
+    BOOL DrawButton(CDC* pDC, CMFCToolBarButton* pButton,
+                    CMFCToolBarImages* pImages, BOOL bHighlighted, BOOL bDrawDisabledImages) override
+    {
+        // For checked (toggled) buttons that are not hovered, substitute the
+        // hot (locked) image list so the "active" icon is shown while checked.
+        // m_ImagesLocked has had EndDrawImage() called by OnPaint before reaching
+        // here, so we must re-prepare it with its own CAfxDrawState before use.
+        if (!bHighlighted && !bDrawDisabledImages
+            && (pButton->m_nStyle & TBBS_CHECKED)
+            && !(pButton->m_nStyle & TBBS_PRESSED)  // hot images already in use when pressed
+            && m_ImagesLocked.GetCount() > 0)
+        {
+            CAfxDrawState ds;
+            if (m_ImagesLocked.PrepareDrawImage(ds, m_ImagesLocked.GetImageSize()))
+            {
+                BOOL result = CMFCToolBar::DrawButton(pDC, pButton, &m_ImagesLocked, bHighlighted, bDrawDisabledImages);
+                m_ImagesLocked.EndDrawImage(ds);
+                return result;
+            }
+        }
+        return CMFCToolBar::DrawButton(pDC, pButton, pImages, bHighlighted, bDrawDisabledImages);
+    }
 };
 
 class CMainFrame : public CMDIFrameWndEx
@@ -62,7 +97,7 @@ protected:  // control bar embedded members
 	CMFCToolBar    m_wndViewBar;
 	CMFCToolBar    m_wndKitBar;
 	CMFCToolBar    m_wndDigitBar;
-    CMFCToolBar    m_wndApertureBar; // bounds/aperture editing toolbar
+    CApertureBar   m_wndApertureBar; // bounds/aperture editing toolbar
     CImageList  m_ilApertureHot;  // hot/pressed state images for aperture toolbar
     CDiditBar   m_wndEditBar;
 	int m_nImagePaneCol;
@@ -73,7 +108,6 @@ protected:  // control bar embedded members
 
 // Generated message map functions
 protected:
-    void DockControlBarLeftOf(CToolBar* Bar,CToolBar* LeftOf);
 	
 	//{{AFX_MSG(CMainFrame)
 	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);

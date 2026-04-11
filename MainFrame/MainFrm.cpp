@@ -14,6 +14,7 @@
 #include "ImageTempl\ImageDoc.h"
 #include "ImageTempl\ImageView.h"
 #include "Options\ToolBarsDlg.h"
+#include <afxtoolbareditboxbutton.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -133,14 +134,15 @@ static UINT BASED_CODE EditButtons[] =
     ID_SEPARATOR,
     IDD_NUMBER_FRINGES_FORWARD,
     IDD_NUMBER_FRINGES_BACKWARD,
+    ID_SEPARATOR,
     IDD_NUM_OFF_MINUS,
     ID_SEPARATOR,
-    ID_SEPARATOR,/* combo goes here, slot 14 */
+    ID_SEPARATOR,   /* fringe number edit box, slot 15 */
     ID_SEPARATOR,
     IDD_NUM_OFF_PLUS,
 };
 
-static int posNumFringe = 14;
+static int posNumFringe = 15;
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame construction/destruction
 
@@ -182,6 +184,7 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
    wB.cy = wI.cy+6;
 
    // main toolbar 
+   m_wndMainBar.SetSizes(wB, wI);
    if (!m_wndMainBar.CreateEx(this, TBSTYLE_FLAT,
        WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS | CBRS_FLYBY | CBRS_SIZE_DYNAMIC) ||
        !m_wndMainBar.LoadToolBar(IDR_MAINFRAME))
@@ -189,43 +192,43 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
        TRACE0("Failed to create main toolbar\n");
        return -1;
    }
-   m_wndMainBar.SetSizes(wB, wI);
 
 // view toolbar 
-    if (!m_wndViewBar.CreateEx(this, TBSTYLE_FLAT, 
+   m_wndViewBar.SetSizes(wB, wI);
+   if (!m_wndViewBar.CreateEx(this, TBSTYLE_FLAT,
         WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
             CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
         !m_wndViewBar.LoadToolBar(IDR_VIEWTOOLS))
     {
-        TRACE0("Failed to create mainbar\n");
+        TRACE0("Failed to create view toolbar\n");
         return -1;      // fail to create
     }
-	m_wndViewBar.SetSizes(wB, wI);
 
 // kit toolbar 
-    if (!m_wndKitBar.CreateEx(this, TBSTYLE_FLAT, 
+   m_wndKitBar.SetSizes(wB, wI);
+   if (!m_wndKitBar.CreateEx(this, TBSTYLE_FLAT,
         WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
         CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
         !m_wndKitBar.LoadToolBar(IDR_KITTOOL))
     {
-        TRACE0("Failed to create mainbar\n");
+        TRACE0("Failed to create kit(?) toolbar\n");
         return -1;      // fail to create
     }
-	m_wndKitBar.SetSizes(wB, wI);
 
 // digit toolbar 
-    if (!m_wndDigitBar.CreateEx(this, TBSTYLE_FLAT, 
+   m_wndDigitBar.SetSizes(wB, wI);
+   if (!m_wndDigitBar.CreateEx(this, TBSTYLE_FLAT,
         WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
         CBRS_TOP | CBRS_TOOLTIPS | CBRS_FLYBY) ||
         !m_wndDigitBar.LoadToolBar(IDR_DIGITTOOLS))
     {
-        TRACE0("Failed to create mainbar\n");
+        TRACE0("Failed to create digit toolbar\n");
         return -1;      // fail to create
     }
-	m_wndDigitBar.SetSizes(wB, wI);
 
     // Create aperture toolbar
-    if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT,
+   m_wndApertureBar.SetSizes(wB, CSize(20, 21));
+   if (!m_wndApertureBar.CreateEx(this, TBSTYLE_FLAT,
         WS_CHILD | WS_VISIBLE | CBRS_TOP | CBRS_GRIPPER | CBRS_TOOLTIPS |
         CBRS_FLYBY | CBRS_SIZE_DYNAMIC))
     {
@@ -244,22 +247,16 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     }
 
     // edit toolbar 
+    m_wndEditBar.SetSizes(wB, wI);
     if (!m_wndEditBar.Create(this, WS_CHILD | WS_VISIBLE | CBRS_SIZE_DYNAMIC |
             CBRS_BOTTOM | CBRS_TOOLTIPS | CBRS_FLYBY, IDR_EDITTOOLS) ||
         !m_wndEditBar.LoadBitmap(IDR_EDITTOOLS) ||
         !m_wndEditBar.SetButtons(EditButtons, sizeof(EditButtons)/sizeof(UINT)))
     {
-        TRACE0("Failed to create mainbar\n");
+        TRACE0("Failed to create edit toolbar\n");
         return -1;      // fail to create
     }
-	m_wndEditBar.SetSizes(wB, wI);
 	
-    //if (!m_wndStatusBar.Create(this))
-    //{
-    //    TRACE0("Failed to create status bar\n");
-    //    return -1;
-    //}
-
     if (!m_wndStatusBar.Create(this) ||
 		!m_wndStatusBar.SetIndicators(indicators,
 		  sizeof(indicators)/sizeof(UINT)))
@@ -301,47 +298,44 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
     m_wndKitBar.SetWindowText(_T("KitTools"));
     m_wndKitBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&m_wndKitBar);
+    DockPane(&m_wndKitBar, AFX_IDW_DOCKBAR_RIGHT);
 
     m_wndViewBar.SetWindowText(_T("View"));
     m_wndViewBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPaneLeftOf(&m_wndViewBar, &m_wndKitBar);
+    DockPane(&m_wndViewBar);
 
     m_wndDigitBar.SetWindowText(_T("Digit"));
     m_wndDigitBar.EnableDocking(CBRS_ALIGN_ANY);
 	DockPaneLeftOf(&m_wndDigitBar, &m_wndViewBar);
 
-    m_wndMainBar.SetWindowText(_T("Main"));
-    m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPaneLeftOf(&m_wndMainBar, &m_wndDigitBar);
-
     m_wndApertureBar.SetWindowText(_T("Aperture"));
     m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPaneLeftOf(&m_wndApertureBar, &m_wndMainBar);
+    DockPaneLeftOf(&m_wndApertureBar, &m_wndDigitBar);
 
-    //m_wndApertureBar.SetWindowText(_T("Aperture"));
-    //m_wndApertureBar.EnableDocking(CBRS_ALIGN_ANY);
-	//DockControlBarLeftOf(&m_wndApertureBar, &m_wndDigitBar);
+    m_wndMainBar.SetWindowText(_T("Main"));
+    m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPaneLeftOf(&m_wndMainBar, &m_wndApertureBar);
 
     m_wndEditBar.SetWindowText(_T("Edit"));
-    m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&m_wndEditBar,AFX_IDW_DOCKBAR_BOTTOM);
 
-	
-    //Create edit.
-	int nDropHeight = 20;
-    m_wndEditBar.SetButtonInfo(posNumFringe-1,ID_SEPARATOR,TBBS_SEPARATOR,2);
-    m_wndEditBar.SetButtonInfo(posNumFringe,IDW_EDIT,TBBS_SEPARATOR,30);
-    m_wndEditBar.SetButtonInfo(posNumFringe+1,ID_SEPARATOR,TBBS_SEPARATOR,2);
-    CRect rect;
-    m_wndEditBar.GetItemRect(posNumFringe, &rect);
-    rect.top = 3;
-    rect.bottom = rect.top + nDropHeight;
-    if (!m_wndEditBar.m_Edit.Create(WS_CHILD | WS_VISIBLE | WS_TABSTOP | WS_BORDER, rect, &m_wndEditBar, IDW_EDIT)){
-      TRACE0("Failed to create edit-box\n");
-      return FALSE;
+    // Inject edit box at posNumFringe by index.
+    // RemoveButton+InsertButton is used instead of ReplaceButton(IDW_EDIT,...) because
+    // slot 15 is ID_SEPARATOR; ReplaceButton would hit the first separator (slot 2).
+    // Keeping ID_SEPARATOR in EditButtons also ensures IDW_EDIT does not consume a
+    // bitmap image slot, which would push IDD_NUM_OFF_PLUS out of range.
+    {
+        CMFCToolBarEditBoxButton editButton(IDW_EDIT, -1, ES_CENTER | ES_READONLY, 30);
+        //m_wndEditBar.RemoveButton(posNumFringe-1);
+        //m_wndEditBar.RemoveButton(posNumFringe);
+        m_wndEditBar.InsertButton(editButton, posNumFringe);
+
+        int index = m_wndEditBar.CommandToIndex(IDW_EDIT);
+        if (index >= 0)
+            m_wndEditBar.m_pEditButton = (CMFCToolBarEditBoxButton*)m_wndEditBar.GetButton(index);
     }
-    m_wndEditBar.m_Edit.EnableWindow(FALSE);
+    m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&m_wndEditBar, AFX_IDW_DOCKBAR_BOTTOM);
+
 	//LoadBarState(_T("ToolBar_State"));
 
     ShowControlBar(&m_wndMeasureBar, FALSE, FALSE);
@@ -352,37 +346,13 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-// Выравнивание панели Bar относительно LeftOf панели
-void CMainFrame::DockControlBarLeftOf(CToolBar* Bar, CToolBar* LeftOf)
-{
-    CRect rect;
-    DWORD dw;
-    UINT n;
-
-    // get MFC to adjust the dimensions of all docked ToolBars
-    // so that GetWindowRect will be accurate
-    RecalcLayout();
-    LeftOf->GetWindowRect(&rect);
-    rect.OffsetRect(1,0);
-    dw=LeftOf->GetBarStyle();
-    n = 0;
-    n = (dw&CBRS_ALIGN_TOP) ? AFX_IDW_DOCKBAR_TOP : n;
-    n = (dw&CBRS_ALIGN_BOTTOM && n==0) ? AFX_IDW_DOCKBAR_BOTTOM : n;
-    n = (dw&CBRS_ALIGN_LEFT && n==0) ? AFX_IDW_DOCKBAR_LEFT : n;
-    n = (dw&CBRS_ALIGN_RIGHT && n==0) ? AFX_IDW_DOCKBAR_RIGHT : n;
-
-    // When we take the default parameters on rect, DockControlBar will dock
-    // each Toolbar on a seperate line.  By calculating a rectangle, we in effect
-    // are simulating a Toolbar being dragged to that location and docked.
-    DockControlBar(Bar,n,&rect);
-}
 //Скрыть/показать панель инструментов
 void CMainFrame::ShowMeasurePane(BOOL Visual)
 {
     ShowControlBar(&m_wndMeasureBar, Visual, FALSE);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
     cs.lpszClass = _T("DigitClass");
@@ -395,7 +365,7 @@ BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 /////////////////////////////////////////////////////////////////////////////
 // CMainFrame diagnostics
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 #ifdef _DEBUG
 void CMainFrame::AssertValid() const
 {
@@ -542,7 +512,7 @@ void CMainFrame::OnClearMeasure()
 	pW->SetWindowText(LPCTSTR(s)); 
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 void CMainFrame::OnClose() 
 {
 	if(!CheckForSaveAllImageDoc())
@@ -555,7 +525,7 @@ void CMainFrame::OnClose()
 	CMDIFrameWndEx::OnClose();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// Смотри Microsoft Visual C++ документация
 void CMainFrame::OnHelp()
 {
 	WinHelp(NULL, HELP_CONTENTS);
@@ -565,7 +535,12 @@ void CMainFrame::SetCurrentNumber(double CurrentNumber)
 {
 	CString s;
 	s.Format("%g", CurrentNumber);
-	m_wndEditBar.m_Edit.SetWindowText(LPCTSTR(s));
+	if (m_wndEditBar.m_pEditButton)
+	{
+		CEdit* pEdit = m_wndEditBar.m_pEditButton->GetEditBox();
+		if (pEdit && pEdit->GetSafeHwnd())
+			pEdit->SetWindowText(LPCTSTR(s));
+	}
 }
 
 void CMainFrame::SetImageInfo(LPCTSTR Title, double ScaleFactor, double Rotation)
@@ -606,11 +581,11 @@ void CMainFrame::OnIterfView()
 void CMainFrame::OnUpdateIterfView(CCmdUI* pCmdUI)
 {
   CControls* pCtrls = GetControls();
-/*
+  /*
   if(pDoc->IsInterferogram())
     pCmdUI->Enable(TRUE);
   else
-    pCmdUI->Enable(FALSE);*/
+    pCmdUI->Enable(FALSE); */
   if(pCtrls->ViewState & V_INTERFEROGRAM)
     pCmdUI->SetCheck(1);
   else
@@ -630,7 +605,7 @@ void CMainFrame::OnExtremeView()
 void CMainFrame::OnUpdateExtremeView(CCmdUI* pCmdUI)
 {
   CControls* pCtrls = GetControls();
-/*
+  /*
   if(pDoc->IsSections())
     pCmdUI->Enable(TRUE);
   else
@@ -659,7 +634,7 @@ void CMainFrame::OnUpdateSectionView(CCmdUI* pCmdUI)
 {
   CControls* pCtrls = GetControls();
 
-/*  if(pDoc->IsZapSections())
+  /*  if(pDoc->IsZapSections())
     pCmdUI->Enable(TRUE);
   else
     pCmdUI->Enable(FALSE);
@@ -684,7 +659,7 @@ void CMainFrame::OnUpdateDotLineView(CCmdUI* pCmdUI)
 {
   CControls* pCtrls = GetControls();
 
-/*  if(pDoc->IsDots())
+  /*  if(pDoc->IsDots())
     pCmdUI->Enable(TRUE);
   else
     pCmdUI->Enable(FALSE);
@@ -709,7 +684,7 @@ void CMainFrame::OnUpdateDotsView(CCmdUI* pCmdUI)
 {
   CControls* pCtrls = GetControls();
 
-/*  if(pDoc->IsDots())
+  /*  if(pDoc->IsDots())
     pCmdUI->Enable(TRUE);
   else
     pCmdUI->Enable(FALSE);
