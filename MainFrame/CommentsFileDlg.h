@@ -1,4 +1,4 @@
-#if !defined(AFX_CSHIFTOFFDLGBAR_H__CAF994D8_00D1_43FA_88EA_9267DDC5F102__INCLUDED_)
+﻿#if !defined(AFX_CSHIFTOFFDLGBAR_H__CAF994D8_00D1_43FA_88EA_9267DDC5F102__INCLUDED_)
 #define AFX_CSHIFTOFFDLGBAR_H__CAF994D8_00D1_43FA_88EA_9267DDC5F102__INCLUDED_
 
 #if _MSC_VER > 1000
@@ -9,8 +9,9 @@
 
 /////////////////////////////////////////////////////////////////////////////
 // CCommentsFile dialog
+#include <afxpanedialog.h>
 
-class CCommentsFile : public CDialogBar
+class CCommentsFile : public CPaneDialog
 {
 // Construction
 public:

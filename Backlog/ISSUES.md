@@ -23,6 +23,10 @@
 ### 105 <del>Some ellipses sizes entail corruption of WavefrontFromContours solvers</del>   
 ### 106 After connecting segments active segment switches to other segment
 ### 107 <del>Auto numbering of rings is incorrect</del>
+### 108 Photometric cross sections cannot be switched off
+### 109 With photometric cross sections on, maximized window loses normilized/minimized/closed controls
+### 110 Cross sections' lines appear shifted from mouse position
+### 111 Cross sections side windows contents not aligned to image position
 
    Done: Fixed invalid crossings search methods in WavefrontFromContours that were missing crossings with segments whick verteces are located exactly on scanned line.
 

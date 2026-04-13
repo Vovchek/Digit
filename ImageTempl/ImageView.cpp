@@ -810,6 +810,9 @@ void CImageView::OnFotoSections()
 		DeActivateMode(I_BOUNDS_INS);
 		pMFr->ShowMeasurePane(FALSE);
 	}
+	else {
+		pDoc->ActivateFotoSections(FALSE);
+	}
 }
 
 void CImageView::OnUpdateFotoSections(CCmdUI* pCmdUI)

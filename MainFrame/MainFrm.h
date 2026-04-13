@@ -11,6 +11,7 @@
 
 #include "CommentsFileDlg.h"
 #include <afxmdiframewndex.h>
+#include <afxstatusbar.h>
 #include <afxvisualmanager.h>
 
 class CMFCToolBarEditBoxButton;
@@ -61,7 +62,7 @@ class CMainFrame : public CMDIFrameWndEx
 public:
 	CMainFrame();
     void SetCurrentNumber(double CurrentNumber);
-	void SetScaleFactor(double scaleFactor) { m_wndInfoDlgBar.ScaleFactor = scaleFactor; };
+	void SetScaleFactor(double scaleFactor) { m_wndInfoPane.ScaleFactor = scaleFactor; };
 	void SetImageInfo(LPCTSTR Title, double ScaleFactor, double Rotation);
 	void GetImageInfo(CString& Title, double& ScaleFactor, double& Rotation);
 	// Helper to set main status bar text from views/tools
@@ -91,9 +92,8 @@ public:
 #endif
 
 protected:  // control bar embedded members
-	//CMFCStatusBar m_wndStatusBar;
+	CMFCStatusBar m_wndStatusBar;
 	CMFCToolBar   m_wndMainBar;
-	CStatusBar  m_wndStatusBar;
 	CMFCToolBar    m_wndViewBar;
 	CMFCToolBar    m_wndKitBar;
 	CMFCToolBar    m_wndDigitBar;
@@ -103,8 +103,9 @@ protected:  // control bar embedded members
 	int m_nImagePaneCol;
 	CReBar      m_wndMeasureBar;
 	CDialogBar  m_wndMeasureDlgBar;
-	CReBar      m_wndInfoBar;
-	CCommentsFile  m_wndInfoDlgBar;
+	//CReBar      m_wndInfoBar;
+	//CCommentsFile  m_wndInfoDlgBar;
+	CCommentsFile  m_wndInfoPane;
 
 // Generated message map functions
 protected:

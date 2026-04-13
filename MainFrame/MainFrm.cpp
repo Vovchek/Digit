@@ -279,21 +279,17 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
         return -1;      // fail to create
     }
 	
-    if (!m_wndInfoDlgBar.Create(this, IDR_IMAGEINFO, 
-        CBRS_ALIGN_TOP, AFX_IDW_DIALOGBAR))
+    if (!m_wndInfoPane.Create(
+        _T("Info"),          // title
+        this,                // parent frame
+        FALSE,                // has gripper
+        MAKEINTRESOURCE(IDR_IMAGEINFO),
+        WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM,
+        IDR_IMAGEINFO))
     {
-        TRACE0("Failed to create dialogbar\n");
-        return -1;      // fail to create
+        TRACE0("Failed to create info pane\n");
+        return -1;
     }
-
-    if (!m_wndInfoBar.Create(this, RBS_BANDBORDERS,
-		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM) ||
-        !m_wndInfoBar.AddBar(&m_wndInfoDlgBar))
-    {
-        TRACE0("Failed to create rebar\n");
-        return -1;      // fail to create
-    }
-
 	EnableDocking(CBRS_ALIGN_ANY);
 
     m_wndKitBar.SetWindowText(_T("KitTools"));
@@ -316,6 +312,10 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
     m_wndMainBar.EnableDocking(CBRS_ALIGN_ANY);
     DockPaneLeftOf(&m_wndMainBar, &m_wndApertureBar);
 
+    m_wndInfoPane.EnableDocking(CBRS_ALIGN_ANY);
+    DockPane(&m_wndInfoPane, AFX_IDW_DOCKBAR_BOTTOM);
+    m_wndInfoPane.ShowPane(TRUE, FALSE, TRUE);
+
     m_wndEditBar.SetWindowText(_T("Edit"));
 
     // Inject edit box at posNumFringe by index.
@@ -334,14 +334,15 @@ int CMainFrame::OnCreate(LPCREATESTRUCT lpCreateStruct)
             m_wndEditBar.m_pEditButton = (CMFCToolBarEditBoxButton*)m_wndEditBar.GetButton(index);
     }
     m_wndEditBar.EnableDocking(CBRS_ALIGN_ANY);
-    DockPane(&m_wndEditBar, AFX_IDW_DOCKBAR_BOTTOM);
+    m_wndEditBar.DockToWindow(&m_wndInfoPane, CBRS_ALIGN_TOP);
+    //DockPane(&m_wndEditBar, AFX_IDW_DOCKBAR_BOTTOM);
 
 	//LoadBarState(_T("ToolBar_State"));
 
     ShowControlBar(&m_wndMeasureBar, FALSE, FALSE);
-    ShowControlBar(&m_wndInfoBar, TRUE, FALSE);
 
 	SetImageInfo(" ", 1., 0.);
+	
 
 	return 0;
 }
@@ -352,7 +353,7 @@ void CMainFrame::ShowMeasurePane(BOOL Visual)
     ShowControlBar(&m_wndMeasureBar, Visual, FALSE);
 }
 
-// Смотри Microsoft Visual C++ документация
+// Смотри Microsoft Visual C++ документацию
 BOOL CMainFrame::PreCreateWindow(CREATESTRUCT& cs)
 {
     cs.lpszClass = _T("DigitClass");
@@ -401,24 +402,24 @@ void CMainFrame::OnChangeLang()
   pDT->m_hMenuShared = m_hMenuShared;
 
   DrawMenuBar();
-  ShowControlBar(&m_wndInfoBar, TRUE, FALSE);
+  //ShowControlBar(&m_wndInfoPane, TRUE, FALSE);
   
-  m_wndInfoDlgBar.DestroyWindow();
-  m_wndInfoBar.DestroyWindow();
+  m_wndInfoPane.DestroyWindow();
   
-    if (!m_wndInfoDlgBar.Create(this, IDR_IMAGEINFO, 
-        CBRS_ALIGN_TOP, AFX_IDW_DIALOGBAR))
-    {
-        TRACE0("Failed to create dialogbar\n");
-    }
+  if (!m_wndInfoPane.Create(
+      this,
+      IDR_IMAGEINFO,                         // dialog resource
+      WS_CHILD | WS_VISIBLE | CBRS_BOTTOM,   // style
+      IDR_IMAGEINFO))                        // pane ID
+  {
+      TRACE0("Failed to create info pane\n");
+  }
 
-    if (!m_wndInfoBar.Create(this, RBS_BANDBORDERS,
-		WS_CHILD | WS_VISIBLE | WS_CLIPSIBLINGS | WS_CLIPCHILDREN | CBRS_BOTTOM) ||
-        !m_wndInfoBar.AddBar(&m_wndInfoDlgBar))
-    {
-        TRACE0("Failed to create rebar\n");
-    }
-	SetImageInfo(" ", 1., 0.);
+  m_wndInfoPane.EnableDocking(CBRS_ALIGN_ANY);
+  DockPane(&m_wndInfoPane);
+  m_wndInfoPane.ShowPane(TRUE, FALSE, TRUE);	
+  
+  SetImageInfo(" ", 1., 0.);
 }
 
 // Настройка панели инструментов
@@ -473,10 +474,10 @@ void CMainFrame::OnAdvParameters()
 {
     CControls* pCtrls = GetControls();
 	pCtrls->IsAdvBar = pCtrls->IsAdvBar ? FALSE : TRUE;
-	if(pCtrls->IsAdvBar)
-      ShowControlBar(&m_wndInfoBar, TRUE, FALSE);
-	else
-      ShowControlBar(&m_wndInfoBar, FALSE, FALSE);
+    if (pCtrls->IsAdvBar)
+        ;// ShowControlBar(&m_wndInfoPane, TRUE, FALSE);
+    else
+        ;// ShowControlBar(&m_wndInfoPane, FALSE, FALSE);
 }
 
 void CMainFrame::OnUpdateAdvParameters(CCmdUI* pCmdUI)
@@ -545,18 +546,18 @@ void CMainFrame::SetCurrentNumber(double CurrentNumber)
 
 void CMainFrame::SetImageInfo(LPCTSTR Title, double ScaleFactor, double Rotation)
 {
-	m_wndInfoDlgBar.SetComments(Title);
-	m_wndInfoDlgBar.SetScaleFactor(ScaleFactor);
-	m_wndInfoDlgBar.SetRotation(Rotation);
-    m_wndInfoDlgBar.UpdateData(FALSE);
+	m_wndInfoPane.SetComments(Title);
+	m_wndInfoPane.SetScaleFactor(ScaleFactor);
+	m_wndInfoPane.SetRotation(Rotation);
+    m_wndInfoPane.UpdateData(FALSE);
 }
 
 void CMainFrame::GetImageInfo(CString& Title, double& ScaleFactor, double& Rotation)
 {
-    m_wndInfoDlgBar.UpdateData(TRUE);
-	m_wndInfoDlgBar.GetComments(Title);
-	m_wndInfoDlgBar.GetScaleFactor(ScaleFactor);
-	m_wndInfoDlgBar.GetRotation(Rotation);
+    m_wndInfoPane.UpdateData(TRUE);
+	m_wndInfoPane.GetComments(Title);
+	m_wndInfoPane.GetScaleFactor(ScaleFactor);
+	m_wndInfoPane.GetRotation(Rotation);
 }
 
 void CMainFrame::SetStatusText(LPCTSTR text)

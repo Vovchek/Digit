@@ -1,9 +1,9 @@
-// ImageChildFrm.cpp : implementation file
+п»ї// ImageChildFrm.cpp : implementation file
 //
 /***********************************************************************************
- МОДУЛЬ: ImageChildFrm.cpp
- НАЗНАЧЕНИЕ:
-         Фрейм архитектуры документ-представления      
+ РњРћР”РЈР›Р¬: ImageChildFrm.cpp
+ РќРђР—РќРђР§Р•РќРР•:
+         Р¤СЂРµР№Рј Р°СЂС…РёС‚РµРєС‚СѓСЂС‹ РґРѕРєСѓРјРµРЅС‚-РїСЂРµРґСЃС‚Р°РІР»РµРЅРёСЏ      
 ************************************************************************************/
 
 #include "stdafx.h"
@@ -44,13 +44,13 @@ END_MESSAGE_MAP()
 /////////////////////////////////////////////////////////////////////////////
 // CImageChildFrm message handlers
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CImageChildFrm::ActivateFrame(int nCmdShow) 
 {
 	CMDIChildWnd::ActivateFrame(nCmdShow);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 BOOL CImageChildFrm::PreCreateWindow(CREATESTRUCT& cs) 
 {
     WINDOWPLACEMENT wp;
@@ -62,7 +62,7 @@ BOOL CImageChildFrm::PreCreateWindow(CREATESTRUCT& cs)
 	return CMDIChildWnd::PreCreateWindow(cs);
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 int CImageChildFrm::OnCreate(LPCREATESTRUCT lpCreateStruct) 
 {
 	if (CMDIChildWnd::OnCreate(lpCreateStruct) == -1)
@@ -71,7 +71,7 @@ int CImageChildFrm::OnCreate(LPCREATESTRUCT lpCreateStruct)
 	return 0;
 }
 
-// Запись положения окна в ini файл
+// Р—Р°РїРёСЃСЊ РїРѕР»РѕР¶РµРЅРёСЏ РѕРєРЅР° РІ ini С„Р°Р№Р»
 void CImageChildFrm::SavePlacement()
 {
   WINDOWPLACEMENT wp;
@@ -80,26 +80,28 @@ void CImageChildFrm::SavePlacement()
     WriteWndPlacement(&wp,"IMAGEFRAME","PLACEMENT", GetIniFile());
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CImageChildFrm::OnClose() 
 {
 	SavePlacement();
 	CMDIChildWnd::OnClose();
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CImageChildFrm::OnSize(UINT nType, int cx, int cy) 
 {
 	CMDIChildWnd::OnSize(nType, cx, cy);
 	
     CImageDoc* pDoc = (CImageDoc*)GetActiveDocument();
 	if(pDoc && pDoc->IsFotoSections()){
+		if (nType == SIZE_MAXIMIZED)
+			return;
       pDoc->AlignFotoSections();
 	  pDoc->GetView()->Invalidate(FALSE);
 	}
 }
 
-// Смотри Microsoft Visual C++ документацию
+// РЎРјРѕС‚СЂРё Microsoft Visual C++ РґРѕРєСѓРјРµРЅС‚Р°С†РёСЋ
 void CImageChildFrm::OnMove(int x, int y) 
 {
 	CMDIChildWnd::OnMove(x, y);

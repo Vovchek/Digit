@@ -1,4 +1,4 @@
-// CCommentsFile.cpp : implementation file
+﻿// CCommentsFile.cpp : implementation file
 //
 
 #include "stdafx.h"
@@ -16,7 +16,7 @@ static char THIS_FILE[] = __FILE__;
 
 
 CCommentsFile::CCommentsFile(CWnd* pParent /*=NULL*/)
-	: CDialogBar()
+	: CPaneDialog()
 {
 	//{{AFX_DATA_INIT(CCommentsFile)
 		// NOTE: the ClassWizard will add member initialization here
@@ -29,7 +29,7 @@ CCommentsFile::CCommentsFile(CWnd* pParent /*=NULL*/)
 
 void CCommentsFile::DoDataExchange(CDataExchange* pDX)
 {
-	CDialogBar::DoDataExchange(pDX);
+	CPaneDialog::DoDataExchange(pDX);
 	//{{AFX_DATA_MAP(CCommentsFile)
 		// NOTE: the ClassWizard will add DDX and DDV calls here
     DDX_Text(pDX, IDE_comments_info, Comments);
@@ -68,7 +68,7 @@ void CCommentsFile::GetRotation(double& _Rotation)
 	_Rotation = Rotation;
 }
 
-BEGIN_MESSAGE_MAP(CCommentsFile, CDialogBar)
+BEGIN_MESSAGE_MAP(CCommentsFile, CPaneDialog)
 	//{{AFX_MSG_MAP(CCommentsFile)
     ON_EN_CHANGE(IDE_comments_info, OnChangeComments)
     ON_EN_CHANGE(IDE_scalefactor, OnChangeScaleFactor)
