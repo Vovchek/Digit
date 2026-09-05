@@ -828,6 +828,13 @@ void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag)
             
             // Apply rotation delta
             double deltaAngle = newAngle - initialAngle;
+
+            // Snap to 15° increments if shift key held
+            if (drag.shiftKey) {
+                constexpr double snapStep = 15.0 * M_PI / 180.0;
+                deltaAngle = std::round(deltaAngle / snapStep) * snapStep;
+            }
+
             rotationRad_ += deltaAngle;
             rotationDeg_ = rotationRad_ * 180.0 / M_PI;
             

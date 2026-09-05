@@ -325,18 +325,29 @@ void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& dra
             // Calculate angle from center to current drag position
             double dx = drag.dragCurrentWorld.x - center_.x;
             double dy = drag.dragCurrentWorld.y - center_.y;
-            double angleRad = std::atan2(dy, dx);  // atan2(x,y) for +Y = up in shape space
-            
-            double angleDeg = angleRad * 180.0 / M_PI;
-            
-            // Apply snap if Shift is pressed (15° increments per review)
+            double newAngle = std::atan2(dy, dx);
+
+            // Initial angle from center to drag start
+            double dx0 = drag.dragStartWorld.x - center_.x;
+            double dy0 = drag.dragStartWorld.y - center_.y;
+            double initialAngle = std::atan2(dy0, dx0);
+
+            // Apply rotation delta
+            double deltaAngle = newAngle - initialAngle;
+
+            // Snap to 15° increments if shift key held
             if (drag.shiftKey) {
-                double snapStep = 15.0;
-                angleDeg = std::round(angleDeg / snapStep) * snapStep;
+                constexpr double snapStep = 15.0 * M_PI / 180.0;
+                deltaAngle = std::round(deltaAngle / snapStep) * snapStep;
             }
-            
-            rotationDeg_ = angleDeg;
-            rotationRad_ = angleDeg * M_PI / 180.0;
+
+            rotationRad_ += deltaAngle;
+            rotationDeg_ = rotationRad_ * 180.0 / M_PI;
+
+            // Normalize to [0, 360)
+            while (rotationDeg_ < 0.0) rotationDeg_ += 360.0;
+            while (rotationDeg_ >= 360.0) rotationDeg_ -= 360.0;
+
             updateRotationCache();
             break;
         }
