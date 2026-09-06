@@ -5,7 +5,7 @@
  * The Shape base class is an abstract interface: most behavior is implemented
  * by concrete subclasses. Lightweight helper methods that are safe to
  * implement in a header are provided as inline NVI functions. For example,
- * `HandleHit()` is implemented inline in `Shape.h` and uses the pure virtual
+ * `handleHit()` is implemented inline in `Shape.h` and uses the pure virtual
  * `EnumerateHandles()` to perform handle hit-testing.
  *
  * This translation unit intentionally contains no out-of-line definitions.

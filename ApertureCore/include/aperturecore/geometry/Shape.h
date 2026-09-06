@@ -966,26 +966,23 @@ public:
      * @brief Hit-test handles exposed by the shape
      * @param point Point in shape-local coordinates to test against handle positions
      * @param tolerance Maximum distance to consider a hit (same units as Point)
-     * @return HandleDesc describing the hit handle. If no handle is within
-     *         tolerance, a default-constructed HandleDesc is returned. Callers
-     *         should check the returned descriptor (for example by comparing
-     *         the distance between returned.localPos and `point`) to determine
-     *         whether a real hit was found.
+     * @param handle Output parameter filled with the nearest hit handle
+     *               descriptor when a hit is found
+     * @return true if a handle is found within `tolerance`, false otherwise
      *
      * @details
      * This is a non-virtual convenience (NVI) method implemented in the
-     * base class. It enumerates the shape's handles via `EnumerateHandles()`
+     * base class. It enumerates the shape's handles via `enumerateHandles()`
      * and performs a simple radius-based hit test using `tolerance`.
      *
      * The method intentionally does not perform any coordinate system
      * conversions or screen-space transforms - it operates in the same
-     * local coordinate space used by `EnumerateHandles()`.
+     * local coordinate space used by `enumerateHandles()`.
      *
      * Example:
      * @code{.cpp}
-     * std::vector<HandleDesc> tmp;
-     * HandleDesc hit = shape->HandleHit(point, 2.0);
-     * if (hit.localPos.distanceTo(point) <= 2.0) {
+     * HandleDesc hit;
+     * if (shape->handleHit(point, 2.0, hit)) {
      *     // A handle was hit
      * }
      * @endcode
@@ -993,13 +990,13 @@ public:
      * @note The returned HandleDesc is a plain descriptor. It does NOT
      *       represent a runtime handle object and may be copied freely.
      */
-    inline HandleDesc handleHit(const Point& point, double tolerance) const {
+    inline bool handleHit(const Point& point, double tolerance, HandleDesc& handle) const {
         std::vector<HandleDesc> handles;
         enumerateHandles(handles);
         const double tol2 = tolerance * tolerance;
         double best = tol2;
-        HandleDesc result{};
         bool found = false;
+        HandleDesc result{};
         for (const auto& h : handles) {
             double d2 = h.localPos.distanceSquaredTo(point);
             if (d2 <= best) {
@@ -1008,8 +1005,11 @@ public:
                 found = true;
             }
         }
-        // If not found, result is default-constructed. Caller must verify.
-        return result;
+        if (found) {
+            handle = result;
+            return true;
+        }
+        return false;
     }
     
     /**
