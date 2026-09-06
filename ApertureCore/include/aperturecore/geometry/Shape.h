@@ -961,6 +961,56 @@ public:
      * @see shapes_handles.md - complete UX specification
      */
     virtual void EnumerateHandles(std::vector<HandleDesc>& out) const = 0;
+
+    /**
+     * @brief Hit-test handles exposed by the shape
+     * @param point Point in shape-local coordinates to test against handle positions
+     * @param tolerance Maximum distance to consider a hit (same units as Point)
+     * @return HandleDesc describing the hit handle. If no handle is within
+     *         tolerance, a default-constructed HandleDesc is returned. Callers
+     *         should check the returned descriptor (for example by comparing
+     *         the distance between returned.localPos and `point`) to determine
+     *         whether a real hit was found.
+     *
+     * @details
+     * This is a non-virtual convenience (NVI) method implemented in the
+     * base class. It enumerates the shape's handles via `EnumerateHandles()`
+     * and performs a simple radius-based hit test using `tolerance`.
+     *
+     * The method intentionally does not perform any coordinate system
+     * conversions or screen-space transforms - it operates in the same
+     * local coordinate space used by `EnumerateHandles()`.
+     *
+     * Example:
+     * @code{.cpp}
+     * std::vector<HandleDesc> tmp;
+     * HandleDesc hit = shape->HandleHit(point, 2.0);
+     * if (hit.localPos.distanceTo(point) <= 2.0) {
+     *     // A handle was hit
+     * }
+     * @endcode
+     *
+     * @note The returned HandleDesc is a plain descriptor. It does NOT
+     *       represent a runtime handle object and may be copied freely.
+     */
+    inline HandleDesc HandleHit(const Point& point, double tolerance) const {
+        std::vector<HandleDesc> handles;
+        EnumerateHandles(handles);
+        const double tol2 = tolerance * tolerance;
+        double best = tol2;
+        HandleDesc result{};
+        bool found = false;
+        for (const auto& h : handles) {
+            double d2 = h.localPos.distanceSquaredTo(point);
+            if (d2 <= best) {
+                best = d2;
+                result = h;
+                found = true;
+            }
+        }
+        // If not found, result is default-constructed. Caller must verify.
+        return result;
+    }
     
     /**
      * @brief Apply handle drag to update shape geometry
