@@ -53,12 +53,12 @@ std::unique_ptr<aperture::Shape> DraftShape::ToShape() const {
         
         case Kind::Ellipse: {
             // General ellipse fit (no circular constraint) (UX Spec §2.2)
-            return aperture::Ellipse::FitEllipse(perimeterPoints, type);
+            return aperture::Ellipse::fitEllipse(perimeterPoints, type);
         }
         
         case Kind::Circle: {
             // Constrained circle fit (equal radii enforced) (UX Spec §2.3)
-            return aperture::Ellipse::FitCircle(perimeterPoints, type);
+            return aperture::Ellipse::fitCircle(perimeterPoints, type);
         }
         
         case Kind::Polygon: {
@@ -131,7 +131,7 @@ std::unique_ptr<aperture::Shape> DraftShape::GetPreview() {
             if (n > 5) {
                 perimeterPoints.erase(perimeterPoints.begin() + 4, perimeterPoints.begin() + n - 1);
             }
-            return aperture::Ellipse::FitEllipse(perimeterPoints, type);
+            return aperture::Ellipse::fitEllipse(perimeterPoints, type);
         }
         
         case Kind::Circle: {
@@ -140,7 +140,7 @@ std::unique_ptr<aperture::Shape> DraftShape::GetPreview() {
                 return nullptr;
             }
             // Show current LSM circle fit
-            return aperture::Ellipse::FitCircle(perimeterPoints, type);
+            return aperture::Ellipse::fitCircle(perimeterPoints, type);
         }
         
         case Kind::Polygon: {

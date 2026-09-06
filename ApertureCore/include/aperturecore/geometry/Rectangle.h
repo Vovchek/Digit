@@ -858,7 +858,7 @@ public:
      * @see Shape::EnumerateHandles()
      * @see shapes_handles.md §3 - Rectangle handles specification
      */
-    void EnumerateHandles(std::vector<HandleDesc>& out) const override;
+    void enumerateHandles(std::vector<HandleDesc>& out) const override;
     
     /**
      * @brief Apply handle drag to update rectangle geometry
@@ -877,7 +877,7 @@ public:
      * @see Shape::ApplyHandleDrag()
      * @see shapes_handles.md §3.1 - Rectangle resize modifiers
      */
-    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
+    void applyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
     
     // Coordinate transformation interface implementation
 

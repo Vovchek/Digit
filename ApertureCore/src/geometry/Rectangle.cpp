@@ -254,7 +254,7 @@ void Rectangle::shiftY(double deltaY) {
 // Handle Enumeration (Interactive Editing - UX spec §3)
 // ========================================================================
 
-void Rectangle::EnumerateHandles(std::vector<HandleDesc>& out) const {
+void Rectangle::enumerateHandles(std::vector<HandleDesc>& out) const {
     // §2.1, §3.2 - Move handle at centroid
     out.push_back(HandleDesc{HandleType::Move, -1, center_});
     
@@ -313,7 +313,7 @@ void Rectangle::EnumerateHandles(std::vector<HandleDesc>& out) const {
     }
 }
 
-void Rectangle::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+void Rectangle::applyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
     switch (handle.type) {
         case HandleType::Move:
             // Simple translation

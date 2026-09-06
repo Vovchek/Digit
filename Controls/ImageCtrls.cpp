@@ -62,12 +62,12 @@ CImageCtrls& CImageCtrls::operator=(const CImageCtrls& rhs)
     return *this;
 }
 
-const unsigned char* CImageCtrls::GetBitmapData() const
+const unsigned char* CImageCtrls::getBitmapData() const
 {
     return m_pDIB ? m_pDIB->m_lpSrcBits : nullptr;
 }
 
-unsigned char CImageCtrls::GetPixel(int x, int y) const
+unsigned char CImageCtrls::getPixel(int x, int y) const
 {
     if (!m_pDIB) {
         return 0;

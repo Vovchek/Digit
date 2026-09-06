@@ -334,7 +334,7 @@ public:
      * @note Result is always a valid circle (possibly degenerate)
      * @see FitEllipse - Fit general ellipse (no circular constraint)
      */
-    static std::unique_ptr<Ellipse> FitCircle(
+    static std::unique_ptr<Ellipse> fitCircle(
         const std::vector<Point>& points,
         TypeLimits typeLimits = TypeLimits::EXTERNAL,
         CoordinateSystem spatialSystem = CoordinateSystem::screen(),
@@ -382,7 +382,7 @@ public:
      * @note Works with 3-4 points but may produce degenerate fit
      * @see FitCircle - Constrained fit for circles only
      */
-    static std::unique_ptr<Ellipse> FitEllipse(
+    static std::unique_ptr<Ellipse> fitEllipse(
         const std::vector<Point>& points,
         TypeLimits typeLimits = TypeLimits::EXTERNAL,
         CoordinateSystem spatialSystem = CoordinateSystem::screen(),
@@ -869,7 +869,7 @@ public:
      * @see Shape::EnumerateHandles()
      * @see shapes_handles.md §4 - Ellipse handles specification
      */
-    void EnumerateHandles(std::vector<HandleDesc>& out) const override;
+    void enumerateHandles(std::vector<HandleDesc>& out) const override;
     
     /**
      * @brief Apply handle drag to update ellipse geometry
@@ -887,7 +887,7 @@ public:
      * @see Shape::ApplyHandleDrag()
      * @see shapes_handles.md §4.1 - Ellipse axis resize
      */
-    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
+    void applyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
 
 private:
     double semiMajor_;      ///< Semi-major axis (A) - larger radius

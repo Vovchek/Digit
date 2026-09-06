@@ -28,12 +28,12 @@ public:
         , m_version(1)
     {}
     
-    bool HasImage() const override { return true; }
-    int GetWidth() const override { return m_width; }
-    int GetHeight() const override { return m_height; }
-    const unsigned char* GetBitmapData() const override { return nullptr; }
-    unsigned char GetPixel(int, int) const override { return 0; }
-    uint64_t GetImageVersion() const override { return m_version; }
+    bool hasImage() const override { return true; }
+    int getWidth() const override { return m_width; }
+    int getHeight() const override { return m_height; }
+    const unsigned char* getBitmapData() const override { return nullptr; }
+    unsigned char getPixel(int, int) const override { return 0; }
+    uint64_t getImageVersion() const override { return m_version; }
     
     void SetDimensions(int width, int height) {
         m_width = width;

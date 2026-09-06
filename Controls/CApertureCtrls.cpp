@@ -261,7 +261,7 @@ int CApertureCtrls::HitTestControlPoints(
     
     // Enumerate all handles for this shape
     std::vector<aperture::HandleDesc> handles;
-    shape->EnumerateHandles(handles);
+    shape->enumerateHandles(handles);
     
     // Find the closest handle within tolerance
     int closestHandleIndex = -1;

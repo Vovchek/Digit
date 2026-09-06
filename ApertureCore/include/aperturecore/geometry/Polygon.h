@@ -1089,7 +1089,7 @@ public:
      * @note EdgeMidpoint handles deferred to v2
      * @see ApplyHandleDrag() - Apply drag operations
      */
-    void EnumerateHandles(std::vector<HandleDesc>& handles) const override;
+    void enumerateHandles(std::vector<HandleDesc>& handles) const override;
     
     /**
      * @brief Apply handle drag to mutate polygon geometry
@@ -1106,7 +1106,7 @@ public:
      * @note Preview-only; command commits changes
      * @see EnumerateHandles() - Handle enumeration
      */
-    void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
+    void applyHandleDrag(const HandleDesc& handle, const DragContext& drag) override;
 
 private:
     std::vector<Point> vertices_;  ///< Polygon vertices (ordered, closed implicitly)

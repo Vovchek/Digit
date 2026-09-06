@@ -391,7 +391,7 @@ void CImageView::OnInitialUpdate()
 void CImageView::CenterImageInView()
 {
 	CImageCtrls* pImage = GetImageCtrls(this);
-	if (!pImage || !pImage->HasImage()) return;
+	if (!pImage || !pImage->hasImage()) return;
 
 	CRect imgRect = pImage->GetDIBRect();
 	if (imgRect.IsRectEmpty()) return;
@@ -1195,7 +1195,7 @@ void CImageView::OnUpdateAutoDigit(CCmdUI* pCmdUI)
 	//pB->GetExtCorBound(pB->ExtBoundType, xDIB, yDIB, BoundR, FALSE, TRUE);
 	// CImageCtrls* pI = GetImageCtrls();
 	auto* pA = GetApertureCtrls();
-	if (!GetImageCtrls()->HasImage() || pA->GetShapes().getApertures().empty())
+	if (!GetImageCtrls()->hasImage() || pA->GetShapes().getApertures().empty())
 		pCmdUI->Enable(FALSE);
 	else
 		pCmdUI->Enable(TRUE);
@@ -1336,7 +1336,7 @@ void CImageView::SingleIsoline(int pn, ISO_POINT* plist, double level, int ileve
 
 void CImageView::OnAddBoundCircle()
 {
-	if (!GetImageCtrls()->HasImage())
+	if (!GetImageCtrls()->hasImage())
 		return;
 
 	ActivateBoundsTool();
@@ -1351,7 +1351,7 @@ void CImageView::OnAddBoundCircle()
 void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 {
 	// Enable only when we have an image
-	bool hasImage = GetImageCtrls()->HasImage();
+	bool hasImage = GetImageCtrls()->hasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) {
 		pCmdUI->SetRadio(FALSE);
@@ -1394,7 +1394,7 @@ void CImageView::OnUpdateAddBound(CCmdUI* pCmdUI)
 
 void CImageView::OnAddBoundEllipse()
 {
-    if (!GetImageCtrls()->HasImage())
+    if (!GetImageCtrls()->hasImage())
 		return;
 
 	ActivateBoundsTool();
@@ -1407,7 +1407,7 @@ void CImageView::OnAddBoundEllipse()
 }
 void CImageView::OnAddBoundRect()
 {
-    if (!GetImageCtrls()->HasImage())
+    if (!GetImageCtrls()->hasImage())
 		return;
 
 	ActivateBoundsTool();
@@ -1420,7 +1420,7 @@ void CImageView::OnAddBoundRect()
 }
 void CImageView::OnAddBoundPolygon()
 {
-    if (!GetImageCtrls()->HasImage())
+    if (!GetImageCtrls()->hasImage())
 		return;
 
 	ActivateBoundsTool();
@@ -1455,7 +1455,7 @@ void CImageView::OnBoundVisisbility()
 }
 void CImageView::OnUpdateBoundVisibility(CCmdUI* pCmdUI)
 {
-	bool hasImage = GetImageCtrls()->HasImage();
+	bool hasImage = GetImageCtrls()->hasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage)
 		return;
@@ -1481,7 +1481,7 @@ void CImageView::OnBoundModeSelect()
 }
 void CImageView::OnUpdateBoundModeSelect(CCmdUI* pCmdUI)
 {
-	bool hasImage = GetImageCtrls()->HasImage();
+	bool hasImage = GetImageCtrls()->hasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
@@ -1501,7 +1501,7 @@ void CImageView::OnBoundModeDelete()
 }
 void CImageView::OnUpdateBoundModeDelete(CCmdUI* pCmdUI)
 {
-	bool hasImage = GetImageCtrls()->HasImage();
+	bool hasImage = GetImageCtrls()->hasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 
@@ -1530,7 +1530,7 @@ void CImageView::OnFringesEdit()
 // TODO: consider fringes drawing mode swithing scenarios
 void CImageView::OnUpdateFringesEdit(CCmdUI *pCmdUI)
 {
-	bool hasImage = GetImageCtrls()->HasImage();
+	bool hasImage = GetImageCtrls()->hasImage();
 	pCmdUI->Enable(hasImage ? TRUE : FALSE);
 	if (!hasImage) { pCmdUI->SetRadio(FALSE); return; }
 	bool fringesToolActive = (GetInteractionManager().GetActiveTool() == m_fringeToolAdapter);

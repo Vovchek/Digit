@@ -25,12 +25,12 @@ using namespace aperture;
 // ============================================================================
 class ImageDataMock : public IImageData {
     public:
-    bool HasImage() const override { return true; }
-    int GetWidth() const override { return 800; }
-    int GetHeight() const override { return 600; }
-    const unsigned char* GetBitmapData() const override { return nullptr; }
-    unsigned char GetPixel(int, int) const override { return 0; }
-    uint64_t GetImageVersion() const override { return 1; }  // Always valid
+    bool hasImage() const override { return true; }
+    int getWidth() const override { return 800; }
+    int getHeight() const override { return 600; }
+    const unsigned char* getBitmapData() const override { return nullptr; }
+    unsigned char getPixel(int, int) const override { return 0; }
+    uint64_t getImageVersion() const override { return 1; }  // Always valid
 };
 
 class BoundsHandlerPhase2Test : public ::testing::Test {

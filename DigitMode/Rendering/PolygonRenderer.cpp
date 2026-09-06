@@ -113,7 +113,7 @@ void PolygonRenderer::DrawHandles(
     
     // Enumerate all handles (one per vertex)
     std::vector<aperture::HandleDesc> handles;
-    polygon.EnumerateHandles(handles);
+    polygon.enumerateHandles(handles);
     
     // Draw each handle
     for (size_t i = 0; i < handles.size(); ++i) {

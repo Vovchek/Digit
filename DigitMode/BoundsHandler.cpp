@@ -255,14 +255,14 @@ void BoundsHandler::UpdateDrag(const CPoint& screenCurrent)
     
     // Enumerate handles and apply drag based on controlPointIndex
     std::vector<aperture::HandleDesc> handles;
-    m_previewShape->EnumerateHandles(handles);
+    m_previewShape->enumerateHandles(handles);
 
     if (m_dragControlPointIndex >= 0 && static_cast<size_t>(m_dragControlPointIndex) < handles.size()) {
         aperture::HandleDesc& handle = handles[m_dragControlPointIndex];
 
         dragContext.handle = handle;
         // Apply drag transformation to preview shape
-        m_previewShape->ApplyHandleDrag(handle, dragContext);
+        m_previewShape->applyHandleDrag(handle, dragContext);
         m_dragCurrent = screenCurrent;
     }
 

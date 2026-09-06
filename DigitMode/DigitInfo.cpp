@@ -178,10 +178,10 @@ void CDigitInfo::CreateRedCenters()
 
     // RAII guard automatically manages padding state
     CDIBPaddingGuard paddingGuard(pI->m_pDIB);
-    input.bitmapData = pI->GetBitmapData();
+    input.bitmapData = pI->getBitmapData();
 
-    input.imageWidth = pI->GetWidth();
-    input.imageHeight = pI->GetHeight();
+    input.imageWidth = pI->getWidth();
+    input.imageHeight = pI->getHeight();
     auto* maskProvider = &pA->GetMaskProvider();
     input.isVisible = [maskProvider](int x, int y) {
         return maskProvider->getMask().IsVisible(x, y);

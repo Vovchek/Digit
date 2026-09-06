@@ -115,7 +115,7 @@ void RectangleRenderer::DrawHandles(
     
     // Enumerate all handles
     std::vector<aperture::HandleDesc> handles;
-    rect.EnumerateHandles(handles);
+    rect.enumerateHandles(handles);
     
     // Draw each handle
     for (size_t i = 0; i < handles.size(); ++i) {

@@ -41,9 +41,9 @@ public:
         const IImageData& imageProvider)
         : shapes_(shapes)
         , m_imageProvider_(imageProvider)
-        , imageWidth_(imageProvider.GetWidth())
-        , imageHeight_(imageProvider.GetHeight())
-        , imageVersion_(imageProvider.GetImageVersion())  // Start at 1, 0 means invalid
+        , imageWidth_(imageProvider.getWidth())
+        , imageHeight_(imageProvider.getHeight())
+        , imageVersion_(imageProvider.getImageVersion())  // Start at 1, 0 means invalid
         , hasMask_(false)
     {}
     
@@ -52,7 +52,7 @@ public:
      * @return Reference to valid cached mask
      * 
      * Internal logic:
-     * 1. Query ShapeCollection::GetVersion()
+     * 1. Query ShapeCollection::getVersion()
      * 2. Compare with cached version stamps
      * 3. If mismatch OR no mask exists: rebuild using VisibilityMaskBuilder
      * 4. Return cached mask
@@ -61,9 +61,9 @@ public:
      */
     const VisibilityMask& getMask() {
         uint64_t currentShapeVer = shapes_.getVersion();
-        imageWidth_ = m_imageProvider_.GetWidth();
-        imageHeight_ = m_imageProvider_.GetHeight();
-        imageVersion_ = m_imageProvider_.GetImageVersion();
+        imageWidth_ = m_imageProvider_.getWidth();
+        imageHeight_ = m_imageProvider_.getHeight();
+        imageVersion_ = m_imageProvider_.getImageVersion();
 
         // Check if rebuild needed
         bool needRebuild = !hasMask_ ||

@@ -960,7 +960,7 @@ public:
      * @see ApplyHandleDrag() - responds to handle drag
      * @see shapes_handles.md - complete UX specification
      */
-    virtual void EnumerateHandles(std::vector<HandleDesc>& out) const = 0;
+    virtual void enumerateHandles(std::vector<HandleDesc>& out) const = 0;
 
     /**
      * @brief Hit-test handles exposed by the shape
@@ -993,9 +993,9 @@ public:
      * @note The returned HandleDesc is a plain descriptor. It does NOT
      *       represent a runtime handle object and may be copied freely.
      */
-    inline HandleDesc HandleHit(const Point& point, double tolerance) const {
+    inline HandleDesc handleHit(const Point& point, double tolerance) const {
         std::vector<HandleDesc> handles;
-        EnumerateHandles(handles);
+        enumerateHandles(handles);
         const double tol2 = tolerance * tolerance;
         double best = tol2;
         HandleDesc result{};
@@ -1090,7 +1090,7 @@ public:
      * @see HandleDesc, DragContext
      * @see shapes_handles.md §8 - mouse interaction lifecycle
      */
-    virtual void ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) = 0;
+    virtual void applyHandleDrag(const HandleDesc& handle, const DragContext& drag) = 0;
     
     // TypeLimits management
     

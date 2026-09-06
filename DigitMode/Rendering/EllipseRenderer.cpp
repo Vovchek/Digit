@@ -229,7 +229,7 @@ void EllipseRenderer::DrawHandles(
     
     // Enumerate all handles
     std::vector<aperture::HandleDesc> handles;
-    ellipse.EnumerateHandles(handles);
+    ellipse.enumerateHandles(handles);
     
     // Draw each handle
     for (size_t i = 0; i < handles.size(); ++i) {

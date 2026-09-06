@@ -32,13 +32,13 @@ public:
      * Get the image dimensions
      * @return Size of the image in pixels
      */
-    virtual bool HasImage() const = 0;
-    virtual int GetWidth() const = 0;
-    virtual int GetHeight() const = 0;
+    virtual bool hasImage() const = 0;
+    virtual int getWidth() const = 0;
+    virtual int getHeight() const = 0;
 
-    virtual const unsigned char* GetBitmapData() const = 0;
-    virtual unsigned char GetPixel(int x, int y) const = 0;
+    virtual const unsigned char* getBitmapData() const = 0;
+    virtual unsigned char getPixel(int x, int y) const = 0;
 
     // Version increases when image changes
-    virtual uint64_t GetImageVersion() const = 0;
+    virtual uint64_t getImageVersion() const = 0;
 };

@@ -508,7 +508,7 @@ TEST_F(EllipseTest, FitCircle_ThreePoints) {
         {20.0, 50.0}   // Left
     };
     
-    auto circle = Ellipse::FitCircle(points);
+    auto circle = Ellipse::fitCircle(points);
     
     ASSERT_NE(circle, nullptr);
     EXPECT_NEAR(circle->center().x, 50.0, 1.0);
@@ -528,7 +528,7 @@ TEST_F(EllipseTest, FitCircle_FourPointsLSM) {
         {0.0, -9.9}    // Slight error
     };
     
-    auto circle = Ellipse::FitCircle(points);
+    auto circle = Ellipse::fitCircle(points);
     
     ASSERT_NE(circle, nullptr);
     EXPECT_NEAR(circle->center().x, 0.0, 0.5);
@@ -547,7 +547,7 @@ TEST_F(EllipseTest, FitCircle_EnforcesEqualRadii) {
         {0.0, -10.0}
     };
     
-    auto circle = Ellipse::FitCircle(points);
+    auto circle = Ellipse::fitCircle(points);
     
     ASSERT_NE(circle, nullptr);
     // Must be circle (radiusX == radiusY) even if points are elliptical
@@ -562,7 +562,7 @@ TEST_F(EllipseTest, FitCircle_MinimumPoints) {
         {20.0, 20.0}
     };
     
-    auto circle = Ellipse::FitCircle(points);
+    auto circle = Ellipse::fitCircle(points);
     
     ASSERT_NE(circle, nullptr);
     // Degenerate case - exact behavior depends on implementation
@@ -580,7 +580,7 @@ TEST_F(EllipseTest, FitCircle_ManyPoints) {
         });
     }
     
-    auto circle = Ellipse::FitCircle(points);
+    auto circle = Ellipse::fitCircle(points);
     
     ASSERT_NE(circle, nullptr);
     EXPECT_NEAR(circle->center().x, centerX, 1.0);
@@ -593,7 +593,7 @@ TEST_F(EllipseTest, FitCircle_ManyPoints) {
 TEST_F(EllipseTest, FitCircle_TypeLimitsPreserved) {
     std::vector<Point> points = {{10, 0}, {0, 10}, {-10, 0}};
     
-    auto circle = Ellipse::FitCircle(points, TypeLimits::APERTURE);
+    auto circle = Ellipse::fitCircle(points, TypeLimits::APERTURE);
     
     ASSERT_NE(circle, nullptr);
     EXPECT_EQ(circle->getTypeLimits(), TypeLimits::APERTURE);
@@ -613,7 +613,7 @@ TEST_F(EllipseTest, FitEllipse_AllowsDifferentRadii) {
         {10.6, 7.1}    // Additional point on perimeter
     };
     
-    auto ellipse = Ellipse::FitEllipse(points);
+    auto ellipse = Ellipse::fitEllipse(points);
     
     ASSERT_NE(ellipse, nullptr);
     EXPECT_NEAR(ellipse->center().x, 0.0, 1.0);
@@ -632,7 +632,7 @@ TEST_F(EllipseTest, FitEllipse_CircularPoints) {
         {7.07, 7.07}
     };
     
-    auto ellipse = Ellipse::FitEllipse(points);
+    auto ellipse = Ellipse::fitEllipse(points);
     
     ASSERT_NE(ellipse, nullptr);
     // Should be approximately circular
@@ -642,7 +642,7 @@ TEST_F(EllipseTest, FitEllipse_CircularPoints) {
 TEST_F(EllipseTest, FitEllipse_TypeLimitsPreserved) {
     std::vector<Point> points = {{15, 0}, {0, 10}, {-15, 0}, {0, -10}};
     
-    auto ellipse = Ellipse::FitEllipse(points, TypeLimits::INTERNAL);
+    auto ellipse = Ellipse::fitEllipse(points, TypeLimits::INTERNAL);
     
     ASSERT_NE(ellipse, nullptr);
     EXPECT_EQ(ellipse->getTypeLimits(), TypeLimits::INTERNAL);

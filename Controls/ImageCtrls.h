@@ -76,12 +76,12 @@ public:
     CImageCtrls& operator=(const CImageCtrls& rhs);
     
     // IImageData interface implementation
-    bool HasImage() const override { return m_pDIB != nullptr; }
-    int GetWidth() const override { return ImageSize.cx; }
-    int GetHeight() const override { return ImageSize.cy; }
-    const unsigned char* GetBitmapData() const override;
-    unsigned char GetPixel(int x, int y) const override;
-    uint64_t GetImageVersion() const override { return imageVersion_; }
+    bool hasImage() const override { return m_pDIB != nullptr; }
+    int getWidth() const override { return ImageSize.cx; }
+    int getHeight() const override { return ImageSize.cy; }
+    const unsigned char* getBitmapData() const override;
+    unsigned char getPixel(int x, int y) const override;
+    uint64_t getImageVersion() const override { return imageVersion_; }
 
 	// Invalidate the image (e.g., after loading a new image or modifying it)
 	void InvalidateImage() { ++imageVersion_; }

@@ -361,7 +361,7 @@ void Polygon::shiftY(double deltaY) {
     }
 }
 
-void Polygon::EnumerateHandles(std::vector<HandleDesc>& handles) const {
+void Polygon::enumerateHandles(std::vector<HandleDesc>& handles) const {
     if (vertices_.empty()) {
         return;
     }
@@ -396,7 +396,7 @@ void Polygon::EnumerateHandles(std::vector<HandleDesc>& handles) const {
     }
 }
 
-void Polygon::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+void Polygon::applyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
     if (vertices_.empty()) {
         return;
     }

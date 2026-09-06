@@ -756,7 +756,7 @@ Ellipse::Ellipse(const std::vector<Point>& points,
 // Handle Enumeration (Interactive Editing - UX spec §4)
 // ========================================================================
 
-void Ellipse::EnumerateHandles(std::vector<HandleDesc>& out) const {
+void Ellipse::enumerateHandles(std::vector<HandleDesc>& out) const {
     // §2.1, §4.2 - Move handle at center
     out.push_back(HandleDesc{HandleType::Move, -1, center_});
     
@@ -807,7 +807,7 @@ void Ellipse::EnumerateHandles(std::vector<HandleDesc>& out) const {
     out.push_back(HandleDesc{HandleType::AxisResize, 3, minorEnd2, Point{-minorNormal.x, -minorNormal.y}});
 }
 
-void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
+void Ellipse::applyHandleDrag(const HandleDesc& handle, const DragContext& drag) {
     switch (handle.type) {
         case HandleType::Move:
             // Simple translation
@@ -881,7 +881,7 @@ void Ellipse::ApplyHandleDrag(const HandleDesc& handle, const DragContext& drag)
 // (x² + y²) + Ax + By + C = 0
 // Center = (-A/2, -B/2), Radius = sqrt((A² + B²)/4 - C)
 
-std::unique_ptr<Ellipse> Ellipse::FitCircle(
+std::unique_ptr<Ellipse> Ellipse::fitCircle(
     const std::vector<Point>& points,
     TypeLimits typeLimits,
     CoordinateSystem spatialSystem,
@@ -974,7 +974,7 @@ std::unique_ptr<Ellipse> Ellipse::FitCircle(
     );
 }
 
-std::unique_ptr<Ellipse> Ellipse::FitEllipse(
+std::unique_ptr<Ellipse> Ellipse::fitEllipse(
     const std::vector<Point>& points,
     TypeLimits typeLimits,
     CoordinateSystem spatialSystem,
