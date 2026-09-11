@@ -1091,8 +1091,9 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 		);
 		WavefrontFromContours wf(input);
 		WavefrontFromContoursSolver_HorizontalSpline solver;
+		WavefrontFromContoursSolver_DelaunayIDW solverDelaunay;
 
-		auto topogram = wf.run(solver);
+		auto topogram = wf.run(solverDelaunay);
 
 		std::ofstream outMtr(fname);
 		return topogram.saveMtrMatrix(outMtr);

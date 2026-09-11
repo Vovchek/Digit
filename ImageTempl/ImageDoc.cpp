@@ -294,6 +294,20 @@ void CImageDoc::CalcAproximation()
 		topogram.saveMtrMatrix(outMtr);
 	}
 
+	// 2. Cubic spline interpolation
+	{
+		WavefrontFromContoursSolver_DelaunayIDW solver;
+		auto topogram = wf.run(solver);
+
+		auto file = path + "topogram_IDW.txt";
+		std::ofstream out(file);
+		out << topogram;
+		file = path + "topogram_IDW.mtr";
+		std::ofstream outMtr(file);
+		topogram.saveMtrMatrix(outMtr);
+	}
+
+
 	//CControls* pCtrls = GetControls();
 }
 

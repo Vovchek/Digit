@@ -545,6 +545,9 @@
     <ClInclude Include="DigitMode\WavefrontSolver\WavefrontFromContours.h">
       <Filter>Header Files\DigitMode_H</Filter>
     </ClInclude>
+    <ClInclude Include="delaunator-cpp\delaunator-header-only.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="glut32.dll" />

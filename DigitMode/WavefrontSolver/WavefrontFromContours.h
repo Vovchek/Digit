@@ -8,15 +8,13 @@
 #include <limits>
 #include <fstream>
 
-// Save current macro state and undefine conflicting MFC macros for Eigen
-#pragma push_macro("max")
-#pragma push_macro("min")
+// Undefine conflicting MFC macros so standard library min/max remain usable here.
+#ifdef max
 #undef max
+#endif
+#ifdef min
 #undef min
-
-// Restore original macro state
-#pragma pop_macro("max")
-#pragma pop_macro("min")
+#endif
 
 struct WavefrontPrimitivePoint
 {
@@ -29,6 +27,13 @@ struct WavefrontBoundingCircle
 	WavefrontPrimitivePoint center{};
 	double radius = 0.0;
 	bool valid = false;
+};
+
+struct XyzSample
+{
+	double x = 0.0;
+	double y = 0.0;
+	double z = 0.0;
 };
 
 struct WavefrontFromContoursInput
@@ -397,6 +402,17 @@ private:
 	double interpolateAtX(
 		const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
 		double worldX) const;
+};
+
+// Delaunay triangulation + local IDW interpolation solver
+// Treats the fringe points as an irregular 2D mesh and interpolates height locally
+class WavefrontFromContoursSolver_DelaunayIDW : public IWavefrontFromContoursSolver
+{
+public:
+	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;
+
+private:
+	std::vector<XyzSample> prepareSamples(const WavefrontFromContoursContext& ctx) const;
 };
 
 // Horizontal cubic spline interpolation solver

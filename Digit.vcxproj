@@ -235,6 +235,7 @@ ApertureCore.lib         %(AdditionalDependencies)
   <ItemGroup>
     <ClInclude Include="AppDef.h" />
     <ClInclude Include="Controls\CApertureCtrls.h" />
+    <ClInclude Include="delaunator-cpp\delaunator-header-only.hpp" />
     <ClInclude Include="DigitMode\BoundsHandler.h" />
     <ClInclude Include="DigitMode\BoundsInputHandler.h" />
     <ClInclude Include="DigitMode\BoundsToolAdapter.h" />

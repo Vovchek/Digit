@@ -1,7 +1,12 @@
 ﻿#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
 #include <algorithm>
+#include <cmath>
 #include <ctime>
+#include <limits>
+#include <memory>
 #include <random>
+#include <unordered_set>
+#include "./delaunator-cpp/delaunator-header-only.hpp"
 
 namespace
 {
@@ -99,15 +104,132 @@ namespace
 	}
 }
 
-// Save current macro state and undefine conflicting MFC macros for Eigen
-#pragma push_macro("max")
-#pragma push_macro("min")
+// Undefine conflicting MFC macros so standard library min/max remain usable here.
+#ifdef max
 #undef max
+#endif
+#ifdef min
 #undef min
+#endif
 
-// Restore original macro state
-#pragma pop_macro("max")
-#pragma pop_macro("min")
+namespace
+{
+	class BarycentricInterpolator
+	{
+	public:
+		explicit BarycentricInterpolator(std::vector<XyzSample> samples)
+			: points_(std::move(samples))
+		{
+			buildDelaunay();
+		}
+
+		double query(double x, double y) const
+		{
+			if (points_.empty() || !triangulation_)
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const std::size_t triangleCount = triangulation_->triangles.size() / 3u;
+
+			for (std::size_t t = 0; t < triangleCount; ++t)
+			{
+				const std::size_t ia = triangulation_->triangles[3u * t];
+				const std::size_t ib = triangulation_->triangles[3u * t + 1u];
+				const std::size_t ic = triangulation_->triangles[3u * t + 2u];
+
+				const XyzSample& a = points_[ia];
+				const XyzSample& b = points_[ib];
+				const XyzSample& c = points_[ic];
+				const double denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+				if (std::fabs(denom) <= kPositionEps)
+					continue;
+
+				const double w1 = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
+				const double w2 = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
+				const double w3 = 1.0 - w1 - w2;
+				if (w1 >= -kPositionEps && w2 >= -kPositionEps && w3 >= -kPositionEps)
+					return w1 * a.z + w2 * b.z + w3 * c.z;
+			}
+
+			std::size_t nearest = 0u;
+			double bestDist2 = distanceSquared(points_[0], x, y);
+			for (std::size_t i = 1; i < points_.size(); ++i)
+			{
+				const double d2 = distanceSquared(points_[i], x, y);
+				if (d2 < bestDist2)
+				{
+					bestDist2 = d2;
+					nearest = i;
+				}
+			}
+
+			return points_[nearest].z;
+		}
+
+	private:
+		static constexpr double kPositionEps = 1e-9;
+		static constexpr double kExactHitEpsSquared = kPositionEps * kPositionEps;
+		static constexpr std::size_t kTargetNeighborCount = 12u;
+
+		struct CandidateDistance
+		{
+			std::size_t vertex = 0u;
+			double distanceSquared = 0.0;
+		};
+
+		std::vector<XyzSample> points_;
+		double minX_ = 0.0;
+		double minY_ = 0.0;
+		double invWidth_ = 1.0;
+		double invHeight_ = 1.0;
+		std::unique_ptr<delaunator::Delaunator> triangulation_;
+		int visitedTriangle_ = -1;
+
+		static double distanceSquared(const XyzSample& p, double x, double y) noexcept
+		{
+			const double dx = p.x - x;
+			const double dy = p.y - y;
+			return dx * dx + dy * dy;
+		}
+
+		void buildDelaunay()
+		{
+			if (points_.empty())
+			{
+				triangulation_.reset();
+				return;
+			}
+
+			double maxX = points_[0].x;
+			double maxY = points_[0].y;
+			minX_ = points_[0].x;
+			minY_ = points_[0].y;
+
+			for (const auto& p : points_)
+			{
+				if (p.x < minX_) minX_ = p.x;
+				if (p.y < minY_) minY_ = p.y;
+				if (p.x > maxX) maxX = p.x;
+				if (p.y > maxY) maxY = p.y;
+			}
+
+			const double width = maxX - minX_;
+			const double height = maxY - minY_;
+			invWidth_ = width > kPositionEps ? 1.0 / width : 0.0;
+			invHeight_ = height > kPositionEps ? 1.0 / height : 0.0;
+
+			std::vector<double> coords;
+			coords.reserve(points_.size() * 2u);
+			for (auto& p : points_)
+			{
+				coords.push_back(p.x);
+				coords.push_back(p.y);
+			}
+
+			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
+		}
+
+	};
+}
 
 std::pair<std::vector<char>, std::vector<double>>
 WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
@@ -795,6 +917,121 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	result.setScaleFactor(1.0); // already scaled here
 	result.setFiScan(ctx.input_.fiScan_);
 
+	return result;
+}
+
+std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayIDW::prepareSamples(
+	const WavefrontFromContoursContext& ctx) const
+{
+	const double safeScaleFactor = std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0;
+	std::vector<XyzSample> samples;
+	std::size_t sampleEstimate = 0u;
+	for (const auto& fringe : ctx.input_.fringeSegments_)
+		sampleEstimate += fringe.GetPointCount() > 0 ? static_cast<std::size_t>(fringe.GetPointCount()) : 0u;
+	samples.reserve(sampleEstimate);
+
+	for (const auto& fringe : ctx.input_.fringeSegments_)
+	{
+		const double z = fringe.GetNumber() / safeScaleFactor;
+		const int pointCount = fringe.GetPointCount();
+		for (int i = 0; i < pointCount; ++i)
+		{
+			CDPoint p = fringe.GetPoint(i);
+			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(z))
+				continue;
+			samples.push_back(XyzSample{p.x, p.y, z});
+		}
+	}
+
+	if (samples.size() > 1u)
+	{
+		struct SampleAggregate
+		{
+			double x = 0.0;
+			double y = 0.0;
+			double z = 0.0;
+			std::size_t count = 0u;
+		};
+
+		std::sort(samples.begin(), samples.end(), [](const XyzSample& a, const XyzSample& b)
+		{
+			if (a.x != b.x) return a.x < b.x;
+			if (a.y != b.y) return a.y < b.y;
+			return a.z < b.z;
+		});
+
+		std::vector<SampleAggregate> merged;
+		merged.reserve(samples.size());
+		for (const auto& sample : samples)
+		{
+			if (!merged.empty() && merged.back().x == sample.x && merged.back().y == sample.y)
+			{
+				merged.back().z += sample.z;
+				++merged.back().count;
+			}
+			else
+			{
+				merged.push_back(SampleAggregate{sample.x, sample.y, sample.z, 1u});
+			}
+		}
+
+		std::vector<XyzSample> uniqueSamples;
+		uniqueSamples.reserve(merged.size());
+		for (const auto& sample : merged)
+		{
+			uniqueSamples.push_back(XyzSample{
+				sample.x,
+				sample.y,
+				sample.z / static_cast<double>(sample.count)
+			});
+		}
+		samples.swap(uniqueSamples);
+	}
+
+	return samples;
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayIDW::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	int outWidth = 0;
+	int outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+
+	auto mask = ctx.buildMask();
+	std::vector<double> zk(static_cast<std::size_t>(outWidth) * static_cast<std::size_t>(outHeight),
+		std::numeric_limits<double>::quiet_NaN());
+
+	std::vector<XyzSample> samples = prepareSamples(ctx);
+	BarycentricInterpolator interpolator(std::move(samples));
+	const double reverseScale = 1.0 / (std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0);
+
+	for (int row = 0; row < outHeight; ++row)
+	{
+		const double worldY = ctx.yToInput(static_cast<double>(row));
+		const std::size_t rowOffset = static_cast<std::size_t>(row) * static_cast<std::size_t>(outWidth);
+
+		for (int col = 0; col < outWidth; ++col)
+		{
+			const std::size_t idx = rowOffset + static_cast<std::size_t>(col);
+			if (!mask[idx])
+				continue;
+
+			const double worldX = ctx.xToInput(static_cast<double>(col));
+			const double z = interpolator.query(worldX, worldY);
+			if (std::isfinite(z))
+				zk[idx] = z * reverseScale;
+		}
+	}
+
+	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setBounds(outputBounds);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setScaleFactor(1.0);
+	result.setFiScan(ctx.input_.fiScan_);
 	return result;
 }
 
