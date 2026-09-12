@@ -1,9 +1,11 @@
 ﻿#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
 #include <algorithm>
+#include <array>
 #include <cmath>
 #include <ctime>
 #include <limits>
 #include <memory>
+#include <optional>
 #include <random>
 #include <unordered_set>
 #include "./delaunator-cpp/delaunator-header-only.hpp"
@@ -125,29 +127,38 @@ namespace
 
 		double query(double x, double y) const
 		{
-			if (points_.empty() || !triangulation_)
+			if (points_.empty())
 				return std::numeric_limits<double>::quiet_NaN();
 
-			const std::size_t triangleCount = triangulation_->triangles.size() / 3u;
-
-			for (std::size_t t = 0; t < triangleCount; ++t)
+			if (triangulation_)
 			{
-				const std::size_t ia = triangulation_->triangles[3u * t];
-				const std::size_t ib = triangulation_->triangles[3u * t + 1u];
-				const std::size_t ic = triangulation_->triangles[3u * t + 2u];
+				const std::size_t triangleCount = triangulation_->triangles.size() / 3u;
+				if (visitedTriangle_ != delaunator::INVALID_INDEX && visitedTriangle_ < triangleCount)
+				{
+					if (const auto z = interpolate(x, y, visitedTriangle_))
+						return *z;
 
-				const XyzSample& a = points_[ia];
-				const XyzSample& b = points_[ib];
-				const XyzSample& c = points_[ic];
-				const double denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
-				if (std::fabs(denom) <= kPositionEps)
-					continue;
+					for (const std::size_t adjacentTriangle : trianglesAdjacentToTriangle(visitedTriangle_))
+					{
+						if (adjacentTriangle == delaunator::INVALID_INDEX)
+							continue;
 
-				const double w1 = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
-				const double w2 = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
-				const double w3 = 1.0 - w1 - w2;
-				if (w1 >= -kPositionEps && w2 >= -kPositionEps && w3 >= -kPositionEps)
-					return w1 * a.z + w2 * b.z + w3 * c.z;
+						if (const auto z = interpolate(x, y, adjacentTriangle))
+						{
+							visitedTriangle_ = adjacentTriangle;
+							return *z;
+						}
+					}
+				}
+
+				for (std::size_t t = 0; t < triangleCount; ++t)
+				{
+					if (const auto z = interpolate(x, y, t))
+					{
+						visitedTriangle_ = t;
+						return *z;
+					}
+				}
 			}
 
 			std::size_t nearest = 0u;
@@ -167,22 +178,10 @@ namespace
 
 	private:
 		static constexpr double kPositionEps = 1e-9;
-		static constexpr double kExactHitEpsSquared = kPositionEps * kPositionEps;
-		static constexpr std::size_t kTargetNeighborCount = 12u;
-
-		struct CandidateDistance
-		{
-			std::size_t vertex = 0u;
-			double distanceSquared = 0.0;
-		};
 
 		std::vector<XyzSample> points_;
-		double minX_ = 0.0;
-		double minY_ = 0.0;
-		double invWidth_ = 1.0;
-		double invHeight_ = 1.0;
 		std::unique_ptr<delaunator::Delaunator> triangulation_;
-		int visitedTriangle_ = -1;
+		mutable std::size_t visitedTriangle_ = delaunator::INVALID_INDEX;
 
 		static double distanceSquared(const XyzSample& p, double x, double y) noexcept
 		{
@@ -191,35 +190,67 @@ namespace
 			return dx * dx + dy * dy;
 		}
 
+		std::array<std::size_t, 3u> trianglesAdjacentToTriangle(std::size_t triangleIndex) const noexcept
+		{
+			std::array<std::size_t, 3u> adjacentTriangles{
+				delaunator::INVALID_INDEX,
+				delaunator::INVALID_INDEX,
+				delaunator::INVALID_INDEX };
+			if (!triangulation_)
+				return adjacentTriangles;
+
+			const std::size_t edgeOffset = triangleIndex * 3u;
+			for (std::size_t edgeIndex = 0; edgeIndex < adjacentTriangles.size(); ++edgeIndex)
+			{
+				const std::size_t halfedgeIndex = triangulation_->halfedges[edgeOffset + edgeIndex];
+				if (halfedgeIndex != delaunator::INVALID_INDEX)
+					adjacentTriangles[edgeIndex] = halfedgeIndex / 3u;
+			}
+
+			return adjacentTriangles;
+		}
+
+		std::optional<double> interpolate(double x, double y, std::size_t triangleIndex) const
+		{
+			if (!triangulation_)
+				return std::nullopt;
+
+			const std::size_t triangleOffset = triangleIndex * 3u;
+			if (triangleOffset + 2u >= triangulation_->triangles.size())
+				return std::nullopt;
+
+			const std::size_t ia = triangulation_->triangles[triangleOffset];
+			const std::size_t ib = triangulation_->triangles[triangleOffset + 1u];
+			const std::size_t ic = triangulation_->triangles[triangleOffset + 2u];
+
+			const XyzSample& a = points_[ia];
+			const XyzSample& b = points_[ib];
+			const XyzSample& c = points_[ic];
+			const double denom = (b.y - c.y) * (a.x - c.x) + (c.x - b.x) * (a.y - c.y);
+			if (std::fabs(denom) <= kPositionEps)
+				return std::nullopt;
+
+			const double w1 = ((b.y - c.y) * (x - c.x) + (c.x - b.x) * (y - c.y)) / denom;
+			const double w2 = ((c.y - a.y) * (x - c.x) + (a.x - c.x) * (y - c.y)) / denom;
+			const double w3 = 1.0 - w1 - w2;
+			if (w1 < -kPositionEps || w2 < -kPositionEps || w3 < -kPositionEps)
+				return std::nullopt;
+
+			return w1 * a.z + w2 * b.z + w3 * c.z;
+		}
+
 		void buildDelaunay()
 		{
+			visitedTriangle_ = delaunator::INVALID_INDEX;
 			if (points_.empty())
 			{
 				triangulation_.reset();
 				return;
 			}
 
-			double maxX = points_[0].x;
-			double maxY = points_[0].y;
-			minX_ = points_[0].x;
-			minY_ = points_[0].y;
-
-			for (const auto& p : points_)
-			{
-				if (p.x < minX_) minX_ = p.x;
-				if (p.y < minY_) minY_ = p.y;
-				if (p.x > maxX) maxX = p.x;
-				if (p.y > maxY) maxY = p.y;
-			}
-
-			const double width = maxX - minX_;
-			const double height = maxY - minY_;
-			invWidth_ = width > kPositionEps ? 1.0 / width : 0.0;
-			invHeight_ = height > kPositionEps ? 1.0 / height : 0.0;
-
 			std::vector<double> coords;
 			coords.reserve(points_.size() * 2u);
-			for (auto& p : points_)
+			for (const auto& p : points_)
 			{
 				coords.push_back(p.x);
 				coords.push_back(p.y);
