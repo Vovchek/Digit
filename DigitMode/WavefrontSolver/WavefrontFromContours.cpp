@@ -20,6 +20,403 @@ namespace
 		return v * v;
 	}
 
+// Clough-Tocher C1 cubic interpolator based on Delaunay triangulation
+namespace
+{
+	class CloughTocherInterpolator
+	{
+	public:
+		// Accepts samples in original units: X (mm), Y (mm), Z (microns)
+		CloughTocherInterpolator(std::vector<XyzSample> samples)
+			: points_orig_(std::move(samples))
+		{
+			normalizePoints();
+			buildTriangulation();
+			computeTriangleGradients();
+			computeVertexGradients();
+			coeffs_cache_.resize(triangulation_ ? triangulation_->triangles.size() / 3u : 0u);
+		}
+
+		// Query in original units (X mm, Y mm). Returns interpolated Z in microns.
+		double query(double x, double y) const
+		{
+			if (points_norm_.empty() || !triangulation_) return std::numeric_limits<double>::quiet_NaN();
+
+			const double nx = normalizeX(x);
+			const double ny = normalizeY(y);
+
+			// locate containing triangle
+			std::size_t tri = locateContainingTriangle(nx, ny);
+			if (tri == delaunator::INVALID_INDEX)
+			{
+				// fallback: no assumption about the surface outside the convex hull, return NaN
+				return std::numeric_limits<double>::quiet_NaN();
+				// fallback: nearest vertex - this is not a good idea, as it creates discontinuities at the convex hull boundary
+				//std::size_t nearest = findClosestVertex(nx, ny);
+				//return denormalizeZ(points_norm_[nearest].z);
+			}
+
+			// compute or get cached cubic coefficients for this triangle
+			auto& opt = coeffs_cache_[tri];
+			if (!opt.has_value())
+			{
+				std::vector<double> coeffs;
+				if (!buildTriangleCubicCoeffs(tri, coeffs))
+				{
+					// fallback to planar interpolation
+					return interpolatePlane(tri, nx, ny);
+				}
+				opt = std::move(coeffs);
+			}
+
+			const std::vector<double>& c = *opt;
+			const double znorm = evalCubic(c, nx, ny);
+			return denormalizeZ(znorm);
+		}
+
+	private:
+		std::unique_ptr<delaunator::Delaunator> triangulation_;
+		std::vector<XyzSample> points_orig_;
+		std::vector<XyzSample> points_norm_;
+		// per-triangle gradients (dz/dx,dz/dy) in normalized coords
+		std::vector<std::pair<double,double>> tri_gradients_;
+		// per-vertex averaged gradients
+		std::vector<std::pair<double,double>> vert_gradients_;
+		mutable std::vector<std::optional<std::vector<double>>> coeffs_cache_;
+
+		// normalization extents
+		double x_min_ = 0.0, x_max_ = 1.0, x_range_ = 1.0;
+		double y_min_ = 0.0, y_max_ = 1.0, y_range_ = 1.0;
+		double z_min_ = 0.0, z_max_ = 1.0, z_range_ = 1.0;
+
+		void normalizePoints()
+		{
+			if (points_orig_.empty()) return;
+			x_min_ = x_max_ = points_orig_[0].x;
+			y_min_ = y_max_ = points_orig_[0].y;
+			z_min_ = z_max_ = points_orig_[0].z;
+			for (const auto& p : points_orig_)
+			{
+				if (p.x < x_min_) x_min_ = p.x; if (p.x > x_max_) x_max_ = p.x;
+				if (p.y < y_min_) y_min_ = p.y; if (p.y > y_max_) y_max_ = p.y;
+				if (p.z < z_min_) z_min_ = p.z; if (p.z > z_max_) z_max_ = p.z;
+			}
+			x_range_ = (x_max_ - x_min_) > 0.0 ? (x_max_ - x_min_) : 1.0;
+			y_range_ = (y_max_ - y_min_) > 0.0 ? (y_max_ - y_min_) : 1.0;
+			z_range_ = (z_max_ - z_min_) > 0.0 ? (z_max_ - z_min_) : 1.0;
+
+			points_norm_.clear(); points_norm_.reserve(points_orig_.size());
+			for (const auto& p : points_orig_)
+			{
+				XyzSample np;
+				np.x = (p.x - x_min_) / x_range_;
+				np.y = (p.y - y_min_) / y_range_;
+				np.z = (p.z - z_min_) / z_range_;
+				points_norm_.push_back(np);
+			}
+		}
+
+		double normalizeX(double x) const noexcept { return (x - x_min_) / x_range_; }
+		double normalizeY(double y) const noexcept { return (y - y_min_) / y_range_; }
+		double denormalizeZ(double z_norm) const noexcept { return z_norm * z_range_ + z_min_; }
+
+		void buildTriangulation()
+		{
+			if (points_norm_.empty())
+			{
+				triangulation_.reset();
+				return;
+			}
+
+			std::vector<double> coords;
+			coords.reserve(points_norm_.size() * 2u);
+			for (const auto& p : points_norm_)
+			{
+				coords.push_back(p.x);
+				coords.push_back(p.y);
+			}
+
+			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
+		}
+
+		void computeTriangleGradients()
+		{
+			tri_gradients_.clear();
+			if (!triangulation_) return;
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			tri_gradients_.resize(triCount);
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t ia = tri[3*t];
+				const std::size_t ib = tri[3*t+1];
+				const std::size_t ic = tri[3*t+2];
+				const auto& A = points_norm_[ia];
+				const auto& B = points_norm_[ib];
+				const auto& C = points_norm_[ic];
+				// solve [ [Bx-Ax, By-Ay], [Cx-Ax, Cy-Ay] ] * [a;b] = [Bz-Az, Cz-Az]
+				const double m00 = B.x - A.x; const double m01 = B.y - A.y;
+				const double m10 = C.x - A.x; const double m11 = C.y - A.y;
+				const double rhs0 = B.z - A.z; const double rhs1 = C.z - A.z;
+				const double det = m00 * m11 - m01 * m10;
+				if (std::fabs(det) < 1e-15)
+				{
+					tri_gradients_[t] = {0.0, 0.0};
+				}
+				else
+				{
+					const double a = ( rhs0 * m11 - m01 * rhs1) / det; // dz/dx
+					const double b = ( m00 * rhs1 - rhs0 * m10) / det; // dz/dy
+					tri_gradients_[t] = {a, b};
+				}
+			}
+		}
+
+		void computeVertexGradients()
+		{
+			vert_gradients_.clear();
+			vert_gradients_.resize(points_norm_.size(), {0.0, 0.0});
+			if (!triangulation_) return;
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			std::vector<double> weightSum(points_norm_.size(), 0.0);
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t ia = tri[3*t];
+				const std::size_t ib = tri[3*t+1];
+				const std::size_t ic = tri[3*t+2];
+				const auto& A = points_norm_[ia];
+				const auto& B = points_norm_[ib];
+				const auto& C = points_norm_[ic];
+				// triangle area (normalized coords)
+				const double area = std::abs((B.x - A.x)*(C.y - A.y) - (B.y - A.y)*(C.x - A.x)) * 0.5;
+				const auto g = tri_gradients_[t];
+				// weight by area
+				vert_gradients_[ia].first += g.first * area; vert_gradients_[ia].second += g.second * area; weightSum[ia] += area;
+				vert_gradients_[ib].first += g.first * area; vert_gradients_[ib].second += g.second * area; weightSum[ib] += area;
+				vert_gradients_[ic].first += g.first * area; vert_gradients_[ic].second += g.second * area; weightSum[ic] += area;
+			}
+			for (std::size_t i = 0; i < vert_gradients_.size(); ++i)
+			{
+				if (weightSum[i] > 0.0)
+				{
+					vert_gradients_[i].first /= weightSum[i];
+					vert_gradients_[i].second /= weightSum[i];
+				}
+			}
+		}
+
+		// Locate triangle containing (nx,ny) by walking triangles (start from cached triangle if any)
+		mutable std::size_t cachedTriangle_ = delaunator::INVALID_INDEX;
+		std::size_t locateContainingTriangle(double nx, double ny) const
+		{
+			if (!triangulation_) return delaunator::INVALID_INDEX;
+			const auto& tri = triangulation_->triangles;
+			const auto& half = triangulation_->halfedges;
+			const std::size_t triCount = tri.size() / 3u;
+
+			std::size_t t = (cachedTriangle_ != delaunator::INVALID_INDEX) ? cachedTriangle_ : 0u;
+			// cap iterations
+			for (std::size_t iter = 0; iter < triCount; ++iter)
+			{
+				const std::size_t ia = tri[3*t];
+				const std::size_t ib = tri[3*t+1];
+				const std::size_t ic = tri[3*t+2];
+				const auto& A = points_norm_[ia];
+				const auto& B = points_norm_[ib];
+				const auto& C = points_norm_[ic];
+				double l1, l2, l3;
+				if (barycentricCoords(A.x,A.y,B.x,B.y,C.x,C.y,nx,ny,l1,l2,l3))
+				{
+					if (l1 >= -1e-12 && l2 >= -1e-12 && l3 >= -1e-12)
+					{
+						cachedTriangle_ = t; return t;
+					}
+					// choose adjacent triangle opposite the most negative barycentric
+					// vertex 0 -> opposite edge index 1, vertex 1 -> opposite edge index 2, vertex 2 -> opposite edge index 0
+					std::size_t smallest = 0;
+					if (l2 < l1 && l2 < l3) smallest = 1;
+					else if (l3 < l1 && l3 < l2) smallest = 2;
+					const std::size_t edgeIndex = (smallest + 1) % 3; // mapping to edge opposite the vertex
+					const std::size_t e = 3 * t + edgeIndex;
+					const std::size_t opp = half[e];
+					if (opp == delaunator::INVALID_INDEX) break;
+					t = opp / 3u; continue;
+				}
+				else
+				{
+					// degenerate triangle: advance
+					t = (t + 1) % triCount;
+				}
+			}
+			return delaunator::INVALID_INDEX;
+		}
+
+		// compute barycentric
+		static bool barycentricCoords(double x1,double y1,double x2,double y2,double x3,double y3,double x,double y,
+									  double& l1,double& l2,double& l3)
+		{
+			const double det = (y2 - y3)*(x1 - x3) + (x3 - x2)*(y1 - y3);
+			if (std::fabs(det) < 1e-18) return false;
+			l1 = ((y2 - y3)*(x - x3) + (x3 - x2)*(y - y3)) / det;
+			l2 = ((y3 - y1)*(x - x3) + (x1 - x3)*(y - y3)) / det;
+			l3 = 1.0 - l1 - l2;
+			return true;
+		}
+
+		// find closest vertex by simple linear scan (could be optimized)
+		std::size_t findClosestVertex(double nx, double ny) const
+		{
+			double best = std::numeric_limits<double>::infinity();
+			std::size_t besti = 0u;
+			for (std::size_t i = 0; i < points_norm_.size(); ++i)
+			{
+				const double dx = points_norm_[i].x - nx;
+				const double dy = points_norm_[i].y - ny;
+				const double d2 = dx*dx + dy*dy;
+				if (d2 < best) { best = d2; besti = i; }
+			}
+			return besti;
+		}
+
+		// build cubic coefficients for triangle using Hermite constraints (values and gradients at vertices + centroid value)
+		bool buildTriangleCubicCoeffs(std::size_t triIndex, std::vector<double>& outCoeffs) const
+		{
+			const auto& tri = triangulation_->triangles;
+			const std::size_t ia = tri[3*triIndex];
+			const std::size_t ib = tri[3*triIndex+1];
+			const std::size_t ic = tri[3*triIndex+2];
+			const auto& A = points_norm_[ia];
+			const auto& B = points_norm_[ib];
+			const auto& C = points_norm_[ic];
+
+			// centroid and its z (use average z)
+			const double cx = (A.x + B.x + C.x) / 3.0;
+			const double cy = (A.y + B.y + C.y) / 3.0;
+			const double cz = (A.z + B.z + C.z) / 3.0;
+
+			// Build 10x10 linear system A * coeffs = b
+			const int N = 10;
+			std::vector<double> M(N*N, 0.0);
+			std::vector<double> b(N, 0.0);
+
+			auto setRow = [&](int row, double x, double y, double val)
+			{
+				double xv[10] = {1.0, x, y, x*x, x*y, y*y, x*x*x, x*x*y, x*y*y, y*y*y};
+				for (int j = 0; j < N; ++j) M[row*N + j] = xv[j];
+				b[row] = val;
+			};
+
+			auto setRowDx = [&](int row, double x, double y, double val)
+			{
+				// derivative wrt x
+				double xv[10] = {0.0, 1.0, 0.0, 2.0*x, y, 0.0, 3.0*x*x, 2.0*x*y, y*y, 0.0};
+				for (int j = 0; j < N; ++j) M[row*N + j] = xv[j];
+				b[row] = val;
+			};
+
+			auto setRowDy = [&](int row, double x, double y, double val)
+			{
+				// derivative wrt y
+				double xv[10] = {0.0, 0.0, 1.0, 0.0, x, 2.0*y, 0.0, x*x, 2.0*x*y, 3.0*y*y};
+				for (int j = 0; j < N; ++j) M[row*N + j] = xv[j];
+				b[row] = val;
+			};
+
+			// Rows: for A,B,C vertices -> value, dx, dy (3*3=9) then centroid value (1) => total 10
+			int row = 0;
+			setRow(row++, A.x, A.y, A.z);
+			setRowDx(row++, A.x, A.y, vert_gradients_[ia].first);
+			setRowDy(row++, A.x, A.y, vert_gradients_[ia].second);
+
+			setRow(row++, B.x, B.y, B.z);
+			setRowDx(row++, B.x, B.y, vert_gradients_[ib].first);
+			setRowDy(row++, B.x, B.y, vert_gradients_[ib].second);
+
+			setRow(row++, C.x, C.y, C.z);
+			setRowDx(row++, C.x, C.y, vert_gradients_[ic].first);
+			setRowDy(row++, C.x, C.y, vert_gradients_[ic].second);
+
+			setRow(row++, cx, cy, cz);
+
+			// Solve linear system
+			std::vector<double> sol;
+			if (!solveLinearSystem(M, b, sol, N)) return false;
+			outCoeffs = std::move(sol);
+			return true;
+		}
+
+		// evaluate cubic polynomial with coeffs vector length 10 at (x,y)
+		static double evalCubic(const std::vector<double>& c, double x, double y)
+		{
+			return c[0] + c[1]*x + c[2]*y + c[3]*x*x + c[4]*x*y + c[5]*y*y
+				 + c[6]*x*x*x + c[7]*x*x*y + c[8]*x*y*y + c[9]*y*y*y;
+		}
+
+		// fallback planar interpolation: compute plane from triangle and evaluate
+		double interpolatePlane(std::size_t triIndex, double x, double y) const
+		{
+			const auto& tri = triangulation_->triangles;
+			const std::size_t ia = tri[3*triIndex];
+			const std::size_t ib = tri[3*triIndex+1];
+			const std::size_t ic = tri[3*triIndex+2];
+			const auto& A = points_norm_[ia];
+			const auto& B = points_norm_[ib];
+			const auto& C = points_norm_[ic];
+			const double m00 = B.x - A.x; const double m01 = B.y - A.y;
+			const double m10 = C.x - A.x; const double m11 = C.y - A.y;
+			const double rhs0 = B.z - A.z; const double rhs1 = C.z - A.z;
+			const double det = m00 * m11 - m01 * m10;
+			if (std::fabs(det) < 1e-15) return denormalizeZ(A.z);
+			const double a = ( rhs0 * m11 - m01 * rhs1) / det; // dz/dx
+			const double b = ( m00 * rhs1 - rhs0 * m10) / det; // dz/dy
+			const double z = A.z + a * (x - A.x) + b * (y - A.y);
+			return denormalizeZ(z);
+		}
+
+		// small linear solver for NxN system using Gaussian elimination with partial pivoting
+		static bool solveLinearSystem(std::vector<double>& A, const std::vector<double>& b, std::vector<double>& x, int N)
+		{
+			// A is N*N row-major, b size N
+			const double eps = 1e-18;
+			std::vector<double> M(A);
+			std::vector<double> rhs(b);
+			x.assign(N, 0.0);
+			for (int i = 0; i < N; ++i)
+			{
+				// find pivot
+				int piv = i;
+				double maxv = std::fabs(M[i*N + i]);
+				for (int r = i+1; r < N; ++r)
+				{
+					double v = std::fabs(M[r*N + i]);
+					if (v > maxv) { maxv = v; piv = r; }
+				}
+				if (maxv < eps) return false;
+				if (piv != i)
+				{
+					for (int c = i; c < N; ++c) std::swap(M[i*N + c], M[piv*N + c]);
+					std::swap(rhs[i], rhs[piv]);
+				}
+				// normalize and eliminate
+				double diag = M[i*N + i];
+				for (int c = i; c < N; ++c) M[i*N + c] /= diag;
+				rhs[i] /= diag;
+				for (int r = 0; r < N; ++r)
+				{
+					if (r == i) continue;
+					double fac = M[r*N + i];
+					if (fac == 0.0) continue;
+					for (int c = i; c < N; ++c) M[r*N + c] -= fac * M[i*N + c];
+					rhs[r] -= fac * rhs[i];
+				}
+			}
+			for (int i = 0; i < N; ++i) x[i] = rhs[i];
+			return true;
+		}
+	};
+}
+
 	double distanceSquared(const WavefrontPrimitivePoint& a, const WavefrontPrimitivePoint& b)
 	{
 		return sqr(a.x - b.x) + sqr(a.y - b.y);
@@ -1196,7 +1593,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	return result;
 }
 
-std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayIDW::prepareSamples(
+std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayCT::prepareSamples(
 	const WavefrontFromContoursContext& ctx) const
 {
 	const double safeScaleFactor = std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0;
@@ -1267,7 +1664,7 @@ std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayIDW::prepareSamples(
 	return samples;
 }
 
-WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayIDW::solve(
+WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayCT::solve(
 	const WavefrontFromContoursContext& ctx) const
 {
 	int outWidth = 0;
@@ -1279,7 +1676,8 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayIDW::solve(
 		std::numeric_limits<double>::quiet_NaN());
 
 	std::vector<XyzSample> samples = prepareSamples(ctx);
-	BarycentricInterpolator interpolator(std::move(samples));
+	CloughTocherInterpolator interpolator(std::move(samples));
+	//BarycentricInterpolator interpolator(std::move(samples));
 	//IDWInterpolator interpolator(std::move(samples));
 	const double reverseScale = 1.0 / (std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0);
 

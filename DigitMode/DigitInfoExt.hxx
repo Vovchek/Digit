@@ -1090,10 +1090,10 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 			GetRotation()
 		);
 		WavefrontFromContours wf(input);
-		WavefrontFromContoursSolver_HorizontalSpline solver;
-		WavefrontFromContoursSolver_DelaunayIDW solverDelaunay;
+		//WavefrontFromContoursSolver_HorizontalSpline solver;
+		WavefrontFromContoursSolver_DelaunayCT solver;
 
-		auto topogram = wf.run(solverDelaunay);
+		auto topogram = wf.run(solver);
 
 		std::ofstream outMtr(fname);
 		return topogram.saveMtrMatrix(outMtr);
