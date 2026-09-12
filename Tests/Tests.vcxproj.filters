@@ -102,6 +102,7 @@
     <ClCompile Include="DigitModeTests\MiddleRefactoringTest.cpp" />
     <ClCompile Include="InterfSolver\Tools\CalcWinFringeBoundCircleTest.cpp" />
     <ClCompile Include="..\DigitMode\WavefrontSolver\WavefrontFromContours.cpp" />
+    <ClCompile Include="DigitModeTests\CloughTocherTests.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h" />
