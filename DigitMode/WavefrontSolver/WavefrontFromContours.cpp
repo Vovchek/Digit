@@ -8,6 +8,7 @@
 #include <optional>
 #include <random>
 #include <unordered_set>
+#include <deque>
 #include "./delaunator-cpp/delaunator-header-only.hpp"
 
 namespace
@@ -259,6 +260,250 @@ namespace
 			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
 		}
 
+	};
+}
+
+// Inverse Distance Weighting interpolator using Delaunay connectivity to gather neighbors
+namespace
+{
+	class IDWInterpolator
+	{
+	public:
+		// samples: X (mm), Y (mm), Z (microns)
+		explicit IDWInterpolator(std::vector<XyzSample> samples, std::size_t K = 12u)
+			: points_orig_(std::move(samples)), K_(K)
+		{
+			normalizePoints();
+			buildTriangulation();
+			buildAdjacency();
+			lastVertex_ = points_norm_.empty() ? delaunator::INVALID_INDEX : 0u;
+		}
+
+		// Query in original units (X mm, Y mm). Returns interpolated Z in microns.
+		double query(double x, double y) const
+		{
+			if (points_norm_.empty())
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const double nx = normalizeX(x);
+			const double ny = normalizeY(y);
+
+			// Find closest vertex via graph walking (greedy descent)
+			std::size_t seed = findClosestVertex(nx, ny);
+
+			// BFS gather K neighbors starting from seed
+			const std::vector<std::size_t> neighbors = gatherKNeighbors(seed, K_);
+			if (neighbors.empty())
+				return std::numeric_limits<double>::quiet_NaN();
+
+			// Compute distances in normalized space and check for exact hit
+			std::vector<double> distances;
+			distances.reserve(neighbors.size());
+			double maxD = 0.0;
+			for (std::size_t vi : neighbors)
+			{
+				const auto& p = points_norm_[vi];
+				const double dx = p.x - nx;
+				const double dy = p.y - ny;
+				const double d = std::sqrt(dx * dx + dy * dy);
+				if (d < 1e-9)
+				{
+					// exact hit: return denormalized Z
+					return denormalizeZ(p.z);
+				}
+				distances.push_back(d);
+				if (d > maxD) maxD = d;
+			}
+
+			if (maxD <= 0.0)
+			{
+				// all at same position - average Z
+				double sumZ = 0.0;
+				for (std::size_t vi : neighbors)
+					sumZ += denormalizeZ(points_norm_[vi].z);
+				return sumZ / static_cast<double>(neighbors.size());
+			}
+
+			// compute weights and weighted average in normalized Z space
+			double weightSum = 0.0;
+			double weightedZ = 0.0;
+			for (std::size_t i = 0; i < neighbors.size(); ++i)
+			{
+				double d = distances[i];
+				// w_i = ((R - d_i) / (R * d_i))^2
+				double w = ( (maxD - d) / (maxD * d) );
+				w = w * w;
+				const double z_norm = points_norm_[neighbors[i]].z;
+				weightedZ += w * z_norm;
+				weightSum += w;
+			}
+
+			if (weightSum <= 0.0)
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const double z_norm_final = weightedZ / weightSum;
+			return denormalizeZ(z_norm_final);
+		}
+
+	private:
+		std::vector<XyzSample> points_orig_;
+		// normalized points [0,1]
+		std::vector<XyzSample> points_norm_;
+		std::unique_ptr<delaunator::Delaunator> triangulation_;
+		std::vector<std::vector<std::size_t>> adjacency_;
+		std::size_t K_ = 12u;
+		mutable std::size_t lastVertex_ = delaunator::INVALID_INDEX;
+
+		// normalization extents
+		double x_min_ = 0.0, x_max_ = 1.0, x_range_ = 1.0;
+		double y_min_ = 0.0, y_max_ = 1.0, y_range_ = 1.0;
+		double z_min_ = 0.0, z_max_ = 1.0, z_range_ = 1.0;
+
+		void normalizePoints()
+		{
+			if (points_orig_.empty()) return;
+			x_min_ = x_max_ = points_orig_[0].x;
+			y_min_ = y_max_ = points_orig_[0].y;
+			z_min_ = z_max_ = points_orig_[0].z;
+
+			for (const auto& p : points_orig_)
+			{
+				if (p.x < x_min_) x_min_ = p.x;
+				if (p.x > x_max_) x_max_ = p.x;
+				if (p.y < y_min_) y_min_ = p.y;
+				if (p.y > y_max_) y_max_ = p.y;
+				if (p.z < z_min_) z_min_ = p.z;
+				if (p.z > z_max_) z_max_ = p.z;
+			}
+
+			x_range_ = (x_max_ - x_min_) > 0.0 ? (x_max_ - x_min_) : 1.0;
+			y_range_ = (y_max_ - y_min_) > 0.0 ? (y_max_ - y_min_) : 1.0;
+			z_range_ = (z_max_ - z_min_) > 0.0 ? (z_max_ - z_min_) : 1.0;
+
+			points_norm_.clear();
+			points_norm_.reserve(points_orig_.size());
+			for (const auto& p : points_orig_)
+			{
+				XyzSample np;
+				np.x = (p.x - x_min_) / x_range_;
+				np.y = (p.y - y_min_) / y_range_;
+				np.z = (p.z - z_min_) / z_range_;
+				points_norm_.push_back(np);
+			}
+		}
+
+		double normalizeX(double x) const noexcept { return (x - x_min_) / x_range_; }
+		double normalizeY(double y) const noexcept { return (y - y_min_) / y_range_; }
+		double denormalizeZ(double z_norm) const noexcept { return z_norm * z_range_ + z_min_; }
+
+		void buildTriangulation()
+		{
+			if (points_norm_.empty())
+			{
+				triangulation_.reset();
+				return;
+			}
+
+			std::vector<double> coords;
+			coords.reserve(points_norm_.size() * 2u);
+			for (const auto& p : points_norm_)
+			{
+				coords.push_back(p.x);
+				coords.push_back(p.y);
+			}
+
+			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
+		}
+
+		void buildAdjacency()
+		{
+			adjacency_.clear();
+			adjacency_.resize(points_norm_.size());
+			if (!triangulation_) return;
+
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			// temporary use unordered_set per vertex to avoid duplicates
+			std::vector<std::unordered_set<std::size_t>> neighbors(points_norm_.size());
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t a = tri[3u * t];
+				const std::size_t b = tri[3u * t + 1u];
+				const std::size_t c = tri[3u * t + 2u];
+				neighbors[a].insert(b); neighbors[a].insert(c);
+				neighbors[b].insert(a); neighbors[b].insert(c);
+				neighbors[c].insert(a); neighbors[c].insert(b);
+			}
+
+			for (std::size_t i = 0; i < neighbors.size(); ++i)
+			{
+				adjacency_[i].reserve(neighbors[i].size());
+				for (auto v : neighbors[i]) adjacency_[i].push_back(v);
+			}
+		}
+
+		// Greedy graph-walking to find a local nearest vertex on adjacency graph
+		std::size_t findClosestVertex(double nx, double ny) const
+		{
+			if (points_norm_.empty()) return delaunator::INVALID_INDEX;
+
+			std::size_t current = (lastVertex_ != delaunator::INVALID_INDEX) ? lastVertex_ : 0u;
+			auto dist = [&](std::size_t idx) noexcept {
+				const auto& p = points_norm_[idx];
+				const double dx = p.x - nx;
+				const double dy = p.y - ny;
+				return dx * dx + dy * dy;
+			};
+
+			double best = dist(current);
+			bool moved = true;
+			while (moved)
+			{
+				moved = false;
+				for (std::size_t nb : adjacency_[current])
+				{
+					double dnb = dist(nb);
+					if (dnb + 1e-15 < best)
+					{
+						best = dnb;
+						current = nb;
+						moved = true;
+					}
+				}
+			}
+
+			lastVertex_ = current;
+			return current;
+		}
+
+		// BFS gather exactly K (or fewer if not available) unique vertices starting from seed
+		std::vector<std::size_t> gatherKNeighbors(std::size_t seed, std::size_t K) const
+		{
+			std::vector<std::size_t> result;
+			if (seed == delaunator::INVALID_INDEX || points_norm_.empty()) return result;
+
+			result.reserve(K);
+			std::vector<char> visited(points_norm_.size(), 0);
+			std::deque<std::size_t> q;
+			q.push_back(seed);
+			visited[seed] = 1;
+
+			while (!q.empty() && result.size() < K)
+			{
+				std::size_t v = q.front(); q.pop_front();
+				result.push_back(v);
+				for (std::size_t nb : adjacency_[v])
+				{
+					if (!visited[nb])
+					{
+						visited[nb] = 1;
+						q.push_back(nb);
+					}
+				}
+			}
+
+			return result;
+		}
 	};
 }
 
@@ -1035,6 +1280,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayIDW::solve(
 
 	std::vector<XyzSample> samples = prepareSamples(ctx);
 	BarycentricInterpolator interpolator(std::move(samples));
+	//IDWInterpolator interpolator(std::move(samples));
 	const double reverseScale = 1.0 / (std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0);
 
 	for (int row = 0; row < outHeight; ++row)
