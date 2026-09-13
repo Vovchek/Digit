@@ -927,6 +927,634 @@ namespace
 	};
 }
 
+// Local weighted quadric interpolator using Delaunay graph neighborhoods.
+namespace
+{
+	class LocalQuadricInterpolator
+	{
+	public:
+		explicit LocalQuadricInterpolator(std::vector<XyzSample> samples, std::size_t K = 16u)
+			: points_(std::move(samples)), K_((std::max)(K, 6u)), searchPool_((std::max)(4u * ((std::max)(K, 6u) + 1u), 32u))
+		{
+			buildTriangulation();
+			buildAdjacency();
+			lastVertex_ = points_.empty() ? delaunator::INVALID_INDEX : 0u;
+			visitedMark_.assign(points_.size(), 0u);
+			queue_.reserve(points_.size());
+			candidateVertices_.reserve(searchPool_);
+			distanceBuffer_.reserve(searchPool_);
+		}
+
+		double query(double x, double y) const
+		{
+			if (points_.empty())
+				return std::numeric_limits<double>::quiet_NaN();
+			if (points_.size() == 1u)
+				return points_[0].z;
+
+			const std::size_t seed = findClosestVertex(x, y);
+			if (seed == delaunator::INVALID_INDEX)
+				return std::numeric_limits<double>::quiet_NaN();
+
+			gatherNeighborhood(seed, searchPool_);
+			if (candidateVertices_.empty())
+				return points_[seed].z;
+
+			distanceBuffer_.clear();
+			distanceBuffer_.reserve(candidateVertices_.size());
+			for (std::size_t vi : candidateVertices_)
+			{
+				const auto& p = points_[vi];
+				const double dx = p.x - x;
+				const double dy = p.y - y;
+				distanceBuffer_.push_back(std::make_pair(dx * dx + dy * dy, vi));
+			}
+
+			const std::size_t selectCount = (std::min)(distanceBuffer_.size(), K_ + 1u);
+			if (selectCount == 0u)
+				return points_[seed].z;
+
+			std::partial_sort(distanceBuffer_.begin(), distanceBuffer_.begin() + static_cast<std::ptrdiff_t>(selectCount), distanceBuffer_.end(),
+				[](const auto& a, const auto& b) { return a.first < b.first; });
+
+			if (distanceBuffer_[0].first <= 1e-24)
+				return points_[distanceBuffer_[0].second].z;
+
+			const std::size_t fitCount = (std::min)(K_, selectCount);
+			if (fitCount == 0u)
+				return points_[distanceBuffer_[0].second].z;
+
+			const std::size_t rIndex = (selectCount > fitCount) ? fitCount : (fitCount - 1u);
+			const double R = std::sqrt(distanceBuffer_[rIndex].first);
+			if (!(R > 0.0))
+				return points_[distanceBuffer_[0].second].z;
+
+			double normal[6][7] = {};
+			double weightSum = 0.0;
+			double weightedZ = 0.0;
+			std::size_t used = 0u;
+
+			for (std::size_t i = 0; i < fitCount; ++i)
+			{
+				const auto [d2, vi] = distanceBuffer_[i];
+				if (d2 <= 1e-24)
+					return points_[vi].z;
+
+				const double d = std::sqrt(d2);
+				const double t = ((std::max)(0.0, R - d)) / (R * d);
+				const double w = t * t * t;
+				if (!(w > 0.0))
+					continue;
+
+				const double xi = points_[vi].x;
+				const double yi = points_[vi].y;
+				const double zi = points_[vi].z;
+				const double phi[6] = { 1.0, xi, yi, xi * xi, yi * yi, xi * yi };
+
+				for (int r = 0; r < 6; ++r)
+				{
+					for (int c = 0; c < 6; ++c)
+						normal[r][c] += w * phi[r] * phi[c];
+					normal[r][6] += w * phi[r] * zi;
+				}
+
+				weightSum += w;
+				weightedZ += w * zi;
+				++used;
+			}
+
+			if (used < 6u || !(weightSum > 0.0))
+				return points_[distanceBuffer_[0].second].z;
+
+			double coeffs[6] = {};
+			if (!solve6x6(normal, coeffs))
+				return weightedZ / weightSum;
+
+			return coeffs[0]
+				+ coeffs[1] * x
+				+ coeffs[2] * y
+				+ coeffs[3] * x * x
+				+ coeffs[4] * y * y
+				+ coeffs[5] * x * y;
+		}
+
+	private:
+		std::vector<XyzSample> points_;
+		std::unique_ptr<delaunator::Delaunator> triangulation_;
+		std::vector<std::vector<std::size_t>> adjacency_;
+		std::size_t K_ = 16u;
+		std::size_t searchPool_ = 64u;
+		mutable std::size_t lastVertex_ = delaunator::INVALID_INDEX;
+		mutable std::size_t visitToken_ = 1u;
+		mutable std::vector<std::size_t> visitedMark_;
+		mutable std::vector<std::size_t> queue_;
+		mutable std::vector<std::size_t> candidateVertices_;
+		mutable std::vector<std::pair<double, std::size_t>> distanceBuffer_;
+
+		void buildTriangulation()
+		{
+			if (points_.empty())
+			{
+				triangulation_.reset();
+				return;
+			}
+
+			std::vector<double> coords;
+			coords.reserve(points_.size() * 2u);
+			for (const auto& p : points_)
+			{
+				coords.push_back(p.x);
+				coords.push_back(p.y);
+			}
+			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
+		}
+
+		void buildAdjacency()
+		{
+			adjacency_.assign(points_.size(), {});
+			if (!triangulation_)
+				return;
+
+			std::vector<std::unordered_set<std::size_t>> tmp(points_.size());
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t a = tri[3u * t];
+				const std::size_t b = tri[3u * t + 1u];
+				const std::size_t c = tri[3u * t + 2u];
+				tmp[a].insert(b); tmp[a].insert(c);
+				tmp[b].insert(a); tmp[b].insert(c);
+				tmp[c].insert(a); tmp[c].insert(b);
+			}
+
+			for (std::size_t i = 0; i < tmp.size(); ++i)
+			{
+				adjacency_[i].reserve(tmp[i].size());
+				for (std::size_t v : tmp[i])
+					adjacency_[i].push_back(v);
+			}
+		}
+
+		std::size_t findClosestVertex(double x, double y) const
+		{
+			if (points_.empty())
+				return delaunator::INVALID_INDEX;
+
+			auto dist2 = [&](std::size_t idx) noexcept
+			{
+				const auto& p = points_[idx];
+				const double dx = p.x - x;
+				const double dy = p.y - y;
+				return dx * dx + dy * dy;
+			};
+
+			std::size_t current = (lastVertex_ != delaunator::INVALID_INDEX) ? lastVertex_ : 0u;
+			double best = dist2(current);
+			bool moved = true;
+			while (moved)
+			{
+				moved = false;
+				for (std::size_t nb : adjacency_[current])
+				{
+					const double d = dist2(nb);
+					if (d + 1e-18 < best)
+					{
+						best = d;
+						current = nb;
+						moved = true;
+					}
+				}
+			}
+			lastVertex_ = current;
+			return current;
+		}
+
+		void gatherNeighborhood(std::size_t seed, std::size_t limit) const
+		{
+			candidateVertices_.clear();
+			if (seed == delaunator::INVALID_INDEX || points_.empty())
+				return;
+
+			if (++visitToken_ == 0u)
+			{
+				visitToken_ = 1u;
+				std::fill(visitedMark_.begin(), visitedMark_.end(), 0u);
+			}
+
+			queue_.clear();
+			queue_.push_back(seed);
+			visitedMark_[seed] = visitToken_;
+
+			std::size_t head = 0u;
+			while (head < queue_.size() && candidateVertices_.size() < limit)
+			{
+				const std::size_t v = queue_[head++];
+				candidateVertices_.push_back(v);
+				for (std::size_t nb : adjacency_[v])
+				{
+					if (visitedMark_[nb] == visitToken_)
+						continue;
+					visitedMark_[nb] = visitToken_;
+					queue_.push_back(nb);
+				}
+			}
+		}
+
+		static bool solve6x6(double a[6][7], double x[6])
+		{
+			for (int col = 0; col < 6; ++col)
+			{
+				int pivot = col;
+				double maxAbs = std::fabs(a[col][col]);
+				for (int r = col + 1; r < 6; ++r)
+				{
+					const double v = std::fabs(a[r][col]);
+					if (v > maxAbs)
+					{
+						maxAbs = v;
+						pivot = r;
+					}
+				}
+				if (maxAbs < 1e-14)
+					return false;
+
+				if (pivot != col)
+				{
+					for (int c = col; c <= 6; ++c)
+						std::swap(a[col][c], a[pivot][c]);
+				}
+
+				const double diag = a[col][col];
+				for (int r = col + 1; r < 6; ++r)
+				{
+					const double factor = a[r][col] / diag;
+					if (std::fabs(factor) < 1e-18)
+						continue;
+					for (int c = col; c <= 6; ++c)
+						a[r][c] -= factor * a[col][c];
+				}
+			}
+
+			for (int r = 5; r >= 0; --r)
+			{
+				double rhs = a[r][6];
+				for (int c = r + 1; c < 6; ++c)
+					rhs -= a[r][c] * x[c];
+				if (std::fabs(a[r][r]) < 1e-14)
+					return false;
+				x[r] = rhs / a[r][r];
+			}
+			return true;
+		}
+	};
+}
+
+// Akima-style bivariate C1 interpolator over Delaunay triangles.
+namespace
+{
+	class AkimaBivariateInterpolator
+	{
+	public:
+		explicit AkimaBivariateInterpolator(std::vector<XyzSample> samples)
+			: points_(std::move(samples))
+		{
+			buildTriangulation();
+			buildAdjacencyAndIncidence();
+			computeTriangleSlopes();
+			computeVertexGradientsAkima();
+			buildTrianglePatches();
+			cachedTriangle_ = trianglePatches_.empty() ? delaunator::INVALID_INDEX : 0u;
+		}
+
+		double query(double x, double y) const
+		{
+			if (points_.empty() || !triangulation_ || trianglePatches_.empty())
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const std::size_t tri = locateContainingTriangle(x, y);
+			if (tri == delaunator::INVALID_INDEX)
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const auto& p = trianglePatches_[tri];
+			double l1 = 0.0, l2 = 0.0, l3 = 0.0;
+			if (!barycentricCoords(
+				points_[p.ia].x, points_[p.ia].y,
+				points_[p.ib].x, points_[p.ib].y,
+				points_[p.ic].x, points_[p.ic].y,
+				x, y, l1, l2, l3))
+			{
+				return std::numeric_limits<double>::quiet_NaN();
+			}
+
+			const double l11 = l1 * l1;
+			const double l22 = l2 * l2;
+			const double l33 = l3 * l3;
+			const double l111 = l11 * l1;
+			const double l222 = l22 * l2;
+			const double l333 = l33 * l3;
+
+			return p.b300 * l111
+				+ 3.0 * p.b210 * l11 * l2
+				+ 3.0 * p.b201 * l11 * l3
+				+ 3.0 * p.b120 * l1 * l22
+				+ 6.0 * p.b111 * l1 * l2 * l3
+				+ 3.0 * p.b102 * l1 * l33
+				+ p.b030 * l222
+				+ 3.0 * p.b021 * l22 * l3
+				+ 3.0 * p.b012 * l2 * l33
+				+ p.b003 * l333;
+		}
+
+	private:
+		struct TriPatch
+		{
+			std::size_t ia = 0u;
+			std::size_t ib = 0u;
+			std::size_t ic = 0u;
+			double b300 = 0.0;
+			double b210 = 0.0;
+			double b201 = 0.0;
+			double b120 = 0.0;
+			double b111 = 0.0;
+			double b102 = 0.0;
+			double b030 = 0.0;
+			double b021 = 0.0;
+			double b012 = 0.0;
+			double b003 = 0.0;
+		};
+
+		std::vector<XyzSample> points_;
+		std::unique_ptr<delaunator::Delaunator> triangulation_;
+		std::vector<std::vector<std::size_t>> adjacency_;
+		std::vector<std::vector<std::size_t>> incidentTriangles_;
+		std::vector<std::pair<double, double>> triangleSlopes_;
+		std::vector<double> triangleAreas_;
+		std::vector<std::pair<double, double>> vertexGradients_;
+		std::vector<TriPatch> trianglePatches_;
+		mutable std::size_t cachedTriangle_ = delaunator::INVALID_INDEX;
+
+		void buildTriangulation()
+		{
+			if (points_.empty())
+			{
+				triangulation_.reset();
+				return;
+			}
+
+			std::vector<double> coords;
+			coords.reserve(points_.size() * 2u);
+			for (const auto& p : points_)
+			{
+				coords.push_back(p.x);
+				coords.push_back(p.y);
+			}
+			triangulation_ = std::make_unique<delaunator::Delaunator>(coords);
+		}
+
+		void buildAdjacencyAndIncidence()
+		{
+			adjacency_.assign(points_.size(), {});
+			incidentTriangles_.assign(points_.size(), {});
+			if (!triangulation_)
+				return;
+
+			std::vector<std::unordered_set<std::size_t>> tmpAdj(points_.size());
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t a = tri[3u * t];
+				const std::size_t b = tri[3u * t + 1u];
+				const std::size_t c = tri[3u * t + 2u];
+
+				tmpAdj[a].insert(b); tmpAdj[a].insert(c);
+				tmpAdj[b].insert(a); tmpAdj[b].insert(c);
+				tmpAdj[c].insert(a); tmpAdj[c].insert(b);
+
+				incidentTriangles_[a].push_back(t);
+				incidentTriangles_[b].push_back(t);
+				incidentTriangles_[c].push_back(t);
+			}
+
+			for (std::size_t i = 0; i < tmpAdj.size(); ++i)
+			{
+				adjacency_[i].reserve(tmpAdj[i].size());
+				for (std::size_t nb : tmpAdj[i])
+					adjacency_[i].push_back(nb);
+			}
+		}
+
+		void computeTriangleSlopes()
+		{
+			triangleSlopes_.clear();
+			triangleAreas_.clear();
+			if (!triangulation_)
+				return;
+
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			triangleSlopes_.resize(triCount, { 0.0, 0.0 });
+			triangleAreas_.resize(triCount, 0.0);
+
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const auto& A = points_[tri[3u * t]];
+				const auto& B = points_[tri[3u * t + 1u]];
+				const auto& C = points_[tri[3u * t + 2u]];
+
+				const double ux = B.x - A.x;
+				const double uy = B.y - A.y;
+				const double vx = C.x - A.x;
+				const double vy = C.y - A.y;
+				const double det = ux * vy - uy * vx;
+				triangleAreas_[t] = std::abs(det) * 0.5;
+
+				if (std::fabs(det) < 1e-18)
+				{
+					triangleSlopes_[t] = { 0.0, 0.0 };
+					continue;
+				}
+
+				const double rhs0 = B.z - A.z;
+				const double rhs1 = C.z - A.z;
+				const double dzdx = (rhs0 * vy - uy * rhs1) / det;
+				const double dzdy = (ux * rhs1 - rhs0 * vx) / det;
+				triangleSlopes_[t] = { dzdx, dzdy };
+			}
+		}
+
+		void computeVertexGradientsAkima()
+		{
+			vertexGradients_.assign(points_.size(), { 0.0, 0.0 });
+			if (!triangulation_)
+				return;
+
+			for (std::size_t v = 0; v < points_.size(); ++v)
+			{
+				const auto& inc = incidentTriangles_[v];
+				if (inc.empty())
+					continue;
+				if (inc.size() == 1u)
+				{
+					vertexGradients_[v] = triangleSlopes_[inc[0]];
+					continue;
+				}
+
+				double wx = 0.0;
+				double wy = 0.0;
+				double wsum = 0.0;
+				for (std::size_t i = 0; i < inc.size(); ++i)
+				{
+					const std::size_t ti = inc[i];
+					const auto si = triangleSlopes_[ti];
+
+					double rough = 0.0;
+					for (std::size_t j = 0; j < inc.size(); ++j)
+					{
+						if (i == j) continue;
+						const auto sj = triangleSlopes_[inc[j]];
+						const double dx = si.first - sj.first;
+						const double dy = si.second - sj.second;
+						rough += std::sqrt(dx * dx + dy * dy);
+					}
+					rough /= static_cast<double>((std::max)(std::size_t{ 1u }, inc.size() - 1u));
+
+					const auto& tri = triangulation_->triangles;
+					const auto& A = points_[tri[3u * ti]];
+					const auto& B = points_[tri[3u * ti + 1u]];
+					const auto& C = points_[tri[3u * ti + 2u]];
+					const double cx = (A.x + B.x + C.x) / 3.0;
+					const double cy = (A.y + B.y + C.y) / 3.0;
+					const double ddx = cx - points_[v].x;
+					const double ddy = cy - points_[v].y;
+					const double d = std::sqrt(ddx * ddx + ddy * ddy);
+
+					const double area = (std::max)(triangleAreas_[ti], 1e-18);
+					const double w = area / (1e-12 + rough + 0.25 * d);
+					wx += w * si.first;
+					wy += w * si.second;
+					wsum += w;
+				}
+
+				if (wsum > 0.0)
+					vertexGradients_[v] = { wx / wsum, wy / wsum };
+				else
+				{
+					double sx = 0.0, sy = 0.0;
+					for (std::size_t ti : inc)
+					{
+						sx += triangleSlopes_[ti].first;
+						sy += triangleSlopes_[ti].second;
+					}
+					const double inv = 1.0 / static_cast<double>(inc.size());
+					vertexGradients_[v] = { sx * inv, sy * inv };
+				}
+			}
+		}
+
+		void buildTrianglePatches()
+		{
+			trianglePatches_.clear();
+			if (!triangulation_)
+				return;
+
+			const auto& tri = triangulation_->triangles;
+			const std::size_t triCount = tri.size() / 3u;
+			trianglePatches_.resize(triCount);
+
+			for (std::size_t t = 0; t < triCount; ++t)
+			{
+				const std::size_t ia = tri[3u * t];
+				const std::size_t ib = tri[3u * t + 1u];
+				const std::size_t ic = tri[3u * t + 2u];
+				const auto& A = points_[ia];
+				const auto& B = points_[ib];
+				const auto& C = points_[ic];
+				const auto gA = vertexGradients_[ia];
+				const auto gB = vertexGradients_[ib];
+				const auto gC = vertexGradients_[ic];
+
+				const double b300 = A.z;
+				const double b030 = B.z;
+				const double b003 = C.z;
+				const double b210 = A.z + (1.0 / 3.0) * (gA.first * (B.x - A.x) + gA.second * (B.y - A.y));
+				const double b201 = A.z + (1.0 / 3.0) * (gA.first * (C.x - A.x) + gA.second * (C.y - A.y));
+				const double b120 = B.z + (1.0 / 3.0) * (gB.first * (A.x - B.x) + gB.second * (A.y - B.y));
+				const double b021 = B.z + (1.0 / 3.0) * (gB.first * (C.x - B.x) + gB.second * (C.y - B.y));
+				const double b102 = C.z + (1.0 / 3.0) * (gC.first * (A.x - C.x) + gC.second * (A.y - C.y));
+				const double b012 = C.z + (1.0 / 3.0) * (gC.first * (B.x - C.x) + gC.second * (B.y - C.y));
+
+				const double r12 = 0.25 * (b210 + b120) + (1.0 / 6.0) * (b201 + b021) - (1.0 / 12.0) * (b300 + b030);
+				const double r23 = 0.25 * (b021 + b012) + (1.0 / 6.0) * (b120 + b102) - (1.0 / 12.0) * (b030 + b003);
+				const double r31 = 0.25 * (b102 + b201) + (1.0 / 6.0) * (b012 + b210) - (1.0 / 12.0) * (b003 + b300);
+				const double b111 = (r12 + r23 + r31) / 3.0;
+
+				trianglePatches_[t] = TriPatch{ ia, ib, ic, b300, b210, b201, b120, b111, b102, b030, b021, b012, b003 };
+			}
+		}
+
+		std::size_t locateContainingTriangle(double x, double y) const
+		{
+			if (!triangulation_)
+				return delaunator::INVALID_INDEX;
+
+			const auto& tri = triangulation_->triangles;
+			const auto& half = triangulation_->halfedges;
+			const std::size_t triCount = tri.size() / 3u;
+			if (triCount == 0u)
+				return delaunator::INVALID_INDEX;
+
+			std::size_t t = (cachedTriangle_ != delaunator::INVALID_INDEX && cachedTriangle_ < triCount) ? cachedTriangle_ : 0u;
+			for (std::size_t iter = 0; iter < triCount; ++iter)
+			{
+				const std::size_t ia = tri[3u * t];
+				const std::size_t ib = tri[3u * t + 1u];
+				const std::size_t ic = tri[3u * t + 2u];
+				double l1 = 0.0, l2 = 0.0, l3 = 0.0;
+				if (!barycentricCoords(points_[ia].x, points_[ia].y, points_[ib].x, points_[ib].y, points_[ic].x, points_[ic].y, x, y, l1, l2, l3))
+				{
+					t = (t + 1u) % triCount;
+					continue;
+				}
+
+				if (l1 >= -1e-12 && l2 >= -1e-12 && l3 >= -1e-12)
+				{
+					cachedTriangle_ = t;
+					return t;
+				}
+
+				std::size_t smallest = 0u;
+				if (l2 < l1 && l2 < l3) smallest = 1u;
+				else if (l3 < l1 && l3 < l2) smallest = 2u;
+				const std::size_t edgeIndex = (smallest + 1u) % 3u;
+				const std::size_t he = half[3u * t + edgeIndex];
+				if (he == delaunator::INVALID_INDEX)
+					break;
+				t = he / 3u;
+			}
+
+			return delaunator::INVALID_INDEX;
+		}
+
+		static bool barycentricCoords(
+			double x1, double y1,
+			double x2, double y2,
+			double x3, double y3,
+			double x, double y,
+			double& l1, double& l2, double& l3)
+		{
+			const double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
+			if (std::fabs(det) < 1e-18)
+				return false;
+			l1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
+			l2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
+			l3 = 1.0 - l1 - l2;
+			return true;
+		}
+	};
+}
+
 // Inverse Distance Weighting interpolator using Delaunay connectivity to gather neighbors
 namespace
 {
@@ -1943,7 +2571,9 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayCT::solve(
 		std::numeric_limits<double>::quiet_NaN());
 
 	std::vector<XyzSample> samples = prepareSamples(ctx);
-	CloughTocherInterpolator interpolator(std::move(samples));
+	LocalQuadricInterpolator interpolator(std::move(samples));
+	//CloughTocherInterpolator interpolator(std::move(samples));
+	//AkimaBivariateInterpolator interpolator(std::move(samples));
 	//BarycentricInterpolator interpolator(std::move(samples));
 	//IDWInterpolator interpolator(std::move(samples));
 	const double reverseScale = 1.0 / (std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0);
