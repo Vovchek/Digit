@@ -1091,7 +1091,7 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 		);
 		WavefrontFromContours wf(input);
 		//WavefrontFromContoursSolver_HorizontalSpline solver;
-		WavefrontFromContoursSolver_DelaunayCT solver;
+		WavefrontFromContoursSolver_Delaunay solver;
 
 		auto topogram = wf.run(solver);
 

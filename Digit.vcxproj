@@ -235,7 +235,6 @@ ApertureCore.lib         %(AdditionalDependencies)
   <ItemGroup>
     <ClInclude Include="AppDef.h" />
     <ClInclude Include="Controls\CApertureCtrls.h" />
-    <ClInclude Include="delaunator-cpp\delaunator-header-only.hpp" />
     <ClInclude Include="DigitMode\BoundsHandler.h" />
     <ClInclude Include="DigitMode\BoundsInputHandler.h" />
     <ClInclude Include="DigitMode\BoundsToolAdapter.h" />
@@ -257,6 +256,7 @@ ApertureCore.lib         %(AdditionalDependencies)
     <ClInclude Include="DigitMode\IInteractionTool.h" />
     <ClInclude Include="DigitMode\InputHandlerAdapter.h" />
     <ClInclude Include="DigitMode\InteractionManager.h" />
+    <ClInclude Include="DigitMode\WavefrontSolver\delaunator-cpp\delaunator-header-only.hpp" />
     <ClInclude Include="DigitMode\WavefrontSolver\IsoLinesToTopogram.h" />
     <ClInclude Include="DigitMode\RedCenterDetector.h" />
     <ClInclude Include="DigitMode\ShapeConversionHelpers.h" />

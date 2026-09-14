@@ -406,7 +406,7 @@ private:
 
 // Delaunay triangulation + local IDW interpolation solver
 // Treats the fringe points as an irregular 2D mesh and interpolates height locally
-class WavefrontFromContoursSolver_DelaunayCT : public IWavefrontFromContoursSolver
+class WavefrontFromContoursSolver_Delaunay : public IWavefrontFromContoursSolver
 {
 public:
 	WavefrontFromContoursResult solve(const WavefrontFromContoursContext& ctx) const override;

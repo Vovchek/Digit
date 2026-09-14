@@ -294,9 +294,9 @@ void CImageDoc::CalcAproximation()
 		topogram.saveMtrMatrix(outMtr);
 	}
 
-	// 2. Cubic spline interpolation
+	// 2. Delaunay interpolation
 	{
-		WavefrontFromContoursSolver_DelaunayCT solver;
+		WavefrontFromContoursSolver_Delaunay solver;
 		auto topogram = wf.run(solver);
 
 		auto file = path + "topogram_DCT.txt";

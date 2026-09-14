@@ -99,155 +99,146 @@ class CloughTocherInterpolator
 			return true;
 		}
 
-		// Query in original units (X mm, Y mm). Returns interpolated Z in microns.
+		// Query in original units (X mm, Y mm). Returns interpolated Z.
 		double query(double x, double y) const
 		{
-			if (points_norm_.empty() || !triangulation_) return std::numeric_limits<double>::quiet_NaN();
+			if (points_norm_.empty() || !triangulation_)
+				return std::numeric_limits<double>::quiet_NaN();
 
 			const double nx = normalizeX(x);
 			const double ny = normalizeY(y);
 
-			// locate containing triangle
+			// Locate containing triangle
 			std::size_t tri = locateContainingTriangle(nx, ny);
-			if (tri == delaunator::INVALID_INDEX)
-			{
-				// fallback: no assumption about the surface outside the convex hull, return NaN
+			if (tri == delaunator::INVALID_INDEX) {
 				return std::numeric_limits<double>::quiet_NaN();
-				// fallback: nearest vertex - this is not a good idea, as it creates discontinuities at the convex hull boundary
-				//std::size_t nearest = findClosestVertex(nx, ny);
-				//return denormalizeZ(points_norm_[nearest].z);
 			}
 
-			// compute or get cached cubic coefficients for this triangle
+			// Compute or fetch cached cubic coefficients for this triangle
 			auto& opt = coeffs_cache_[tri];
-			if (!opt.has_value())
-			{
+			if (!opt.has_value()) {
 				std::vector<double> coeffs;
-				if (!buildTriangleCubicCoeffs(tri, coeffs))
-				{
-					// fallback to planar interpolation
+				if (!buildTriangleCubicCoeffs(tri, coeffs)) {
 					return interpolatePlane(tri, nx, ny);
 				}
 				opt = std::move(coeffs);
 			}
 
-			const std::vector<double>& data = *opt; // 12 values: boundary controls + 3 interior r
+			const std::vector<double>& data = *opt; // 10 values
 
-			// compute barycentric coordinates of (nx,ny) in this triangle
+			// --- Barycentric coordinates of (nx, ny) in macro-triangle ---
 			double l1, l2, l3;
 			const auto& tris = triangulation_->triangles;
-			const std::size_t ia = tris[3*tri];
-			const std::size_t ib = tris[3*tri+1];
-			const std::size_t ic = tris[3*tri+2];
+			const std::size_t ia = tris[3 * tri];
+			const std::size_t ib = tris[3 * tri + 1];
+			const std::size_t ic = tris[3 * tri + 2];
 			const auto& A = points_norm_[ia];
 			const auto& B = points_norm_[ib];
 			const auto& C = points_norm_[ic];
-			if (!barycentricCoords(A.x,A.y,B.x,B.y,C.x,C.y,nx,ny,l1,l2,l3))
-			{
+			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3)) {
 				return interpolatePlane(tri, nx, ny);
 			}
 
+			// --- Macro control points ---
+			const double b300 = data[0];
+			const double b210 = data[1];
+			const double b201 = data[2];
+			const double b120 = data[3];
+			const double b102 = data[4];
+			const double b030 = data[5];
+			const double b021 = data[6];
+			const double b012 = data[7];
+			const double b003 = data[8];
+			const double b111 = data[9];
 
-			// This is the absolute pure mathematical definition of a triangle plane:
-			return denormalizeZ(l1 * A.z + l2 * B.z + l3 * C.z);
+			// ============================================================
+			// de Casteljau split at centroid (u,v,w) = (1/3, 1/3, 1/3)
+			// ============================================================
+			//
+			// Level 1: degree 3 -> 2  (6 points)
+			const double L1_200 = (b300 + b210 + b201) / 3.0; // near V1
+			const double L1_020 = (b030 + b120 + b021) / 3.0; // near V2
+			const double L1_002 = (b003 + b102 + b012) / 3.0; // near V3
+			const double L1_110 = (b210 + b120 + b111) / 3.0; // edge V1-V2 side
+			const double L1_101 = (b201 + b102 + b111) / 3.0; // edge V1-V3 side
+			const double L1_011 = (b021 + b012 + b111) / 3.0; // edge V2-V3 side
 
+			// Level 2: degree 2 -> 1  (3 points)
+			const double L2_100 = (L1_200 + L1_110 + L1_101) / 3.0; // toward V1
+			const double L2_010 = (L1_110 + L1_020 + L1_011) / 3.0; // toward V2
+			const double L2_001 = (L1_101 + L1_011 + L1_002) / 3.0; // toward V3
 
-			// ---- Macro boundary Bezier ordinates (already Hermite-consistent at vertices) ----
-			const double b300 = data[0]; // at V1
-			const double b210 = data[1]; // V1 side of edge V1-V2
-			const double b201 = data[2]; // V1 side of edge V1-V3
-			const double b120 = data[3]; // V2 side of edge V1-V2
-			const double b102 = data[4]; // V3 side of edge V1-V3
-			const double b030 = data[5]; // at V2
-			const double b021 = data[6]; // V2 side of edge V2-V3
-			const double b012 = data[7]; // V3 side of edge V2-V3
-			const double b003 = data[8]; // at V3
-			const double r12 = data[9];
-			const double r23 = data[10];
-			const double r31 = data[11];
-			const double bC = (r12 + r23 + r31) / 3.0; // centroid value (Farin)
+			// Level 3: degree 1 -> 0  (1 point = centroid value of surface)
+			const double G = (L2_100 + L2_010 + L2_001) / 3.0;
 
-			// ---- 1. Select micro-triangle and compute local barycentric coordinates ----
+			// ============================================================
+			// Select sub-patch and compute local barycentric coordinates
+			// ============================================================
 			double alpha, beta, gamma;
 			double c300, c030, c003;
 			double c210, c120, c201, c021, c102, c012, c111;
 
-			// The centroid point is always the apex/third local corner (gamma^3 term)
-			c003 = bC;
+			// Shared by all sub-patches
+			c003 = G;
 
-			if (l3 <= l1 && l3 <= l2)
-			{
-				// Sub-patch 1: (V1, V2, Centroid)
+			if (l3 <= l1 && l3 <= l2) {
+				// Sub-patch S1 = (V1, V2, G)
 				gamma = 3.0 * l3;
 				alpha = l1 - l3;
 				beta = l2 - l3;
 
-				c300 = b300; // V1
-				c030 = b030; // V2
-
-				c210 = b210; // outer edge near V1
-				c120 = b120; // outer edge near V2
-
-				// Symmetrical Clough-Tocher internal subdivision splitting rules
-				c201 = (2.0 * b210 + b201) / 3.0;
-				c021 = (2.0 * b120 + b021) / 3.0;
-
-				c102 = (2.0 * r12 + b210) / 3.0;
-				c012 = (2.0 * r12 + b120) / 3.0;
-
-				c111 = r12;
+				c300 = b300;   // V1
+				c030 = b030;   // V2
+				c210 = b210;   // edge V1-V2, near V1
+				c120 = b120;   // edge V1-V2, near V2
+				c201 = L1_200; // edge V1-G, 1/3 from V1
+				c102 = L2_100; // edge V1-G, 2/3 from V1
+				c021 = L1_020; // edge V2-G, 1/3 from V2
+				c012 = L2_010; // edge V2-G, 2/3 from V2
+				c111 = L1_110; // interior
 			}
-			else if (l1 <= l2 && l1 <= l3)
-			{
-				// Sub-patch 2: (V2, V3, Centroid)
+			else if (l1 <= l2 && l1 <= l3) {
+				// Sub-patch S2 = (V2, V3, G)
 				gamma = 3.0 * l1;
 				alpha = l2 - l1;
 				beta = l3 - l1;
 
-				c300 = b030; // V2
-				c030 = b003; // V3
-
-				c210 = b021; // outer edge near V2
-				c120 = b012; // outer edge near V3
-
-				// Symmetrical adjustment using correct cyclic tracking (1->2->3)
-				c201 = (2.0 * b021 + b120) / 3.0;
-				c021 = (2.0 * b012 + b102) / 3.0;
-
-				c102 = (2.0 * r23 + b021) / 3.0;
-				c012 = (2.0 * r23 + b012) / 3.0;
-
-				c111 = r23;
+				c300 = b030;   // V2
+				c030 = b003;   // V3
+				c210 = b021;   // edge V2-V3, near V2
+				c120 = b012;   // edge V2-V3, near V3
+				c201 = L1_020; // edge V2-G, 1/3 from V2
+				c102 = L2_010; // edge V2-G, 2/3 from V2
+				c021 = L1_002; // edge V3-G, 1/3 from V3
+				c012 = L2_001; // edge V3-G, 2/3 from V3
+				c111 = L1_011; // interior
 			}
-			else
-			{
-				// Sub-patch 3: (V3, V1, Centroid)
+			else {
+				// Sub-patch S3 = (V3, V1, G)
 				gamma = 3.0 * l2;
 				alpha = l3 - l2;
 				beta = l1 - l2;
 
-				c300 = b003; // V3
-				c030 = b300; // V1
-
-				c210 = b102; // outer edge near V3
-				c120 = b201; // outer edge near V1
-
-				// Symmetrical adjustment using correct cyclic tracking (3->1->2)
-				c201 = (2.0 * b102 + b012) / 3.0;
-				c021 = (2.0 * b201 + b201) / 3.0;
-
-				c102 = (2.0 * r31 + b102) / 3.0;
-				c012 = (2.0 * r31 + b201) / 3.0;
-
-				c111 = r31;
+				c300 = b003;   // V3
+				c030 = b300;   // V1
+				c210 = b102;   // edge V3-V1, near V3
+				c120 = b201;   // edge V3-V1, near V1
+				c201 = L1_002; // edge V3-G, 1/3 from V3
+				c102 = L2_001; // edge V3-G, 2/3 from V3
+				c021 = L1_200; // edge V1-G, 1/3 from V1
+				c012 = L2_100; // edge V1-G, 2/3 from V1
+				c111 = L1_101; // interior
 			}
 
-			// ---- 2. Unrolled Bernstein-Bezier cubic evaluation ----
+			// ============================================================
+			// Unrolled Bernstein-Bézier cubic evaluation (only z)
+			// ============================================================
 			const double bu = alpha, bv = beta, bw = gamma;
 			const double bu2 = bu * bu, bv2 = bv * bv, bw2 = bw * bw;
 			const double bu3 = bu2 * bu, bv3 = bv2 * bv, bw3 = bw2 * bw;
 
-			const double interpolated_z_norm = bu3 * c300
+			const double interpolated_z_norm =
+				bu3 * c300
 				+ 3.0 * bu2 * bv * c210
 				+ 3.0 * bu * bv2 * c120
 				+ bv3 * c030
@@ -258,7 +249,6 @@ class CloughTocherInterpolator
 				+ 3.0 * bv * bw2 * c012
 				+ bw3 * c003;
 
-			// ---- 3. Scale back to original micron units ----
 			return denormalizeZ(interpolated_z_norm);
 		}
 
@@ -483,73 +473,55 @@ class CloughTocherInterpolator
 			return besti;
 		}
 
-		// Build Clough-Tocher Bézier control values for the macro-triangle using Farin explicit formulas
-		// outCoeffs layout (size 12):
-		// [0]=b300, [1]=b210, [2]=b201, [3]=b120, [4]=b102, [5]=b030, [6]=b021, [7]=b012, [8]=b003,
-		// [9]=r12 (interior facing edge V1V2), [10]=r23, [11]=r31
+		// Build cubic Bézier control values for the macro-triangle.
+		// outCoeffs layout (size 10):
+		//   [0]=b300 (V1)         [1]=b210 (V1 side of edge V1-V2)
+		//   [2]=b201 (V1 side of edge V1-V3)   [3]=b120 (V2 side of edge V1-V2)
+		//   [4]=b102 (V3 side of edge V1-V3)   [5]=b030 (V2)
+		//   [6]=b021 (V2 side of edge V2-V3)   [7]=b012 (V3 side of edge V2-V3)
+		//   [8]=b003 (V3)         [9]=b111 (interior, plane-reproducing choice)
+		//
+		// NOTE: This is a *macro-patch* for de Casteljau subdivision, NOT Farin's
+		//       Clough-Tocher construction. Interior b111 is chosen as the average
+		//       of the six edge controls, which guarantees that a planar input is
+		//       reproduced exactly (cubic precision on planar data).
 		bool buildTriangleCubicCoeffs(std::size_t triIndex, std::vector<double>& outCoeffs) const
 		{
 			const auto& tri = triangulation_->triangles;
-			const std::size_t ia = tri[3*triIndex];
-			const std::size_t ib = tri[3*triIndex+1];
-			const std::size_t ic = tri[3*triIndex+2];
+			const std::size_t ia = tri[3 * triIndex];
+			const std::size_t ib = tri[3 * triIndex + 1];
+			const std::size_t ic = tri[3 * triIndex + 2];
 			const auto& A = points_norm_[ia];
 			const auto& B = points_norm_[ib];
 			const auto& C = points_norm_[ic];
 
-			// Vertex heights (Z in microns)
 			const double z1 = A.z;
 			const double z2 = B.z;
 			const double z3 = C.z;
 
-			//outCoeffs.resize(12);
-			//outCoeffs[0] = z1;                                 // b300
-			//outCoeffs[1] = (2.0 * z1 + z2) / 3.0;              // b210
-			//outCoeffs[2] = (2.0 * z1 + z3) / 3.0;              // b201
-			//outCoeffs[3] = (z1 + 2.0 * z2) / 3.0;              // b120
-			//outCoeffs[4] = (z1 + 2.0 * z3) / 3.0;              // b102
-			//outCoeffs[5] = z2;                                 // b030
-			//outCoeffs[6] = (2.0 * z2 + z3) / 3.0;              // b021
-			//outCoeffs[7] = (z2 + 2.0 * z3) / 3.0;              // b012
-			//outCoeffs[8] = z3;                                 // b003
+			auto g1 = vert_gradients_[ia];
+			auto g2 = vert_gradients_[ib];
+			auto g3 = vert_gradients_[ic];
 
-			//// Apply the explicit Farin formula assuming zero gradients:
-			//outCoeffs[9] = 0.25 * (outCoeffs[1] + outCoeffs[3]) + (1.0 / 6.0) * (outCoeffs[2] + outCoeffs[6]) - (1.0 / 12.0) * (outCoeffs[0] + outCoeffs[5]); // r12
-			//outCoeffs[10] = 0.25 * (outCoeffs[6] + outCoeffs[7]) + (1.0 / 6.0) * (outCoeffs[3] + outCoeffs[4]) - (1.0 / 12.0) * (outCoeffs[5] + outCoeffs[8]); // r23
-			//outCoeffs[11] = 0.25 * (outCoeffs[4] + outCoeffs[2]) + (1.0 / 6.0) * (outCoeffs[7] + outCoeffs[1]) - (1.0 / 12.0) * (outCoeffs[8] + outCoeffs[0]); // r31
-
-			//return true;
-
-
-			// Vertex gradients (dz/dx, dz/dy) computed earlier (in microns per normalized X/Y)
-			const auto g1 = vert_gradients_[ia];
-			const auto g2 = vert_gradients_[ib];
-			const auto g3 = vert_gradients_[ic];
-
-			// Corner controls
+			// --- Corner controls ---
 			const double b300 = z1;
 			const double b030 = z2;
 			const double b003 = z3;
 
-			// Tangential edge control points using vertex gradients projected along edges (1/3 along edge)
-			const double b210 = z1 + (1.0/3.0) * (g1.first * (B.x - A.x) + g1.second * (B.y - A.y));
-			const double b201 = z1 + (1.0/3.0) * (g1.first * (C.x - A.x) + g1.second * (C.y - A.y));
+			// --- Edge controls via Hermite tangents (1/3 along each edge) ---
+			const double b210 = z1 + (1.0 / 3.0) * (g1.first * (B.x - A.x) + g1.second * (B.y - A.y));
+			const double b201 = z1 + (1.0 / 3.0) * (g1.first * (C.x - A.x) + g1.second * (C.y - A.y));
 
-			const double b120 = z2 + (1.0/3.0) * (g2.first * (A.x - B.x) + g2.second * (A.y - B.y));
-			const double b021 = z2 + (1.0/3.0) * (g2.first * (C.x - B.x) + g2.second * (C.y - B.y));
+			const double b120 = z2 + (1.0 / 3.0) * (g2.first * (A.x - B.x) + g2.second * (A.y - B.y));
+			const double b021 = z2 + (1.0 / 3.0) * (g2.first * (C.x - B.x) + g2.second * (C.y - B.y));
 
-			const double b102 = z3 + (1.0/3.0) * (g3.first * (A.x - C.x) + g3.second * (A.y - C.y));
-			const double b012 = z3 + (1.0/3.0) * (g3.first * (B.x - C.x) + g3.second * (B.y - C.y));
+			const double b102 = z3 + (1.0 / 3.0) * (g3.first * (A.x - C.x) + g3.second * (A.y - C.y));
+			const double b012 = z3 + (1.0 / 3.0) * (g3.first * (B.x - C.x) + g3.second * (B.y - C.y));
 
-			// Farin explicit interior control points (r_12 facing edge V1V2, etc.)
-			const double r12 = 0.25 * (b210 + b120) + (1.0 / 6.0) * (b201 + b021) - (1.0 / 12.0) * (b300 + b030);
-			const double r23 = 0.25 * (b021 + b012) + (1.0 / 6.0) * (b120 + b102) - (1.0 / 12.0) * (b030 + b003);
-			const double r31 = 0.25 * (b102 + b201) + (1.0 / 6.0) * (b012 + b210) - (1.0 / 12.0) * (b003 + b300);
+			// --- Interior control: average of edge points (plane-reproducing) ---
+			const double b111 = (1.0 / 6.0) * (b210 + b120 + b021 + b012 + b102 + b201);
 
-			// centroid control as average
-			const double bC = (r12 + r23 + r31) / 3.0;
-
-			outCoeffs.resize(12);
+			outCoeffs.resize(10);
 			outCoeffs[0] = b300;
 			outCoeffs[1] = b210;
 			outCoeffs[2] = b201;
@@ -559,16 +531,10 @@ class CloughTocherInterpolator
 			outCoeffs[6] = b021;
 			outCoeffs[7] = b012;
 			outCoeffs[8] = b003;
-			outCoeffs[9] = r12;
-			outCoeffs[10] = r23;
-			outCoeffs[11] = r31;
-
-			(void)bC; // kept if needed for debugging or extended constraints
+			outCoeffs[9] = b111;
 
 			return true;
 		}
-
-		// (removed) polynomial coefficient evaluation replaced by Bernstein/de Casteljau evaluation
 
 		// fallback planar interpolation: compute plane from triangle and evaluate
 		double interpolatePlane(std::size_t triIndex, double x, double y) const
@@ -2488,7 +2454,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	return result;
 }
 
-std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayCT::prepareSamples(
+std::vector<XyzSample> WavefrontFromContoursSolver_Delaunay::prepareSamples(
 	const WavefrontFromContoursContext& ctx) const
 {
 	const double safeScaleFactor = std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0;
@@ -2559,7 +2525,7 @@ std::vector<XyzSample> WavefrontFromContoursSolver_DelaunayCT::prepareSamples(
 	return samples;
 }
 
-WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayCT::solve(
+WavefrontFromContoursResult WavefrontFromContoursSolver_Delaunay::solve(
 	const WavefrontFromContoursContext& ctx) const
 {
 	int outWidth = 0;
@@ -2570,13 +2536,13 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayCT::solve(
 	std::vector<double> zk(static_cast<std::size_t>(outWidth) * static_cast<std::size_t>(outHeight),
 		std::numeric_limits<double>::quiet_NaN());
 
-	std::vector<XyzSample> samples = prepareSamples(ctx);
-	LocalQuadricInterpolator interpolator(std::move(samples));
-	//CloughTocherInterpolator interpolator(std::move(samples));
+	std::vector<XyzSample> samples = prepareSamples(ctx); // also scales Z by 1/scaleFactor
+	
+	//LocalQuadricInterpolator interpolator(std::move(samples));
+	CloughTocherInterpolator interpolator(std::move(samples));
 	//AkimaBivariateInterpolator interpolator(std::move(samples));
 	//BarycentricInterpolator interpolator(std::move(samples));
 	//IDWInterpolator interpolator(std::move(samples));
-	const double reverseScale = 1.0 / (std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0);
 
 	for (int row = 0; row < outHeight; ++row)
 	{
@@ -2592,7 +2558,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_DelaunayCT::solve(
 			const double worldX = ctx.xToInput(static_cast<double>(col));
 			const double z = interpolator.query(worldX, worldY);
 			if (std::isfinite(z))
-				zk[idx] = z * reverseScale;
+				zk[idx] = z; // samples were scaled in prepareSamples() by 1/scaleFactor, so no need to scale here
 		}
 	}
 
