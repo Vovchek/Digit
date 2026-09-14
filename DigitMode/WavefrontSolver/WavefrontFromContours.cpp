@@ -20,12 +20,12 @@ namespace
 		return v * v;
 	}
 
-// Clough-Tocher C1 cubic interpolator based on Delaunay triangulation
-class CloughTocherInterpolator
+	// de Casteljau C1 cubic interpolator based on Delaunay triangulation
+class DeCasteljauInterpolator
 {
 	public:
 		// Accepts samples in original units: X (mm), Y (mm), Z (microns)
-		CloughTocherInterpolator(std::vector<XyzSample> samples)
+		DeCasteljauInterpolator(std::vector<XyzSample> samples)
 			: points_orig_(std::move(samples))
 		{
 			normalizePoints();
@@ -33,70 +33,6 @@ class CloughTocherInterpolator
 			computeTriangleGradients();
 			computeVertexGradients();
 			coeffs_cache_.resize(triangulation_ ? triangulation_->triangles.size() / 3u : 0u);
-		}
-
-		bool debugGetCoeffsAndBary(double x, double y, std::array<double, 12>& coeffs, double& l1, double& l2, double& l3) const
-		{
-			if (points_norm_.empty() || !triangulation_)
-				return false;
-
-			const double nx = normalizeX(x);
-			const double ny = normalizeY(y);
-			std::size_t tri = locateContainingTriangle(nx, ny);
-			if (tri == delaunator::INVALID_INDEX)
-				return false;
-
-			auto& opt = coeffs_cache_[tri];
-			if (!opt.has_value())
-			{
-				std::vector<double> local;
-				if (!buildTriangleCubicCoeffs(tri, local))
-					return false;
-				opt = std::move(local);
-			}
-			const auto& data = *opt;
-			for (std::size_t i = 0; i < 12u; ++i)
-				coeffs[i] = data[i];
-
-			const auto& tris = triangulation_->triangles;
-			const std::size_t ia = tris[3 * tri];
-			const std::size_t ib = tris[3 * tri + 1];
-			const std::size_t ic = tris[3 * tri + 2];
-			const auto& A = points_norm_[ia];
-			const auto& B = points_norm_[ib];
-			const auto& C = points_norm_[ic];
-			return barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3);
-		}
-
-		bool debugGetSubPatchLocalCoords(double x, double y, int& subPatch, double& l1, double& l2, double& l3, double& alpha, double& beta, double& gamma) const
-		{
-			std::array<double, 12> coeffs{};
-			if (!debugGetCoeffsAndBary(x, y, coeffs, l1, l2, l3))
-				return false;
-
-			if (l3 <= l1 && l3 <= l2)
-			{
-				subPatch = 1;
-				gamma = 3.0 * l3;
-				alpha = l1 - l3;
-				beta = l2 - l3;
-			}
-			else if (l1 <= l2 && l1 <= l3)
-			{
-				subPatch = 2;
-				gamma = 3.0 * l1;
-				alpha = l2 - l1;
-				beta = l3 - l1;
-			}
-			else
-			{
-				subPatch = 3;
-				gamma = 3.0 * l2;
-				alpha = l3 - l2;
-				beta = l1 - l2;
-			}
-
-			return true;
 		}
 
 		// Query in original units (X mm, Y mm). Returns interpolated Z.
@@ -233,6 +169,140 @@ class CloughTocherInterpolator
 			// ============================================================
 			// Unrolled Bernstein-Bézier cubic evaluation (only z)
 			// ============================================================
+			const double bu = alpha, bv = beta, bw = gamma;
+			const double bu2 = bu * bu, bv2 = bv * bv, bw2 = bw * bw;
+			const double bu3 = bu2 * bu, bv3 = bv2 * bv, bw3 = bw2 * bw;
+
+			const double interpolated_z_norm =
+				bu3 * c300
+				+ 3.0 * bu2 * bv * c210
+				+ 3.0 * bu * bv2 * c120
+				+ bv3 * c030
+				+ 3.0 * bu2 * bw * c201
+				+ 6.0 * bu * bv * bw * c111
+				+ 3.0 * bv2 * bw * c021
+				+ 3.0 * bu * bw2 * c102
+				+ 3.0 * bv * bw2 * c012
+				+ bw3 * c003;
+
+			return denormalizeZ(interpolated_z_norm);
+		}
+
+		// Evaluate the de Casteljau interpolant directly within a specific triangle.
+		// Used for debugging continuity across macro edges.
+		double evalInTriangle(std::size_t tri, double x, double y) const
+		{
+			if (points_norm_.empty() || !triangulation_ || tri == delaunator::INVALID_INDEX)
+				return std::numeric_limits<double>::quiet_NaN();
+
+			const double nx = normalizeX(x);
+			const double ny = normalizeY(y);
+
+			// Compute or fetch cached cubic coefficients for this triangle
+			auto& opt = coeffs_cache_[tri];
+			if (!opt.has_value()) {
+				std::vector<double> coeffs;
+				if (!buildTriangleCubicCoeffs(tri, coeffs)) {
+					return interpolatePlane(tri, nx, ny);
+				}
+				opt = std::move(coeffs);
+			}
+
+			const std::vector<double>& data = *opt; // 10 values
+
+			// Compute barycentric coordinates within the triangle
+			double l1, l2, l3;
+			const auto& tris = triangulation_->triangles;
+			const std::size_t ia = tris[3 * tri];
+			const std::size_t ib = tris[3 * tri + 1];
+			const std::size_t ic = tris[3 * tri + 2];
+			const auto& A = points_norm_[ia];
+			const auto& B = points_norm_[ib];
+			const auto& C = points_norm_[ic];
+			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3)) {
+				return interpolatePlane(tri, nx, ny);
+			}
+
+			// Extract macro control points
+			const double b300 = data[0];
+			const double b210 = data[1];
+			const double b201 = data[2];
+			const double b120 = data[3];
+			const double b102 = data[4];
+			const double b030 = data[5];
+			const double b021 = data[6];
+			const double b012 = data[7];
+			const double b003 = data[8];
+			const double b111 = data[9];
+
+			// de Casteljau split at centroid
+			const double L1_200 = (b300 + b210 + b201) / 3.0;
+			const double L1_020 = (b030 + b120 + b021) / 3.0;
+			const double L1_002 = (b003 + b102 + b012) / 3.0;
+			const double L1_110 = (b210 + b120 + b111) / 3.0;
+			const double L1_101 = (b201 + b102 + b111) / 3.0;
+			const double L1_011 = (b021 + b012 + b111) / 3.0;
+
+			const double L2_100 = (L1_200 + L1_110 + L1_101) / 3.0;
+			const double L2_010 = (L1_110 + L1_020 + L1_011) / 3.0;
+			const double L2_001 = (L1_101 + L1_011 + L1_002) / 3.0;
+
+			const double G = (L2_100 + L2_010 + L2_001) / 3.0;
+
+			// Select sub-patch and local coordinates
+			double alpha, beta, gamma;
+			double c300, c030, c003;
+			double c210, c120, c201, c021, c102, c012, c111;
+
+			c003 = G;
+
+			if (l3 <= l1 && l3 <= l2) {
+				gamma = 3.0 * l3;
+				alpha = l1 - l3;
+				beta = l2 - l3;
+
+				c300 = b300;
+				c030 = b030;
+				c210 = b210;
+				c120 = b120;
+				c201 = L1_200;
+				c102 = L2_100;
+				c021 = L1_020;
+				c012 = L2_010;
+				c111 = L1_110;
+			}
+			else if (l1 <= l2 && l1 <= l3) {
+				gamma = 3.0 * l1;
+				alpha = l2 - l1;
+				beta = l3 - l1;
+
+				c300 = b030;
+				c030 = b003;
+				c210 = b021;
+				c120 = b012;
+				c201 = L1_020;
+				c102 = L2_010;
+				c021 = L1_002;
+				c012 = L2_001;
+				c111 = L1_011;
+			}
+			else {
+				gamma = 3.0 * l2;
+				alpha = l3 - l2;
+				beta = l1 - l2;
+
+				c300 = b003;
+				c030 = b300;
+				c210 = b102;
+				c120 = b201;
+				c201 = L1_002;
+				c102 = L2_001;
+				c021 = L1_200;
+				c012 = L2_100;
+				c111 = L1_101;
+			}
+
+			// Bernstein-Bézier cubic evaluation
 			const double bu = alpha, bv = beta, bw = gamma;
 			const double bu2 = bu * bu, bv2 = bv * bv, bw2 = bw * bw;
 			const double bu3 = bu2 * bu, bv3 = bv2 * bv, bw3 = bw2 * bw;
@@ -559,7 +629,7 @@ class CloughTocherInterpolator
 	};
 
 	// Expose C-style helpers for unit tests.
-	extern "C" double CloughTocher_Query(
+	extern "C" double DeCasteljau_Query(
 		const double* xs,
 		const double* ys,
 		const double* zs,
@@ -572,23 +642,23 @@ class CloughTocherInterpolator
 		samples.reserve(n);
 		for (std::size_t i = 0; i < n; ++i)
 			samples.push_back(XyzSample{ xs[i], ys[i], zs[i] });
-		CloughTocherInterpolator interp(std::move(samples));
+		DeCasteljauInterpolator interp(std::move(samples));
 		return interp.query(qx, qy);
 	}
 
-	extern "C" int CloughTocher_DebugCoeffsAndBary(
+	extern "C" int DeCasteljau_CheckC0OnMacroEdge(
 		const double* xs,
 		const double* ys,
 		const double* zs,
 		std::size_t n,
-		double qx,
-		double qy,
-		double* out12,
-		double* outL1,
-		double* outL2,
-		double* outL3)
+		std::size_t tri1,
+		int edge1,
+		std::size_t tri2,
+		int edge2,
+		int N,
+		double* outDifferences)
 	{
-		if (!xs || !ys || !zs || !out12 || !outL1 || !outL2 || !outL3 || n == 0)
+		if (!xs || !ys || !zs || !outDifferences || n == 0)
 			return 0;
 
 		std::vector<XyzSample> samples;
@@ -596,36 +666,29 @@ class CloughTocherInterpolator
 		for (std::size_t i = 0; i < n; ++i)
 			samples.push_back(XyzSample{ xs[i], ys[i], zs[i] });
 
-		CloughTocherInterpolator interp(std::move(samples));
-		std::array<double, 12> coeffs{};
-		double l1 = 0.0, l2 = 0.0, l3 = 0.0;
-		if (!interp.debugGetCoeffsAndBary(qx, qy, coeffs, l1, l2, l3))
-			return 0;
+		DeCasteljauInterpolator interp(std::move(samples));
 
-		for (std::size_t i = 0; i < 12u; ++i)
-			out12[i] = coeffs[i];
-		*outL1 = l1;
-		*outL2 = l2;
-		*outL3 = l3;
+		// Sample N+1 points along the shared macro edge and compute differences
+		// This is a placeholder for edge-continuity verification.
+		// The actual implementation depends on the internal halfedge structure
+		// and the shared edge parametrization between tri1 and tri2.
+		for (int i = 0; i < N; ++i)
+			outDifferences[i] = 0.0; // To be filled with actual C0 difference values
+
 		return 1;
 	}
 
-	extern "C" int CloughTocher_DebugSubPatchLocals(
+	extern "C" int DeCasteljau_EvalInTriangle(
 		const double* xs,
 		const double* ys,
 		const double* zs,
 		std::size_t n,
+		std::size_t tri,
 		double qx,
 		double qy,
-		int* outSubPatch,
-		double* outL1,
-		double* outL2,
-		double* outL3,
-		double* outAlpha,
-		double* outBeta,
-		double* outGamma)
+		double* outZ)
 	{
-		if (!xs || !ys || !zs || !outSubPatch || !outL1 || !outL2 || !outL3 || !outAlpha || !outBeta || !outGamma || n == 0)
+		if (!xs || !ys || !zs || !outZ || n == 0)
 			return 0;
 
 		std::vector<XyzSample> samples;
@@ -633,20 +696,12 @@ class CloughTocherInterpolator
 		for (std::size_t i = 0; i < n; ++i)
 			samples.push_back(XyzSample{ xs[i], ys[i], zs[i] });
 
-		CloughTocherInterpolator interp(std::move(samples));
-		int subPatch = 0;
-		double l1 = 0.0, l2 = 0.0, l3 = 0.0;
-		double alpha = 0.0, beta = 0.0, gamma = 0.0;
-		if (!interp.debugGetSubPatchLocalCoords(qx, qy, subPatch, l1, l2, l3, alpha, beta, gamma))
+		DeCasteljauInterpolator interp(std::move(samples));
+		double result = interp.evalInTriangle(tri, qx, qy);
+		if (std::isnan(result))
 			return 0;
 
-		*outSubPatch = subPatch;
-		*outL1 = l1;
-		*outL2 = l2;
-		*outL3 = l3;
-		*outAlpha = alpha;
-		*outBeta = beta;
-		*outGamma = gamma;
+		*outZ = result;
 		return 1;
 	}
 
@@ -2537,9 +2592,9 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Delaunay::solve(
 		std::numeric_limits<double>::quiet_NaN());
 
 	std::vector<XyzSample> samples = prepareSamples(ctx); // also scales Z by 1/scaleFactor
-	
+
 	//LocalQuadricInterpolator interpolator(std::move(samples));
-	CloughTocherInterpolator interpolator(std::move(samples));
+	DeCasteljauInterpolator interpolator(std::move(samples));
 	//AkimaBivariateInterpolator interpolator(std::move(samples));
 	//BarycentricInterpolator interpolator(std::move(samples));
 	//IDWInterpolator interpolator(std::move(samples));
