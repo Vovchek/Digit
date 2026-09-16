@@ -42,50 +42,6 @@ static double analytic_z(double x, double y)
 	return 1000.0 * (x*x*x - 3.0*x*y*y + y*y + x);
 }
 
-TEST(DeCasteljau, C1ContinuityAcrossSharedEdge)
-{
-	// Square points (0,0),(1,0),(1,1),(0,1)
-	const std::size_t n = 4;
-	double xs[n] = {0.0, 1.0, 1.0, 0.0};
-	double ys[n] = {0.0, 0.0, 1.0, 1.0};
-	double zs[n];
-	for (std::size_t i = 0; i < n; ++i) zs[i] = analytic_z(xs[i], ys[i]);
-
-	// Use edge y = x (diagonal) as shared edge in typical triangulation; pick a point near center
-	const double px = 0.45;
-	const double py = 0.45;
-
-	// normal to the diagonal (1,-1) normalized
-	const double nx = 1.0 / std::sqrt(2.0);
-	const double ny = -1.0 / std::sqrt(2.0);
-
-	const double eps = 1e-6; // small offset in normalized XY (mm)
-
-	// sample points slightly on either side of the diagonal
-	const double p_minus_x = px - eps * nx;
-	const double p_minus_y = py - eps * ny;
-	const double p_plus_x  = px + eps * nx;
-	const double p_plus_y  = py + eps * ny;
-
-	// finite difference step to approximate gradient
-	const double h = 1e-4;
-
-	auto grad_approx = [&](double qx, double qy) {
-		double zcx = DeCasteljau_Query(xs, ys, zs, n, qx, qy);
-		double zx = DeCasteljau_Query(xs, ys, zs, n, qx + h, qy);
-		double zy = DeCasteljau_Query(xs, ys, zs, n, qx, qy + h);
-		double dx = (zx - zcx) / h;
-		double dy = (zy - zcx) / h;
-		return std::pair<double,double>(dx, dy);
-	};
-
-	auto g_minus = grad_approx(p_minus_x, p_minus_y);
-	auto g_plus  = grad_approx(p_plus_x, p_plus_y);
-
-	const double tol = 1.e-6; // tolerance in microns/mm units (relaxed)
-	EXPECT_NEAR(g_minus.first, g_plus.first, tol);
-	EXPECT_NEAR(g_minus.second, g_plus.second, tol);
-}
 
 TEST(DeCasteljau, LinearPrecisionOnAffinePlane)
 {

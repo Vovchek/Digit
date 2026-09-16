@@ -4,9 +4,7 @@
 #include "aperturecore/include/aperturecore/visibility/VisibilityMask.h"
 #include "aperturecore/include/aperturecore/geometry/CoordinateSystem.h"
 #include "DigitMode/CFringeSegment.h"
-#include <iomanip>
-#include <limits>
-#include <fstream>
+#include <string>
 
 // Undefine conflicting MFC macros so standard library min/max remain usable here.
 #ifdef max
@@ -229,6 +227,7 @@ public:
 	double getScaleFactor() const { return scaleFactor_; }
 	double getFiScan() const { return fiScan_; }
 	const WavefrontBoundingCircle& getBoundingCircle() const { return boundingCircle_; }
+	const std::string& getTitle() const { return title_; }
 
 	// ============================================================================
 	// Setters
@@ -240,6 +239,7 @@ public:
 	void setScaleFactor(double scale) { scaleFactor_ = scale; }
 	void setFiScan(double fi) { fiScan_ = fi; }
 	void setBoundingCircle(const WavefrontBoundingCircle& circle) { boundingCircle_ = circle; }
+	void setTitle(const std::string& title) { title_ = title; }
 
 	// ============================================================================
 	// Stream Serialization
@@ -250,6 +250,7 @@ public:
 	bool saveMtrMatrix(std::ostream& os) const;
 
 private:
+	std::string title_;
     std::vector<double> data_;
     int rows_ = 0;
     int cols_ = 0;
@@ -283,15 +284,7 @@ private:
     WavefrontFromContoursContext context_;
 };
 
-// Helper function to access context parameters for solvers
-inline void getContextDimensions(const WavefrontFromContoursContext& ctx, int& outWidth, int& outHeight)
-{
-	// Output dimensions are already resolved in constructor
-	outWidth = ctx.input_.outWidth_;
-	outHeight = ctx.input_.outHeight_;
-}
-
-// concreate solvers (e.g., Poisson, Bilinear, etc.) 
+// concrete solvers 
 class WavefrontFromContoursSolver_Bilinear : public IWavefrontFromContoursSolver
 {
 public:
@@ -301,7 +294,6 @@ private:
 	// Bilinear interpolation to fill unknown values using known neighbors
 	// Only interpolates pixels where knownZ[idx]==0 && mask[idx]!=0
 	// Updates knownZ as values are interpolated
-// Bilinear interpolation to fill unknown values using known neighbors
 	static void performBilinearInterpolation(
 		std::vector<double>& zk,
 		std::vector<char>& knownZ,

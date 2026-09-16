@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 # Read the topogram data
-with open('vert_DLQ.txt', 'r') as f:
+with open('topogram_DCT.txt', 'r') as f:
     # Read first line with dimensions
     header = f.readline().strip()
     print(f"Header: {header}")
@@ -63,6 +63,14 @@ Z_min, Z_max = np.nanmin(data_detrended), np.nanmax(data_detrended)
 Z_range = Z_max - Z_min
 print(f"Original Z range: {Z_min:.2f} to {Z_max:.2f} (range: {Z_range:.2f})")
 
+# MAX/MIN CELL LOCATIONS (after tilt removal, ignoring NaN)
+max_row, max_col = np.unravel_index(np.nanargmax(data_detrended), data_detrended.shape)
+min_row, min_col = np.unravel_index(np.nanargmin(data_detrended), data_detrended.shape)
+max_val = data_detrended[max_row, max_col]
+min_val = data_detrended[min_row, min_col]
+print(f"Max cell (detrended): row={max_row}, col={max_col}, value={max_val:.6f}")
+print(f"Min cell (detrended): row={min_row}, col={min_col}, value={min_val:.6f}")
+
 # SIMPLE Z-AXIS CONTROL - adjust these directly:
 Z_AXIS_MIN = Z_min      # Set custom min (e.g., 1.0)
 Z_AXIS_MAX = Z_max      # Set custom max (e.g., 2.0)
@@ -80,6 +88,11 @@ ax.set_title('3D Surface Visualization of Topogram Matrix (509x509)')
 
 # Add colorbar
 fig.colorbar(surf, ax=ax, shrink=0.5, aspect=5)
+
+# Mark max/min cells on the surface plot
+ax.scatter([max_col], [max_row], [Z[max_row, max_col]], color='red', s=60, label=f'Max ({max_row},{max_col})={max_val:.3f}')
+ax.scatter([min_col], [min_row], [Z[min_row, min_col]], color='blue', s=60, label=f'Min ({min_row},{min_col})={min_val:.3f}')
+ax.legend(loc='upper left')
 
 # Show the plot
 plt.tight_layout()

@@ -13,6 +13,8 @@
 #include <vector>
 #include <windowsx.h>
 #include "FringeSegmentAdaptor.h"
+#include <fstream>
+
 
 #ifndef INTERNAL
 #define INTERNAL 0

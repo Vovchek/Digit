@@ -394,7 +394,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			if (Buf.GetSize() >= 7) {
 				if (isWinFringeFormat) {
 					//Ell0 = XYEllipse(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
-					Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), NORMALISED);
+					Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
 				}
 				else {
 					//Ell0 = XYEllipse(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
@@ -415,13 +415,13 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 			if (Buf.GetSize() >= 7) {
 				if (isWinFringeFormat) {
 					//Rect0 = XYRect(Buf[2], Buf[3], Buf[0], Buf[1], Buf[4], int(Buf[5]), int(Buf[6]));
-					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), NORMALISED);
+					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), int(Buf[6]));
 				}
 				else {
 					Rect0 = XYRect(Buf[0], Buf[1], Buf[2], Buf[3], Buf[4], int(Buf[5]), MEASURING);
 				}
 				IntInfo.ArrRect.Add(Rect0);
-				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
+				if (static_cast<int>(Buf[5]) == 1) apertureDefined = true;
 			}
 		}
 	}
@@ -441,7 +441,7 @@ BOOL ReadFRNData(const CString& FileName, NUMBERING_INTERFEROGRAM_INFO& IntInfo)
 					Plg0.InverseY(IntInfo.ImageSize[1]);
 				}
 				IntInfo.ArrPlg.Add(Plg0);
-				if (static_cast<int>(Buf[6]) == 1) apertureDefined = true;
+				if (static_cast<int>(Buf[5]) == 1) apertureDefined = true;
 			}
 		}
 	}

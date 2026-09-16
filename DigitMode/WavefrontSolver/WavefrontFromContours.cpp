@@ -9,10 +9,19 @@
 #include <random>
 #include <unordered_set>
 #include <deque>
+#include <iomanip>
 #include "./delaunator-cpp/delaunator-header-only.hpp"
 
 namespace
 {
+	// Helper function to access context parameters for solvers
+	inline void getContextDimensions(const WavefrontFromContoursContext& ctx, int& outWidth, int& outHeight)
+	{
+		// Output dimensions are already resolved in constructor
+		outWidth = ctx.input_.outWidth_;
+		outHeight = ctx.input_.outHeight_;
+	}
+
 	constexpr double kCircleEps = 1e-9;
 
 	double sqr(double v)
@@ -28,7 +37,6 @@ class DeCasteljauInterpolator
 		DeCasteljauInterpolator(std::vector<XyzSample> samples)
 			: points_orig_(std::move(samples))
 		{
-			normalizePoints();
 			buildTriangulation();
 			computeTriangleGradients();
 			computeVertexGradients();
@@ -38,14 +46,11 @@ class DeCasteljauInterpolator
 		// Query in original units (X mm, Y mm). Returns interpolated Z.
 		double query(double x, double y) const
 		{
-			if (points_norm_.empty() || !triangulation_)
+			if (points_orig_.empty() || !triangulation_)
 				return std::numeric_limits<double>::quiet_NaN();
 
-			const double nx = normalizeX(x);
-			const double ny = normalizeY(y);
-
 			// Locate containing triangle
-			std::size_t tri = locateContainingTriangle(nx, ny);
+			std::size_t tri = locateContainingTriangle(x, y);
 			if (tri == delaunator::INVALID_INDEX) {
 				return std::numeric_limits<double>::quiet_NaN();
 			}
@@ -55,24 +60,24 @@ class DeCasteljauInterpolator
 			if (!opt.has_value()) {
 				std::vector<double> coeffs;
 				if (!buildTriangleCubicCoeffs(tri, coeffs)) {
-					return interpolatePlane(tri, nx, ny);
+					return interpolatePlane(tri, x, y);
 				}
 				opt = std::move(coeffs);
 			}
 
 			const std::vector<double>& data = *opt; // 10 values
 
-			// --- Barycentric coordinates of (nx, ny) in macro-triangle ---
+			// --- Barycentric coordinates of (x, y) in macro-triangle ---
 			double l1, l2, l3;
 			const auto& tris = triangulation_->triangles;
 			const std::size_t ia = tris[3 * tri];
 			const std::size_t ib = tris[3 * tri + 1];
 			const std::size_t ic = tris[3 * tri + 2];
-			const auto& A = points_norm_[ia];
-			const auto& B = points_norm_[ib];
-			const auto& C = points_norm_[ic];
-			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3)) {
-				return interpolatePlane(tri, nx, ny);
+			const auto& A = points_orig_[ia];
+			const auto& B = points_orig_[ib];
+			const auto& C = points_orig_[ic];
+			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, x, y, l1, l2, l3)) {
+				return interpolatePlane(tri, x, y);
 			}
 
 			// --- Macro control points ---
@@ -173,7 +178,7 @@ class DeCasteljauInterpolator
 			const double bu2 = bu * bu, bv2 = bv * bv, bw2 = bw * bw;
 			const double bu3 = bu2 * bu, bv3 = bv2 * bv, bw3 = bw2 * bw;
 
-			const double interpolated_z_norm =
+			const double interpolated_z =
 				bu3 * c300
 				+ 3.0 * bu2 * bv * c210
 				+ 3.0 * bu * bv2 * c120
@@ -185,25 +190,22 @@ class DeCasteljauInterpolator
 				+ 3.0 * bv * bw2 * c012
 				+ bw3 * c003;
 
-			return denormalizeZ(interpolated_z_norm);
+			return interpolated_z;
 		}
 
 		// Evaluate the de Casteljau interpolant directly within a specific triangle.
 		// Used for debugging continuity across macro edges.
 		double evalInTriangle(std::size_t tri, double x, double y) const
 		{
-			if (points_norm_.empty() || !triangulation_ || tri == delaunator::INVALID_INDEX)
+			if (points_orig_.empty() || !triangulation_ || tri == delaunator::INVALID_INDEX)
 				return std::numeric_limits<double>::quiet_NaN();
-
-			const double nx = normalizeX(x);
-			const double ny = normalizeY(y);
 
 			// Compute or fetch cached cubic coefficients for this triangle
 			auto& opt = coeffs_cache_[tri];
 			if (!opt.has_value()) {
 				std::vector<double> coeffs;
 				if (!buildTriangleCubicCoeffs(tri, coeffs)) {
-					return interpolatePlane(tri, nx, ny);
+					return interpolatePlane(tri, x, y);
 				}
 				opt = std::move(coeffs);
 			}
@@ -216,11 +218,11 @@ class DeCasteljauInterpolator
 			const std::size_t ia = tris[3 * tri];
 			const std::size_t ib = tris[3 * tri + 1];
 			const std::size_t ic = tris[3 * tri + 2];
-			const auto& A = points_norm_[ia];
-			const auto& B = points_norm_[ib];
-			const auto& C = points_norm_[ic];
-			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3)) {
-				return interpolatePlane(tri, nx, ny);
+			const auto& A = points_orig_[ia];
+			const auto& B = points_orig_[ib];
+			const auto& C = points_orig_[ic];
+			if (!barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, x, y, l1, l2, l3)) {
+				return interpolatePlane(tri, x, y);
 			}
 
 			// Extract macro control points
@@ -307,7 +309,7 @@ class DeCasteljauInterpolator
 			const double bu2 = bu * bu, bv2 = bv * bv, bw2 = bw * bw;
 			const double bu3 = bu2 * bu, bv3 = bv2 * bv, bw3 = bw2 * bw;
 
-			const double interpolated_z_norm =
+			const double interpolated_z =
 				bu3 * c300
 				+ 3.0 * bu2 * bv * c210
 				+ 3.0 * bu * bv2 * c120
@@ -319,67 +321,29 @@ class DeCasteljauInterpolator
 				+ 3.0 * bv * bw2 * c012
 				+ bw3 * c003;
 
-			return denormalizeZ(interpolated_z_norm);
+			return interpolated_z;
 		}
 
 	private:
 		std::unique_ptr<delaunator::Delaunator> triangulation_;
 		std::vector<XyzSample> points_orig_;
-		std::vector<XyzSample> points_norm_;
 		// per-triangle gradients (dz/dx,dz/dy) in normalized coords
 		std::vector<std::pair<double,double>> tri_gradients_;
 		// per-vertex averaged gradients
 		std::vector<std::pair<double,double>> vert_gradients_;
 		mutable std::vector<std::optional<std::vector<double>>> coeffs_cache_;
 
-		// normalization extents
-		double x_min_ = 0.0, x_max_ = 1.0, x_range_ = 1.0;
-		double y_min_ = 0.0, y_max_ = 1.0, y_range_ = 1.0;
-		double z_min_ = 0.0, z_max_ = 1.0, z_range_ = 1.0;
-
-		void normalizePoints()
-		{
-			if (points_orig_.empty()) return;
-			x_min_ = x_max_ = points_orig_[0].x;
-			y_min_ = y_max_ = points_orig_[0].y;
-			z_min_ = z_max_ = points_orig_[0].z;
-			for (const auto& p : points_orig_)
-			{
-				if (p.x < x_min_) x_min_ = p.x; if (p.x > x_max_) x_max_ = p.x;
-				if (p.y < y_min_) y_min_ = p.y; if (p.y > y_max_) y_max_ = p.y;
-				if (p.z < z_min_) z_min_ = p.z; if (p.z > z_max_) z_max_ = p.z;
-			}
-			x_range_ = (x_max_ - x_min_) > 0.0 ? (x_max_ - x_min_) : 1.0;
-			y_range_ = (y_max_ - y_min_) > 0.0 ? (y_max_ - y_min_) : 1.0;
-			z_range_ = (z_max_ - z_min_) > 0.0 ? (z_max_ - z_min_) : 1.0;
-
-			points_norm_.clear(); points_norm_.reserve(points_orig_.size());
-			for (const auto& p : points_orig_)
-			{
-				XyzSample np;
-				np.x = normalizeX(p.x); /* (p.x - x_min_) / x_range_; */
-				np.y = normalizeY(p.y); /* (p.y - y_min_) / y_range_; */
-				// keep Z in original units (microns)
-				np.z = p.z;
-				points_norm_.push_back(np);
-			}
-		}
-
-		double normalizeX(double x) const noexcept { return x;/*(x - x_min_) / x_range_;*/ }
-		double normalizeY(double y) const noexcept { return y;/*(y - y_min_) / y_range_;*/ }
-		double denormalizeZ(double z_norm) const noexcept { return z_norm; /* Z stored in original units */ }
-
 		void buildTriangulation()
 		{
-			if (points_norm_.empty())
+			if (points_orig_.empty())
 			{
 				triangulation_.reset();
 				return;
 			}
 
 			std::vector<double> coords;
-			coords.reserve(points_norm_.size() * 2u);
-			for (const auto& p : points_norm_)
+			coords.reserve(points_orig_.size() * 2u);
+			for (const auto& p : points_orig_)
 			{
 				coords.push_back(p.x);
 				coords.push_back(p.y);
@@ -401,9 +365,9 @@ class DeCasteljauInterpolator
 				const std::size_t ia = tri[3*t];
 				const std::size_t ib = tri[3*t+1];
 				const std::size_t ic = tri[3*t+2];
-				const auto& A = points_norm_[ia];
-				const auto& B = points_norm_[ib];
-				const auto& C = points_norm_[ic];
+				const auto& A = points_orig_[ia];
+				const auto& B = points_orig_[ib];
+				const auto& C = points_orig_[ic];
 				// solve [ [Bx-Ax, By-Ay], [Cx-Ax, Cy-Ay] ] * [a;b] = [Bz-Az, Cz-Az]
 				const double m00 = B.x - A.x; const double m01 = B.y - A.y;
 				const double m10 = C.x - A.x; const double m11 = C.y - A.y;
@@ -425,21 +389,21 @@ class DeCasteljauInterpolator
 		void computeVertexGradients()
 		{
 			vert_gradients_.clear();
-			vert_gradients_.resize(points_norm_.size(), { 0.0, 0.0 });
+			vert_gradients_.resize(points_orig_.size(), { 0.0, 0.0 });
 			if (!triangulation_) return;
 
 			const auto& tri = triangulation_->triangles;
 			const std::size_t triCount = tri.size() / 3u;
-			std::vector<double> weightSum(points_norm_.size(), 0.0);
+			std::vector<double> weightSum(points_orig_.size(), 0.0);
 
 			for (std::size_t t = 0; t < triCount; ++t)
 			{
 				const std::size_t ia = tri[3 * t];
 				const std::size_t ib = tri[3 * t + 1];
 				const std::size_t ic = tri[3 * t + 2];
-				const auto& A = points_norm_[ia];
-				const auto& B = points_norm_[ib];
-				const auto& C = points_norm_[ic];
+				const auto& A = points_orig_[ia];
+				const auto& B = points_orig_[ib];
+				const auto& C = points_orig_[ic];
 
 				// Calculate area as the stability metric
 				const double area = std::abs((B.x - A.x) * (C.y - A.y) - (B.y - A.y) * (C.x - A.x)) * 0.5;
@@ -486,9 +450,9 @@ class DeCasteljauInterpolator
 				const std::size_t ia = tri[3*t];
 				const std::size_t ib = tri[3*t+1];
 				const std::size_t ic = tri[3*t+2];
-				const auto& A = points_norm_[ia];
-				const auto& B = points_norm_[ib];
-				const auto& C = points_norm_[ic];
+				const auto& A = points_orig_[ia];
+				const auto& B = points_orig_[ib];
+				const auto& C = points_orig_[ic];
 				double l1, l2, l3;
 				if (barycentricCoords(A.x,A.y,B.x,B.y,C.x,C.y,nx,ny,l1,l2,l3))
 				{
@@ -533,10 +497,10 @@ class DeCasteljauInterpolator
 		{
 			double best = std::numeric_limits<double>::infinity();
 			std::size_t besti = 0u;
-			for (std::size_t i = 0; i < points_norm_.size(); ++i)
+			for (std::size_t i = 0; i < points_orig_.size(); ++i)
 			{
-				const double dx = points_norm_[i].x - nx;
-				const double dy = points_norm_[i].y - ny;
+				const double dx = points_orig_[i].x - nx;
+				const double dy = points_orig_[i].y - ny;
 				const double d2 = dx*dx + dy*dy;
 				if (d2 < best) { best = d2; besti = i; }
 			}
@@ -561,9 +525,9 @@ class DeCasteljauInterpolator
 			const std::size_t ia = tri[3 * triIndex];
 			const std::size_t ib = tri[3 * triIndex + 1];
 			const std::size_t ic = tri[3 * triIndex + 2];
-			const auto& A = points_norm_[ia];
-			const auto& B = points_norm_[ib];
-			const auto& C = points_norm_[ic];
+			const auto& A = points_orig_[ia];
+			const auto& B = points_orig_[ib];
+			const auto& C = points_orig_[ic];
 
 			const double z1 = A.z;
 			const double z2 = B.z;
@@ -613,18 +577,18 @@ class DeCasteljauInterpolator
 			const std::size_t ia = tri[3*triIndex];
 			const std::size_t ib = tri[3*triIndex+1];
 			const std::size_t ic = tri[3*triIndex+2];
-			const auto& A = points_norm_[ia];
-			const auto& B = points_norm_[ib];
-			const auto& C = points_norm_[ic];
+			const auto& A = points_orig_[ia];
+			const auto& B = points_orig_[ib];
+			const auto& C = points_orig_[ic];
 			const double m00 = B.x - A.x; const double m01 = B.y - A.y;
 			const double m10 = C.x - A.x; const double m11 = C.y - A.y;
 			const double rhs0 = B.z - A.z; const double rhs1 = C.z - A.z;
 			const double det = m00 * m11 - m01 * m10;
-			if (std::fabs(det) < 1e-15) return denormalizeZ(A.z);
+			if (std::fabs(det) < 1e-15) return A.z;
 			const double a = ( rhs0 * m11 - m01 * rhs1) / det; // dz/dx
 			const double b = ( m00 * rhs1 - rhs0 * m10) / det; // dz/dy
 			const double z = A.z + a * (x - A.x) + b * (y - A.y);
-			return denormalizeZ(z);
+			return z;
 		}
 	};
 
@@ -781,9 +745,9 @@ class DeCasteljauInterpolator
 		}
 
 		const WavefrontPrimitivePoint p = points[static_cast<size_t>(n - 1)];
-		WavefrontBoundingCircle d = welzl(points, boundary, n - 1);
-		if (containsPoint(d, p))
-			return d;
+		const WavefrontBoundingCircle c = welzl(points, boundary, n - 1);
+		if (containsPoint(c, p))
+			return c;
 
 		boundary.push_back(p);
 		WavefrontBoundingCircle result = welzl(points, boundary, n - 1);
@@ -2066,27 +2030,29 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	int yc = static_cast<int>(boundingCircle.center.y);  // Center row index
 
 	// Write header
+	os << "Title=" << getTitle() << "\n";
+
 	std::streamsize oldPrec = os.precision();
 	os << std::fixed << std::setprecision(4);
-	
-	os << "Title=\n";
-	std::time_t t = std::time(nullptr);  // Get current time
-	std::tm* local = std::localtime(&t);  // Convert to local time
 
-	// Format time
-	char buffer[80];
-	std::strftime(buffer, sizeof(buffer), "%Y-%m-%d", local);
-	os << "Date=" << buffer << "\n";
-	std::strftime(buffer, sizeof(buffer), "%H:%M:%S", local);
-	os << "Time=" << buffer << "\n";
+	std::time_t t = std::time(nullptr);  // Get current time
+	std::tm local;
+	// Convert to local time
+#if defined(_MSC_VER) || defined(_WIN32)
+	localtime_s(&local, &t);
+#else
+	localtime_r(&t, &local);
+#endif
+	os << "Date=" << std::put_time(&local, "%Y-%m-%d") << "\n";
+	os << "Time=" << std::put_time(&local, "%H:%M:%S") << "\n";
 
 	if(getScaleFactor() != 1.0) os << "ScaleFactor=" << getScaleFactor() << "\n";
 	if(getFiScan() != 0.0) os << "FiScan=" << getFiScan() << "\n";
 	
-	os << "Units=WAV\n\n";
+	os << "Units=WAV\n";
 	// NB:essentially Size = 1./delta - not nesserery eq to rows_ or cols_.
 	// Setting a wrong Size value breaks WinFringe calculations
-	os << "Size=" << sizeMatrix << "\n"; 
+	os << "Size=" << sizeMatrix << "\n\n"; 
 	os << "[MATRIX]\n";
 
 	// Format settings
@@ -2178,7 +2144,7 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const Wa
 	result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
 	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
-	result.setScaleFactor(1.0); // reterize() scales due to it
+	result.setScaleFactor(1.0);
 	result.setFiScan(ctx.input_.fiScan_);
 
 	return result;

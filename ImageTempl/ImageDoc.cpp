@@ -13,6 +13,8 @@
 #include "Options\ApproxSetDlg.h"
 #include "MGTools\Include\Utils\Utils.h"
 #include <memory>
+#include <fstream>
+
 
 namespace {
 	CMapStringToPtr g_cachedOpenInfo;
