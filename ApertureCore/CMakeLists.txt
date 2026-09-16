@@ -33,6 +33,7 @@ set(APERTURE_SOURCES
     src/visibility/TypeLimits.cpp
     src/visibility/ShapeCollection.cpp
     src/visibility/VisibilityChecker.cpp
+    src/visibility/BoundingCircle.cpp
     
     # TODO: Add as implemented
     # src/io/ShapeSerializer.cpp

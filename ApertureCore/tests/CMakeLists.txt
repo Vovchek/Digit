@@ -39,6 +39,7 @@ add_executable(visibility_tests
     visibility/VisibleRegionTest.cpp
     visibility/VisibilityCheckerTest.cpp
     visibility/VisibilityPerformanceTest.cpp
+    visibility/BoundingCircleTest.cpp
 )
 target_link_libraries(visibility_tests PRIVATE ${TEST_LIBS})
 gtest_discover_tests(visibility_tests)

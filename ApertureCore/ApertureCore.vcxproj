@@ -147,6 +147,7 @@
     <ClInclude Include="include\aperturecore\visibility\VisibilityMask.h" />
     <ClInclude Include="include\aperturecore\visibility\VisibilityMaskBuilder.h" />
     <ClInclude Include="include\aperturecore\visibility\VisibilityMaskProvider.h" />
+    <ClInclude Include="include\aperturecore\geometry\BoundingCircle.h" />
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->
@@ -168,6 +169,9 @@
     <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
     <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp" />
     <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp" />
+    <ClCompile Include="src\visibility\BoundingCircle.cpp" />
+    <ClCompile Include="tests\geometry\TestEllipseHelpers.cpp" />
+    <ClCompile Include="tests\visibility\BoundingCircleTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!-- Documentation -->

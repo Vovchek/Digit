@@ -6,6 +6,7 @@
 
 #include "../geometry/Shape.h"
 #include "../geometry/Bounds.h"
+#include "../geometry/BoundingCircle.h"
 #include "TypeLimits.h"
 #include <vector>
 #include <memory>
@@ -200,7 +201,67 @@ public:
      * @see getCombinedBounds() for bounds of all shapes regardless of type
      */
     Bounds getVisibleRegion() const;
-    
+        /**
+     * @brief Compute minimum bounding circle for all shapes in collection
+     * @return BoundingCircle containing all shapes
+     * 
+     * Computes the smallest circle that contains all shapes in the collection.
+     * Uses Welzl's algorithm (O(n) expected time complexity) for efficient
+     * computation of the minimum enclosing circle.
+     * 
+     * The bounding circle encompasses:
+     * - All EXTERNAL shapes
+     * - All INTERNAL shapes (obstructions)
+     * - All APERTURE shapes
+     * 
+     * **Important:** This returns the geometric bounding circle for ALL shapes,
+     * regardless of their visibility type. It is NOT affected by shape occlusion
+     * or visibility masks - it purely measures the geometric extent.
+     * 
+     * ## Algorithm Details
+     * 
+     * The minimum bounding circle (MBC) is computed in two stages:
+     * 
+     * 1. **Vertex Collection**: Extract all polygon vertices from all shapes
+     *    - Ellipses: Sample key points (major/minor axis endpoints)
+     *    - Rectangles: Extract corner points
+     *    - Polygons: Use existing vertices
+     * 
+     * 2. **Welzl's Algorithm**: Compute MBC of point set
+     *    - Expected O(n) time, O(n) space
+     *    - Guaranteed to find optimal circle
+     * 
+     * ## Return Value
+     * 
+     * Returns a BoundingCircle struct:
+     * - `valid == true`: Circle successfully computed
+     *   - `center`: Center point of the circle
+     *   - `radius`: Radius of the circle
+     * - `valid == false`: No shapes in collection
+     *   - `center`: Undefined (0, 0)
+     *   - `radius`: Undefined (0.0)
+     * 
+     * ## Example
+     * @code{.cpp}
+     * ShapeCollection shapes;
+     * shapes.addExternal(std::make_unique<Ellipse>(100.0, 100.0, 0.0, 0.0));
+     * shapes.addInternal(std::make_unique<Ellipse>(50.0, 50.0, 200.0, 0.0));
+     * 
+     * auto circle = shapes.getBoundingCircle();
+     * if (circle.valid) {
+     *     // Circle encompasses both external and internal shapes
+     *     double area = M_PI * circle.radius * circle.radius;
+     *     std::cout << "Area: " << area << "\n";
+     * }
+     * @endcode
+     * 
+     * @note Coordinate system is preserved: if shapes are in SCREEN coordinates,
+     * the returned circle center is also in SCREEN coordinates.
+     * @note Empty collections return invalid circle (valid == false)
+     * @see Bounds::getCombinedBounds() for axis-aligned bounding box
+     */
+     BoundingCircle getBoundingCircle() const;
+
     /**
      * @brief Clear all shapes
      */
