@@ -1,6 +1,8 @@
 /**
  * @file ShapeCollection.cpp
  * @brief Implementation of ShapeCollection class
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include "aperturecore/visibility/ShapeCollection.h"

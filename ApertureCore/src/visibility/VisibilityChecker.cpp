@@ -1,6 +1,8 @@
 /**
  * @file VisibilityChecker.cpp
  * @brief Implementation of VisibilityChecker class
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include "aperturecore/visibility/VisibilityChecker.h"

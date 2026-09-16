@@ -1,6 +1,8 @@
-﻿/**
+/**
  * @file BoundingCircle.h
  * @brief Bounding circle structure for 2D shapes
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 #pragma once
 

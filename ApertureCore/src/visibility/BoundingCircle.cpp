@@ -1,6 +1,8 @@
 /**
  * @file BoundingCircle.cpp
  * @brief Implementation of bounding circle computation
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include "aperturecore/geometry/BoundingCircle.h"
