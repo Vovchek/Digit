@@ -88,8 +88,11 @@ bool Polygon::isInside(const Point& point) const {
             inside = !inside;
         }
     }
-    
-    return inside;
+
+    if(!inside)
+        return isOnContour(point, 1e-8);  // Check if point is on the contour with a small tolerance
+    else
+        return inside;
 }
 
 Bounds Polygon::getBounds() const {
@@ -109,30 +112,31 @@ std::vector<Point> Polygon::getContour(double stepSize) const {
     if (vertices_.empty()) {
         return {};
     }
-    
+
     // For polygons, we can interpolate along edges if stepSize requires it
     std::vector<Point> contour;
     size_t n = vertices_.size();
-    
-    for (size_t i = 0; i < n - 1; ++i) {
-        const Point& start = vertices_[i];
-        const Point& end = vertices_[i + 1];
-        
+
+    auto appendEdge = [&contour, stepSize](const Point& start, const Point& end) {
         double edgeLength = start.distanceTo(end);
         int numSegments = std::max(1, static_cast<int>(edgeLength / stepSize));
-        
-        // Add interpolated points along edge
+
         for (int j = 0; j < numSegments; ++j) {
             double t = static_cast<double>(j) / numSegments;
             contour.push_back(lerp(start, end, t));
         }
+    };
+
+    for (size_t i = 0; i < n - 1; ++i) {
+        appendEdge(vertices_[i], vertices_[i + 1]);
     }
-    
-    // Ensure closed
-    if (!vertices_.empty() && contour.back() != vertices_.front()) {
-        contour.push_back(vertices_.front());
+
+    // Ensure explicit closure in contour output
+    if (!isClosed()) {
+        // Interpolate the closing edge when polygon vertices are not explicitly closed
+        appendEdge(vertices_[n-1], vertices_[0]);
     }
-    
+
     return contour;
 }
 
