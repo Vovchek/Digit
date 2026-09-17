@@ -1787,7 +1787,6 @@ namespace
 std::pair<std::vector<char>, std::vector<double>>
 WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 {
-	const auto& visibilityMask = input_.visibilityMask_;
 	const auto& fringeSegments = input_.fringeSegments_;
 	
 	// Use pre-resolved output dimensions from constructor
@@ -1891,10 +1890,6 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 		{
 			CDPoint p0 = fringe.GetPoint(i);
 			CDPoint p1 = fringe.GetPoint(i + 1);
-
-			// Handle coordinate system conversion
-			p0.y = convertY(p0.y);
-			p1.y = convertY(p1.y);
 
 			// Convert to output pixel coordinates
 			double u0 = xToOutput(p0.x);
@@ -2136,14 +2131,14 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const Wa
 	performBilinearInterpolation(zk, knownZ, mask, outHeight, outWidth);
 
 	// Convert bounds to output coordinate system
-	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
 
 	// Populate result
 	WavefrontFromContoursResult result;
 	result.setMatrixData(zk.data(), outHeight, outWidth);
-	result.setBounds(outputBounds);
+	//result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setBoundingCircle(ctx.computeBoundingCircle());
 	result.setScaleFactor(1.0);
 	result.setFiScan(ctx.input_.fiScan_);
 
@@ -2251,14 +2246,14 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
 	}
 	
 	// Convert bounds to output coordinate system
-	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
 	
 	// Populate result
 	WavefrontFromContoursResult result;
 	result.setMatrixData(zk.data(), outHeight, outWidth);
-	result.setBounds(outputBounds);
+	//result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setBoundingCircle(ctx.computeBoundingCircle());
 	result.setScaleFactor(1.0); // already scaled
 	result.setFiScan(ctx.input_.fiScan_);
 
@@ -2461,14 +2456,14 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
 	}
 	
 	// Convert bounds to output coordinate system
-	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
 	
 	// Populate result
 	WavefrontFromContoursResult result;
 	result.setMatrixData(zk.data(), outHeight, outWidth);
-	result.setBounds(outputBounds);
+	//result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setBoundingCircle(ctx.computeBoundingCircle());
 	result.setScaleFactor(1.0); // already scaled here
 	result.setFiScan(ctx.input_.fiScan_);
 
@@ -2583,59 +2578,35 @@ WavefrontFromContoursResult WavefrontFromContoursSolver_Delaunay::solve(
 		}
 	}
 
-	aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
+	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
 	WavefrontFromContoursResult result;
 	result.setMatrixData(zk.data(), outHeight, outWidth);
-	result.setBounds(outputBounds);
+	//result.setBounds(outputBounds);
 	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeMaskBoundingCircle(mask));
+	result.setBoundingCircle(ctx.computeBoundingCircle());
 	result.setScaleFactor(1.0);
 	result.setFiScan(ctx.input_.fiScan_);
 	return result;
 }
 
-WavefrontBoundingCircle WavefrontFromContoursContext::computeMaskBoundingCircle(const std::vector<char>& mask) const
+WavefrontBoundingCircle WavefrontFromContoursContext::computeBoundingCircle() const
 {
-	const int outWidth = input_.outWidth_;
-	const int outHeight = input_.outHeight_;
-	if (mask.empty() || outWidth <= 0 || outHeight <= 0)
-		return {};
+	// Query ApertureCore for the bounding circle
+	aperture::BoundingCircle circle = input_.shapeCollection_.getBoundingCircle();
 
-	std::vector<WavefrontPrimitivePoint> points;
-	points.reserve(static_cast<size_t>(outHeight) * 2u);
-
-	for (int row = 0; row < outHeight; ++row)
-	{
-		const int rowOffset = row * outWidth;
-		int firstVisible = -1;
-		int lastVisible = -1;
-
-		for (int col = 0; col < outWidth; ++col)
-		{
-			if (mask[rowOffset + col] == 0)
-				continue;
-			if (firstVisible < 0)
-				firstVisible = col;
-			lastVisible = col;
-		}
-
-		if (firstVisible < 0)
-			continue;
-
-		points.push_back({ static_cast<double>(firstVisible), static_cast<double>(row) });
-		if (lastVisible != firstVisible)
-		{
-			points.push_back({ static_cast<double>(lastVisible), static_cast<double>(row) });
-		}
+	if (!circle.valid) {
+		return {};  // Invalid circle
 	}
 
-	if (points.empty())
-		return {};
+	// Convert from input to output coordinates
+	WavefrontBoundingCircle result;
+	result.center.x = xToOutput(circle.center.x);
+	result.center.y = yToOutput(circle.center.y);
 
-	std::mt19937 rng(0xD16D1234u);
-	std::shuffle(points.begin(), points.end(), rng);
+	// Scale radius by coordinate transform
+	const double scale = std::min(std::abs(xScale_), std::abs(yScale_));
+	result.radius = scale > 0.0 ? circle.radius * scale : 0.0;
+	result.valid = true;
 
-	std::vector<WavefrontPrimitivePoint> boundary;
-	boundary.reserve(3u);
-	return welzl(points, boundary, static_cast<int>(points.size()));
+	return result;
 }

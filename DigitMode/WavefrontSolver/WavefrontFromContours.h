@@ -1,8 +1,9 @@
 ﻿#pragma once
 
 #include "aperturecore/include/aperturecore/geometry/Bounds.h"
-#include "aperturecore/include/aperturecore/visibility/VisibilityMask.h"
+#include "aperturecore/include/aperturecore/visibility/VisibilityChecker.h"
 #include "aperturecore/include/aperturecore/geometry/CoordinateSystem.h"
+#include "aperturecore/include/aperturecore/visibility/ShapeCollection.h"
 #include "DigitMode/CFringeSegment.h"
 #include <string>
 
@@ -37,8 +38,7 @@ struct XyzSample
 struct WavefrontFromContoursInput
 {
     explicit WavefrontFromContoursInput(
-        const aperture::Bounds& bounds,
-        const aperture::visibility::VisibilityMask& visibilityMask,
+        const aperture::ShapeCollection& shapeCollection,
         const std::vector<CFringeSegment>& fringeSegments,
 		double scaleFactor = 1.,
 		double fiScan = 0.,
@@ -46,25 +46,26 @@ struct WavefrontFromContoursInput
         int outHeight = 0,
         aperture::CoordinateSystemType inputCoordType = aperture::CoordinateSystemType::SCREEN,
         aperture::CoordinateSystemType outputCoordType = aperture::CoordinateSystemType::MATH)
-        : bounds_(bounds)
-        , visibilityMask_(visibilityMask)
+        : shapeCollection_(shapeCollection)
+        , bounds_(shapeCollection.getVisibleRegion())
         , fringeSegments_(fringeSegments)
 		, scaleFactor_(scaleFactor)
 		, fiScan_(fiScan)
-        , outWidth_(outWidth > 0 ? outWidth : static_cast<int>(bounds.width()))
+        , outWidth_(outWidth > 0 ? outWidth : static_cast<int>(bounds_.width()))
         , outHeight_(outHeight > 0 ? outHeight : 
-            static_cast<int>(bounds.height() * outWidth_ / static_cast<double>(bounds.width())))
+            static_cast<int>(bounds_.height() * outWidth_ / static_cast<double>(bounds_.width())))
         , inputCoordType_(inputCoordType)
 		, outputCoordType_(outputCoordType) {
 	}
 
-    const aperture::Bounds bounds_;
-    const aperture::visibility::VisibilityMask& visibilityMask_;
+    const aperture::ShapeCollection& shapeCollection_;
     const std::vector<CFringeSegment>& fringeSegments_;
 	double scaleFactor_;
 	double fiScan_;
-    // Resolution parameters
-    // outWidth: desired output matrix width (columns along x-axis)
+	// ROI in input coordinate system, cached from shapeCollection_.getVisibleRegion()
+	const aperture::Bounds bounds_;
+	// Resolution parameters
+	// outWidth: desired output matrix width (columns along x-axis)
     // outWidth = 0 means use aperture bounding box width (resolved in constructor)
     int outWidth_;
     // outHeight: desired output matrix height (rows along y-axis)
@@ -97,41 +98,41 @@ public:
     explicit WavefrontFromContoursContext(const WavefrontFromContoursInput& input) :
         input_(input)
 	{
+		xScale_ = static_cast<double>(input_.outWidth_) / input_.bounds_.width();
 		xShift_ = input_.bounds_.minX();
-		yShift_ = (input_.inputCoordType_ == input_.outputCoordType_) ?
-			input_.bounds_.minY() : input_.bounds_.maxY();
-		xScale_ = input_.bounds_.width() / static_cast<double>(input_.outWidth_);
 		yScale_ = (input_.inputCoordType_ == input_.outputCoordType_) ?
-			input_.bounds_.height() / static_cast<double>(input_.outHeight_) :
-			-input_.bounds_.height() / static_cast<double>(input_.outHeight_);
+			static_cast<double>(input_.outHeight_) / input_.bounds_.height() :
+			-static_cast<double>(input_.outHeight_) / input_.bounds_.height();
+		yShift_ = (input_.inputCoordType_ == input_.outputCoordType_) ?
+			input_.bounds_.minY() * yScale_ : - input_.outHeight_ + input_.bounds_.minY() * yScale_;
 	}
 	
 	// solver helpers
 	double xToOutput(double x) const
 	{
-		return (x - xShift_) / xScale_;
+		return (x * xScale_ - xShift_);
 	}
 	double yToOutput(double y) const
 	{
-		return (y - yShift_) / yScale_;
+		return (y * yScale_ - yShift_);
 	}
 	double xToInput(double x) const
 	{
-		return x * xScale_ + xShift_;
+		return (x + xShift_) / xScale_;
 	}
 	double yToInput(double y) const
 	{
-		return y * yScale_ + yShift_;
+		return (y + yShift_) / yScale_;
 	}
 
 	// rasterize to output resolution, considering visibility mask, bounds, input & output coordinate systems
 	std::vector<char> buildMask() const
 	{
-		const auto& visibilityMask = input_.visibilityMask_;
-		
+		aperture::VisibilityChecker checker(input_.shapeCollection_);  // <-- New
+
 		// Use pre-resolved output dimensions from constructor
-		int outWidth = input_.outWidth_;
-		int outHeight = input_.outHeight_;
+		const int outWidth = input_.outWidth_;
+		const int outHeight = input_.outHeight_;
 
 		// Build output mask with output dimensions
 		const int N = outHeight * outWidth;
@@ -146,15 +147,10 @@ public:
 				// Map output pixel to visibility mask coordinate space
 				double maskX = xToInput(outX);
 
-				// Clamp to visibility mask bounds
-				int x = static_cast<int>(maskX);
-				int y = static_cast<int>(maskY);
-				
-				if (x >= 0 && x < visibilityMask.width && y >= 0 && y < visibilityMask.height) {
-					int outIndex = outY * outWidth + outX;
-					visible[outIndex] = visibilityMask.IsVisible(x, y) ? 1 : 0;
-					sumVisibleLine += visible[outIndex];
-				}
+				int outIndex = outY * outWidth + outX;
+				// Query shape visibility instead of mask pixel
+				visible[outIndex] = checker.isVisible({ maskX, maskY }) ? 1 : 0;
+				sumVisibleLine += visible[outIndex];
 			}
 			if (sumVisible && sumVisibleLine == 0) {
 				TRACE("Warning: No visible pixels found in line %d\n", outY);
@@ -169,43 +165,37 @@ public:
 	std::pair<std::vector<char>, std::vector<double>> 
 		rasterize(const std::vector<char>& mask) const;
 
-	WavefrontBoundingCircle computeMaskBoundingCircle(const std::vector<char>& mask) const;
+	WavefrontBoundingCircle computeBoundingCircle() const;
 
 	// Find all points where fringes cross a horizontal line at given Y
 	// Returns sorted vector of crossings
 	std::vector<FringeCrossing> findFringeCrossings(double worldY) const;
 
-	// Helper method to convert Y coordinate between reference systems
-	double convertY(double y) const
-	{
-		// If coordinate systems match, no conversion needed
-		if (input_.inputCoordType_ != input_.outputCoordType_) {
-			y = input_.visibilityMask_.height - y;  // Flip Y coordinate
-			if (y < 0 || y >= input_.visibilityMask_.height) {
-				TRACE("Warning: Converted Y coordinate %.2f is out of bounds after flipping\n", y);
-			}
-		}
-		return y;
-	}
+	//// Helper method to convert Y coordinate between reference systems
+	//double convertY(double y) const
+	//{
+	//	// If coordinate systems match, no conversion needed
+	//	if (input_.inputCoordType_ != input_.outputCoordType_) {
+	//		y = input_.visibilityMask_.height - y;  // Flip Y coordinate
+	//		if (y < 0 || y >= input_.visibilityMask_.height) {
+	//			TRACE("Warning: Converted Y coordinate %.2f is out of bounds after flipping\n", y);
+	//		}
+	//	}
+	//	return y;
+	//}
 
 	// Helper method to convert bounds to output coordinate system
 	aperture::Bounds convertBounds(const aperture::Bounds& bounds) const
 	{
-		// If coordinate systems match, no conversion needed
-		if (input_.inputCoordType_ == input_.outputCoordType_) {
-			return bounds;
-		}
-
-		// Need to flip Y bounds when converting between coordinate systems
-		double height = input_.visibilityMask_.height;
-		double minY = height - bounds.maxY();
-		double maxY = height - bounds.minY();
-		aperture::CoordinateSystem outSys = input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN ?
-			aperture::CoordinateSystem::screen(height) :
-			aperture::CoordinateSystem::math(height);
+		const double minY = yToOutput(bounds.minY());
+		const double maxY = yToOutput(bounds.maxY());
+		const double minX = xToOutput(bounds.minX());
+		const double maxX = xToOutput(bounds.maxX());
 
 		// Create new bounds with converted Y
-		return aperture::Bounds::fromMinMax(bounds.minX(), minY, bounds.maxX(), maxY, outSys);
+		aperture::CoordinateSystem sys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN) ?
+			aperture::CoordinateSystem::screen() : aperture::CoordinateSystem::math();
+		return aperture::Bounds::fromMinMax(minX, minY, maxX, maxY, sys);
 	}
 
 	const WavefrontFromContoursInput input_;
@@ -222,7 +212,7 @@ public:
 	const std::vector<double>& getData() const { return data_; }
 	int getRows() const { return rows_; }
 	int getCols() const { return cols_; }
-	const aperture::Bounds& getBounds() const { return bounds_; }
+	//const aperture::Bounds& getBounds() const { return bounds_; }
 	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
 	double getScaleFactor() const { return scaleFactor_; }
 	double getFiScan() const { return fiScan_; }
@@ -234,7 +224,7 @@ public:
 	// ============================================================================
 
 	void setMatrixData(const double* data, int rows, int cols);
-	void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
+	//void setBounds(const aperture::Bounds& bounds) { bounds_ = bounds; }
 	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
 	void setScaleFactor(double scale) { scaleFactor_ = scale; }
 	void setFiScan(double fi) { fiScan_ = fi; }
@@ -254,7 +244,7 @@ private:
     std::vector<double> data_;
     int rows_ = 0;
     int cols_ = 0;
-    aperture::Bounds bounds_;
+    //aperture::Bounds bounds_;
     aperture::CoordinateSystemType coordType_;
 	double scaleFactor_ = 1.0;
 	double fiScan_ = 0.0;

@@ -317,21 +317,26 @@ namespace {
     {
         constexpr double EPS = 1e-12;
 
-        double q11 = a;
-        double q12 = 0.5 * b;
-        double q22 = c;
+        // if trace is negative, invert the conic to ensure positive definite
+        if ((a + c) < 0) {
+            a = -a; b = -b; c = -c; d = -d; e = -e; f = -f;
+        }
 
-        double detQ = q11 * q22 - q12 * q12;
+        const double q11 = a;
+        const double q12 = 0.5 * b;
+        const double q22 = c;
+
+        const double detQ = q11 * q22 - q12 * q12;
         if (detQ <= EPS) return false;
 
-        double invQ11 = q22 / detQ;
-        double invQ12 = -q12 / detQ;
-        double invQ22 = q11 / detQ;
+        const double invQ11 = q22 / detQ;
+        const double invQ12 = -q12 / detQ;
+        const double invQ22 = q11 / detQ;
 
         cx = -0.5 * (invQ11 * d + invQ12 * e);
         cy = -0.5 * (invQ12 * d + invQ22 * e);
 
-        double k =
+        const double k =
             q11 * cx * cx +
             2 * q12 * cx * cy +
             q22 * cy * cy
@@ -339,17 +344,17 @@ namespace {
 
         if (k <= EPS) return false;
 
-        double tr = q11 + q22;
-        double diff = q11 - q22;
-        double root = sqrt(diff * diff + 4 * q12 * q12);
+        const double tr = q11 + q22;
+        const double diff = q11 - q22;
+        const double root = sqrt(diff * diff + 4 * q12 * q12);
 
-        double l1 = 0.5 * (tr + root);
-        double l2 = 0.5 * (tr - root);
+        const double l1 = 0.5 * (tr + root);
+        const double l2 = 0.5 * (tr - root);
 
         if (l1 <= EPS || l2 <= EPS) return false;
 
-        double a1 = sqrt(k / l1);
-        double a2 = sqrt(k / l2);
+        const double a1 = sqrt(k / l1);
+        const double a2 = sqrt(k / l2);
 
         if (a1 >= a2) {
             A = a1; B = a2;
@@ -364,87 +369,6 @@ namespace {
 
         return true;
     }
-
-    // Helper: Inver 3x3 matrix
-    // 
-    //static bool invert3x3(const double m[3][3], double inv[3][3])
-    //{
-    //    double det =
-    //        m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1]) -
-    //        m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0]) +
-    //        m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-
-    //    if (fabs(det) < 1e-12) return false;
-
-    //    double id = 1.0 / det;
-
-    //    inv[0][0] = id * (m[1][1] * m[2][2] - m[1][2] * m[2][1]);
-    //    inv[0][1] = -id * (m[0][1] * m[2][2] - m[0][2] * m[2][1]);
-    //    inv[0][2] = id * (m[0][1] * m[1][2] - m[0][2] * m[1][1]);
-
-    //    inv[1][0] = -id * (m[1][0] * m[2][2] - m[1][2] * m[2][0]);
-    //    inv[1][1] = id * (m[0][0] * m[2][2] - m[0][2] * m[2][0]);
-    //    inv[1][2] = -id * (m[0][0] * m[1][2] - m[0][2] * m[1][0]);
-
-    //    inv[2][0] = id * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
-    //    inv[2][1] = -id * (m[0][0] * m[2][1] - m[0][1] * m[2][0]);
-    //    inv[2][2] = id * (m[0][0] * m[1][1] - m[0][1] * m[1][0]);
-
-    //    return true;
-    //}
-
-    //
-    // Helper: Small symmetric 3×3 Jacobi eigen solver
-    // 
-    //static void eigenSym3(double A[3][3], double w[3], double V[3][3])
-    //{
-    //    for (int i = 0; i < 3; i++)
-    //        for (int j = 0; j < 3; j++)
-    //            V[i][j] = (i == j);
-
-    //    for (int it = 0; it < 32; it++)
-    //    {
-    //        int p = 0, q = 1;
-    //        double max = fabs(A[0][1]);
-    //        if (fabs(A[0][2]) > max) { p = 0; q = 2; max = fabs(A[0][2]); }
-    //        if (fabs(A[1][2]) > max) { p = 1; q = 2; max = fabs(A[1][2]); }
-    //        if (max < 1e-12) break;
-
-    //        double app = A[p][p];
-    //        double aqq = A[q][q];
-    //        double apq = A[p][q];
-
-    //        double phi = 0.5 * atan2(2 * apq, aqq - app);
-    //        double c = cos(phi);
-    //        double s = sin(phi);
-
-    //        for (int k = 0; k < 3; k++)
-    //        {
-    //            double aik = A[p][k];
-    //            double aqk = A[q][k];
-    //            A[p][k] = c * aik - s * aqk;
-    //            A[q][k] = s * aik + c * aqk;
-    //        }
-    //        for (int k = 0; k < 3; k++)
-    //        {
-    //            double akp = A[k][p];
-    //            double akq = A[k][q];
-    //            A[k][p] = c * akp - s * akq;
-    //            A[k][q] = s * akp + c * akq;
-    //        }
-    //        for (int k = 0; k < 3; k++)
-    //        {
-    //            double vip = V[k][p];
-    //            double viq = V[k][q];
-    //            V[k][p] = c * vip - s * viq;
-    //            V[k][q] = s * vip + c * viq;
-    //        }
-    //    }
-
-    //    for (int i = 0; i < 3; i++)
-    //        w[i] = A[i][i];
-    //}
-
 }
 
 Ellipse::Ellipse(const std::vector<Point>& points,

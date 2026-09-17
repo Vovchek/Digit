@@ -254,12 +254,10 @@ void CImageDoc::CalcAproximation()
 {
 
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
-	auto &aperture = pA->GetShapes().getVisibleRegion();
-	auto mask = pA->GetMaskProvider().getMask();
+	auto &aperture = pA->GetShapes();
 	
 	WavefrontFromContoursInput input(
         aperture, 
-		mask, 
 		Digit.Fringes,
 		Digit.GetScaleFactor(),
 		Digit.GetRotation()

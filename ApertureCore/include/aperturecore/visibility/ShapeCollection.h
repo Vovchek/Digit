@@ -201,7 +201,8 @@ public:
      * @see getCombinedBounds() for bounds of all shapes regardless of type
      */
     Bounds getVisibleRegion() const;
-        /**
+
+    /**
      * @brief Compute minimum bounding circle for all shapes in collection
      * @return BoundingCircle containing all shapes
      * 
@@ -261,6 +262,8 @@ public:
      * @see Bounds::getCombinedBounds() for axis-aligned bounding box
      */
      BoundingCircle getBoundingCircle() const;
+     BoundingCircle getBoundingCircle(std::vector<Point> points) const;
+     std::vector<Point> collectBoundingCirclePoints() const;
 
     /**
      * @brief Clear all shapes

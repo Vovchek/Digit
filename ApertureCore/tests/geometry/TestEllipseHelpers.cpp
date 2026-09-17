@@ -84,21 +84,26 @@ namespace {
     {
         constexpr double EPS = 1e-12;
 
-        double q11 = a;
-        double q12 = 0.5 * b;
-        double q22 = c;
+        // if trace is negative, invert the conic to ensure positive definite
+        if ((a + c) < 0) {
+            a = -a; b = -b; c = -c; d = -d; e = -e; f = -f;
+        }
 
-        double detQ = q11 * q22 - q12 * q12;
+        const double q11 = a;
+        const double q12 = 0.5 * b;
+        const double q22 = c;
+
+        const double detQ = q11 * q22 - q12 * q12;
         if (detQ <= EPS) return false;
 
-        double invQ11 = q22 / detQ;
-        double invQ12 = -q12 / detQ;
-        double invQ22 = q11 / detQ;
+        const double invQ11 = q22 / detQ;
+        const double invQ12 = -q12 / detQ;
+        const double invQ22 = q11 / detQ;
 
         cx = -0.5 * (invQ11 * d + invQ12 * e);
         cy = -0.5 * (invQ12 * d + invQ22 * e);
 
-        double k =
+        const double k =
             q11 * cx * cx +
             2 * q12 * cx * cy +
             q22 * cy * cy
@@ -106,17 +111,17 @@ namespace {
 
         if (k <= EPS) return false;
 
-        double tr = q11 + q22;
-        double diff = q11 - q22;
-        double root = sqrt(diff * diff + 4 * q12 * q12);
+        const double tr = q11 + q22;
+        const double diff = q11 - q22;
+        const double root = sqrt(diff * diff + 4 * q12 * q12);
 
-        double l1 = 0.5 * (tr + root);
-        double l2 = 0.5 * (tr - root);
+        const double l1 = 0.5 * (tr + root);
+        const double l2 = 0.5 * (tr - root);
 
         if (l1 <= EPS || l2 <= EPS) return false;
 
-        double a1 = sqrt(k / l1);
-        double a2 = sqrt(k / l2);
+        const double a1 = sqrt(k / l1);
+        const double a2 = sqrt(k / l2);
 
         if (a1 >= a2) {
             A = a1; B = a2;

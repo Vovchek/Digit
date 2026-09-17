@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Point.h"
+#include <vector>
 
 namespace aperture {
 
@@ -44,6 +45,10 @@ struct BoundingCircle {
     Point center{0.0, 0.0};  ///< Center point of the circle
     double radius{0.0};       ///< Radius of the circle
     bool valid{false};         ///< Whether the circle represents valid geometry
+
+    BoundingCircle(Point c = Point{0.0, 0.0}, double r = 0, bool v = true)
+        : center(c), radius(r), valid(v) {}
+    explicit BoundingCircle(std::vector<Point> points = {});
 };
 
 } // namespace aperture#pragma once

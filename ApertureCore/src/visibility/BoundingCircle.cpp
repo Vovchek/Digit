@@ -107,21 +107,38 @@ namespace {
 
 } // namespace
 
-BoundingCircle ShapeCollection::getBoundingCircle() const {
+BoundingCircle::BoundingCircle(std::vector<Point> points)
+{
+    std::mt19937 rng(0xD16D1234u);
+    std::shuffle(points.begin(), points.end(), rng);
+
+    // Compute minimum bounding circle using Welzl's algorithm
+    std::vector<Point> boundary;
+    boundary.reserve(3u);
+    *this = welzlHelper(points, boundary, points.size());
+}
+
+
+std::vector<Point> ShapeCollection::collectBoundingCirclePoints() const
+{
     // Create visibility checker to prune invisible points
     VisibilityChecker checker(*this);
 
-    std::vector<Point> vertices;
+    std::vector<Point> points;
+
+    // NOTE: INTERNAL shapes are NOT included in bounding circle
+    // Internal shapes (obstructions) can only shrink visible area, never extend it.
+    // Therefore, including their points would incorrectly expand the bounding circle.
 
     // Collect visible contour points from all EXTERNAL shapes
     for (const auto& shape : external_) {
         if (shape) {
             auto contour = shape->getContour(CONTOUR_STEP);
-            
+
             // Filter points through visibility checker
             for (const auto& point : contour) {
                 if (checker.isVisible(point)) {
-                    vertices.push_back(point);
+                    points.push_back(point);
                 }
             }
         }
@@ -131,33 +148,27 @@ BoundingCircle ShapeCollection::getBoundingCircle() const {
     for (const auto& shape : apertures_) {
         if (shape) {
             auto contour = shape->getContour(CONTOUR_STEP);
-            
+
             // Filter points through visibility checker
             for (const auto& point : contour) {
                 if (checker.isVisible(point)) {
-                    vertices.push_back(point);
+                    points.push_back(point);
                 }
             }
         }
     }
 
-    // NOTE: INTERNAL shapes are NOT included in bounding circle
-    // Internal shapes (obstructions) can only shrink visible area, never extend it.
-    // Therefore, including their points would incorrectly expand the bounding circle.
+    return points;
+}
 
-    if (vertices.empty()) {
-        return {Point{0.0, 0.0}, 0.0, false};
+BoundingCircle ShapeCollection::getBoundingCircle() const {
+
+    auto points = collectBoundingCirclePoints();
+
+    if (points.empty()) {
+        return { Point{0.0, 0.0}, 0.0, false };
     }
-
-    // Shuffle points with fixed seed for deterministic results
-    // Matches the randomization pattern used in WavefrontFromContours.cpp
-    std::mt19937 rng(0xD16D1234u);
-    std::shuffle(vertices.begin(), vertices.end(), rng);
-
-    // Compute minimum bounding circle using Welzl's algorithm
-    std::vector<Point> boundary;
-    boundary.reserve(3u);
-    return welzlHelper(vertices, boundary, vertices.size());
+    return BoundingCircle(std::move(points));
 }
 
 } // namespace aperture

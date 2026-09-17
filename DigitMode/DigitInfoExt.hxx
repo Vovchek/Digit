@@ -1079,12 +1079,10 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 	}
 	else if (extIdx == FilterIndex::Filter_MTR) {
 		DigitMode::CApertureCtrls* pA = GetApertureCtrls();
-		auto& aperture = pA->GetShapes().getVisibleRegion();
-		auto mask = pA->GetMaskProvider().getMask();
+		auto& aperture = pA->GetShapes();
 
 		WavefrontFromContoursInput input(
 			aperture,
-			mask,
 			Fringes,
 			GetScaleFactor(),
 			GetRotation()
