@@ -1,6 +1,8 @@
  /**
   * @file BoundingCircleTest.cpp
   * @brief Unit tests for ShapeCollection::getBoundingCircle()
+  * @author Vladimir N. Chekal
+  * @see https://github.com/Vovchek
   *
   * ## Visibility Model (Critical for Understanding Tests)
   *
@@ -58,7 +60,6 @@
 #include "aperturecore/geometry/Rectangle.h"
 #include "aperturecore/geometry/Polygon.h"
 #include "aperturecore/visibility/ShapeCollection.h"
-#include "aperturecore/visibility/VisibilityChecker.h"
 #include <cmath>
 
 using namespace aperture;

@@ -6,22 +6,16 @@
  */
 
 #include "aperturecore/geometry/BoundingCircle.h"
-#include "aperturecore/geometry/Shape.h"
-#include "aperturecore/visibility/ShapeCollection.h"
-#include "aperturecore/visibility/VisibilityChecker.h"
 #include <cmath>
 #include <algorithm>
 #include <vector>
 #include <random>
-#include <limits>
 
 namespace aperture {
 
 namespace {
     // Tolerance for floating point comparisons
     constexpr double EPSILON = 1e-10;
-    // Step size for contour sampling (approximate distance between points)
-    constexpr double CONTOUR_STEP = 1.0;
 
     // Check if point is inside circle
     bool isInsideCircle(const Point& p, const Point& center, double radius) {
@@ -76,7 +70,7 @@ namespace {
     // Welzl's algorithm for minimum bounding circle
     // Points must be pre-shuffled before calling
     // P: point set, R: points on circle boundary, n: current index
-    BoundingCircle welzlHelper(std::vector<Point>& points, std::vector<Point> boundary, size_t n) {
+    BoundingCircle welzlHelper(const std::vector<Point>& points, std::vector<Point>& boundary, size_t n) {
         if (n == 0u || boundary.size() == 3u) {
             if (boundary.empty()) {
                 return {Point{0.0, 0.0}, 0.0, false};
@@ -96,7 +90,7 @@ namespace {
         BoundingCircle circle = welzlHelper(points, boundary, n - 1u);
 
         // If p is outside the circle, add it to boundary and recurse
-        if (!isInsideCircle(p, circle.center, circle.radius) || !circle.valid) {
+        if (!circle.valid || !isInsideCircle(p, circle.center, circle.radius)) {
             boundary.push_back(p);
             circle = welzlHelper(points, boundary, n - 1u);
             boundary.pop_back();
@@ -116,59 +110,6 @@ BoundingCircle::BoundingCircle(std::vector<Point> points)
     std::vector<Point> boundary;
     boundary.reserve(3u);
     *this = welzlHelper(points, boundary, points.size());
-}
-
-
-std::vector<Point> ShapeCollection::collectBoundingCirclePoints() const
-{
-    // Create visibility checker to prune invisible points
-    VisibilityChecker checker(*this);
-
-    std::vector<Point> points;
-
-    // NOTE: INTERNAL shapes are NOT included in bounding circle
-    // Internal shapes (obstructions) can only shrink visible area, never extend it.
-    // Therefore, including their points would incorrectly expand the bounding circle.
-
-    // Collect visible contour points from all EXTERNAL shapes
-    for (const auto& shape : external_) {
-        if (shape) {
-            auto contour = shape->getContour(CONTOUR_STEP);
-
-            // Filter points through visibility checker
-            for (const auto& point : contour) {
-                if (checker.isVisible(point)) {
-                    points.push_back(point);
-                }
-            }
-        }
-    }
-
-    // Collect visible contour points from all APERTURE shapes
-    for (const auto& shape : apertures_) {
-        if (shape) {
-            auto contour = shape->getContour(CONTOUR_STEP);
-
-            // Filter points through visibility checker
-            for (const auto& point : contour) {
-                if (checker.isVisible(point)) {
-                    points.push_back(point);
-                }
-            }
-        }
-    }
-
-    return points;
-}
-
-BoundingCircle ShapeCollection::getBoundingCircle() const {
-
-    auto points = collectBoundingCirclePoints();
-
-    if (points.empty()) {
-        return { Point{0.0, 0.0}, 0.0, false };
-    }
-    return BoundingCircle(std::move(points));
 }
 
 } // namespace aperture

@@ -140,14 +140,14 @@
     <ClCompile Include="tests\visibility\VisibleRegionTest.cpp">
       <Filter>Tests\visibility</Filter>
     </ClCompile>
-    <ClCompile Include="src\visibility\BoundingCircle.cpp">
-      <Filter>Source Files\visibility</Filter>
-    </ClCompile>
     <ClCompile Include="tests\geometry\TestEllipseHelpers.cpp">
       <Filter>Tests\geometry</Filter>
     </ClCompile>
     <ClCompile Include="tests\visibility\BoundingCircleTest.cpp">
       <Filter>Tests\visibility</Filter>
+    </ClCompile>
+    <ClCompile Include="src\geometry\BoundingCircle.cpp">
+      <Filter>Source Files\geometry</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

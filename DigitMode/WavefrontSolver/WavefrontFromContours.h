@@ -15,19 +15,6 @@
 #undef min
 #endif
 
-struct WavefrontPrimitivePoint
-{
-	double x = 0.0;
-	double y = 0.0;
-};
-
-struct WavefrontBoundingCircle
-{
-	WavefrontPrimitivePoint center{};
-	double radius = 0.0;
-	bool valid = false;
-};
-
 struct XyzSample
 {
 	double x = 0.0;
@@ -142,13 +129,12 @@ public:
 		size_t sumVisibleLine = 0;
 
 		for (int outY = 0; outY < outHeight; ++outY) {
-			double maskY = yToInput(outY);
+			const double maskY = yToInput(outY);
 			for (int outX = 0; outX < outWidth; ++outX) {
 				// Map output pixel to visibility mask coordinate space
-				double maskX = xToInput(outX);
+				const double maskX = xToInput(outX);
+				const int outIndex = outY * outWidth + outX;
 
-				int outIndex = outY * outWidth + outX;
-				// Query shape visibility instead of mask pixel
 				visible[outIndex] = checker.isVisible({ maskX, maskY }) ? 1 : 0;
 				sumVisibleLine += visible[outIndex];
 			}
@@ -165,38 +151,11 @@ public:
 	std::pair<std::vector<char>, std::vector<double>> 
 		rasterize(const std::vector<char>& mask) const;
 
-	WavefrontBoundingCircle computeBoundingCircle() const;
+	aperture::BoundingCircle computeBoundingCircle() const;
 
 	// Find all points where fringes cross a horizontal line at given Y
 	// Returns sorted vector of crossings
 	std::vector<FringeCrossing> findFringeCrossings(double worldY) const;
-
-	//// Helper method to convert Y coordinate between reference systems
-	//double convertY(double y) const
-	//{
-	//	// If coordinate systems match, no conversion needed
-	//	if (input_.inputCoordType_ != input_.outputCoordType_) {
-	//		y = input_.visibilityMask_.height - y;  // Flip Y coordinate
-	//		if (y < 0 || y >= input_.visibilityMask_.height) {
-	//			TRACE("Warning: Converted Y coordinate %.2f is out of bounds after flipping\n", y);
-	//		}
-	//	}
-	//	return y;
-	//}
-
-	// Helper method to convert bounds to output coordinate system
-	aperture::Bounds convertBounds(const aperture::Bounds& bounds) const
-	{
-		const double minY = yToOutput(bounds.minY());
-		const double maxY = yToOutput(bounds.maxY());
-		const double minX = xToOutput(bounds.minX());
-		const double maxX = xToOutput(bounds.maxX());
-
-		// Create new bounds with converted Y
-		aperture::CoordinateSystem sys = (input_.outputCoordType_ == aperture::CoordinateSystemType::SCREEN) ?
-			aperture::CoordinateSystem::screen() : aperture::CoordinateSystem::math();
-		return aperture::Bounds::fromMinMax(minX, minY, maxX, maxY, sys);
-	}
 
 	const WavefrontFromContoursInput input_;
 };
@@ -216,7 +175,7 @@ public:
 	aperture::CoordinateSystemType getCoordinateSystem() const { return coordType_; }
 	double getScaleFactor() const { return scaleFactor_; }
 	double getFiScan() const { return fiScan_; }
-	const WavefrontBoundingCircle& getBoundingCircle() const { return boundingCircle_; }
+	const aperture::BoundingCircle& getBoundingCircle() const { return boundingCircle_; }
 	const std::string& getTitle() const { return title_; }
 
 	// ============================================================================
@@ -228,7 +187,7 @@ public:
 	void setCoordinateSystem(aperture::CoordinateSystemType coordType) { coordType_ = coordType; }
 	void setScaleFactor(double scale) { scaleFactor_ = scale; }
 	void setFiScan(double fi) { fiScan_ = fi; }
-	void setBoundingCircle(const WavefrontBoundingCircle& circle) { boundingCircle_ = circle; }
+	void setBoundingCircle(const aperture::BoundingCircle& circle) { boundingCircle_ = circle; }
 	void setTitle(const std::string& title) { title_ = title; }
 
 	// ============================================================================
@@ -248,7 +207,7 @@ private:
     aperture::CoordinateSystemType coordType_;
 	double scaleFactor_ = 1.0;
 	double fiScan_ = 0.0;
-	WavefrontBoundingCircle boundingCircle_{};
+	aperture::BoundingCircle boundingCircle_{};
 
 };
 
@@ -265,7 +224,7 @@ class WavefrontFromContours
 public:
 	explicit WavefrontFromContours(WavefrontFromContoursInput input) :
         context_(input) {}
-	WavefrontFromContoursResult run(const IWavefrontFromContoursSolver& solver)
+	WavefrontFromContoursResult run(const IWavefrontFromContoursSolver& solver) const
     {
         return solver.solve(context_);
     }
@@ -386,7 +345,7 @@ private:
 		double worldX) const;
 };
 
-// Delaunay triangulation + local IDW interpolation solver
+// Delaunay triangulation + De Casteljau (few other were tried) interpolation solver
 // Treats the fringe points as an irregular 2D mesh and interpolates height locally
 class WavefrontFromContoursSolver_Delaunay : public IWavefrontFromContoursSolver
 {

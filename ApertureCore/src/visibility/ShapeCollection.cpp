@@ -6,7 +6,7 @@
  */
 
 #include "aperturecore/visibility/ShapeCollection.h"
-#include <algorithm>
+#include "aperturecore/visibility/VisibilityChecker.h"
 
 namespace aperture {
 
@@ -152,6 +152,46 @@ size_t ShapeCollection::countByType(TypeLimits type) const {
         default:
             return 0;
     }
+}
+
+std::vector<Point> ShapeCollection::collectBoundingCirclePoints(double contourStep) const
+{
+    // Create visibility checker to prune invisible points
+    VisibilityChecker checker(*this);
+
+    std::vector<Point> points;
+
+    // NOTE: INTERNAL shapes are NOT included in bounding circle
+    // Internal shapes (obstructions) can only shrink visible area, never extend it.
+    // Therefore, including their points would incorrectly expand the bounding circle.
+    auto collectPointsFromShapes = [&](const std::vector<std::unique_ptr<Shape>>& shapes) {
+        for (const auto& shape : shapes) {
+            if (shape) {
+                auto contour = shape->getContour(contourStep);
+                // Filter points through visibility checker
+                for (const auto& point : contour) {
+                    if (checker.isVisible(point)) {
+                        points.push_back(point);
+                    }
+                }
+            }
+        }
+        };
+
+    collectPointsFromShapes(external_);
+    collectPointsFromShapes(apertures_);
+
+    return points;
+}
+
+BoundingCircle ShapeCollection::getBoundingCircle(double contourStep) const {
+
+    auto points = collectBoundingCirclePoints(contourStep);
+
+    if (points.empty()) {
+        return { Point{0.0, 0.0}, 0.0, false };
+    }
+    return BoundingCircle(std::move(points));
 }
 
 } // namespace aperture

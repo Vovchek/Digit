@@ -1,6 +1,8 @@
 /**
  * @file Ellipse.cpp
  * @brief Implementation of Ellipse class
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include "aperturecore/geometry/Ellipse.h"

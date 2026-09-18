@@ -28,12 +28,12 @@ set(APERTURE_SOURCES
     src/geometry/Ellipse.cpp
     src/geometry/Rectangle.cpp
     src/geometry/Polygon.cpp
+    src/geometry/BoundingCircle.cpp
     
     # Visibility
     src/visibility/TypeLimits.cpp
     src/visibility/ShapeCollection.cpp
     src/visibility/VisibilityChecker.cpp
-    src/visibility/BoundingCircle.cpp
     
     # TODO: Add as implemented
     # src/io/ShapeSerializer.cpp

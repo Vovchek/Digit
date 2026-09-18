@@ -33,6 +33,9 @@ namespace aperture {
  * shapes.addExternal(std::make_unique<Ellipse>(50.0, 50.0, 100.0, 100.0));
  * 
  * BoundingCircle circle = shapes.getBoundingCircle();
+ * // Alternativly, get points and compute bounding circle from points:
+ * // std::vector<Point> points = shapes.collectBoundingCirclePoints();
+ * // BoundingCircle circle(points);
  * if (circle.valid) {
  *     std::cout << "Center: (" << circle.center.x << ", " 
  *               << circle.center.y << "), Radius: " << circle.radius << "\n";
@@ -46,9 +49,10 @@ struct BoundingCircle {
     double radius{0.0};       ///< Radius of the circle
     bool valid{false};         ///< Whether the circle represents valid geometry
 
-    BoundingCircle(Point c = Point{0.0, 0.0}, double r = 0, bool v = true)
+    BoundingCircle() = default;
+    BoundingCircle(const Point& c, double r, bool v = true)
         : center(c), radius(r), valid(v) {}
-    explicit BoundingCircle(std::vector<Point> points = {});
+    BoundingCircle(std::vector<Point> points);
 };
 
-} // namespace aperture#pragma once
+} // namespace aperture

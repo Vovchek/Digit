@@ -1,12 +1,13 @@
 /**
  * @file TestEllipseHelpers.cpp
  * @brief Rigorous unit tests for conicToEllipse and solveLinearSystem5x5 helpers
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include <gtest/gtest.h>
 #include <cmath>
 #include <iostream>
-#include <iomanip>
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846

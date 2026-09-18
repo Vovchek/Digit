@@ -1,6 +1,8 @@
 /**
  * @file TypeLimits.h
  * @brief Shape visibility type enumeration
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 #pragma once
 
@@ -30,6 +32,16 @@ namespace aperture {
  */
 enum class TypeLimits : uint8_t {
     /**
+     * @brief Internal obstruction (classic behavior)
+     *
+     * Points INSIDE are blocked.
+     * Points OUTSIDE are unaffected.
+     *
+     * Use case: Central obstruction, hole, spider vanes
+     */
+    INTERNAL = 0,
+
+    /**
      * @brief External aperture (classic behavior)
      * 
      * Points INSIDE are potentially visible.
@@ -39,17 +51,7 @@ enum class TypeLimits : uint8_t {
      * 
      * Use case: Main aperture/lens opening
      */
-    EXTERNAL = 0,
-    
-    /**
-     * @brief Internal obstruction (classic behavior)  
-     * 
-     * Points INSIDE are blocked.
-     * Points OUTSIDE are unaffected.
-     * 
-     * Use case: Central obstruction, hole, spider vanes
-     */
-    INTERNAL = 1,
+    EXTERNAL = 1,
     
     /**
      * @brief Aperture opening (new behavior)
@@ -92,13 +94,13 @@ constexpr int toLegacyInt(TypeLimits type) {
 
 /**
  * @brief Convert from legacy integer value
- * @param value Legacy type value (0=EXTERNAL, 1=INTERNAL)
+ * @param value Legacy type value (0=INTERNAL, 1=EXTERNAL)
  * @return TypeLimits, defaults to EXTERNAL for unknown values
  */
 constexpr TypeLimits fromLegacyInt(int value) {
     switch (value) {
-        case 0: return TypeLimits::EXTERNAL;
-        case 1: return TypeLimits::INTERNAL;
+        case 0: return TypeLimits::INTERNAL;
+        case 1: return TypeLimits::EXTERNAL;
         case 2: return TypeLimits::APERTURE;
         default: return TypeLimits::EXTERNAL;  // Safe default
     }

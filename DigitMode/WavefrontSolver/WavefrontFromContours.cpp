@@ -12,6 +12,14 @@
 #include <iomanip>
 #include "./delaunator-cpp/delaunator-header-only.hpp"
 
+// Undefine conflicting MFC macros so standard library min/max remain usable here.
+#ifdef max
+#undef max
+#endif
+#ifdef min
+#undef min
+#endif
+
 namespace
 {
 	// Helper function to access context parameters for solvers
@@ -22,16 +30,9 @@ namespace
 		outHeight = ctx.input_.outHeight_;
 	}
 
-	constexpr double kCircleEps = 1e-9;
-
-	double sqr(double v)
-	{
-		return v * v;
-	}
-
 	// de Casteljau C1 cubic interpolator based on Delaunay triangulation
-class DeCasteljauInterpolator
-{
+	class DeCasteljauInterpolator
+	{
 	public:
 		// Accepts samples in original units: X (mm), Y (mm), Z (microns)
 		DeCasteljauInterpolator(std::vector<XyzSample> samples)
@@ -328,9 +329,9 @@ class DeCasteljauInterpolator
 		std::unique_ptr<delaunator::Delaunator> triangulation_;
 		std::vector<XyzSample> points_orig_;
 		// per-triangle gradients (dz/dx,dz/dy) in normalized coords
-		std::vector<std::pair<double,double>> tri_gradients_;
+		std::vector<std::pair<double, double>> tri_gradients_;
 		// per-vertex averaged gradients
-		std::vector<std::pair<double,double>> vert_gradients_;
+		std::vector<std::pair<double, double>> vert_gradients_;
 		mutable std::vector<std::optional<std::vector<double>>> coeffs_cache_;
 
 		void buildTriangulation()
@@ -358,13 +359,13 @@ class DeCasteljauInterpolator
 			if (!triangulation_) return;
 			const auto& tri = triangulation_->triangles;
 			const std::size_t triCount = tri.size() / 3u;
-			tri_gradients_.resize(triCount, {0.0, 0.0});
+			tri_gradients_.resize(triCount, { 0.0, 0.0 });
 
 			for (std::size_t t = 0; t < triCount; ++t)
 			{
-				const std::size_t ia = tri[3*t];
-				const std::size_t ib = tri[3*t+1];
-				const std::size_t ic = tri[3*t+2];
+				const std::size_t ia = tri[3 * t];
+				const std::size_t ib = tri[3 * t + 1];
+				const std::size_t ic = tri[3 * t + 2];
 				const auto& A = points_orig_[ia];
 				const auto& B = points_orig_[ib];
 				const auto& C = points_orig_[ic];
@@ -375,13 +376,13 @@ class DeCasteljauInterpolator
 				const double det = m00 * m11 - m01 * m10;
 				if (std::fabs(det) < 1e-15)
 				{
-					tri_gradients_[t] = {0.0, 0.0};
+					tri_gradients_[t] = { 0.0, 0.0 };
 				}
 				else
 				{
-					const double a = ( rhs0 * m11 - m01 * rhs1) / det; // dz/dx
-					const double b = ( m00 * rhs1 - rhs0 * m10) / det; // dz/dy
-					tri_gradients_[t] = {a, b};
+					const double a = (rhs0 * m11 - m01 * rhs1) / det; // dz/dx
+					const double b = (m00 * rhs1 - rhs0 * m10) / det; // dz/dy
+					tri_gradients_[t] = { a, b };
 				}
 			}
 		}
@@ -447,14 +448,14 @@ class DeCasteljauInterpolator
 			// cap iterations
 			for (std::size_t iter = 0; iter < triCount; ++iter)
 			{
-				const std::size_t ia = tri[3*t];
-				const std::size_t ib = tri[3*t+1];
-				const std::size_t ic = tri[3*t+2];
+				const std::size_t ia = tri[3 * t];
+				const std::size_t ib = tri[3 * t + 1];
+				const std::size_t ic = tri[3 * t + 2];
 				const auto& A = points_orig_[ia];
 				const auto& B = points_orig_[ib];
 				const auto& C = points_orig_[ic];
 				double l1, l2, l3;
-				if (barycentricCoords(A.x,A.y,B.x,B.y,C.x,C.y,nx,ny,l1,l2,l3))
+				if (barycentricCoords(A.x, A.y, B.x, B.y, C.x, C.y, nx, ny, l1, l2, l3))
 				{
 					if (l1 >= -1e-12 && l2 >= -1e-12 && l3 >= -1e-12)
 					{
@@ -481,13 +482,13 @@ class DeCasteljauInterpolator
 		}
 
 		// compute barycentric
-		static bool barycentricCoords(double x1,double y1,double x2,double y2,double x3,double y3,double x,double y,
-									  double& l1,double& l2,double& l3)
+		static bool barycentricCoords(double x1, double y1, double x2, double y2, double x3, double y3, double x, double y,
+			double& l1, double& l2, double& l3)
 		{
-			const double det = (y2 - y3)*(x1 - x3) + (x3 - x2)*(y1 - y3);
+			const double det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3);
 			if (std::fabs(det) < 1e-18) return false;
-			l1 = ((y2 - y3)*(x - x3) + (x3 - x2)*(y - y3)) / det;
-			l2 = ((y3 - y1)*(x - x3) + (x1 - x3)*(y - y3)) / det;
+			l1 = ((y2 - y3) * (x - x3) + (x3 - x2) * (y - y3)) / det;
+			l2 = ((y3 - y1) * (x - x3) + (x1 - x3) * (y - y3)) / det;
 			l3 = 1.0 - l1 - l2;
 			return true;
 		}
@@ -501,7 +502,7 @@ class DeCasteljauInterpolator
 			{
 				const double dx = points_orig_[i].x - nx;
 				const double dy = points_orig_[i].y - ny;
-				const double d2 = dx*dx + dy*dy;
+				const double d2 = dx * dx + dy * dy;
 				if (d2 < best) { best = d2; besti = i; }
 			}
 			return besti;
@@ -574,9 +575,9 @@ class DeCasteljauInterpolator
 		double interpolatePlane(std::size_t triIndex, double x, double y) const
 		{
 			const auto& tri = triangulation_->triangles;
-			const std::size_t ia = tri[3*triIndex];
-			const std::size_t ib = tri[3*triIndex+1];
-			const std::size_t ic = tri[3*triIndex+2];
+			const std::size_t ia = tri[3 * triIndex];
+			const std::size_t ib = tri[3 * triIndex + 1];
+			const std::size_t ic = tri[3 * triIndex + 2];
 			const auto& A = points_orig_[ia];
 			const auto& B = points_orig_[ib];
 			const auto& C = points_orig_[ic];
@@ -585,8 +586,8 @@ class DeCasteljauInterpolator
 			const double rhs0 = B.z - A.z; const double rhs1 = C.z - A.z;
 			const double det = m00 * m11 - m01 * m10;
 			if (std::fabs(det) < 1e-15) return A.z;
-			const double a = ( rhs0 * m11 - m01 * rhs1) / det; // dz/dx
-			const double b = ( m00 * rhs1 - rhs0 * m10) / det; // dz/dy
+			const double a = (rhs0 * m11 - m01 * rhs1) / det; // dz/dx
+			const double b = (m00 * rhs1 - rhs0 * m10) / det; // dz/dy
 			const double z = A.z + a * (x - A.x) + b * (y - A.y);
 			return z;
 		}
@@ -608,38 +609,6 @@ class DeCasteljauInterpolator
 			samples.push_back(XyzSample{ xs[i], ys[i], zs[i] });
 		DeCasteljauInterpolator interp(std::move(samples));
 		return interp.query(qx, qy);
-	}
-
-	extern "C" int DeCasteljau_CheckC0OnMacroEdge(
-		const double* xs,
-		const double* ys,
-		const double* zs,
-		std::size_t n,
-		std::size_t tri1,
-		int edge1,
-		std::size_t tri2,
-		int edge2,
-		int N,
-		double* outDifferences)
-	{
-		if (!xs || !ys || !zs || !outDifferences || n == 0)
-			return 0;
-
-		std::vector<XyzSample> samples;
-		samples.reserve(n);
-		for (std::size_t i = 0; i < n; ++i)
-			samples.push_back(XyzSample{ xs[i], ys[i], zs[i] });
-
-		DeCasteljauInterpolator interp(std::move(samples));
-
-		// Sample N+1 points along the shared macro edge and compute differences
-		// This is a placeholder for edge-continuity verification.
-		// The actual implementation depends on the internal halfedge structure
-		// and the shared edge parametrization between tri1 and tri2.
-		for (int i = 0; i < N; ++i)
-			outDifferences[i] = 0.0; // To be filled with actual C0 difference values
-
-		return 1;
 	}
 
 	extern "C" int DeCasteljau_EvalInTriangle(
@@ -669,100 +638,7 @@ class DeCasteljauInterpolator
 		return 1;
 	}
 
-	double distanceSquared(const WavefrontPrimitivePoint& a, const WavefrontPrimitivePoint& b)
-	{
-		return sqr(a.x - b.x) + sqr(a.y - b.y);
-	}
-
-	bool containsPoint(const WavefrontBoundingCircle& circle, const WavefrontPrimitivePoint& p)
-	{
-		if (!circle.valid)
-			return false;
-		return distanceSquared(circle.center, p) <= sqr(circle.radius + kCircleEps);
-	}
-
-	WavefrontBoundingCircle circleFromOnePoint(const WavefrontPrimitivePoint& p)
-	{
-		WavefrontBoundingCircle c;
-		c.center = p;
-		c.radius = 0.0;
-		c.valid = true;
-		return c;
-	}
-
-	WavefrontBoundingCircle circleFromTwoPoints(const WavefrontPrimitivePoint& a, const WavefrontPrimitivePoint& b)
-	{
-		WavefrontBoundingCircle c;
-		c.center = { (a.x + b.x) * 0.5, (a.y + b.y) * 0.5 };
-		c.radius = std::sqrt(distanceSquared(a, b)) * 0.5;
-		c.valid = true;
-		return c;
-	}
-
-	WavefrontBoundingCircle circleFromThreePoints(
-		const WavefrontPrimitivePoint& a,
-		const WavefrontPrimitivePoint& b,
-		const WavefrontPrimitivePoint& c)
-	{
-		double d = 2.0 * (a.x * (b.y - c.y) + b.x * (c.y - a.y) + c.x * (a.y - b.y));
-		if (std::abs(d) < kCircleEps)
-		{
-			WavefrontBoundingCircle ab = circleFromTwoPoints(a, b);
-			WavefrontBoundingCircle ac = circleFromTwoPoints(a, c);
-			WavefrontBoundingCircle bc = circleFromTwoPoints(b, c);
-			WavefrontBoundingCircle best = ab;
-			if (ac.radius > best.radius) best = ac;
-			if (bc.radius > best.radius) best = bc;
-			return best;
-		}
-
-		double ax2ay2 = sqr(a.x) + sqr(a.y);
-		double bx2by2 = sqr(b.x) + sqr(b.y);
-		double cx2cy2 = sqr(c.x) + sqr(c.y);
-
-		WavefrontBoundingCircle circle;
-		circle.center.x = (ax2ay2 * (b.y - c.y) + bx2by2 * (c.y - a.y) + cx2cy2 * (a.y - b.y)) / d;
-		circle.center.y = (ax2ay2 * (c.x - b.x) + bx2by2 * (a.x - c.x) + cx2cy2 * (b.x - a.x)) / d;
-		circle.radius = std::sqrt(distanceSquared(circle.center, a));
-		circle.valid = true;
-		return circle;
-	}
-
-	WavefrontBoundingCircle welzl(
-		std::vector<WavefrontPrimitivePoint>& points,
-		std::vector<WavefrontPrimitivePoint>& boundary,
-		int n)
-	{
-		if (n == 0 || boundary.size() == 3)
-		{
-			if (boundary.empty())
-				return {};
-			if (boundary.size() == 1)
-				return circleFromOnePoint(boundary[0]);
-			if (boundary.size() == 2)
-				return circleFromTwoPoints(boundary[0], boundary[1]);
-			return circleFromThreePoints(boundary[0], boundary[1], boundary[2]);
-		}
-
-		const WavefrontPrimitivePoint p = points[static_cast<size_t>(n - 1)];
-		const WavefrontBoundingCircle c = welzl(points, boundary, n - 1);
-		if (containsPoint(c, p))
-			return c;
-
-		boundary.push_back(p);
-		WavefrontBoundingCircle result = welzl(points, boundary, n - 1);
-		boundary.pop_back();
-		return result;
-	}
 }
-
-// Undefine conflicting MFC macros so standard library min/max remain usable here.
-#ifdef max
-#undef max
-#endif
-#ifdef min
-#undef min
-#endif
 
 namespace
 {
@@ -1087,12 +963,12 @@ namespace
 				return delaunator::INVALID_INDEX;
 
 			auto dist2 = [&](std::size_t idx) noexcept
-			{
-				const auto& p = points_[idx];
-				const double dx = p.x - x;
-				const double dy = p.y - y;
-				return dx * dx + dy * dy;
-			};
+				{
+					const auto& p = points_[idx];
+					const double dx = p.x - x;
+					const double dy = p.y - y;
+					return dx * dx + dy * dy;
+				};
 
 			std::size_t current = (lastVertex_ != delaunator::INVALID_INDEX) ? lastVertex_ : 0u;
 			double best = dist2(current);
@@ -1608,7 +1484,7 @@ namespace
 			{
 				double d = distances[i];
 				// w_i = ((R - d_i) / (R * d_i))^2
-				double w = ( (maxD - d) / (maxD * d) );
+				double w = ((maxD - d) / (maxD * d));
 				w = w * w;
 				const double z_norm = points_norm_[neighbors[i]].z;
 				weightedZ += w * z_norm;
@@ -1730,7 +1606,7 @@ namespace
 				const double dx = p.x - nx;
 				const double dy = p.y - ny;
 				return dx * dx + dy * dy;
-			};
+				};
 
 			double best = dist(current);
 			bool moved = true;
@@ -1788,7 +1664,7 @@ std::pair<std::vector<char>, std::vector<double>>
 WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 {
 	const auto& fringeSegments = input_.fringeSegments_;
-	
+
 	// Use pre-resolved output dimensions from constructor
 	int outWidth = input_.outWidth_;
 	int outHeight = input_.outHeight_;
@@ -1800,84 +1676,88 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 	// Lambda to draw a line using Bresenham's algorithm
 	// Respects output bounds and visibility mask
 	auto drawLine = [&](int x0, int y0, int x1, int y1, double h)
-	{
-		// Cohen-Sutherland line clipping to ensure rasterization stays within bounds
-		const int xMin = 0, xMax = outWidth - 1;
-		const int yMin = 0, yMax = outHeight - 1;
-		
-		// Compute outcode for point (x, y)
-		auto computeCode = [=](int x, int y) -> int {
-			int code = 0;
-			if (x < xMin) code |= 1;      // left
-			if (x > xMax) code |= 2;      // right
-			if (y < yMin) code |= 4;      // bottom
-			if (y > yMax) code |= 8;      // top
-			return code;
-		};
-		
-		int code0 = computeCode(x0, y0);
-		int code1 = computeCode(x1, y1);
-		
-		// If both endpoints are outside on the same side, skip
-		if ((code0 & code1) != 0) {
-			return;  // Line completely outside
-		}
-		
-		// Clip endpoints to bounds
-		while ((code0 | code1) != 0) {
-			if ((code0 & code1) != 0) return;  // Completely outside
-			
-			int codeOut = code0 != 0 ? code0 : code1;
-			int x, y;
-			
-			// Find intersection of line with edge
-			if (codeOut & 1) {  // left
-				x = xMin;
-				y = y0 + (y1 - y0) * (xMin - x0) / (x1 - x0);
-			} else if (codeOut & 2) {  // right
-				x = xMax;
-				y = y0 + (y1 - y0) * (xMax - x0) / (x1 - x0);
-			} else if (codeOut & 4) {  // bottom
-				y = yMin;
-				x = x0 + (x1 - x0) * (yMin - y0) / (y1 - y0);
-			} else {  // top
-				y = yMax;
-				x = x0 + (x1 - x0) * (yMax - y0) / (y1 - y0);
-			}
-			
-			if (codeOut == code0) {
-				x0 = x; y0 = y;
-				code0 = computeCode(x0, y0);
-			} else {
-				x1 = x; y1 = y;
-				code1 = computeCode(x1, y1);
-			}
-		}
-		
-		// Rasterize clipped line using Bresenham's algorithm
-		int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
-		int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
-		int err = dx + dy;
-
-		while (true)
 		{
-			// Bounds check (should never fail after clipping, but defensive)
-			if (x0 >= 0 && x0 < outWidth && y0 >= 0 && y0 < outHeight)
-			{
-				int outIndex = y0 * outWidth + x0;
-				if (mask[outIndex])  // Check visibility
-				{
-					knownZ[outIndex] = 1;
-					zk[outIndex] = h;
+			// Cohen-Sutherland line clipping to ensure rasterization stays within bounds
+			const int xMin = 0, xMax = outWidth - 1;
+			const int yMin = 0, yMax = outHeight - 1;
+
+			// Compute outcode for point (x, y)
+			auto computeCode = [=](int x, int y) -> int {
+				int code = 0;
+				if (x < xMin) code |= 1;      // left
+				if (x > xMax) code |= 2;      // right
+				if (y < yMin) code |= 4;      // bottom
+				if (y > yMax) code |= 8;      // top
+				return code;
+				};
+
+			int code0 = computeCode(x0, y0);
+			int code1 = computeCode(x1, y1);
+
+			// If both endpoints are outside on the same side, skip
+			if ((code0 & code1) != 0) {
+				return;  // Line completely outside
+			}
+
+			// Clip endpoints to bounds
+			while ((code0 | code1) != 0) {
+				if ((code0 & code1) != 0) return;  // Completely outside
+
+				int codeOut = code0 != 0 ? code0 : code1;
+				int x, y;
+
+				// Find intersection of line with edge
+				if (codeOut & 1) {  // left
+					x = xMin;
+					y = y0 + (y1 - y0) * (xMin - x0) / (x1 - x0);
+				}
+				else if (codeOut & 2) {  // right
+					x = xMax;
+					y = y0 + (y1 - y0) * (xMax - x0) / (x1 - x0);
+				}
+				else if (codeOut & 4) {  // bottom
+					y = yMin;
+					x = x0 + (x1 - x0) * (yMin - y0) / (y1 - y0);
+				}
+				else {  // top
+					y = yMax;
+					x = x0 + (x1 - x0) * (yMax - y0) / (y1 - y0);
+				}
+
+				if (codeOut == code0) {
+					x0 = x; y0 = y;
+					code0 = computeCode(x0, y0);
+				}
+				else {
+					x1 = x; y1 = y;
+					code1 = computeCode(x1, y1);
 				}
 			}
 
-			if (x0 == x1 && y0 == y1) break;
-			int e2 = 2 * err;
-			if (e2 >= dy) { err += dy; x0 += sx; }
-			if (e2 <= dx) { err += dx; y0 += sy; }
-		}
-	};
+			// Rasterize clipped line using Bresenham's algorithm
+			int dx = abs(x1 - x0), sx = x0 < x1 ? 1 : -1;
+			int dy = -abs(y1 - y0), sy = y0 < y1 ? 1 : -1;
+			int err = dx + dy;
+
+			while (true)
+			{
+				// Bounds check (should never fail after clipping, but defensive)
+				if (x0 >= 0 && x0 < outWidth && y0 >= 0 && y0 < outHeight)
+				{
+					int outIndex = y0 * outWidth + x0;
+					if (mask[outIndex])  // Check visibility
+					{
+						knownZ[outIndex] = 1;
+						zk[outIndex] = h;
+					}
+				}
+
+				if (x0 == x1 && y0 == y1) break;
+				int e2 = 2 * err;
+				if (e2 >= dy) { err += dy; x0 += sx; }
+				if (e2 <= dx) { err += dx; y0 += sy; }
+			}
+		};
 
 	// Draw lines for each fringe segment
 	for (const auto& fringe : fringeSegments)
@@ -1907,7 +1787,7 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 		}
 	}
 
-	return {knownZ, zk};
+	return { knownZ, zk };
 }
 
 std::vector<WavefrontFromContoursContext::FringeCrossing>
@@ -1965,6 +1845,480 @@ WavefrontFromContoursContext::findFringeCrossings(double worldY) const
 	return crossings;
 }
 
+aperture::BoundingCircle WavefrontFromContoursContext::computeBoundingCircle() const
+{
+	constexpr double CONTOUR_STEP = 1.0;
+
+	auto contourPoints = input_.shapeCollection_.collectBoundingCirclePoints(CONTOUR_STEP);
+	for (auto& p : contourPoints) {
+		p.x = xToOutput(p.x);
+		p.y = yToOutput(p.y);
+	}
+	// Query ApertureCore for the bounding circle
+	return aperture::BoundingCircle(contourPoints);
+}
+
+
+// Solver implementation
+WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const WavefrontFromContoursContext& ctx) const
+{
+	const auto mask = ctx.buildMask();
+	auto [knownZ, zk] = ctx.rasterize(mask);
+
+	int outWidth = 0, outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+
+	// Perform bilinear interpolation to fill unknown values in visible regions
+	performBilinearInterpolation(zk, knownZ, mask, outHeight, outWidth);
+
+	// Populate result
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeBoundingCircle());
+	result.setScaleFactor(1.0);
+	result.setFiScan(ctx.input_.fiScan_);
+
+	return result;
+}
+
+// WavefrontFromContoursResult::setMatrixData implementation
+void WavefrontFromContoursResult::setMatrixData(const double* data, int rows, int cols)
+{
+	rows_ = rows;
+	cols_ = cols;
+	data_.assign(data, data + rows * cols);
+}
+
+// ============================================================================
+// WavefrontFromContoursSolver_HorizontalLinear Implementation
+// ============================================================================
+
+double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
+	double worldX) const
+{
+	if (crossings.empty())
+		return std::numeric_limits<double>::quiet_NaN();
+
+	// Find the two crossings that bracket worldX
+	// If worldX is before first crossing or after last, extrapolate or return NaN
+
+	// Find first crossing at or after worldX
+	auto it = std::lower_bound(crossings.begin(), crossings.end(),
+		WavefrontFromContoursContext::FringeCrossing{ worldX, 0.0 });
+
+	// If worldX is before all crossings, use first crossing value (extrapolate)
+	if (it == crossings.begin())
+	{
+		return crossings.front().fringeValue;
+	}
+
+	// If worldX is after all crossings, use last crossing value (extrapolate)
+	if (it == crossings.end())
+	{
+		return crossings.back().fringeValue;
+	}
+
+	// worldX is between two crossings - interpolate
+	const WavefrontFromContoursContext::FringeCrossing& right = *it;
+	const WavefrontFromContoursContext::FringeCrossing& left = *(it - 1);
+
+	// Linear interpolation
+	double dx = right.x - left.x;
+	if (std::abs(dx) < 1e-10)
+	{
+		// Crossings are at same X - average the values
+		return (left.fringeValue + right.fringeValue) / 2.0;
+	}
+
+	double t = (worldX - left.x) / dx;
+	return left.fringeValue + t * (right.fringeValue - left.fringeValue);
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	// Get output dimensions
+	int outWidth = 0, outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+
+	// Build visibility mask
+	auto mask = ctx.buildMask();
+
+	// Allocate output matrix
+	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
+
+	const auto& bounds = ctx.input_.bounds_;
+	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
+
+	// Process each row
+	for (int row = 0; row < outHeight; ++row)
+	{
+		// Calculate world Y coordinate for this row (center of pixel)
+		double worldY = ctx.yToInput(static_cast<double>(row));
+
+		// Find all fringe crossings at this Y
+		auto crossings = ctx.findFringeCrossings(worldY);
+
+		if (crossings.empty())
+			continue; // No fringes at this Y, leave as NaN
+
+		// Process each column in this row
+		for (int col = 0; col < outWidth; ++col)
+		{
+			int idx = row * outWidth + col;
+
+			// Skip if not visible
+			if (!mask[idx])
+				continue;
+
+			// Calculate world X coordinate for this column (center of pixel)
+			double worldX = ctx.xToInput(static_cast<double>(col));
+
+			// Interpolate Z value at this X
+			double z = interpolateAtX(crossings, worldX);
+			zk[idx] = z * reverseScale;
+		}
+	}
+
+	// Populate result
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeBoundingCircle());
+	result.setScaleFactor(1.0); // already scaled
+	result.setFiScan(ctx.input_.fiScan_);
+
+	return result;
+}
+
+// ============================================================================
+// WavefrontFromContoursSolver_HorizontalSpline Implementation
+// ============================================================================
+
+WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients
+WavefrontFromContoursSolver_HorizontalSpline::buildSpline(
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings) const
+{
+	SplineCoefficients spline;
+	int n = static_cast<int>(crossings.size());
+
+	if (n == 0)
+		return spline;
+
+	// Extract x and y values
+	spline.x.resize(n);
+	spline.a.resize(n);
+	for (int i = 0; i < n; ++i)
+	{
+		spline.x[i] = crossings[i].x;
+		spline.a[i] = crossings[i].fringeValue;
+	}
+
+	if (n == 1)
+	{
+		// Single point - constant interpolation
+		spline.b.resize(1, 0.0);
+		spline.c.resize(1, 0.0);
+		spline.d.resize(1, 0.0);
+		return spline;
+	}
+
+	if (n == 2)
+	{
+		// Two points - linear interpolation
+		spline.b.resize(1);
+		spline.c.resize(1, 0.0);
+		spline.d.resize(1, 0.0);
+		double h = spline.x[1] - spline.x[0];
+		if (std::abs(h) > 1e-10)
+			spline.b[0] = (spline.a[1] - spline.a[0]) / h;
+		else
+			spline.b[0] = 0.0;
+		return spline;
+	}
+
+	// Natural cubic spline for n >= 3
+	// Build tridiagonal system for second derivatives
+	std::vector<double> h(n - 1);  // Step sizes
+	for (int i = 0; i < n - 1; ++i)
+		h[i] = spline.x[i + 1] - spline.x[i];
+
+	// Tridiagonal system: alpha = RHS
+	std::vector<double> alpha(n);
+	for (int i = 1; i < n - 1; ++i)
+	{
+		alpha[i] = 3.0 * ((spline.a[i + 1] - spline.a[i]) / h[i] -
+			(spline.a[i] - spline.a[i - 1]) / h[i - 1]);
+	}
+
+	// Solve tridiagonal system using Thomas algorithm
+	std::vector<double> l(n, 1.0);
+	std::vector<double> mu(n, 0.0);
+	std::vector<double> z(n, 0.0);
+
+	for (int i = 1; i < n - 1; ++i)
+	{
+		l[i] = 2.0 * (spline.x[i + 1] - spline.x[i - 1]) - h[i - 1] * mu[i - 1];
+		if (std::abs(l[i]) < 1e-10)
+			l[i] = 1e-10; // Avoid division by zero
+		mu[i] = h[i] / l[i];
+		z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
+	}
+
+	// Back substitution
+	spline.c.resize(n, 0.0);
+	spline.b.resize(n - 1);
+	spline.d.resize(n - 1);
+
+	// Natural spline boundary conditions: c[0] = c[n-1] = 0
+	for (int j = n - 2; j >= 0; --j)
+	{
+		spline.c[j] = z[j] - mu[j] * spline.c[j + 1];
+		spline.b[j] = (spline.a[j + 1] - spline.a[j]) / h[j] -
+			h[j] * (spline.c[j + 1] + 2.0 * spline.c[j]) / 3.0;
+		spline.d[j] = (spline.c[j + 1] - spline.c[j]) / (3.0 * h[j]);
+	}
+
+	return spline;
+}
+
+double WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients::evaluate(double xi) const
+{
+	int n = static_cast<int>(x.size());
+
+	if (n == 0)
+		return std::numeric_limits<double>::quiet_NaN();
+
+	if (n == 1)
+		return a[0]; // Constant
+
+	// Find interval: x[i] <= xi < x[i+1]
+	// Handle extrapolation
+	if (xi <= x[0])
+	{
+		// Extrapolate using first segment
+		double dx = xi - x[0];
+		return a[0] + b[0] * dx + c[0] * dx * dx + d[0] * dx * dx * dx;
+	}
+
+	if (xi >= x[n - 1])
+	{
+		// Extrapolate using last segment
+		int i = n - 2;
+		double dx = xi - x[i];
+		return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
+	}
+
+	// Binary search for interval
+	int i = 0;
+	int j = n - 1;
+	while (j - i > 1)
+	{
+		int k = (i + j) / 2;
+		if (xi < x[k])
+			j = k;
+		else
+			i = k;
+	}
+
+	// Evaluate cubic polynomial at xi
+	double dx = xi - x[i];
+	return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
+}
+
+double WavefrontFromContoursSolver_HorizontalSpline::interpolateAtX(
+	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
+	double worldX) const
+{
+	if (crossings.empty())
+		return std::numeric_limits<double>::quiet_NaN();
+
+	// Build cubic spline
+	SplineCoefficients spline = buildSpline(crossings);
+
+	// Evaluate at worldX
+	return spline.evaluate(worldX);
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	// Get output dimensions
+	int outWidth = 0, outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+
+	// Build visibility mask
+	auto mask = ctx.buildMask();
+
+	// Allocate output matrix
+	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
+
+	const auto& bounds = ctx.input_.bounds_;
+	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
+
+	// Process each row
+	for (int row = 0; row < outHeight; ++row)
+	{
+		// Calculate world Y coordinate for this row (center of pixel)
+		double worldY = ctx.yToInput(static_cast<double>(row));
+
+		// Find all fringe crossings at this Y
+		auto crossings = ctx.findFringeCrossings(worldY);
+
+		if (crossings.size() < 2)
+			continue; // Need at least 2 points for meaningful spline
+
+		// Process each column in this row
+		for (int col = 0; col < outWidth; ++col)
+		{
+			int idx = row * outWidth + col;
+
+			// Skip if not visible
+			if (!mask[idx])
+				continue;
+
+			// Calculate world X coordinate for this column (center of pixel)
+			double worldX = ctx.xToInput(static_cast<double>(col));
+
+			// Interpolate Z value at this X using cubic spline
+			double z = interpolateAtX(crossings, worldX);
+			zk[idx] = z * reverseScale;
+		}
+	}
+
+	// Populate result
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeBoundingCircle());
+	result.setScaleFactor(1.0); // already scaled here
+	result.setFiScan(ctx.input_.fiScan_);
+
+	return result;
+}
+
+std::vector<XyzSample> WavefrontFromContoursSolver_Delaunay::prepareSamples(
+	const WavefrontFromContoursContext& ctx) const
+{
+	const double safeScaleFactor = std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0;
+	std::vector<XyzSample> samples;
+	std::size_t sampleEstimate = 0u;
+	for (const auto& fringe : ctx.input_.fringeSegments_)
+		sampleEstimate += fringe.GetPointCount() > 0 ? static_cast<std::size_t>(fringe.GetPointCount()) : 0u;
+	samples.reserve(sampleEstimate);
+
+	for (const auto& fringe : ctx.input_.fringeSegments_)
+	{
+		const double z = fringe.GetNumber() / safeScaleFactor;
+		const int pointCount = fringe.GetPointCount();
+		for (int i = 0; i < pointCount; ++i)
+		{
+			CDPoint p = fringe.GetPoint(i);
+			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(z))
+				continue;
+			samples.push_back(XyzSample{ p.x, p.y, z });
+		}
+	}
+
+	if (samples.size() > 1u)
+	{
+		struct SampleAggregate
+		{
+			double x = 0.0;
+			double y = 0.0;
+			double z = 0.0;
+			std::size_t count = 0u;
+		};
+
+		std::sort(samples.begin(), samples.end(), [](const XyzSample& a, const XyzSample& b)
+			{
+				if (a.x != b.x) return a.x < b.x;
+				if (a.y != b.y) return a.y < b.y;
+				return a.z < b.z;
+			});
+
+		std::vector<SampleAggregate> merged;
+		merged.reserve(samples.size());
+		for (const auto& sample : samples)
+		{
+			if (!merged.empty() && merged.back().x == sample.x && merged.back().y == sample.y)
+			{
+				merged.back().z += sample.z;
+				++merged.back().count;
+			}
+			else
+			{
+				merged.push_back(SampleAggregate{ sample.x, sample.y, sample.z, 1u });
+			}
+		}
+
+		std::vector<XyzSample> uniqueSamples;
+		uniqueSamples.reserve(merged.size());
+		for (const auto& sample : merged)
+		{
+			uniqueSamples.push_back(XyzSample{
+				sample.x,
+				sample.y,
+				sample.z / static_cast<double>(sample.count)
+				});
+		}
+		samples.swap(uniqueSamples);
+	}
+
+	return samples;
+}
+
+WavefrontFromContoursResult WavefrontFromContoursSolver_Delaunay::solve(
+	const WavefrontFromContoursContext& ctx) const
+{
+	int outWidth = 0;
+	int outHeight = 0;
+	getContextDimensions(ctx, outWidth, outHeight);
+
+	auto mask = ctx.buildMask();
+	std::vector<double> zk(static_cast<std::size_t>(outWidth) * static_cast<std::size_t>(outHeight),
+		std::numeric_limits<double>::quiet_NaN());
+
+	std::vector<XyzSample> samples = prepareSamples(ctx); // also scales Z by 1/scaleFactor
+
+	//LocalQuadricInterpolator interpolator(std::move(samples));
+	DeCasteljauInterpolator interpolator(std::move(samples));
+	//AkimaBivariateInterpolator interpolator(std::move(samples));
+	//BarycentricInterpolator interpolator(std::move(samples));
+	//IDWInterpolator interpolator(std::move(samples));
+
+	for (int row = 0; row < outHeight; ++row)
+	{
+		const double worldY = ctx.yToInput(static_cast<double>(row));
+		const std::size_t rowOffset = static_cast<std::size_t>(row) * static_cast<std::size_t>(outWidth);
+
+		for (int col = 0; col < outWidth; ++col)
+		{
+			const std::size_t idx = rowOffset + static_cast<std::size_t>(col);
+			if (!mask[idx])
+				continue;
+
+			const double worldX = ctx.xToInput(static_cast<double>(col));
+			const double z = interpolator.query(worldX, worldY);
+			if (std::isfinite(z))
+				zk[idx] = z; // samples were scaled in prepareSamples() by 1/scaleFactor, so no need to scale here
+		}
+	}
+
+	WavefrontFromContoursResult result;
+	result.setMatrixData(zk.data(), outHeight, outWidth);
+	result.setCoordinateSystem(ctx.input_.outputCoordType_);
+	result.setBoundingCircle(ctx.computeBoundingCircle());
+	result.setScaleFactor(1.0);
+	result.setFiScan(ctx.input_.fiScan_);
+	return result;
+}
+
+// ============================================================================
+// WavefrontFromContoursResult Output Formatting
+// ============================================================================
 std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& result)
 {
 	os << "MatrixXd(" << result.rows_ << " x " << result.cols_ << ")\n";
@@ -1980,7 +2334,7 @@ std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& re
 		{
 			int idx = y * result.cols_ + x;
 			double val = result.data_[idx];
-			
+
 			if (std::isnan(val))
 			{
 				// os << std::setw(1) << '_';  // 
@@ -2009,20 +2363,19 @@ std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& re
 	return os;
 }
 
-	
 bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 {
 	if (data_.empty() || rows_ == 0 || cols_ == 0)
 		return false;
 
 	// Calculate matrix size and normalization parameters
-	auto boundingCircle = getBoundingCircle();
+	const auto boundingCircle = getBoundingCircle();
 	if (!boundingCircle.valid) return false;
 	size_t sizeMatrix = static_cast<size_t>(boundingCircle.radius * 2); // Use bounding circle diameter
 	sizeMatrix |= 1;  // Ensure odd size for symmetry
-	double ratio = 2.0 / (sizeMatrix - 1);  // Scale factor to fit largest dimension into [-1, 1]
-	int xc = static_cast<int>(boundingCircle.center.x);  // Center column index
-	int yc = static_cast<int>(boundingCircle.center.y);  // Center row index
+	const double ratio = 2.0 / (sizeMatrix - 1);  // Scale factor to fit largest dimension into [-1, 1]
+	const int xc = static_cast<int>(boundingCircle.center.x);  // Center column index
+	const int yc = static_cast<int>(boundingCircle.center.y);  // Center row index
 
 	// Write header
 	os << "Title=" << getTitle() << "\n";
@@ -2041,13 +2394,13 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	os << "Date=" << std::put_time(&local, "%Y-%m-%d") << "\n";
 	os << "Time=" << std::put_time(&local, "%H:%M:%S") << "\n";
 
-	if(getScaleFactor() != 1.0) os << "ScaleFactor=" << getScaleFactor() << "\n";
-	if(getFiScan() != 0.0) os << "FiScan=" << getFiScan() << "\n";
-	
+	if (getScaleFactor() != 1.0) os << "ScaleFactor=" << getScaleFactor() << "\n";
+	if (getFiScan() != 0.0) os << "FiScan=" << getFiScan() << "\n";
+
 	os << "Units=WAV\n";
 	// NB:essentially Size = 1./delta - not nesserery eq to rows_ or cols_.
 	// Setting a wrong Size value breaks WinFringe calculations
-	os << "Size=" << sizeMatrix << "\n\n"; 
+	os << "Size=" << sizeMatrix << "\n\n";
 	os << "[MATRIX]\n";
 
 	// Format settings
@@ -2106,7 +2459,7 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 		}
 
 		// End of matrix row with E tag
-		if(rowCount != 0) os << " E\n";
+		if (rowCount != 0) os << " E\n";
 	}
 
 	os << "END\n";
@@ -2116,497 +2469,4 @@ bool WavefrontFromContoursResult::saveMtrMatrix(std::ostream& os) const
 	os.precision(oldPrec);
 
 	return true;
-}
-
-// Solver implementation
-WavefrontFromContoursResult WavefrontFromContoursSolver_Bilinear::solve(const WavefrontFromContoursContext& ctx) const
-{
-	auto mask = ctx.buildMask();
-	auto [knownZ, zk] = ctx.rasterize(mask);
-
-	int outWidth = 0, outHeight = 0;
-	getContextDimensions(ctx, outWidth, outHeight);
-	
-	// Perform bilinear interpolation to fill unknown values in visible regions
-	performBilinearInterpolation(zk, knownZ, mask, outHeight, outWidth);
-
-	// Convert bounds to output coordinate system
-	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
-
-	// Populate result
-	WavefrontFromContoursResult result;
-	result.setMatrixData(zk.data(), outHeight, outWidth);
-	//result.setBounds(outputBounds);
-	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeBoundingCircle());
-	result.setScaleFactor(1.0);
-	result.setFiScan(ctx.input_.fiScan_);
-
-	return result;
-}
-
-// WavefrontFromContoursResult::setMatrixData implementation
-void WavefrontFromContoursResult::setMatrixData(const double* data, int rows, int cols)
-{
-	rows_ = rows;
-	cols_ = cols;
-	data_.assign(data, data + rows * cols);
-}
-
-// ============================================================================
-// WavefrontFromContoursSolver_HorizontalLinear Implementation
-// ============================================================================
-
-double WavefrontFromContoursSolver_HorizontalLinear::interpolateAtX(
-	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
-	double worldX) const
-{
-	if (crossings.empty())
-		return std::numeric_limits<double>::quiet_NaN();
-	
-	// Find the two crossings that bracket worldX
-	// If worldX is before first crossing or after last, extrapolate or return NaN
-	
-	// Find first crossing at or after worldX
-	auto it = std::lower_bound(crossings.begin(), crossings.end(), 
-		WavefrontFromContoursContext::FringeCrossing{worldX, 0.0});
-	
-	// If worldX is before all crossings, use first crossing value (extrapolate)
-	if (it == crossings.begin())
-	{
-		return crossings.front().fringeValue;
-	}
-	
-	// If worldX is after all crossings, use last crossing value (extrapolate)
-	if (it == crossings.end())
-	{
-		return crossings.back().fringeValue;
-	}
-	
-	// worldX is between two crossings - interpolate
-	const WavefrontFromContoursContext::FringeCrossing& right = *it;
-	const WavefrontFromContoursContext::FringeCrossing& left = *(it - 1);
-	
-	// Linear interpolation
-	double dx = right.x - left.x;
-	if (std::abs(dx) < 1e-10)
-	{
-		// Crossings are at same X - average the values
-		return (left.fringeValue + right.fringeValue) / 2.0;
-	}
-	
-	double t = (worldX - left.x) / dx;
-	return left.fringeValue + t * (right.fringeValue - left.fringeValue);
-}
-
-WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalLinear::solve(
-	const WavefrontFromContoursContext& ctx) const
-{
-	// Get output dimensions
-	int outWidth = 0, outHeight = 0;
-	getContextDimensions(ctx, outWidth, outHeight);
-	
-	// Build visibility mask
-	auto mask = ctx.buildMask();
-	
-	// Allocate output matrix
-	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
-	
-	const auto& bounds = ctx.input_.bounds_;
-	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
-	
-	// Process each row
-	for (int row = 0; row < outHeight; ++row)
-	{
-		// Calculate world Y coordinate for this row (center of pixel)
-		double worldY = ctx.yToInput(static_cast<double>(row));
-		
-		// Find all fringe crossings at this Y
-		auto crossings = ctx.findFringeCrossings(worldY);
-		
-		if (crossings.empty())
-			continue; // No fringes at this Y, leave as NaN
-		
-		// Process each column in this row
-		for (int col = 0; col < outWidth; ++col)
-		{
-			int idx = row * outWidth + col;
-			
-			// Skip if not visible
-			if (!mask[idx])
-				continue;
-			
-			// Calculate world X coordinate for this column (center of pixel)
-			double worldX = ctx.xToInput(static_cast<double>(col));
-			
-			// Interpolate Z value at this X
-			double z = interpolateAtX(crossings, worldX);
-			zk[idx] = z * reverseScale;
-		}
-	}
-	
-	// Convert bounds to output coordinate system
-	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
-	
-	// Populate result
-	WavefrontFromContoursResult result;
-	result.setMatrixData(zk.data(), outHeight, outWidth);
-	//result.setBounds(outputBounds);
-	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeBoundingCircle());
-	result.setScaleFactor(1.0); // already scaled
-	result.setFiScan(ctx.input_.fiScan_);
-
-	return result;
-}
-
-// ============================================================================
-// WavefrontFromContoursSolver_HorizontalSpline Implementation
-// ============================================================================
-
-WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients
-WavefrontFromContoursSolver_HorizontalSpline::buildSpline(
-	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings) const
-{
-	SplineCoefficients spline;
-	int n = static_cast<int>(crossings.size());
-	
-	if (n == 0)
-		return spline;
-	
-	// Extract x and y values
-	spline.x.resize(n);
-	spline.a.resize(n);
-	for (int i = 0; i < n; ++i)
-	{
-		spline.x[i] = crossings[i].x;
-		spline.a[i] = crossings[i].fringeValue;
-	}
-	
-	if (n == 1)
-	{
-		// Single point - constant interpolation
-		spline.b.resize(1, 0.0);
-		spline.c.resize(1, 0.0);
-		spline.d.resize(1, 0.0);
-		return spline;
-	}
-	
-	if (n == 2)
-	{
-		// Two points - linear interpolation
-		spline.b.resize(1);
-		spline.c.resize(1, 0.0);
-		spline.d.resize(1, 0.0);
-		double h = spline.x[1] - spline.x[0];
-		if (std::abs(h) > 1e-10)
-			spline.b[0] = (spline.a[1] - spline.a[0]) / h;
-		else
-			spline.b[0] = 0.0;
-		return spline;
-	}
-	
-	// Natural cubic spline for n >= 3
-	// Build tridiagonal system for second derivatives
-	std::vector<double> h(n - 1);  // Step sizes
-	for (int i = 0; i < n - 1; ++i)
-		h[i] = spline.x[i + 1] - spline.x[i];
-	
-	// Tridiagonal system: alpha = RHS
-	std::vector<double> alpha(n);
-	for (int i = 1; i < n - 1; ++i)
-	{
-		alpha[i] = 3.0 * ((spline.a[i + 1] - spline.a[i]) / h[i] - 
-		                   (spline.a[i] - spline.a[i - 1]) / h[i - 1]);
-	}
-	
-	// Solve tridiagonal system using Thomas algorithm
-	std::vector<double> l(n, 1.0);
-	std::vector<double> mu(n, 0.0);
-	std::vector<double> z(n, 0.0);
-	
-	for (int i = 1; i < n - 1; ++i)
-	{
-		l[i] = 2.0 * (spline.x[i + 1] - spline.x[i - 1]) - h[i - 1] * mu[i - 1];
-		if (std::abs(l[i]) < 1e-10)
-			l[i] = 1e-10; // Avoid division by zero
-		mu[i] = h[i] / l[i];
-		z[i] = (alpha[i] - h[i - 1] * z[i - 1]) / l[i];
-	}
-	
-	// Back substitution
-	spline.c.resize(n, 0.0);
-	spline.b.resize(n - 1);
-	spline.d.resize(n - 1);
-	
-	// Natural spline boundary conditions: c[0] = c[n-1] = 0
-	for (int j = n - 2; j >= 0; --j)
-	{
-		spline.c[j] = z[j] - mu[j] * spline.c[j + 1];
-		spline.b[j] = (spline.a[j + 1] - spline.a[j]) / h[j] - 
-		               h[j] * (spline.c[j + 1] + 2.0 * spline.c[j]) / 3.0;
-		spline.d[j] = (spline.c[j + 1] - spline.c[j]) / (3.0 * h[j]);
-	}
-	
-	return spline;
-}
-
-double WavefrontFromContoursSolver_HorizontalSpline::SplineCoefficients::evaluate(double xi) const
-{
-	int n = static_cast<int>(x.size());
-	
-	if (n == 0)
-		return std::numeric_limits<double>::quiet_NaN();
-	
-	if (n == 1)
-		return a[0]; // Constant
-	
-	// Find interval: x[i] <= xi < x[i+1]
-	// Handle extrapolation
-	if (xi <= x[0])
-	{
-		// Extrapolate using first segment
-		double dx = xi - x[0];
-		return a[0] + b[0] * dx + c[0] * dx * dx + d[0] * dx * dx * dx;
-	}
-	
-	if (xi >= x[n - 1])
-	{
-		// Extrapolate using last segment
-		int i = n - 2;
-		double dx = xi - x[i];
-		return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
-	}
-	
-	// Binary search for interval
-	int i = 0;
-	int j = n - 1;
-	while (j - i > 1)
-	{
-		int k = (i + j) / 2;
-		if (xi < x[k])
-			j = k;
-		else
-			i = k;
-	}
-	
-	// Evaluate cubic polynomial at xi
-	double dx = xi - x[i];
-	return a[i] + b[i] * dx + c[i] * dx * dx + d[i] * dx * dx * dx;
-}
-
-double WavefrontFromContoursSolver_HorizontalSpline::interpolateAtX(
-	const std::vector<WavefrontFromContoursContext::FringeCrossing>& crossings,
-	double worldX) const
-{
-	if (crossings.empty())
-		return std::numeric_limits<double>::quiet_NaN();
-	
-	// Build cubic spline
-	SplineCoefficients spline = buildSpline(crossings);
-	
-	// Evaluate at worldX
-	return spline.evaluate(worldX);
-}
-
-WavefrontFromContoursResult WavefrontFromContoursSolver_HorizontalSpline::solve(
-	const WavefrontFromContoursContext& ctx) const
-{
-	// Get output dimensions
-	int outWidth = 0, outHeight = 0;
-	getContextDimensions(ctx, outWidth, outHeight);
-	
-	// Build visibility mask
-	auto mask = ctx.buildMask();
-	
-	// Allocate output matrix
-	std::vector<double> zk(outHeight * outWidth, std::numeric_limits<double>::quiet_NaN());
-	
-	const auto& bounds = ctx.input_.bounds_;
-	const double reverseScale = 1.0 / ctx.input_.scaleFactor_;
-
-	// Process each row
-	for (int row = 0; row < outHeight; ++row)
-	{
-		// Calculate world Y coordinate for this row (center of pixel)
-		double worldY = ctx.yToInput(static_cast<double>(row));
-		
-		// Find all fringe crossings at this Y
-		auto crossings = ctx.findFringeCrossings(worldY);
-		
-		if (crossings.size() < 2)
-			continue; // Need at least 2 points for meaningful spline
-		
-		// Process each column in this row
-		for (int col = 0; col < outWidth; ++col)
-		{
-			int idx = row * outWidth + col;
-			
-			// Skip if not visible
-			if (!mask[idx])
-				continue;
-			
-			// Calculate world X coordinate for this column (center of pixel)
-			double worldX = ctx.xToInput(static_cast<double>(col));
-			
-			// Interpolate Z value at this X using cubic spline
-			double z = interpolateAtX(crossings, worldX);
-			zk[idx] = z * reverseScale;
-		}
-	}
-	
-	// Convert bounds to output coordinate system
-	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
-	
-	// Populate result
-	WavefrontFromContoursResult result;
-	result.setMatrixData(zk.data(), outHeight, outWidth);
-	//result.setBounds(outputBounds);
-	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeBoundingCircle());
-	result.setScaleFactor(1.0); // already scaled here
-	result.setFiScan(ctx.input_.fiScan_);
-
-	return result;
-}
-
-std::vector<XyzSample> WavefrontFromContoursSolver_Delaunay::prepareSamples(
-	const WavefrontFromContoursContext& ctx) const
-{
-	const double safeScaleFactor = std::abs(ctx.input_.scaleFactor_) > 1e-12 ? ctx.input_.scaleFactor_ : 1.0;
-	std::vector<XyzSample> samples;
-	std::size_t sampleEstimate = 0u;
-	for (const auto& fringe : ctx.input_.fringeSegments_)
-		sampleEstimate += fringe.GetPointCount() > 0 ? static_cast<std::size_t>(fringe.GetPointCount()) : 0u;
-	samples.reserve(sampleEstimate);
-
-	for (const auto& fringe : ctx.input_.fringeSegments_)
-	{
-		const double z = fringe.GetNumber() / safeScaleFactor;
-		const int pointCount = fringe.GetPointCount();
-		for (int i = 0; i < pointCount; ++i)
-		{
-			CDPoint p = fringe.GetPoint(i);
-			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(z))
-				continue;
-			samples.push_back(XyzSample{p.x, p.y, z});
-		}
-	}
-
-	if (samples.size() > 1u)
-	{
-		struct SampleAggregate
-		{
-			double x = 0.0;
-			double y = 0.0;
-			double z = 0.0;
-			std::size_t count = 0u;
-		};
-
-		std::sort(samples.begin(), samples.end(), [](const XyzSample& a, const XyzSample& b)
-		{
-			if (a.x != b.x) return a.x < b.x;
-			if (a.y != b.y) return a.y < b.y;
-			return a.z < b.z;
-		});
-
-		std::vector<SampleAggregate> merged;
-		merged.reserve(samples.size());
-		for (const auto& sample : samples)
-		{
-			if (!merged.empty() && merged.back().x == sample.x && merged.back().y == sample.y)
-			{
-				merged.back().z += sample.z;
-				++merged.back().count;
-			}
-			else
-			{
-				merged.push_back(SampleAggregate{sample.x, sample.y, sample.z, 1u});
-			}
-		}
-
-		std::vector<XyzSample> uniqueSamples;
-		uniqueSamples.reserve(merged.size());
-		for (const auto& sample : merged)
-		{
-			uniqueSamples.push_back(XyzSample{
-				sample.x,
-				sample.y,
-				sample.z / static_cast<double>(sample.count)
-			});
-		}
-		samples.swap(uniqueSamples);
-	}
-
-	return samples;
-}
-
-WavefrontFromContoursResult WavefrontFromContoursSolver_Delaunay::solve(
-	const WavefrontFromContoursContext& ctx) const
-{
-	int outWidth = 0;
-	int outHeight = 0;
-	getContextDimensions(ctx, outWidth, outHeight);
-
-	auto mask = ctx.buildMask();
-	std::vector<double> zk(static_cast<std::size_t>(outWidth) * static_cast<std::size_t>(outHeight),
-		std::numeric_limits<double>::quiet_NaN());
-
-	std::vector<XyzSample> samples = prepareSamples(ctx); // also scales Z by 1/scaleFactor
-
-	//LocalQuadricInterpolator interpolator(std::move(samples));
-	DeCasteljauInterpolator interpolator(std::move(samples));
-	//AkimaBivariateInterpolator interpolator(std::move(samples));
-	//BarycentricInterpolator interpolator(std::move(samples));
-	//IDWInterpolator interpolator(std::move(samples));
-
-	for (int row = 0; row < outHeight; ++row)
-	{
-		const double worldY = ctx.yToInput(static_cast<double>(row));
-		const std::size_t rowOffset = static_cast<std::size_t>(row) * static_cast<std::size_t>(outWidth);
-
-		for (int col = 0; col < outWidth; ++col)
-		{
-			const std::size_t idx = rowOffset + static_cast<std::size_t>(col);
-			if (!mask[idx])
-				continue;
-
-			const double worldX = ctx.xToInput(static_cast<double>(col));
-			const double z = interpolator.query(worldX, worldY);
-			if (std::isfinite(z))
-				zk[idx] = z; // samples were scaled in prepareSamples() by 1/scaleFactor, so no need to scale here
-		}
-	}
-
-	//aperture::Bounds outputBounds = ctx.convertBounds(ctx.input_.bounds_);
-	WavefrontFromContoursResult result;
-	result.setMatrixData(zk.data(), outHeight, outWidth);
-	//result.setBounds(outputBounds);
-	result.setCoordinateSystem(ctx.input_.outputCoordType_);
-	result.setBoundingCircle(ctx.computeBoundingCircle());
-	result.setScaleFactor(1.0);
-	result.setFiScan(ctx.input_.fiScan_);
-	return result;
-}
-
-WavefrontBoundingCircle WavefrontFromContoursContext::computeBoundingCircle() const
-{
-	// Query ApertureCore for the bounding circle
-	aperture::BoundingCircle circle = input_.shapeCollection_.getBoundingCircle();
-
-	if (!circle.valid) {
-		return {};  // Invalid circle
-	}
-
-	// Convert from input to output coordinates
-	WavefrontBoundingCircle result;
-	result.center.x = xToOutput(circle.center.x);
-	result.center.y = yToOutput(circle.center.y);
-
-	// Scale radius by coordinate transform
-	const double scale = std::min(std::abs(xScale_), std::abs(yScale_));
-	result.radius = scale > 0.0 ? circle.radius * scale : 0.0;
-	result.valid = true;
-
-	return result;
 }

@@ -1,6 +1,8 @@
 /**
  * @file ShapeCollection.h
  * @brief Container for shapes organized by TypeLimits
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 #pragma once
 
@@ -261,9 +263,8 @@ public:
      * @note Empty collections return invalid circle (valid == false)
      * @see Bounds::getCombinedBounds() for axis-aligned bounding box
      */
-     BoundingCircle getBoundingCircle() const;
-     BoundingCircle getBoundingCircle(std::vector<Point> points) const;
-     std::vector<Point> collectBoundingCirclePoints() const;
+     BoundingCircle getBoundingCircle(double contourStep = 1.0) const;
+     std::vector<Point> collectBoundingCirclePoints(double contourStep = 1.0) const;
 
     /**
      * @brief Clear all shapes

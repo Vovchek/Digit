@@ -1,6 +1,8 @@
 /**
  * @file Polygon.cpp
  * @brief Implementation of Polygon class
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  */
 
 #include "aperturecore/geometry/Polygon.h"

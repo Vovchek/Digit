@@ -151,6 +151,7 @@
   </ItemGroup>
   <ItemGroup>
     <!-- Source files -->
+    <ClCompile Include="src\geometry\BoundingCircle.cpp" />
     <ClCompile Include="src\geometry\Point.cpp" />
     <ClCompile Include="src\geometry\Bounds.cpp" />
     <ClCompile Include="src\geometry\Shape.cpp" />
@@ -169,7 +170,6 @@
     <ClCompile Include="tests\visibility\VisibleRegionTest.cpp" />
     <ClCompile Include="tests\visibility\VisibilityCheckerTest.cpp" />
     <ClCompile Include="tests\visibility\VisibilityPerformanceTest.cpp" />
-    <ClCompile Include="src\visibility\BoundingCircle.cpp" />
     <ClCompile Include="tests\geometry\TestEllipseHelpers.cpp" />
     <ClCompile Include="tests\visibility\BoundingCircleTest.cpp" />
   </ItemGroup>
