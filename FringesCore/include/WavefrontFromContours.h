@@ -1,10 +1,16 @@
-﻿#pragma once
+﻿/**
+ * @file WavefrontFromContours.h
+ * @brief Interface of classes for converting isoline fringes into a surface heights map
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
+ */
+#pragma once
 
-#include "aperturecore/include/aperturecore/geometry/Bounds.h"
-#include "aperturecore/include/aperturecore/visibility/VisibilityChecker.h"
-#include "aperturecore/include/aperturecore/geometry/CoordinateSystem.h"
-#include "aperturecore/include/aperturecore/visibility/ShapeCollection.h"
-#include "DigitMode/CFringeSegment.h"
+#include <aperturecore/geometry/Bounds.h>
+#include <aperturecore/visibility/VisibilityChecker.h>
+#include <aperturecore/geometry/CoordinateSystem.h>
+#include <aperturecore/visibility/ShapeCollection.h>
+#include "FringeSegment.h"
 #include <string>
 
 // Undefine conflicting MFC macros so standard library min/max remain usable here.
@@ -28,7 +34,7 @@ namespace isomap {
 	{
 		explicit WavefrontFromContoursInput(
 			const aperture::ShapeCollection& shapeCollection,
-			const std::vector<CFringeSegment>& fringeSegments,
+			const std::vector<FringeSegment>& fringeSegments,
 			double scaleFactor = 1.,
 			double fiScan = 0.,
 			int outWidth = 0,
@@ -47,7 +53,7 @@ namespace isomap {
 			, outputCoordType_(outputCoordType) {}
 
 		const aperture::ShapeCollection& shapeCollection_;
-		const std::vector<CFringeSegment>& fringeSegments_;
+		const std::vector<FringeSegment>& fringeSegments_;
 		double scaleFactor_;
 		double fiScan_;
 		// ROI in input coordinate system, cached from shapeCollection_.getVisibleRegion()
@@ -139,9 +145,6 @@ namespace isomap {
 					visible[outIndex] = checker.isVisible({ maskX, maskY }) ? 1 : 0;
 					sumVisibleLine += visible[outIndex];
 				}
-				if (sumVisible && sumVisibleLine == 0) {
-					TRACE("Warning: No visible pixels found in line %d\n", outY);
-				}
 				sumVisible += sumVisibleLine;
 				sumVisibleLine = 0;
 			}
@@ -196,7 +199,7 @@ namespace isomap {
 		// ============================================================================
 
 		friend std::ostream& operator<<(std::ostream& os, const WavefrontFromContoursResult& result);
-		bool saveAsImage(const std::string& filename) const { return false; };
+		bool saveAsImage([[maybe_unused]] const std::string& filename) const { return false; };
 		bool saveMtrMatrix(std::ostream& os) const;
 
 	private:

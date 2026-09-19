@@ -1,0 +1,8 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+find_dependency(ApertureCore CONFIG)
+
+include("${CMAKE_CURRENT_LIST_DIR}/FringesCoreTargets.cmake")
+
+check_required_components(FringesCore)

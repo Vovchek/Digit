@@ -1,4 +1,13 @@
-﻿#include "DigitMode/WavefrontSolver/WavefrontFromContours.h"
+/**
+ * @file WavefrontFromContours.cpp
+ * @brief Implementation of classes for converting isoline fringes into a surface heights map
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
+ */
+
+#include "WavefrontFromContours.h"
+#include "./delaunator-cpp/delaunator-header-only.hpp"
+
 #include <algorithm>
 #include <array>
 #include <cmath>
@@ -10,7 +19,6 @@
 #include <unordered_set>
 #include <deque>
 #include <iomanip>
-#include "./delaunator-cpp/delaunator-header-only.hpp"
 
 // Undefine conflicting MFC macros so standard library min/max remain usable here.
 #ifdef max
@@ -931,7 +939,7 @@ namespace
 	{
 	public:
 		explicit LocalQuadricInterpolator(std::vector<XyzSample> samples, std::size_t K = 16u)
-			: points_(std::move(samples)), K_((std::max)(K, 6u)), searchPool_((std::max)(4u * ((std::max)(K, 6u) + 1u), 32u))
+			: points_(std::move(samples)), K_((std::max<size_t>)(K, 6u)), searchPool_((std::max<size_t>)(4u * ((std::max<size_t>)(K, 6u) + 1u), 32u))
 		{
 			buildTriangulation();
 			buildAdjacency();
@@ -1898,14 +1906,14 @@ WavefrontFromContoursContext::rasterize(const std::vector<char>& mask) const
 	// Draw lines for each fringe segment
 	for (const auto& fringe : fringeSegments)
 	{
-		double fringeValue = fringe.GetNumber() / input_.scaleFactor_;
-		int pointCount = fringe.GetPointCount();
+		double fringeValue = fringe.getNumber() / input_.scaleFactor_;
+		int pointCount = fringe.getPointCount();
 
 		// Draw lines connecting consecutive points in the fringe
 		for (int i = 0; i < pointCount - 1; ++i)
 		{
-			CDPoint p0 = fringe.GetPoint(i);
-			CDPoint p1 = fringe.GetPoint(i + 1);
+			aperture::Point p0 = fringe.getPoint(i);
+			aperture::Point p1 = fringe.getPoint(i + 1);
 
 			// Convert to output pixel coordinates
 			double u0 = xToOutput(p0.x);
@@ -1936,13 +1944,13 @@ WavefrontFromContoursContext::findFringeCrossings(double worldY) const
 
 	for (const auto& fringe : fringeSegments)
 	{
-		double fringeValue = fringe.GetNumber();
-		int pointCount = fringe.GetPointCount();
+		double fringeValue = fringe.getNumber();
+		int pointCount = fringe.getPointCount();
 
 		for (int i = 0; i < pointCount - 1; ++i)
 		{
-			CDPoint p0 = fringe.GetPoint(i);
-			CDPoint p1 = fringe.GetPoint(i + 1);
+			aperture::Point p0 = fringe.getPoint(i);
+			aperture::Point p1 = fringe.getPoint(i + 1);
 
 			double y0 = p0.y;
 			double y1 = p1.y;
@@ -2298,16 +2306,16 @@ std::vector<XyzSample> WavefrontFromContoursSolver_Delaunay::prepareSamples(
 	std::vector<XyzSample> samples;
 	std::size_t sampleEstimate = 0u;
 	for (const auto& fringe : ctx.input_.fringeSegments_)
-		sampleEstimate += fringe.GetPointCount() > 0 ? static_cast<std::size_t>(fringe.GetPointCount()) : 0u;
+		sampleEstimate += fringe.getPointCount() > 0 ? static_cast<std::size_t>(fringe.getPointCount()) : 0u;
 	samples.reserve(sampleEstimate);
 
 	for (const auto& fringe : ctx.input_.fringeSegments_)
 	{
-		const double z = fringe.GetNumber() / safeScaleFactor;
-		const int pointCount = fringe.GetPointCount();
+		const double z = fringe.getNumber() / safeScaleFactor;
+		const int pointCount = fringe.getPointCount();
 		for (int i = 0; i < pointCount; ++i)
 		{
-			CDPoint p = fringe.GetPoint(i);
+			aperture::Point p = fringe.getPoint(i);
 			if (!std::isfinite(p.x) || !std::isfinite(p.y) || !std::isfinite(z))
 				continue;
 			samples.push_back(XyzSample{ p.x, p.y, z });

@@ -1,6 +1,8 @@
 /**
  * @file Shape.h
  * @brief Abstract base class for all geometric shapes
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  * 
  * ## Overview
  * 

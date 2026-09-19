@@ -21,28 +21,26 @@ include(GoogleTest)
 # Common test settings
 set(TEST_LIBS fringescore GTest::gtest GTest::gtest_main)
 
-# Geometry tests
-add_executable(geometry_tests
-    geometry/PointTest.cpp
-    geometry/BoundsTest.cpp
-    geometry/EllipseTest.cpp
-    geometry/EllipseFittingTest.cpp
-    geometry/TestEllipseHelpers.cpp
-    geometry/RectangleTest.cpp
-    geometry/PolygonTest.cpp
+# fringe core tests
+add_executable(fringesegments_tests
+    FringeSegmentTest.cpp
 )
-target_link_libraries(geometry_tests PRIVATE ${TEST_LIBS})
-gtest_discover_tests(geometry_tests)
+target_link_libraries(fringesegments_tests PRIVATE ${TEST_LIBS})
+gtest_discover_tests(fringesegments_tests)
 
-# Visibility tests
-add_executable(visibility_tests
-    visibility/VisibleRegionTest.cpp
-    visibility/VisibilityCheckerTest.cpp
-    visibility/VisibilityPerformanceTest.cpp
-    visibility/BoundingCircleTest.cpp
+# auto-numbering tests
+add_executable(autonumbering_tests
+    AutoNumberingTest.cpp
 )
-target_link_libraries(visibility_tests PRIVATE ${TEST_LIBS})
-gtest_discover_tests(visibility_tests)
+target_link_libraries(autonumbering_tests PRIVATE ${TEST_LIBS})
+gtest_discover_tests(autonumbering_tests)
+
+# Interpolation tests
+add_executable(interpolation_tests
+    InterpolationTest.cpp
+)
+target_link_libraries(interpolation_tests PRIVATE ${TEST_LIBS})
+gtest_discover_tests(interpolation_tests)
 
 # Integration tests (when implemented)
 # add_executable(integration_tests

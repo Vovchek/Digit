@@ -1,6 +1,8 @@
 /**
  * @file Bounds.h
  * @brief Axis-aligned bounding box for 2D shapes
+ * @author Vladimir N. Chekal
+ * @see https://github.com/Vovchek
  * 
  * ## Key Features
  * - Axis-aligned rectangle representation

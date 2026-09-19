@@ -256,7 +256,7 @@ void CImageDoc::CalcAproximation()
 	DigitMode::CApertureCtrls* pA = GetApertureCtrls();
 	auto &aperture = pA->GetShapes();
 	
-	WavefrontFromContoursInput input(
+	isomap::WavefrontFromContoursInput input(
         aperture, 
 		Digit.Fringes,
 		Digit.GetScaleFactor(),
@@ -266,47 +266,43 @@ void CImageDoc::CalcAproximation()
 	std::string path = GetRealPath();
 	
 	// Test different solvers
-	WavefrontFromContours wf(input);
+	using Interpolation = isomap::WavefrontFromContoursSolver_Delaunay::InterpolationMethod;
+
+	isomap::WavefrontFromContours wf(input);
 	
+	auto sas = [&](const auto& solver, const auto& name) {
+		auto topogram = wf.run(solver);
+		auto file = path + "map_" + name + ".txt";
+		std::ofstream out(file);
+		out << topogram;
+		file = path + "map_" + name + ".mtr";
+		std::ofstream outMtr(file);
+		topogram.saveMtrMatrix(outMtr);
+	};
+
 	// 1. Linear interpolation
-	{
-		WavefrontFromContoursSolver_HorizontalLinear solver;
-		auto topogram = wf.run(solver);
-		
-		auto file = path + "topogram_linear.txt";
-		std::ofstream out(file);
-		out << topogram;
-		file = path + "topogram_linear.mtr";
-		std::ofstream outMtr(file);
-		topogram.saveMtrMatrix(outMtr);
-	}
+	// sas(isomap::WavefrontFromContoursSolver_HorizontalLinear{}, "HorLine");
+
+	// 2. Bilinear interpolation
+	sas(isomap::WavefrontFromContoursSolver_Bilinear{}, "Biline");
 	
-	// 2. Cubic spline interpolation
-	{
-		WavefrontFromContoursSolver_HorizontalSpline solver;
-		auto topogram = wf.run(solver);
-		
-		auto file = path + "topogram_spline.txt";
-		std::ofstream out(file);
-		out << topogram;
-		file = path + "topogram_spline.mtr";
-		std::ofstream outMtr(file);
-		topogram.saveMtrMatrix(outMtr);
-	}
+	// 3. Cubic spline interpolation
+	sas(isomap::WavefrontFromContoursSolver_HorizontalSpline{}, "HorSpline");
 
-	// 2. Delaunay interpolation
-	{
-		WavefrontFromContoursSolver_Delaunay solver;
-		auto topogram = wf.run(solver);
+	// 4. Delaunay/Decasteljau interpolation
+	sas(isomap::WavefrontFromContoursSolver_Delaunay{Interpolation::DeCasteljau}, "DeCasteljau");
 
-		auto file = path + "topogram_DCT.txt";
-		std::ofstream out(file);
-		out << topogram;
-		file = path + "topogram_DCT.mtr";
-		std::ofstream outMtr(file);
-		topogram.saveMtrMatrix(outMtr);
-	}
+	// 5. Delaunay/IDW interpolation
+	sas(isomap::WavefrontFromContoursSolver_Delaunay{ Interpolation::IDW }, "IDW");
 
+	// 6. Delaunay/LocalQuadric interpolation
+	sas(isomap::WavefrontFromContoursSolver_Delaunay{ Interpolation::LocalQuadric }, "LocalQ");
+
+	// 7. Delaunay/Barycent interpolation
+	sas(isomap::WavefrontFromContoursSolver_Delaunay{ Interpolation::Barycentric }, "Baryc");
+
+	// 8. Delaunay/Akima interpolation
+	sas(isomap::WavefrontFromContoursSolver_Delaunay{ Interpolation::AkimaBivariate }, "Akima");
 
 	//CControls* pCtrls = GetControls();
 }

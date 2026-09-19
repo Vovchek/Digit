@@ -1081,15 +1081,16 @@ BOOL CDigitInfo::Save(LPCTSTR fname, int extIdx)
 		DigitMode::CApertureCtrls* pA = GetApertureCtrls();
 		auto& aperture = pA->GetShapes();
 
-		WavefrontFromContoursInput input(
+		isomap::WavefrontFromContoursInput input(
 			aperture,
 			Fringes,
 			GetScaleFactor(),
 			GetRotation()
 		);
-		WavefrontFromContours wf(input);
-		//WavefrontFromContoursSolver_HorizontalSpline solver;
-		WavefrontFromContoursSolver_Delaunay solver;
+		isomap::WavefrontFromContours wf(input);
+		//isomap::WavefrontFromContoursSolver_HorizontalSpline solver;
+		using Interpolation = isomap::WavefrontFromContoursSolver_Delaunay::InterpolationMethod;
+		isomap::WavefrontFromContoursSolver_Delaunay solver(Interpolation::DeCasteljau);
 
 		auto topogram = wf.run(solver);
 
